@@ -1,0 +1,24 @@
+/*
+    Document   : main_interface_ie
+    Created on : 22.02.2011, 22:41:36
+    Author     : Lerayne
+    Description:
+        Purpose of the stylesheet follows.
+*/
+.col_resizer, .resizer_off {
+	width: 9px;
+}
+
+#col_0 {
+	width:15%;
+	min-width:150px;
+}
+
+#col_1 {
+	width:30%;
+	min-width:300px;
+}
+
+#col_2 {
+	min-width:300px;
+}
