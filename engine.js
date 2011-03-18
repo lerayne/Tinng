@@ -1,3 +1,6 @@
+// Глобальные переменные
+var currentTopic, maxPostId;
+
 // Универсальный класс ветки
 function Branch (contArea, topicID, parentID) {
 	if (!parentID) parentID = topicID;
@@ -321,6 +324,8 @@ function Branch (contArea, topicID, parentID) {
 							
 						}
 
+						maxPostId = result['id']*1;
+
 						cancelMsg();
 
 						// Дебажим:
@@ -421,26 +426,33 @@ function fillPosts(parent, container) {
 
 		// создаем экземпляр содержимого колонки и заполняем его
 		var block; // (в этой переменной будет храниться последний блок текущей ветки)
+		var j = 0;
 		for (var i in result) {
 			// !! в хроме почему-то аппендится в обратном порядке
 			if(!first) var first = result[i];
 			block = homeBranch.appendBlock(result[i]);
+			if (i*1 > j) j = i*1;
 		}
 
 		if (type == 'post') { // ..если это сообщения:
+			// прокрутка до указанного поста или в конец
 			var refPost;
 			if ((refPost = adress.get('message')) && ID('post_'+refPost)) {
 				ID('post_'+refPost).scrollIntoView();
 			} else {
 				homeBranch.e.scrollTop = homeBranch.e.scrollHeight; // прокручиваем до конца
 			}
-
+			// что по прокрутке делаем
 			homeBranch.e.onscroll = function(){
 				sbar.innerHTML = homeBranch.e.scrollTop+homeBranch.e.offsetHeight;
 			}
+			// пишем тему в заголовке колонки сообщения
 			// !! при переименовании уже загруженной темы она должна переименовываться также и в заголовке
 			tbar.innerHTML = txt['topic']+': '+first['topic'];
 			addClass(block, 'lastblock');
+
+			currentTopic = parent;
+			maxPostId = j;
 		}
 
 		// Дебажим:
@@ -458,14 +470,10 @@ function updater(topic, maxid){
 	var tbar = gcl('col_titlebar', ID('col_0'))[0];
 	addClass(tbar, 'tbar_throbber');
 
-	// включаем троббер
-	ID('content_0').innerHTML = '<div style="padding:10px; text-align:center">'
-		+'<img src="images/throbber-big.gif" border=0 /></div>';
-
 	// AJAX:
 	JsHttpRequest.query( 'ajax_backend.php', { // аргументы:
 
-		  action: 'wait_posts'
+		  action: 'wait_post'
 		, topic: topic
 		, maxid: maxid
 
@@ -473,16 +481,21 @@ function updater(topic, maxid){
 
 		removeClass(tbar, 'tbar_throbber');
 		ID('content_0').innerHTML = result;
+		ID('debug0').innerHTML = errors;
 
 	}, true /* запрещать кеширование */ );
 }
 
 function startEngine(){
 	fillPosts('0', ID('content_1'));
-	var currentTopic;
-	if ((currentTopic = adress.get('topic'))) fillPosts(currentTopic, ID('content_2'));
-	setTimeout('updater()', 1000);
-
+	if ((currentTopic = adress.get('topic'))){
+		fillPosts(currentTopic, ID('content_2'));
+	}
+	//setTimeout('updater()', 1000);
+	var tbar = gcl('col_titlebar', ID('col_0'))[0];
+	tbar.onclick = function(){
+		updater(currentTopic, maxPostId);
+	}
 }
 
 /*

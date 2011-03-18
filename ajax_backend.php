@@ -1,4 +1,5 @@
 <?php
+/* Файл, к которому обращаются все XHR запросы */
 
 require_once 'initial.php';
 
@@ -35,7 +36,6 @@ function make_tree($raw){
 	endforeach;
 	return $raw;
 }
-
 
 switch ($action):
 
@@ -112,14 +112,17 @@ switch ($action):
 	// ожидаем изменений
 	case 'wait_post':
 
+		$begin = time();
+
 		$topic = $_REQUEST['topic'];
-		$topic = $_REQUEST['maxid'];
+		$maxid = $_REQUEST['maxid'];
 
 		$raw = $db->selectCell(
-			'SELECT count(msg_id)
+			'SELECT COUNT( * )
+			FROM ?_messages
 			WHERE
-				msg_topic_id = ?d
-				AND msg_id > ?d
+				msg_topic_id = ? AND
+				(msg_id > ?d OR msg_created)
 			'
 			, $topic
 			, $maxid

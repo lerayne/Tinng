@@ -1,3 +1,5 @@
+/* набор универсальных функций с попыткой использовать ООП */
+
 function LocHash(){
 	this.hash = location.hash;
 
