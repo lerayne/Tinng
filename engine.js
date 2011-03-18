@@ -422,9 +422,9 @@ function fillPosts(parent, container) {
 		// создаем экземпляр содержимого колонки и заполняем его
 		var block; // (в этой переменной будет храниться последний блок текущей ветки)
 		for (var i in result) {
+			// !! в хроме почему-то аппендится в обратном порядке
 			if(!first) var first = result[i];
 			block = homeBranch.appendBlock(result[i]);
-			if (type == 'topic') alert('appended '+result[i]['id'])
 		}
 
 		if (type == 'post') { // ..если это сообщения:
@@ -452,29 +452,48 @@ function fillPosts(parent, container) {
 
 
 // эта функция будет обновлять темы
-function updater(){
+function updater(topic, maxid){
+
+	// временно в первой колонке
+	var tbar = gcl('col_titlebar', ID('col_0'))[0];
+	addClass(tbar, 'tbar_throbber');
+
 	// включаем троббер
 	ID('content_0').innerHTML = '<div style="padding:10px; text-align:center">'
 		+'<img src="images/throbber-big.gif" border=0 /></div>';
 
-	var req = new JsHttpRequest(); // начинается аякс :)
-	// что происходит после получения ответа (responseJS)
-	req.onreadystatechange = function() {if (req.readyState == 4) {
+	// AJAX:
+	JsHttpRequest.query( 'ajax_backend.php', { // аргументы:
 
-		ID('content_0').innerHTML = 'yahooo!';
+		  action: 'wait_posts'
+		, topic: topic
+		, maxid: maxid
 
-	}}
-	req.open(null, 'ajax_backend.php', true);
-	req.send({
-		action: 'wait_test'
-	});
+	}, function(result, errors) { // что делаем, когда пришел ответ:
+
+		removeClass(tbar, 'tbar_throbber');
+		ID('content_0').innerHTML = result;
+
+	}, true /* запрещать кеширование */ );
 }
 
 function startEngine(){
 	fillPosts('0', ID('content_1'));
 	var currentTopic;
-
 	if ((currentTopic = adress.get('topic'))) fillPosts(currentTopic, ID('content_2'));
-	//setTimeout(updater, 1000);
+	setTimeout('updater()', 1000);
 
 }
+
+/*
+
+// AJAX:
+JsHttpRequest.query( 'ajax_backend.php', { // аргументы:
+
+	action: 'load_posts'
+
+}, function(result, errors) { // что делаем, когда пришел ответ:
+
+}, true ); // запрещать кеширование
+
+*/

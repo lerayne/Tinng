@@ -1,3 +1,7 @@
+/* spikes.js - набор универсальных функций, облегчающих работу и/или
+ * обеспечивающих кроссбраузерность.
+ */
+
 d = new Date;
 before = d.getTime();
 
@@ -203,6 +207,7 @@ function destroy(elem){
 	elem = null;
 }
 
+// Добавляет к элементу указанному в первом аргументе дочерние элементы всех остальных аргументов
 function appendKids(){
 	var args = appendKids.arguments;
 	var parent = args[0];

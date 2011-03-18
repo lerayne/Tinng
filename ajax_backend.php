@@ -102,19 +102,30 @@ switch ($action):
 				use_gravatar
 			FROM ?_messages, ?_users, ?_user_settings
 			WHERE msg_id = ?
-			AND ?_users.usr_id = ?_user_settings.user_id',
-			$new_id
+			AND ?_users.usr_id = ?_user_settings.user_id
+			'
+			, $new_id
 		));
 
 	break;
 
 	// ожидаем изменений
 	case 'wait_post':
-		sleep(10);
 
-		$
+		$topic = $_REQUEST['topic'];
+		$topic = $_REQUEST['maxid'];
 
-		$result = Array('0' => 'result');
+		$raw = $db->selectCell(
+			'SELECT count(msg_id)
+			WHERE
+				msg_topic_id = ?d
+				AND msg_id > ?d
+			'
+			, $topic
+			, $maxid
+		);
+
+		$result = $raw;
 	break;
 
 	// сброс ожидания
