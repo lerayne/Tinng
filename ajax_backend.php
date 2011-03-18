@@ -109,8 +109,11 @@ switch ($action):
 	break;
 
 	// ожидаем изменений
-	case 'wait_test':
+	case 'wait_post':
 		sleep(10);
+
+		$
+
 		$result = Array('0' => 'result');
 	break;
 

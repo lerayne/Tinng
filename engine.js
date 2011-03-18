@@ -424,7 +424,7 @@ function fillPosts(parent, container) {
 		for (var i in result) {
 			if(!first) var first = result[i];
 			block = homeBranch.appendBlock(result[i]);
-			alert('appended '+result[i]['id'])
+			if (type == 'topic') alert('appended '+result[i]['id'])
 		}
 
 		if (type == 'post') { // ..если это сообщения:
