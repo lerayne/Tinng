@@ -1,0 +1,13 @@
+UltiComm (Ultimate Communications) also shortened to UC (pronounced as You-See) is an ambitious
+project of an online communications engine with a goal to kick out the obsolete forums technologies
+which still tend to reload the page every now-and-then and act like a page in the interface meaning.
+
+As an opposite to forums, UC will be a real web-app that doing the same task (discussions on
+specific topics) and perhaps a little more.
+
+
+Used resources:
+
+DbSimple by Dmitry Koterov, http://forum.dklab.ru/users/DmitryKoterov/
+JsHttpRequest by Dmitry Koterov, http://en.dklab.ru/lib/JsHttpRequest/
+Silk Icons by Mark James http://www.famfamfam.com/lab/icons/silk/

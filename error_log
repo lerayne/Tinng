@@ -1,0 +1,24 @@
+[02-Mar-2011 11:06:48] PHP Fatal error:  Class 'User' not found in /home/nvcg/public_html/uc/index.php on line 8
+[02-Mar-2011 20:07:07] PHP Fatal error:  Call to a member function select() on a non-object in /home/nvcg/public_html/uc/engine.php on line 20
+[02-Mar-2011 20:07:46] PHP Fatal error:  Call to a member function select() on a non-object in /home/nvcg/public_html/uc/engine.php on line 20
+[02-Mar-2011 20:09:02] PHP Fatal error:  Call to a member function select() on a non-object in /home/nvcg/public_html/uc/engine.php on line 20
+[02-Mar-2011 20:09:27] PHP Fatal error:  Call to a member function select() on a non-object in /home/nvcg/public_html/uc/engine.php on line 20
+[02-Mar-2011 20:10:37] PHP Fatal error:  Call to a member function select() on a non-object in /home/nvcg/public_html/uc/engine.php on line 20
+[04-Mar-2011 18:15:00] PHP Fatal error:  Call to a member function setErrorHandler() on a non-object in /home/nvcg/public_html/uc/initial.php on line 7
+[04-Mar-2011 18:16:33] PHP Fatal error:  Call to a member function setErrorHandler() on a non-object in /home/nvcg/public_html/uc/initial.php on line 7
+[04-Mar-2011 18:16:34] PHP Fatal error:  Call to a member function setErrorHandler() on a non-object in /home/nvcg/public_html/uc/initial.php on line 7
+[04-Mar-2011 18:16:50] PHP Fatal error:  Call to a member function setErrorHandler() on a non-object in /home/nvcg/public_html/uc/initial.php on line 7
+[07-Mar-2011 23:56:17] PHP Warning:  Invalid argument supplied for foreach() in /home/nvcg/public_html/uc/views/full_main_view.php on line 32
+[08-Mar-2011 07:14:54] PHP Fatal error:  Maximum execution time of 30 seconds exceeded in /home/nvcg/public_html/uc/libraries/DbSimple/Generic.php on line 956
+[08-Mar-2011 07:19:32] PHP Fatal error:  Maximum execution time of 30 seconds exceeded in /home/nvcg/public_html/uc/libraries/DbSimple/Mysql.php on line 175
+[09-Mar-2011 17:21:39] PHP Fatal error:  Call to a member function selectCell() on a non-object in /home/nvcg/public_html/uc/engine.php on line 126
+[09-Mar-2011 17:29:01] PHP Fatal error:  Call to a member function selectCell() on a non-object in /home/nvcg/public_html/uc/engine.php on line 126
+[09-Mar-2011 17:29:54] PHP Fatal error:  Call to a member function selectCell() on a non-object in /home/nvcg/public_html/uc/engine.php on line 126
+[10-Mar-2011 15:11:39] PHP Warning:  Invalid argument supplied for foreach() in /home/nvcg/public_html/uc/engine.php on line 141
+[10-Mar-2011 15:12:22] PHP Warning:  Invalid argument supplied for foreach() in /home/nvcg/public_html/uc/engine.php on line 141
+[10-Mar-2011 15:13:18] PHP Warning:  Invalid argument supplied for foreach() in /home/nvcg/public_html/uc/engine.php on line 141
+[10-Mar-2011 15:14:33] PHP Warning:  Invalid argument supplied for foreach() in /home/nvcg/public_html/uc/engine.php on line 141
+[17-Mar-2011 13:12:12] PHP Fatal error:  Can't use method return value in write context in /home/nvcg/public_html/uc/php/classes.php on line 8
+[17-Mar-2011 13:12:16] PHP Fatal error:  Can't use method return value in write context in /home/nvcg/public_html/uc/php/classes.php on line 8
+[17-Mar-2011 18:06:28] PHP Warning:  dl() [<a href='function.dl'>function.dl</a>]: Unable to load dynamic library '/usr/local/lib/php/extensions/no-debug-non-zts-20060613/xdiff.so' - /usr/local/lib/php/extensions/no-debug-non-zts-20060613/xdiff.so: cannot open shared object file: No such file or directory in /home/nvcg/public_html/uc/info.php on line 3
+[17-Mar-2011 18:06:30] PHP Warning:  dl() [<a href='function.dl'>function.dl</a>]: Unable to load dynamic library '/usr/local/lib/php/extensions/no-debug-non-zts-20060613/xdiff.so' - /usr/local/lib/php/extensions/no-debug-non-zts-20060613/xdiff.so: cannot open shared object file: No such file or directory in /home/nvcg/public_html/uc/info.php on line 3
