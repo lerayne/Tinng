@@ -1,5 +1,5 @@
 // Глобальные переменные
-var currentTopic, maxPostId;
+var currentTopic, maxPostDate;
 
 // Универсальный класс ветки
 function Branch (contArea, topicID, parentID) {
@@ -94,6 +94,8 @@ function Branch (contArea, topicID, parentID) {
 					args[j][1].innerHTML = result[j][jsonArgs[j]['field']];
 					created.innerHTML = txt['modified'] + result[j]['msg_modified'];
 					removeClass(args[j][1], 'updating');
+
+					maxPostDate = sql2stamp(result[j]['msg_modified']);
 				}
 
 			}, true /* запрещать кеширование */ );
@@ -324,7 +326,7 @@ function Branch (contArea, topicID, parentID) {
 							
 						}
 
-						maxPostId = result['id']*1;
+						maxPostDate = sql2stamp(result['created']);
 
 						cancelMsg();
 
@@ -428,10 +430,11 @@ function fillPosts(parent, container) {
 		var block; // (в этой переменной будет храниться последний блок текущей ветки)
 		var j = 0;
 		for (var i in result) {
-			// !! в хроме почему-то аппендится в обратном порядке
 			if(!first) var first = result[i];
 			block = homeBranch.appendBlock(result[i]);
-			if (i*1 > j) j = i*1;
+			if (sql2stamp(result[i]['created']) > j) j = sql2stamp(result[i]['created']);
+			if (result[i]['modified'] && sql2stamp(result[i]['modified']) > j)
+				j = sql2stamp(result[i]['modified']);
 		}
 
 		if (type == 'post') { // ..если это сообщения:
@@ -452,7 +455,7 @@ function fillPosts(parent, container) {
 			addClass(block, 'lastblock');
 
 			currentTopic = parent;
-			maxPostId = j;
+			maxPostDate = j;//new Date(j).toString();
 		}
 
 		// Дебажим:
@@ -464,18 +467,23 @@ function fillPosts(parent, container) {
 
 
 // эта функция будет обновлять темы
-function updater(topic, maxid){
+function updater(topic, maxdate){
 
 	// временно в первой колонке
 	var tbar = gcl('col_titlebar', ID('col_0'))[0];
 	addClass(tbar, 'tbar_throbber');
+	var count = 0;
+
+	//while(1 == 1){
+	setInterval(function(){ID("content_0").innerHTML = count++}, 1000);
+	//}
 
 	// AJAX:
 	JsHttpRequest.query( 'ajax_backend.php', { // аргументы:
 
 		  action: 'wait_post'
 		, topic: topic
-		, maxid: maxid
+		, maxdate: maxdate
 
 	}, function(result, errors) { // что делаем, когда пришел ответ:
 
@@ -494,7 +502,7 @@ function startEngine(){
 	//setTimeout('updater()', 1000);
 	var tbar = gcl('col_titlebar', ID('col_0'))[0];
 	tbar.onclick = function(){
-		updater(currentTopic, maxPostId);
+		updater(currentTopic, maxPostDate);
 	}
 }
 

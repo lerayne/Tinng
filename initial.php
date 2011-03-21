@@ -13,8 +13,7 @@ $db->setIdentPrefix('jawi_');
 
 // заглушка аутентификации
 $user = new User ($db->selectRow(
-	'SELECT * FROM ?_users, ?_user_settings
-	WHERE usr_hash=? AND ?_users.usr_id = ?_user_settings.user_id'
+	'SELECT * FROM ?_users, ?_user_settings WHERE usr_hash = ? AND usr_id = uset_user'
 	, md5('globus')
 ));
 
