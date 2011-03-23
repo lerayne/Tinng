@@ -1,5 +1,6 @@
 <?php
 /* Файл, к которому обращаются все XHR запросы */
+$cfg['wait_time'] = 3;
 
 require_once 'initial.php';
 
@@ -44,7 +45,6 @@ switch ($action):
 
 		$result = make_tree($db->select('
 			SELECT
-				msg_id AS ARRAY_KEY,
 				msg_id AS id,
 				msg_author AS author_id,
 				msg_parent AS parent,
@@ -54,12 +54,12 @@ switch ($action):
 				msg_created AS created,
 				msg_modified AS modified,
 				usr_email AS author_email,
-				use_gravatar AS use_gravatar
+				uset_gravatar AS use_gravatar
 			FROM ?_messages, ?_users, ?_user_settings
 			WHERE
 				msg_author = usr_id
 				AND (msg_topic_id = ? { OR msg_id = ? })
-				AND ?_users.usr_id = ?_user_settings.user_id
+				AND usr_id = uset_user
 			ORDER BY msg_created '.($id == '0' ? 'DESC' : 'ASC')
 			, $id
 			,($id == '0') ? DBSIMPLE_SKIP : $id
@@ -89,7 +89,6 @@ switch ($action):
 
 		$result = ready_row($db->selectRow('
 			SELECT
-				msg_id AS ARRAY_KEY,
 				msg_id AS id,
 				msg_author AS author_id,
 				msg_parent AS parent,
@@ -99,10 +98,10 @@ switch ($action):
 				msg_created AS created,
 				msg_modified AS modified,
 				usr_email AS author_email,
-				use_gravatar
+				uset_gravatar AS use_gravatar
 			FROM ?_messages, ?_users, ?_user_settings
 			WHERE msg_id = ?
-			AND ?_users.usr_id = ?_user_settings.user_id
+			AND usr_id = uset_user
 			'
 			, $new_id
 		));
@@ -113,22 +112,22 @@ switch ($action):
 	case 'wait_post':
 
 		$begin = time();
+		$wait_time = 29;
 
 		$topic = $_REQUEST['topic'];
-		$maxid = $_REQUEST['maxid'];
+		$maxdate = date('Y-m-d H:i:s', substr($_REQUEST['maxdate'], 0, strlen($_REQUEST['maxdate'])-3));
 
-		$raw = $db->selectCell(
-			'SELECT COUNT( * )
-			FROM ?_messages
-			WHERE
-				msg_topic_id = ? AND
-				(msg_id > ?d OR msg_created)
-			'
-			, $topic
-			, $maxid
-		);
+		do {
+			$raw = $db->selectCell(
+				'SELECT COUNT( * ) AS new
+				FROM ?_messages
+				WHERE msg_topic_id = ? AND (msg_created > ? OR msg_modified > ?)'
+				, $topic , $maxdate , $maxdate
+			);
+			sleep($cfg['wait_time']);
+		} while ($raw == '0' && (time() - $begin) < $wait_time);
 
-		$result = $raw;
+		$result = $maxdate.'<br>'.$raw;
 	break;
 
 	// сброс ожидания
@@ -169,11 +168,11 @@ endswitch;
 
 $GLOBALS['_RESULT'] = $result;
 
-/*echo'
+echo'
 <pre>
 <b>Request method:</b>'.$_SERVER['REQUEST_METHOD']."\n
 <b>Loader used:</b>". $req->LOADER."\n
 <b>_REQUEST:</b>". print_r($_REQUEST, 1)."\n
 <b>_RESULT:</b> ". print_r($GLOBALS['_RESULT'], 1)."
-</pre>";*/
+</pre>";
 ?>

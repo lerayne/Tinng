@@ -29,6 +29,13 @@ var is_ie9 = is_ie && ua.indexOf('msie 9') != -1;
 var is_phone = ua.indexOf('iphone') != -1 || ua.indexOf('ipod') != -1;
 
 
+function sql2stamp(str){
+	var str1 = str.split(' ');
+	var dates = str1[0].split('-');
+	var times = str1[1].split(':');
+	return new Date(dates[0], dates[1]-1, dates[2], times[0], times[1], times[2]).getTime();
+}
+
 
 // ФУНКЦИИ ГЛОБАЛЬНЫХ ОБЪЕКТОВ
 
@@ -492,10 +499,10 @@ function md5 ( str ) {	// Calculate the md5 hash of a string
 			}
 		};
 
-	var F = function(x,y,z) { return (x & y) | ((~x) & z); };
-	var G = function(x,y,z) { return (x & z) | (y & (~z)); };
-	var H = function(x,y,z) { return (x ^ y ^ z); };
-	var I = function(x,y,z) { return (y ^ (x | (~z))); };
+	var F = function(x,y,z) {return (x & y) | ((~x) & z);};
+	var G = function(x,y,z) {return (x & z) | (y & (~z));};
+	var H = function(x,y,z) {return (x ^ y ^ z);};
+	var I = function(x,y,z) {return (y ^ (x | (~z)));};
 
 	var FF = function(a,b,c,d,x,s,ac) {
 			a = AddUnsigned(a, AddUnsigned(AddUnsigned(F(b, c, d), x), ac));
@@ -559,10 +566,10 @@ function md5 ( str ) {	// Calculate the md5 hash of a string
 
 	str = this.utf8_encode(str);
 	x = ConvertToWordArray(str);
-	a = 0x67452301; b = 0xEFCDAB89; c = 0x98BADCFE; d = 0x10325476;
+	a = 0x67452301;b = 0xEFCDAB89;c = 0x98BADCFE;d = 0x10325476;
 
 	for (k=0;k<x.length;k+=16) {
-		AA=a; BB=b; CC=c; DD=d;
+		AA=a;BB=b;CC=c;DD=d;
 		a=FF(a,b,c,d,x[k+0], S11,0xD76AA478);
 		d=FF(d,a,b,c,x[k+1], S12,0xE8C7B756);
 		c=FF(c,d,a,b,x[k+2], S13,0x242070DB);
