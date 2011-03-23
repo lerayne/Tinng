@@ -1,5 +1,18 @@
 // Глобальные переменные
 var currentTopic, maxPostDate;
+var branches = {};
+
+function console(string){
+	var date = new Date();
+	var h = date.getHours();
+	var m = date.getMinutes();
+	var s = date.getSeconds();
+	ID('console').innerHTML =
+		(h < 10 ? '0'+h : h)+':'+
+		(m < 10 ? '0'+m : m)+':'+
+		(s < 10 ? '0'+s : s)+' - '+
+		string+'<br>'+ID('console').innerHTML;
+}
 
 // Универсальный класс ветки
 function Branch (contArea, topicID, parentID) {
@@ -408,10 +421,6 @@ function fillPosts(parent, container) {
 	var d = new Date;
 	var before = d.getTime();
 
-	var load = function(){
-		return;
-	}
-
 	// AJAX:
 	JsHttpRequest.query( 'ajax_backend.php', { // аргументы:
 
@@ -422,7 +431,8 @@ function fillPosts(parent, container) {
 
 		container.innerHTML = '';
 		removeClass(tbar, 'tbar_throbber');
-		var homeBranch = new Branch (container, parent);
+		if (type == 'post') branches = {};
+		branches[parent] = new Branch (container, parent);
 
 		sbar.innerHTML = finalizeTime(before)+'ms';
 
@@ -431,7 +441,7 @@ function fillPosts(parent, container) {
 		var j = 0;
 		for (var i in result) {
 			if(!first) var first = result[i];
-			block = homeBranch.appendBlock(result[i]);
+			block = branches[parent].appendBlock(result[i]);
 			if (sql2stamp(result[i]['created']) > j) j = sql2stamp(result[i]['created']);
 			if (result[i]['modified'] && sql2stamp(result[i]['modified']) > j)
 				j = sql2stamp(result[i]['modified']);
@@ -443,11 +453,11 @@ function fillPosts(parent, container) {
 			if ((refPost = adress.get('message')) && ID('post_'+refPost)) {
 				ID('post_'+refPost).scrollIntoView();
 			} else {
-				homeBranch.e.scrollTop = homeBranch.e.scrollHeight; // прокручиваем до конца
+				branches[parent].e.scrollTop = branches[parent].e.scrollHeight; // прокручиваем до конца
 			}
 			// что по прокрутке делаем
-			homeBranch.e.onscroll = function(){
-				sbar.innerHTML = homeBranch.e.scrollTop+homeBranch.e.offsetHeight;
+			branches[parent].e.onscroll = function(){
+				sbar.innerHTML = branches[parent].e.scrollTop+branches[parent].e.offsetHeight;
 			}
 			// пишем тему в заголовке колонки сообщения
 			// !! при переименовании уже загруженной темы она должна переименовываться также и в заголовке
@@ -460,38 +470,129 @@ function fillPosts(parent, container) {
 
 		// Дебажим:
 		ID('debug').innerHTML = errors;
-		sbar.innerHTML += ' | '+homeBranch.e.scrollTop;
+		sbar.innerHTML += ' | '+branches[parent].e.scrollTop;
 
 	}, true /* запрещать кеширование */ );
 }
 
 
 // эта функция будет обновлять темы
-function updater(topic, maxdate){
+function long_updater(topic, maxdate){
 
 	// временно в первой колонке
 	var tbar = gcl('col_titlebar', ID('col_0'))[0];
 	addClass(tbar, 'tbar_throbber');
-	var count = 0;
+	var count = 1;
 
-	//while(1 == 1){
-	setInterval(function(){ID("content_0").innerHTML = count++}, 1000);
-	//}
+	var interval = setInterval(function(){ID('content_0').innerHTML = count++}, 1000);
 
 	// AJAX:
-	JsHttpRequest.query( 'ajax_backend.php', { // аргументы:
+	var req = new JsHttpRequest();
+	req.onreadystatechange = function() {if (req.readyState == 4) {
 
-		  action: 'wait_post'
+		clearInterval(interval);
+		removeClass(tbar, 'tbar_throbber');
+		ID('content_0').innerHTML = req.responseJS;
+		ID('debug0').innerHTML = req.responseText;
+
+	}}
+	req.open(null, 'ajax_backend.php', true);
+	req.send({
+
+		action: 'long_wait_post'
 		, topic: topic
 		, maxdate: maxdate
 
-	}, function(result, errors) { // что делаем, когда пришел ответ:
+	});
+
+	return req;
+}
+
+function Updater(){
+
+	var wtime = cfg['posts_update_timer']*1000;
+
+	var interv, count, row, branch;
+
+	var update = function (topic, maxdate){
+
+		var tbar = gcl('col_titlebar', ID('col_2'))[0];
+		addClass(tbar, 'tbar_throbber');
+
+		// AJAX:
+		JsHttpRequest.query( 'ajax_backend.php', { // аргументы:
+
+			action: 'wait_post'
+			, topic: topic
+			, maxdate: maxdate
+
+		}, function(result, errors) { // что делаем, когда пришел ответ:
 
 		removeClass(tbar, 'tbar_throbber');
-		ID('content_0').innerHTML = result;
-		ID('debug0').innerHTML = errors;
 
-	}, true /* запрещать кеширование */ );
+			if (result){
+
+				count = result.length;
+
+				for (var i in result){ row = result[i];
+					
+					if (!branches[row['parent']]) return; // если ветки с таким идентификатором нет
+					branch = branches[row['parent']];
+
+					if (ID('post_'+row['id'])){
+						// пост уже существует и загружен в колонке
+						// примечание: при написании динамической подгрузки это придется изменить
+						return
+					} else { // поста с таким айди нет, значит это новый пост
+
+						branch.appendBlock(row);
+						wait.restart();
+						// !! при этом в функцию не попадают новые значения глобальных
+						// переменных currentTopic и maxPostDate, а при загрузке новой темы - почему-то попадают
+
+					}
+				}
+
+			} else {
+
+				count = 0;
+
+			}
+
+			console('posts update request sent, returned '+count+' changes');
+			ID('debug0').innerHTML = errors;
+
+		}, true ); // запрещать кеширование
+	}
+
+	this.start = function(){
+		if (interv) {
+			colsole('waiter can not be started, because it is allready running');
+			return;
+		}
+		console('waiter started');
+
+		setTimeout(function(){update(currentTopic, maxPostDate);}, 1000);
+		setTimeout(function(){return;}, wtime-1000);
+		interv = setInterval(function(){update(currentTopic, maxPostDate);}, wtime);
+	}
+
+	this.stop = function(){
+		if (!interv){
+			console ('saiter is not running, cant stop');
+			return;
+		}
+		clearInterval(interv);
+		interv = null;
+		console ('waiter stopped');
+	}
+
+	this.restart = function(){
+		this.stop();
+		this.start();
+	}
+
+	this.start();
 }
 
 function startEngine(){
@@ -499,11 +600,14 @@ function startEngine(){
 	if ((currentTopic = adress.get('topic'))){
 		fillPosts(currentTopic, ID('content_2'));
 	}
-	//setTimeout('updater()', 1000);
+
 	var tbar = gcl('col_titlebar', ID('col_0'))[0];
-	tbar.onclick = function(){
-		updater(currentTopic, maxPostDate);
-	}
+	var mbar = gcl('col_menubar', ID('col_0'))[0];
+
+	wait = new Updater;
+
+	tbar.onclick = wait.stop;
+	mbar.onclick = wait.start;
 }
 
 /*
@@ -516,5 +620,20 @@ JsHttpRequest.query( 'ajax_backend.php', { // аргументы:
 }, function(result, errors) { // что делаем, когда пришел ответ:
 
 }, true ); // запрещать кеширование
+
+===============
+
+var req = new JsHttpRequest();
+req.onreadystatechange = function() { if (req.readyState == 4) {
+
+
+
+}}
+req.open(null, 'ajax_backend.php', true);
+req.send({
+
+	action: 'wait_post'
+
+});
 
 */

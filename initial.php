@@ -1,6 +1,7 @@
 <?php
 /* Подключаемый файл, который входит как в бекенд для XHR, так и в осовной php-скрипт */
 
+require_once 'config.php';
 require_once 'php/spikes.php';
 require_once 'locale/ru.php';
 require_once 'php/classes.php';

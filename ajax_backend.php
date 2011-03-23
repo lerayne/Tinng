@@ -4,8 +4,8 @@ $cfg['wait_time'] = 3;
 
 require_once 'initial.php';
 
-/*session_name('uc_ajax');
-session_start();*/
+//session_name('uc_ajax');
+//session_start();
 
 function databaseErrorHandler($message, $info)
 {
@@ -109,10 +109,10 @@ switch ($action):
 	break;
 
 	// ожидаем изменений
-	case 'wait_post':
+	case 'long_wait_post':
 
 		$begin = time();
-		$wait_time = 29;
+		$wait_time = ini_get('max_execution_time')-5;
 
 		$topic = $_REQUEST['topic'];
 		$maxdate = date('Y-m-d H:i:s', substr($_REQUEST['maxdate'], 0, strlen($_REQUEST['maxdate'])-3));
@@ -128,6 +128,46 @@ switch ($action):
 		} while ($raw == '0' && (time() - $begin) < $wait_time);
 
 		$result = $maxdate.'<br>'.$raw;
+
+	break;
+
+
+	case 'wait_post':
+
+		$topic = $_REQUEST['topic'];
+		$maxdate = date('Y-m-d H:i:s', substr($_REQUEST['maxdate'], 0, strlen($_REQUEST['maxdate'])-3));
+
+		$number = $db->selectCell(
+			'SELECT COUNT( * ) AS new FROM ?_messages
+			WHERE (msg_topic_id = ?d OR msg_id = ?d) AND (msg_created > ? OR msg_modified > ?)'
+			, $topic , $topic , $maxdate , $maxdate
+		);
+
+		if (intval($number) > 0):
+
+			$result = make_tree($db->select('
+				SELECT
+					msg_id AS id,
+					msg_author AS author_id,
+					msg_parent AS parent,
+					msg_topic_id AS topic_id,
+					msg_topic AS topic,
+					msg_body AS message,
+					msg_created AS created,
+					msg_modified AS modified,
+					usr_email AS author_email,
+					uset_gravatar AS use_gravatar
+				FROM ?_messages, ?_users, ?_user_settings
+				WHERE
+					msg_author = usr_id
+					AND usr_id = uset_user
+					AND (msg_topic_id = ? OR msg_id = ?)
+					AND (msg_created > ? OR msg_modified > ?)'
+				, $topic , $topic , $maxdate , $maxdate
+			));
+
+		endif;
+
 	break;
 
 	// сброс ожидания
