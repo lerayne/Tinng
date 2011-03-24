@@ -6,11 +6,12 @@ require_once 'php/spikes.php';
 require_once 'locale/ru.php';
 require_once 'php/classes.php';
 require_once 'libraries/DbSimple/Generic.php';
-$db = DbSimple_Generic::connect('mysql://nvcg_main:maedanaena84@localhost/nvcg_topictalk');
+
+$db = DbSimple_Generic::connect($safecfg['db']);
 $db->query('SET NAMES "utf8"');
 
 $db->setErrorHandler('databaseErrorHandler');
-$db->setIdentPrefix('jawi_');
+$db->setIdentPrefix($safecfg['db_prefix'].'_');
 
 // заглушка аутентификации
 $user = new User ($db->selectRow(

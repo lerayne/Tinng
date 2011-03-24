@@ -41,6 +41,16 @@ function stamp2sql(str){
 	return date.toLocaleFormat('%Y-%m-%d %H:%M:%S');
 }
 
+// возвращает количество секунд (с дробной частью), прошедших с момента date
+function getTimeDiff(date){
+	var date2 = new Date();
+	var diff = new Date(date2 - date);
+	var ms = diff.getMilliseconds();
+	if (ms*1 < 10) ms = '0'+ms;
+	if (ms*1 < 100) ms = '0'+ms;
+	return diff.getSeconds()+'.'+ms;
+}
+
 
 // ФУНКЦИИ ГЛОБАЛЬНЫХ ОБЪЕКТОВ
 
@@ -158,12 +168,14 @@ function childElems(refNode, certainTag, certainClass){
 
 // возвращает следующий элемент (не любую ноду!)
 function nextElem(refNode) {
+	if (refNode.nextSibling == null) return false;
 	do {refNode = refNode.nextSibling;} while (refNode.nodeType != 1);
 	return refNode;
 }
 
 // возвращает предыдущий элемент (не любую ноду!)
 function prevElem(refNode) {
+	if (refNode.previousSibling == null) return false;
 	do {refNode = refNode.previousSibling;} while (refNode.nodeType != 1);
 	return refNode;
 }

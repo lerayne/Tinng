@@ -7,8 +7,7 @@ require_once 'initial.php';
 //session_name('uc_ajax');
 //session_start();
 
-function databaseErrorHandler($message, $info)
-{
+function databaseErrorHandler($message, $info) {
     //if (!error_reporting()) return;
     echo "SQL Error: $message<br><pre>"; print_r($info); echo "</pre>";
     //exit();
@@ -43,8 +42,17 @@ switch ($action):
 	// запрашиваем сообщения
 	case 'load_posts':
 
-		$result = make_tree($db->select('
-			SELECT
+		$result['maxdate'] = $db->selectCell(
+			'SELECT GREATEST(MAX(msg_created), MAX(msg_modified)) FROM ?_messages
+			WHERE msg_id = ? OR msg_topic_id = ?' , $id , $id
+		);
+
+		$result['topic'] = $db->selectCell(
+			'SELECT msg_topic FROM ?_messages WHERE msg_id = ?', $id
+		);
+
+		$result['data'] = make_tree($db->select(
+			'SELECT
 				msg_id AS id,
 				msg_author AS author_id,
 				msg_parent AS parent,
@@ -224,11 +232,11 @@ endswitch;
 
 $GLOBALS['_RESULT'] = $result;
 
-echo'
+/*echo'
 <pre>
 <b>Request method:</b>'.$_SERVER['REQUEST_METHOD']."\n
 <b>Loader used:</b>". $req->LOADER."\n
 <b>_REQUEST:</b>". print_r($_REQUEST, 1)."\n
 <b>_RESULT:</b> ". print_r($GLOBALS['_RESULT'], 1)."
-</pre>";
+</pre>";*/
 ?>

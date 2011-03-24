@@ -6,7 +6,7 @@ $txt['of_the_topic'] = 'темы';
 $txt['topic'] = 'Тема';
 $txt['modified'] = 'изменено ';
 
-$txt['from'] = 'от ';
+$txt['from'] = '';
 
 $txt['explain_addbranch'] = 'Ответить на это сообщение';
 $txt['explain_plainanswer'] = 'Ответить на это сообщение';

@@ -386,6 +386,8 @@ function Branch (contArea, topicID, parentID) {
 	this.appendBlock = function(row){
 		var block = branch.createBlock(row);
 		branch.cont.appendChild(block);
+		addClass(block, 'lastblock');
+		if (prevElem(block)) removeClass(prevElem(block), 'lastblock');
 		return block;
 	}
 }
@@ -423,15 +425,12 @@ function fillPosts(parent, container) {
 		var cont = branches[parent];
 		
 		// создаем экземпляр содержимого колонки и заполняем его
-		var block; // (в этой переменной будет храниться последний блок текущей ветки)
-		var j = 0;
-		for (var i in result) {
-			if(!first) var first = result[i];
-			block = cont.appendBlock(result[i]);
-			if (sql2stamp(result[i]['created']) > j) j = sql2stamp(result[i]['created']);
-			if (result[i]['modified'] && sql2stamp(result[i]['modified']) > j)
-				j = sql2stamp(result[i]['modified']);
+
+		for (var i in result['data']) {
+			cont.appendBlock(result['data'][i]);
 		}
+
+		maxPostDate = sql2stamp(result['maxdate']);
 
 		// прокрутка до указанного поста или в конец
 		var refPost;
@@ -446,16 +445,17 @@ function fillPosts(parent, container) {
 		}
 		// пишем тему в заголовке колонки сообщения
 		// !! при переименовании уже загруженной темы она должна переименовываться также и в заголовке
-		tbar.innerHTML = txt['topic']+': '+first['topic'];
-		addClass(block, 'lastblock');
+		tbar.innerHTML = txt['topic']+': '+result['topic'];
 
 		currentTopic = parent;
-		maxPostDate = j;//new Date(j).toString();
-		if (!wait.interv) wait.start();
+
+		console('posts loaded for topic '+parent+' ('+result['topic'].replace('<br>','')+')');
+		if (!wait.interv) wait.start('cold');
 
 		sbar.innerHTML = finalizeTime(before)+'ms';
 
 		// Дебажим:
+
 		ID('debug').innerHTML = errors;
 		sbar.innerHTML += ' | '+cont.e.scrollTop;
 
@@ -492,12 +492,14 @@ function fillTopics(){
 		sbar.innerHTML = finalizeTime(before)+'ms';
 
 		// создаем экземпляр содержимого колонки и заполняем его
-		for (var i in result) {
-			if(!first) var first = result[i];
-			cont.appendBlock(result[i]);
+		for (var i in result['data']) {
+			if(!first) var first = result['data'][i];
+			cont.appendBlock(result['data'][i]);
 		}
 
 		// Дебажим:
+		console('topic list loaded');
+
 		ID('debug').innerHTML = errors;
 		sbar.innerHTML += ' | '+cont.e.scrollTop;
 
@@ -542,17 +544,16 @@ function long_updater(topic, maxdate){
 function Updater(){
 
 	var wait = this;
-
 	var wtime = cfg['posts_update_timer']*1000;
-
 	this.interv = null;
-
-	var interv, row, branch;
+	var row, branch;
+	var tbar = gcl('col_titlebar', ID('col_2'))[0];
 
 	var update = function (topic, maxdate){
 
-		var tbar = gcl('col_titlebar', ID('col_2'))[0];
-		addClass(tbar, 'tbar_throbber');
+		addClass(tbar, 'tbar_updating');
+
+		var date = new Date();
 
 		console(stamp2sql(maxdate)+' -> request sent');
 
@@ -565,7 +566,7 @@ function Updater(){
 
 		}, function(result, errors) { // что делаем, когда пришел ответ:
 
-		removeClass(tbar, 'tbar_throbber');
+		console(result['console']+' changes returned in '+getTimeDiff(date)+' seconds');
 
 /*
 			if (result['data']){
@@ -590,21 +591,26 @@ function Updater(){
 				}
 			}
 */
-			console(result['console']+' changes returned');
+
+			removeClass(tbar, 'tbar_updating');
 			ID('debug0').innerHTML = errors;
 
 		}, true ); // запрещать кеширование
 	}
 
-	this.start = function(){
+	this.start = function(cold){
 		if (wait.interv) {
 			colsole('waiter can not be started, because it is allready running');
 			return;
 		}
-		console('waiter started');
 
-		setTimeout(function(){update(currentTopic, maxPostDate);}, 1000);
-		setTimeout(function(){return;}, wtime-1000);
+		addClass(tbar, 'tbar_waiting');
+
+		if (cold != 'cold'){
+			console('waiter started (hot start)');
+			setTimeout(function(){update(currentTopic, maxPostDate);}, 1000);
+		} else console('waiter started (cold start)');
+
 		wait.interv = setInterval(function(){update(currentTopic, maxPostDate);}, wtime);
 	}
 
@@ -613,6 +619,7 @@ function Updater(){
 			console ('waiter is not running, cant stop');
 			return;
 		}
+		removeClass(tbar, 'tbar_waiting');
 		clearInterval(wait.interv);
 		wait.interv = null;
 		console ('waiter stopped');
@@ -621,6 +628,11 @@ function Updater(){
 	this.restart = function(){
 		this.stop();
 		this.start();
+	}
+
+	this.toggle = function(){
+		if (wait.interv) wait.stop();
+		else wait.start();
 	}
 }
 
@@ -633,11 +645,9 @@ function startEngine(){
 		fillPosts(currentTopic, ID('content_2'));
 	}
 
-	var tbar = gcl('col_titlebar', ID('col_0'))[0];
-	var mbar = gcl('col_menubar', ID('col_0'))[0];
+	var tbar = gcl('col_titlebar', ID('col_2'))[0];
 
-	tbar.onclick = wait.stop;
-	mbar.onclick = wait.start;
+	tbar.onclick = wait.toggle;
 }
 
 /*

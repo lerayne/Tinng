@@ -247,6 +247,8 @@ td.collapsed {
 	background-repeat: no-repeat;
 }
 
+.tbar_waiting {background-image: url(../images/waiting.png);}
+.tbar_updating {background-image: url(../images/updating.png);}
 .tbar_throbber {background-image: url(../images/throbber-white.gif);}
 
 .col_menubar {
