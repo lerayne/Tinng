@@ -60,6 +60,7 @@ switch ($action):
 				msg_author = usr_id
 				AND (msg_topic_id = ? { OR msg_id = ? })
 				AND usr_id = uset_user
+				AND msg_deleted <=> NULL
 			ORDER BY msg_created '.($id == '0' ? 'DESC' : 'ASC')
 			, $id
 			,($id == '0') ? DBSIMPLE_SKIP : $id
@@ -155,6 +156,7 @@ switch ($action):
 					msg_body AS message,
 					msg_created AS created,
 					msg_modified AS modified,
+					msg_deleted AS deleted,
 					usr_email AS author_email,
 					uset_gravatar AS use_gravatar
 				FROM ?_messages, ?_users, ?_user_settings
@@ -170,19 +172,13 @@ switch ($action):
 
 	break;
 
-	// сброс ожидания
-	case 'stop_waiting':
-		$_SESSION['exit_turmoil'] = 'yes';
-		$result = Array('0' => $_SESSION['exit_turmoil']);
-	break;
-
 	// обновляем N ячеек в строке
 	case 'update':
 		$fields = $_REQUEST['fields'];
 
 		foreach ($fields as $key => $val):
 			$db->query(
-				'UPDATE ?_messages SET ?# = ?, msg_modified = ? WHERE msg_id = ?'
+				'UPDATE ?_messages SET ?# = ?, msg_modified = ? WHERE msg_id = ?d'
 				, $val['field']
 				, safe_str($val['data'])
 				, date('Y-m-d H:i:s')
@@ -199,7 +195,8 @@ switch ($action):
 	// удаляем одно сообщение
 	case 'delete':
 		$result['confirmed'] = $db->query(
-			'DELETE FROM ?_messages WHERE msg_id = ?'
+			'UPDATE ?_messages SET msg_deleted = 1, msg_modified = ? WHERE msg_id = ?d'
+			, date('Y-m-d H:i:s')
 			, $id
 		);
 	break;

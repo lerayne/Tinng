@@ -533,7 +533,7 @@ function Updater(){
 			if (result){
 
 				count = result.length;
-
+/*
 				for (var i in result){ row = result[i];
 					
 					if (!branches[row['parent']]) return; // если ветки с таким идентификатором нет
@@ -552,7 +552,7 @@ function Updater(){
 
 					}
 				}
-
+*/
 			} else {
 
 				count = 0;
