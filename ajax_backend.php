@@ -4,8 +4,8 @@ $cfg['wait_time'] = 3;
 
 require_once 'initial.php';
 
-/*session_name('uc_ajax');
-session_start();*/
+//session_name('uc_ajax');
+//session_start();
 
 function databaseErrorHandler($message, $info)
 {
@@ -60,6 +60,7 @@ switch ($action):
 				msg_author = usr_id
 				AND (msg_topic_id = ? { OR msg_id = ? })
 				AND usr_id = uset_user
+				AND msg_deleted <=> NULL
 			ORDER BY msg_created '.($id == '0' ? 'DESC' : 'ASC')
 			, $id
 			,($id == '0') ? DBSIMPLE_SKIP : $id
@@ -109,10 +110,10 @@ switch ($action):
 	break;
 
 	// ожидаем изменений
-	case 'wait_post':
+	case 'long_wait_post':
 
 		$begin = time();
-		$wait_time = 29;
+		$wait_time = ini_get('max_execution_time')-5;
 
 		$topic = $_REQUEST['topic'];
 		$maxdate = date('Y-m-d H:i:s', substr($_REQUEST['maxdate'], 0, strlen($_REQUEST['maxdate'])-3));
@@ -128,12 +129,47 @@ switch ($action):
 		} while ($raw == '0' && (time() - $begin) < $wait_time);
 
 		$result = $maxdate.'<br>'.$raw;
+
 	break;
 
-	// сброс ожидания
-	case 'stop_waiting':
-		$_SESSION['exit_turmoil'] = 'yes';
-		$result = Array('0' => $_SESSION['exit_turmoil']);
+
+	case 'wait_post':
+
+		$topic = $_REQUEST['topic'];
+		$maxdate = date('Y-m-d H:i:s', substr($_REQUEST['maxdate'], 0, strlen($_REQUEST['maxdate'])-3));
+
+		$number = $db->selectCell(
+			'SELECT COUNT( * ) AS new FROM ?_messages
+			WHERE (msg_topic_id = ?d OR msg_id = ?d) AND (msg_created > ? OR msg_modified > ?)'
+			, $topic , $topic , $maxdate , $maxdate
+		);
+
+		if (intval($number) > 0):
+
+			$result = make_tree($db->select('
+				SELECT
+					msg_id AS id,
+					msg_author AS author_id,
+					msg_parent AS parent,
+					msg_topic_id AS topic_id,
+					msg_topic AS topic,
+					msg_body AS message,
+					msg_created AS created,
+					msg_modified AS modified,
+					msg_deleted AS deleted,
+					usr_email AS author_email,
+					uset_gravatar AS use_gravatar
+				FROM ?_messages, ?_users, ?_user_settings
+				WHERE
+					msg_author = usr_id
+					AND usr_id = uset_user
+					AND (msg_topic_id = ? OR msg_id = ?)
+					AND (msg_created > ? OR msg_modified > ?)'
+				, $topic , $topic , $maxdate , $maxdate
+			));
+
+		endif;
+
 	break;
 
 	// обновляем N ячеек в строке
@@ -142,7 +178,7 @@ switch ($action):
 
 		foreach ($fields as $key => $val):
 			$db->query(
-				'UPDATE ?_messages SET ?# = ?, msg_modified = ? WHERE msg_id = ?'
+				'UPDATE ?_messages SET ?# = ?, msg_modified = ? WHERE msg_id = ?d'
 				, $val['field']
 				, safe_str($val['data'])
 				, date('Y-m-d H:i:s')
@@ -159,7 +195,8 @@ switch ($action):
 	// удаляем одно сообщение
 	case 'delete':
 		$result['confirmed'] = $db->query(
-			'DELETE FROM ?_messages WHERE msg_id = ?'
+			'UPDATE ?_messages SET msg_deleted = 1, msg_modified = ? WHERE msg_id = ?d'
+			, date('Y-m-d H:i:s')
 			, $id
 		);
 	break;
