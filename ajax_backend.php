@@ -68,6 +68,8 @@ switch ($action):
 
 	break;
 
+
+
 	// вставляем новое сообщение
 	case 'insert_post':
 		$message = $_REQUEST['message'];
@@ -109,7 +111,10 @@ switch ($action):
 
 	break;
 
-	// ожидаем изменений
+
+
+	// ожидаем изменений 
+	/*
 	case 'long_wait_post':
 
 		$begin = time();
@@ -131,8 +136,9 @@ switch ($action):
 		$result = $maxdate.'<br>'.$raw;
 
 	break;
+	*/
 
-
+	// ожидание обновлений постов в текущей теме
 	case 'wait_post':
 
 		$topic = $_REQUEST['topic'];
@@ -146,7 +152,7 @@ switch ($action):
 
 		if (intval($number) > 0):
 
-			$result = make_tree($db->select('
+			$result['data'] = make_tree($db->select('
 				SELECT
 					msg_id AS id,
 					msg_author AS author_id,
@@ -169,6 +175,8 @@ switch ($action):
 			));
 
 		endif;
+
+		$result['console'] = $maxdate.' -> '.(!$number ? 0 :$number);
 
 	break;
 
