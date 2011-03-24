@@ -72,6 +72,7 @@ switch ($action):
 
 	// вставляем новое сообщение
 	case 'insert_post':
+
 		$message = $_REQUEST['message'];
 		$topic = $_REQUEST['topic'];
 		$parent = $_REQUEST['parent'];
@@ -138,6 +139,8 @@ switch ($action):
 	break;
 	*/
 
+
+
 	// ожидание обновлений постов в текущей теме
 	case 'wait_post':
 
@@ -180,8 +183,11 @@ switch ($action):
 
 	break;
 
+
+
 	// обновляем N ячеек в строке
 	case 'update':
+
 		$fields = $_REQUEST['fields'];
 
 		foreach ($fields as $key => $val):
@@ -198,15 +204,20 @@ switch ($action):
 				, $id
 			);
 		endforeach;
+
 	break;
+
+
 
 	// удаляем одно сообщение
 	case 'delete':
+
 		$result['confirmed'] = $db->query(
 			'UPDATE ?_messages SET msg_deleted = 1, msg_modified = ? WHERE msg_id = ?d'
 			, date('Y-m-d H:i:s')
 			, $id
 		);
+		
 	break;
 
 endswitch;

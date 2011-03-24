@@ -8,6 +8,12 @@ function resizeContArea(column){
 	editCSS('#'+column.id+' .collapser', 'height:'+(mainHeight - chromeH)+'px');
 }
 
+function console(string){
+	var date = new Date();
+	var cons = ID('console');
+	cons.innerHTML = '<b>'+date.toLocaleFormat('%H:%M:%S')+'</b> - '+string+'<br>'+cons.innerHTML;
+}
+
 // Изменяет высоту элементов, которые должны иметь фиксированную высоту в пикселях
 function resizeFrame() {
 	mainHeight = innerFrameHeight() - ID('debug_depo').offsetHeight - ID('main_menu').offsetHeight;

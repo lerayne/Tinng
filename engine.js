@@ -2,11 +2,19 @@
 var currentTopic, maxPostDate;
 var branches = {};
 
-function console(string){
-	var date = new Date();
-	var cons = ID('console');
-	cons.innerHTML = '<b>'+date.toLocaleFormat('%H:%M:%S')+'</b> - '+string+'<br>'+cons.innerHTML;
-}
+
+/* вешаем кнопки клавиатуры
+document.onkeypress = function(event){
+	var evt = event || window.event;
+	var key = event.keyCode || event.which;
+	col.scrollTop = col.scrollHeight;
+
+	// срабатывать по alt+enter или ctrl+enter
+	if ((evt.ctrlKey || evt.altKey) && key == 13){
+		sendPost();
+	}
+}*/
+
 
 
 // Универсальный класс ветки
@@ -15,29 +23,18 @@ function Branch (contArea, topicID, parentID) {
 
 	document.onkeypress = null;
 
-	this.e = contArea;
-	this.id = this.e.id;
-	this.html = this.e.innerHTML;
-	this.colNum = this.id.replace('content_','');
-
-	this.appChild = function(node){
-		this.e.appendChild(node);
-	}
-
-	this.sethtml = function(content){
-		this.e.innerHTML = content;
-		return this.e.innerHTML;
-	}
-
 	// чтобы this функций не забивал this объекта
 	var branch = this;
 
-	//contArea.innerHTML = '';
-	this.branchCont = newel('div', null, 'branch_'+parentID);
-	this.e.appendChild(this.branchCont);
+	// указание на элемент, в который вставляется новый контейнер
+	this.e = contArea;
 
+	// создание контейнера для новой ветки
+	this.cont = newel('div', null, 'branch_'+parentID);
+	this.e.appendChild(this.cont);
 
 	// создает новый экземпляр визивига с указанными параметрами
+	// !! форматирование шрифтов невозможно из-за неправильной работы выпадающих списков
 	var veditor = function (){
 		var editor = new nicEditor({
 			buttonList:[
@@ -59,18 +56,6 @@ function Branch (contArea, topicID, parentID) {
 		});
 		return editor;
 	}
-
-	/* вешаем кнопки клавиатуры
-	document.onkeypress = function(event){
-		var evt = event || window.event;
-		var key = event.keyCode || event.which;
-		col.scrollTop = col.scrollHeight;
-
-		// срабатывать по alt+enter или ctrl+enter
-		if ((evt.ctrlKey || evt.altKey) && key == 13){
-			sendPost();
-		}
-	}*/
 
 	// вставляет новый блок сообщения, заполняя его данными из content
 	this.createBlock = function(row){
@@ -104,6 +89,8 @@ function Branch (contArea, topicID, parentID) {
 					removeClass(args[j][1], 'updating');
 
 					maxPostDate = sql2stamp(result[j]['msg_modified']);
+
+					if (errors) console('error: '+errors);
 				}
 
 			}, true /* запрещать кеширование */ );
@@ -136,7 +123,9 @@ function Branch (contArea, topicID, parentID) {
 		created.innerHTML = row['modified'] ? txt['modified'] + row['modified'] : row['created'];
 
 		// действия в зависимости от типа блока
-		if (type == 'topic') {
+		switch (type){
+		case 'topic':
+
 			// вешаем на клик событие загрузки сообщений
 			container.onclick = function(){
 				branches = {};
@@ -190,7 +179,8 @@ function Branch (contArea, topicID, parentID) {
 			// !! Заглушка: если имеем право переименовывать тему
 			if (1 == 1) {topic.ondblclick = editTopicName;}
 
-		} else if (type == 'post') {
+		break;
+		case 'post':
 
 			// вешаем ID на контейнер сообщения для возможности прикрепления визивига
 			message.id = 'message_'+row['id'];
@@ -298,7 +288,7 @@ function Branch (contArea, topicID, parentID) {
 					remove(answerBlock);
 					removeClass(controls, 'invis');
 					addClass(controls, 'reveal');
-					
+
 					button.onclick = backupFunc;
 					//alert(form.nodeName);
 				}
@@ -306,7 +296,7 @@ function Branch (contArea, topicID, parentID) {
 				var sendMsg = function(){
 					textarea.disabled = true;
 					textarea.className = 'throbber_gray';
-					
+
 					var msg_text = textarea.value || gcl('nicEdit-main')[0].innerHTML;
 
 					// AJAX:
@@ -320,19 +310,19 @@ function Branch (contArea, topicID, parentID) {
 					}, function(result, errors) { // что делаем, когда пришел ответ:
 
 						if (plain){
-							
+
 							removeClass(prevElem(answerBlock), 'lastblock');
 							insAfter(container, branch.createBlock(result)); // вставляем новый блок
 							addClass(prevElem(answerBlock), 'lastblock');
-							
+
 						} else {
 
 							unhide(collEx);
-							var newBranch = new Branch(branch.branchCont, topicID, msgParent);
-							newBranch.branchCont.style.borderLeft = '30px solid #cccccc';
-							insAfter(container, newBranch.branchCont);
+							var newBranch = new Branch(branch.cont, topicID, msgParent);
+							newBranch.cont.style.borderLeft = '30px solid #cccccc';
+							insAfter(container, newBranch.cont);
 							newBranch.appendBlock(result);
-							
+
 						}
 
 						maxPostDate = sql2stamp(result['created']);
@@ -344,11 +334,11 @@ function Branch (contArea, topicID, parentID) {
 
 					}, true /* запрещать кеширование */ );
 				}
-				
+
 				var answControls = newel('div', 'controls');
 				//form.appendChild(newel('div', 'subtext w80', null, txt['how_to_send_post']));
 				form.appendChild(answControls);
-				
+
 				form.appendChild(newel('div','clearboth'));
 
 				var cancel = newel('div', 'button', 'cancel_post', '<span>'+txt['cancel']+'</span>');
@@ -380,7 +370,8 @@ function Branch (contArea, topicID, parentID) {
 			collEx.onclick = function(){alert('collapse/expand ');}
 
 			controls.appendChild(explain);
-		}
+
+		break;}
 
 		// собираем конструктор воедино
 		
@@ -394,7 +385,7 @@ function Branch (contArea, topicID, parentID) {
 
 	this.appendBlock = function(row){
 		var block = branch.createBlock(row);
-		branch.branchCont.appendChild(block);
+		branch.cont.appendChild(block);
 		return block;
 	}
 }
@@ -405,8 +396,7 @@ function Branch (contArea, topicID, parentID) {
 // заполняет колонку сообщениями
 function fillPosts(parent, container) {
 
-	var type = 'post';
-	wait.stop();
+	if (wait.interv) wait.stop();
 
 	var col = container.id.replace('content_', '');
 	var tbar = gcl('col_titlebar', ID('col_'+col))[0];
@@ -461,7 +451,7 @@ function fillPosts(parent, container) {
 
 		currentTopic = parent;
 		maxPostDate = j;//new Date(j).toString();
-		wait.start();
+		if (!wait.interv) wait.start();
 
 		sbar.innerHTML = finalizeTime(before)+'ms';
 
@@ -512,11 +502,11 @@ function fillTopics(){
 		sbar.innerHTML += ' | '+cont.e.scrollTop;
 
 	}, true /* запрещать кеширование */ );
-
 }
 
 
 // эта функция будет обновлять темы
+/*
 function long_updater(topic, maxdate){
 
 	// временно в первой колонке
@@ -547,10 +537,15 @@ function long_updater(topic, maxdate){
 
 	return req;
 }
+*/
 
 function Updater(){
 
+	var wait = this;
+
 	var wtime = cfg['posts_update_timer']*1000;
+
+	this.interv = null;
 
 	var interv, row, branch;
 
@@ -602,7 +597,7 @@ function Updater(){
 	}
 
 	this.start = function(){
-		if (interv) {
+		if (wait.interv) {
 			colsole('waiter can not be started, because it is allready running');
 			return;
 		}
@@ -610,16 +605,16 @@ function Updater(){
 
 		setTimeout(function(){update(currentTopic, maxPostDate);}, 1000);
 		setTimeout(function(){return;}, wtime-1000);
-		interv = setInterval(function(){update(currentTopic, maxPostDate);}, wtime);
+		wait.interv = setInterval(function(){update(currentTopic, maxPostDate);}, wtime);
 	}
 
 	this.stop = function(){
-		if (!interv){
+		if (!wait.interv){
 			console ('waiter is not running, cant stop');
 			return;
 		}
-		clearInterval(interv);
-		interv = null;
+		clearInterval(wait.interv);
+		wait.interv = null;
 		console ('waiter stopped');
 	}
 
