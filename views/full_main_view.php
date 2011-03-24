@@ -25,16 +25,7 @@
 
 		</style>
 
-		<script type="text/javascript" language="JavaScript">
-		<!--
-
-		mainOffset = <?= $main_offset ?>;
-
-		var txt = {};
-		<? foreach ($txt as $key => $val) echo "\n\t\ttxt['".$key."'] = '".$val."';"?>
-
-		// -->
-		</script>
+		<? require_once 'php/js_vars_import.php'?>
 
 		<script type="text/javascript" language="JavaScript" src="interface/main_interface.js"></script>
 		<script type="text/javascript" language="JavaScript" src="engine.js"></script>
@@ -96,6 +87,7 @@
 
 		</div>
 		<div id="debug_depo" class="none">
+			<div id="console" class="debug"></div>
 			<div id="debug0" class="debug"></div>
 			<div id="debug" class="debug"></div>
 			<div id="debug2" class="debug"></div>
