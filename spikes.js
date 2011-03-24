@@ -36,6 +36,11 @@ function sql2stamp(str){
 	return new Date(dates[0], dates[1]-1, dates[2], times[0], times[1], times[2]).getTime();
 }
 
+function stamp2sql(str){
+	var date = new Date(str);
+	return date.toLocaleFormat('%Y-%m-%d %H:%M:%S');
+}
+
 
 // ФУНКЦИИ ГЛОБАЛЬНЫХ ОБЪЕКТОВ
 

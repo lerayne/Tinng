@@ -4,14 +4,8 @@ var branches = {};
 
 function console(string){
 	var date = new Date();
-	var h = date.getHours();
-	var m = date.getMinutes();
-	var s = date.getSeconds();
-	ID('console').innerHTML =
-		(h < 10 ? '0'+h : h)+':'+
-		(m < 10 ? '0'+m : m)+':'+
-		(s < 10 ? '0'+s : s)+' - '+
-		string+'<br>'+ID('console').innerHTML;
+	var cons = ID('console');
+	cons.innerHTML = date.toLocaleFormat('%H:%M:%S')+' - '+string+'<br>'+cons.innerHTML;
 }
 
 // Универсальный класс ветки
@@ -144,6 +138,7 @@ function Branch (contArea, topicID, parentID) {
 		if (type == 'topic') {
 			// вешаем на клик событие загрузки сообщений
 			container.onclick = function(){
+				branches = {};
 				fillPosts(row['id'], ID('content_2'));
 				setCookie('currentTopic', row['id']);
 				adress.set('topic', row['id']);
@@ -409,11 +404,13 @@ function Branch (contArea, topicID, parentID) {
 // заполняет колонку сообщениями
 function fillPosts(parent, container) {
 
-	var type = (parent == '0') ? 'topic' : 'post';
+	var type = 'post';
+	wait.stop();
 
 	var col = container.id.replace('content_', '');
 	var tbar = gcl('col_titlebar', ID('col_'+col))[0];
 	var sbar = gcl('col_statusbar', ID('col_'+col))[0];
+	var cont;
 
 	addClass(tbar, 'tbar_throbber');
 
@@ -431,9 +428,14 @@ function fillPosts(parent, container) {
 
 		container.innerHTML = '';
 		removeClass(tbar, 'tbar_throbber');
-		if (type == 'post') branches = {};
-		branches[parent] = new Branch (container, parent);
 
+		if (type == 'post') {
+			branches[parent] = new Branch (container, parent);
+			cont = branches[parent];
+		} else {
+			cont = new Branch (container, parent);
+		}
+		
 		sbar.innerHTML = finalizeTime(before)+'ms';
 
 		// создаем экземпляр содержимого колонки и заполняем его
@@ -441,7 +443,7 @@ function fillPosts(parent, container) {
 		var j = 0;
 		for (var i in result) {
 			if(!first) var first = result[i];
-			block = branches[parent].appendBlock(result[i]);
+			block = cont.appendBlock(result[i]);
 			if (sql2stamp(result[i]['created']) > j) j = sql2stamp(result[i]['created']);
 			if (result[i]['modified'] && sql2stamp(result[i]['modified']) > j)
 				j = sql2stamp(result[i]['modified']);
@@ -453,11 +455,11 @@ function fillPosts(parent, container) {
 			if ((refPost = adress.get('message')) && ID('post_'+refPost)) {
 				ID('post_'+refPost).scrollIntoView();
 			} else {
-				branches[parent].e.scrollTop = branches[parent].e.scrollHeight; // прокручиваем до конца
+				cont.e.scrollTop = cont.e.scrollHeight; // прокручиваем до конца
 			}
 			// что по прокрутке делаем
-			branches[parent].e.onscroll = function(){
-				sbar.innerHTML = branches[parent].e.scrollTop+branches[parent].e.offsetHeight;
+			cont.e.onscroll = function(){
+				sbar.innerHTML = cont.e.scrollTop+cont.e.offsetHeight;
 			}
 			// пишем тему в заголовке колонки сообщения
 			// !! при переименовании уже загруженной темы она должна переименовываться также и в заголовке
@@ -466,13 +468,57 @@ function fillPosts(parent, container) {
 
 			currentTopic = parent;
 			maxPostDate = j;//new Date(j).toString();
+			wait.start();
 		}
 
 		// Дебажим:
 		ID('debug').innerHTML = errors;
-		sbar.innerHTML += ' | '+branches[parent].e.scrollTop;
+		sbar.innerHTML += ' | '+cont.e.scrollTop;
 
 	}, true /* запрещать кеширование */ );
+}
+
+
+function fillTopics(){
+
+	var container = ID('content_1');
+	var col = container.id.replace('content_', '');
+	var tbar = gcl('col_titlebar', ID('col_'+col))[0];
+	var sbar = gcl('col_statusbar', ID('col_'+col))[0];
+
+	addClass(tbar, 'tbar_throbber');
+
+	// запоминаем время начала выполнения запроса
+	var d = new Date;
+	var before = d.getTime();
+
+	// AJAX:
+	JsHttpRequest.query( 'ajax_backend.php', { // аргументы:
+
+		  action: 'load_posts'
+		, id: '0'
+
+	}, function(result, errors) { // что делаем, когда пришел ответ:
+
+		container.innerHTML = '';
+		removeClass(tbar, 'tbar_throbber');
+
+		var cont = new Branch (container, 0);
+
+		sbar.innerHTML = finalizeTime(before)+'ms';
+
+		// создаем экземпляр содержимого колонки и заполняем его
+		for (var i in result) {
+			if(!first) var first = result[i];
+			cont.appendBlock(result[i]);
+		}
+
+		// Дебажим:
+		ID('debug').innerHTML = errors;
+		sbar.innerHTML += ' | '+cont.e.scrollTop;
+
+	}, true /* запрещать кеширование */ );
+
 }
 
 
@@ -512,12 +558,14 @@ function Updater(){
 
 	var wtime = cfg['posts_update_timer']*1000;
 
-	var interv, count, row, branch;
+	var interv, row, branch;
 
 	var update = function (topic, maxdate){
 
 		var tbar = gcl('col_titlebar', ID('col_2'))[0];
 		addClass(tbar, 'tbar_throbber');
+
+		console(stamp2sql(maxdate)+' -> request sent');
 
 		// AJAX:
 		JsHttpRequest.query( 'ajax_backend.php', { // аргументы:
@@ -530,11 +578,10 @@ function Updater(){
 
 		removeClass(tbar, 'tbar_throbber');
 
-			if (result){
-
-				count = result.length;
 /*
-				for (var i in result){ row = result[i];
+			if (result['data']){
+
+				for (var i in result['data']){ row = result['data'][i];
 					
 					if (!branches[row['parent']]) return; // если ветки с таким идентификатором нет
 					branch = branches[row['parent']];
@@ -552,14 +599,9 @@ function Updater(){
 
 					}
 				}
-*/
-			} else {
-
-				count = 0;
-
 			}
-
-			console('posts update request sent, returned '+count+' changes');
+*/
+			console(result['console']+' changes returned');
 			ID('debug0').innerHTML = errors;
 
 		}, true ); // запрещать кеширование
@@ -591,20 +633,20 @@ function Updater(){
 		this.stop();
 		this.start();
 	}
-
-	this.start();
 }
 
 function startEngine(){
-	fillPosts('0', ID('content_1'));
+	fillTopics();
+
+	wait = new Updater;
+
 	if ((currentTopic = adress.get('topic'))){
+		branches = {};
 		fillPosts(currentTopic, ID('content_2'));
 	}
 
 	var tbar = gcl('col_titlebar', ID('col_0'))[0];
 	var mbar = gcl('col_menubar', ID('col_0'))[0];
-
-	wait = new Updater;
 
 	tbar.onclick = wait.stop;
 	mbar.onclick = wait.start;
