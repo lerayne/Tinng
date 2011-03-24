@@ -5,8 +5,9 @@ var branches = {};
 function console(string){
 	var date = new Date();
 	var cons = ID('console');
-	cons.innerHTML = date.toLocaleFormat('%H:%M:%S')+' - '+string+'<br>'+cons.innerHTML;
+	cons.innerHTML = '<b>'+date.toLocaleFormat('%H:%M:%S')+'</b> - '+string+'<br>'+cons.innerHTML;
 }
+
 
 // Универсальный класс ветки
 function Branch (contArea, topicID, parentID) {
@@ -410,7 +411,6 @@ function fillPosts(parent, container) {
 	var col = container.id.replace('content_', '');
 	var tbar = gcl('col_titlebar', ID('col_'+col))[0];
 	var sbar = gcl('col_statusbar', ID('col_'+col))[0];
-	var cont;
 
 	addClass(tbar, 'tbar_throbber');
 
@@ -429,15 +429,9 @@ function fillPosts(parent, container) {
 		container.innerHTML = '';
 		removeClass(tbar, 'tbar_throbber');
 
-		if (type == 'post') {
-			branches[parent] = new Branch (container, parent);
-			cont = branches[parent];
-		} else {
-			cont = new Branch (container, parent);
-		}
+		branches[parent] = new Branch (container, parent);
+		var cont = branches[parent];
 		
-		sbar.innerHTML = finalizeTime(before)+'ms';
-
 		// создаем экземпляр содержимого колонки и заполняем его
 		var block; // (в этой переменной будет храниться последний блок текущей ветки)
 		var j = 0;
@@ -449,27 +443,27 @@ function fillPosts(parent, container) {
 				j = sql2stamp(result[i]['modified']);
 		}
 
-		if (type == 'post') { // ..если это сообщения:
-			// прокрутка до указанного поста или в конец
-			var refPost;
-			if ((refPost = adress.get('message')) && ID('post_'+refPost)) {
-				ID('post_'+refPost).scrollIntoView();
-			} else {
-				cont.e.scrollTop = cont.e.scrollHeight; // прокручиваем до конца
-			}
-			// что по прокрутке делаем
-			cont.e.onscroll = function(){
-				sbar.innerHTML = cont.e.scrollTop+cont.e.offsetHeight;
-			}
-			// пишем тему в заголовке колонки сообщения
-			// !! при переименовании уже загруженной темы она должна переименовываться также и в заголовке
-			tbar.innerHTML = txt['topic']+': '+first['topic'];
-			addClass(block, 'lastblock');
-
-			currentTopic = parent;
-			maxPostDate = j;//new Date(j).toString();
-			wait.start();
+		// прокрутка до указанного поста или в конец
+		var refPost;
+		if ((refPost = adress.get('message')) && ID('post_'+refPost)) {
+			ID('post_'+refPost).scrollIntoView();
+		} else {
+			cont.e.scrollTop = cont.e.scrollHeight; // прокручиваем до конца
 		}
+		// что по прокрутке делаем
+		cont.e.onscroll = function(){
+			sbar.innerHTML = cont.e.scrollTop+cont.e.offsetHeight;
+		}
+		// пишем тему в заголовке колонки сообщения
+		// !! при переименовании уже загруженной темы она должна переименовываться также и в заголовке
+		tbar.innerHTML = txt['topic']+': '+first['topic'];
+		addClass(block, 'lastblock');
+
+		currentTopic = parent;
+		maxPostDate = j;//new Date(j).toString();
+		wait.start();
+
+		sbar.innerHTML = finalizeTime(before)+'ms';
 
 		// Дебажим:
 		ID('debug').innerHTML = errors;
@@ -621,7 +615,7 @@ function Updater(){
 
 	this.stop = function(){
 		if (!interv){
-			console ('saiter is not running, cant stop');
+			console ('waiter is not running, cant stop');
 			return;
 		}
 		clearInterval(interv);
@@ -636,9 +630,8 @@ function Updater(){
 }
 
 function startEngine(){
-	fillTopics();
-
 	wait = new Updater;
+	fillTopics();
 
 	if ((currentTopic = adress.get('topic'))){
 		branches = {};
