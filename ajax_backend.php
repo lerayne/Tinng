@@ -185,6 +185,11 @@ switch ($action):
 				, $topic , $topic , $maxdate , $maxdate
 			));
 
+			$result['maxdate'] = $db->selectCell(
+				'SELECT GREATEST(MAX(msg_created), MAX(msg_modified)) FROM ?_messages
+				WHERE msg_id = ? OR msg_topic_id = ?' , $topic , $topic
+			);
+
 		endif;
 
 		$result['console'] = $maxdate.' -> '.(!$number ? 0 :$number);
@@ -220,10 +225,14 @@ switch ($action):
 	// удаляем одно сообщение
 	case 'delete':
 
-		$result['confirmed'] = $db->query(
+		$db->query(
 			'UPDATE ?_messages SET msg_deleted = 1, msg_modified = ? WHERE msg_id = ?d'
 			, date('Y-m-d H:i:s')
 			, $id
+		);
+
+		$result['maxdate'] = $db->selectCell(
+			'SELECT msg_modified FROM ?_messages WHERE msg_id = ?d', $id
 		);
 		
 	break;

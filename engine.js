@@ -16,6 +16,30 @@ document.onkeypress = function(event){
 }*/
 
 
+// создает новый экземпляр визивига с указанными параметрами
+// !! форматирование шрифтов невозможно из-за неправильной работы выпадающих списков
+var veditor = function (){
+	var editor = new nicEditor({
+		buttonList:[
+			'bold','italic','underline','strikethrough',
+			'left','center','right','justify',
+			'indent','outdent',
+			//'forecolor',
+			'ol','ul',
+			'subscript','superscript',
+			//'link','unlink','image',
+			'hr',
+			//'fontFormat',
+			'removeformat'
+			//,'xhtml'
+		],
+		xhtml:true,
+		externalCSS: 'interface/nicedit.css',
+		iconsPath : 'lib_modified/nicEditorIcons.gif'
+	});
+	return editor;
+}
+
 
 // Универсальный класс ветки
 function Branch (contArea, topicID, parentID) {
@@ -32,30 +56,6 @@ function Branch (contArea, topicID, parentID) {
 	// создание контейнера для новой ветки
 	this.cont = newel('div', null, 'branch_'+parentID);
 	this.e.appendChild(this.cont);
-
-	// создает новый экземпляр визивига с указанными параметрами
-	// !! форматирование шрифтов невозможно из-за неправильной работы выпадающих списков
-	var veditor = function (){
-		var editor = new nicEditor({
-			buttonList:[
-				'bold','italic','underline','strikethrough',
-				'left','center','right','justify',
-				'indent','outdent',
-				//'forecolor',
-				'ol','ul',
-				'subscript','superscript',
-				//'link','unlink','image',
-				'hr',
-				//'fontFormat',
-				'removeformat'
-				//,'xhtml'
-			],
-			xhtml:true,
-			externalCSS: 'interface/nicedit.css',
-			iconsPath : 'lib_modified/nicEditorIcons.gif'
-		});
-		return editor;
-	}
 
 	// вставляет новый блок сообщения, заполняя его данными из content
 	this.createBlock = function(row){
@@ -243,11 +243,13 @@ function Branch (contArea, topicID, parentID) {
 
 				}, function(result, errors) { // когда пришел ответ:
 
-					if (result['confirmed']) {
+					if (result['maxdate']) {
 						if (ifClass(container, 'lastblock')){
 							addClass(prevElem(container), 'lastblock');
 						}
 						remove(container);
+
+						maxPostDate = sql2stamp(result['maxdate']);
 					}
 
 				}, true /* запрещать кеширование */ );
@@ -555,7 +557,7 @@ function Updater(){
 
 		var date = new Date();
 
-		console(stamp2sql(maxdate)+' -> request sent');
+		console('for last date '+stamp2sql(maxdate)+' -> request sent', true);
 
 		// AJAX:
 		JsHttpRequest.query( 'ajax_backend.php', { // аргументы:
@@ -566,9 +568,9 @@ function Updater(){
 
 		}, function(result, errors) { // что делаем, когда пришел ответ:
 
-		console(result['console']+' changes returned in '+getTimeDiff(date)+' seconds');
+		console('for last date '+result['console']+' changes returned in '+getTimeDiff(date)+' seconds', true);
 
-/*
+
 			if (result['data']){
 
 				for (var i in result['data']){ row = result['data'][i];
@@ -576,21 +578,31 @@ function Updater(){
 					if (!branches[row['parent']]) return; // если ветки с таким идентификатором нет
 					branch = branches[row['parent']];
 
-					if (ID('post_'+row['id'])){
-						// пост уже существует и загружен в колонке
-						// примечание: при написании динамической подгрузки это придется изменить
-						return
+					var container = ID('post_'+row['id']);
+					
+					if (container && row['deleted']){ // это изменение - удаление поста
+
+						if (ifClass(container, 'lastblock')) addClass(prevElem(container), 'lastblock');
+						remove(container);
+						console('message #'+row['id']+' found as deleted -> removed from view');
+
+					} else if (container) { // это изменение - редактирование поста
+
+						gcl('created', container)[0].innerHTML = txt['modified'] + row['modified'];
+						gcl('message', container)[0].innerHTML = row['message'];
+						console('message #'+row['id']+' found as edited -> modified in view');
+
 					} else { // поста с таким айди нет, значит это новый пост
 
 						branch.appendBlock(row);
-						wait.restart();
-						// !! при этом в функцию не попадают новые значения глобальных
-						// переменных currentTopic и maxPostDate, а при загрузке новой темы - почему-то попадают
+						console('message #'+row['id']+' found as new -> added to view');
 
 					}
 				}
+
+				maxPostDate = sql2stamp(result['maxdate']);
 			}
-*/
+
 
 			removeClass(tbar, 'tbar_updating');
 			ID('debug0').innerHTML = errors;
@@ -625,9 +637,9 @@ function Updater(){
 		console ('waiter stopped');
 	}
 
-	this.restart = function(){
+	this.restart = function(cold){
 		this.stop();
-		this.start();
+		this.start(cold);
 	}
 
 	this.toggle = function(){

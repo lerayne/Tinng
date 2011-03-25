@@ -38,7 +38,21 @@ function sql2stamp(str){
 
 function stamp2sql(str){
 	var date = new Date(str);
-	return date.toLocaleFormat('%Y-%m-%d %H:%M:%S');
+
+	if (date.toLocaleFormat) {
+		return date.toLocaleFormat('%Y-%m-%d %H:%M:%S');
+	} else {
+		var t = {};
+		var y = date.getFullYear();
+		t['m'] = date.getMonth()+1;
+		t['d'] = date.getDate();
+		t['H'] = date.getHours();
+		t['M'] = date.getMinutes();
+		t['S'] = date.getSeconds();
+		for (var i in t) { if (t[i]*1 < 10) t[i] = '0'+t[i]; }
+
+		return y + '-' + t['m'] + '-' + t['d'] + ' ' + t['H'] + ':' + t['M'] + ':' + t['S'];
+	}
 }
 
 // возвращает количество секунд (с дробной частью), прошедших с момента date
