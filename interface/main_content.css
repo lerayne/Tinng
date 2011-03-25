@@ -60,6 +60,11 @@
 	margin-top: 5px;
 }
 
+.infobar .postcount {
+	float: left;
+	margin-top: 5px;
+}
+
 .infobar .msgid {
 	float:left;
 	color:#cccccc;

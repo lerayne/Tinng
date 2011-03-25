@@ -5,6 +5,7 @@ $txt['header_posts'] = 'Сообщения';
 $txt['of_the_topic'] = 'темы';
 $txt['topic'] = 'Тема';
 $txt['modified'] = 'изменено ';
+$txt['postcount'] = ' сообщ.';
 
 $txt['from'] = '';
 

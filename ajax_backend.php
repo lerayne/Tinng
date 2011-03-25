@@ -74,6 +74,16 @@ switch ($action):
 			,($id == '0') ? DBSIMPLE_SKIP : $id
 		));
 
+		if ($id == '0') foreach ($result['data'] as $key => $val):
+
+			$result['data'][$key]['postcount'] = 1 + $db->selectCell(
+				'SELECT COUNT( * ) FROM ?_messages
+				WHERE msg_deleted <=> NULL AND msg_topic_id = ?d'
+				, $val['id']
+			);
+
+		endforeach;
+
 	break;
 
 

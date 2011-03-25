@@ -8,10 +8,26 @@ function resizeContArea(column){
 	editCSS('#'+column.id+' .collapser', 'height:'+(mainHeight - chromeH)+'px');
 }
 
-function console(string){
+function console(string, skip){
+	if (skip && !cfg['console_display_all']) return;
 	var date = new Date();
 	var cons = ID('console');
-	cons.innerHTML = '<b>'+date.toLocaleFormat('%H:%M:%S')+'</b> - '+string+'<br>'+cons.innerHTML;
+	var time;
+
+	if (date.toLocaleFormat) {
+		time = date.toLocaleFormat('%H:%M:%S');
+	} else {
+
+		var t = {};
+		t['H'] = date.getHours();
+		t['M'] = date.getMinutes();
+		t['S'] = date.getSeconds();
+		for (var i in t) { if (t[i]*1 < 10) t[i] = '0'+t[i]; }
+
+		time = t['H'] + ':' + t['M'] + ':' + t['S'];
+	}
+
+	cons.innerHTML = '<b>'+time+'</b> - '+string+'<br>'+cons.innerHTML;
 }
 
 // Изменяет высоту элементов, которые должны иметь фиксированную высоту в пикселях

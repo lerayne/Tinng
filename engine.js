@@ -135,6 +135,8 @@ function Branch (contArea, topicID, parentID) {
 				adress.del('message');
 			}
 
+			var postcount = newel('div', 'postcount', null, row['postcount'] + txt['postcount']);
+
 			// создаем элемент "тема"
 			var topic = newel('div', 'topicname editabletopic', null,
 				row['topic'] ? row['topic'] : '&nbsp;');
@@ -376,10 +378,9 @@ function Branch (contArea, topicID, parentID) {
 		break;}
 
 		// собираем конструктор воедино
-		
 		controls.appendChild(newel('div','clearboth'));
 
-		appendKids(infobar, avatar, created, author, msgid, newel('div','clearboth'));
+		appendKids(infobar, avatar, created, author, msgid, postcount, newel('div','clearboth'));
 		appendKids(container, infobar, topic, message, controls, newel('div','clearboth'));
 
 		return container;
