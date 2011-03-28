@@ -5,12 +5,12 @@ function WinFocus(){
 
 	var focusOn = function(params) {
 		this.on = true;
-		focusDoc(params);
+		focusDoc(this.on);
 	}
 
 	var focusOff = function(params){
 		this.on = false;
-		blurDoc(params);
+		blurDoc(this.on);
 	}
 
 	if (is_ie) {
@@ -20,7 +20,7 @@ function WinFocus(){
 		window.onfocus = focusOn;
 		window.onblur = focusOff;
 	}
-
+	/*
 	document.onmouseover = function(){ if (focus.on == false){
 		focusOn(focus.on);
 	}}
@@ -28,6 +28,7 @@ function WinFocus(){
 	document.onmouseout = function(){ if (focus.on == false){
 		focusOff(focus.on);
 	}}
+	*/
 }
 
 focus = new WinFocus;
