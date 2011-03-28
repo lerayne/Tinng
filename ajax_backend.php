@@ -222,11 +222,39 @@ switch ($action):
 				, $id
 			);
 			$result[$key] = $db->selectRow(
-				'SELECT ?#, msg_modified FROM ?_messages WHERE msg_id = ?'
+				'SELECT ?#, msg_modified FROM ?_messages WHERE msg_id = ?d'
 				, $val['field']
 				, $id
 			);
 		endforeach;
+
+	break;
+
+
+
+	case 'lock_post':
+
+		$db->query('UPDATE ?_messages SET msg_locked = ?d WHERE msg_id = ?d', $user->id, $id);
+
+	break;
+
+
+
+	case 'unlock_post':
+
+		$db->query('UPDATE ?_messages SET msg_locked = NULL WHERE msg_id = ?d', $id);
+
+	break;
+
+
+
+	case 'check_lock':
+
+		//!! в дальнейшем в поле msg_locked нужно будет вписывать, например, идентификатор сессии
+		// пользователя, а при проверке спрашивать активна ли еще эта сессия, чтобы избежать
+		// "вечного" запирания при вылете пользователя.
+
+		$result = $db->selectCell('SELECT msg_locked FROM ?_messages WHERE msg_id = ?d', $id);
 
 	break;
 

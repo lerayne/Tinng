@@ -196,65 +196,93 @@ function Branch (contArea, topicID, parentID) {
 			// Редактирование сообщения
 			var editMessage = function(){
 
-				var backupMsg = message.innerHTML;
+				// AJAX:
+				JsHttpRequest.query( 'ajax_backend.php', { // аргументы:
 
-				// создаем визивиг и элементы управления
-				var editor = veditor();
-				hide(infobar, controls);
-				editor.panelInstance(message.id);
-				gcl('nicEdit-panel', container)[0].style.paddingLeft = '47px';
-				message.focus();
-				var editControls = newel('div','controls');
+					  action: 'check_lock'
+					, id: row['id']
+
+				}, function(result, errors) { if (result == false){ // что делаем, когда пришел ответ:
+
+					var req = new JsHttpRequest();
+					req.open(null, 'ajax_backend.php', true);
+					req.send({action: 'lock_post', id: row['id']});
+
+					var backupMsg = message.innerHTML;
+
+					// создаем визивиг и элементы управления
+					var editor = veditor();
+					hide(infobar, controls);
+					editor.panelInstance(message.id);
+					gcl('nicEdit-panel', container)[0].style.paddingLeft = '47px';
+					message.focus();
+					var editControls = newel('div','controls');
 
 
-				// программируем кнопки
-				var cancelEdit = function(){
-					remove(editControls);
-					editor.removeInstance(message.id);
-					editor.removePanel(message.id);
-					unhide(infobar, controls);
-				}
+					// программируем кнопки
+					var cancelEdit = function(){
+						remove(editControls);
+						editor.removeInstance(message.id);
+						editor.removePanel(message.id);
+						unhide(infobar, controls);
+						var req = new JsHttpRequest();
+						req.open(null, 'ajax_backend.php', true);
+						req.send({action: 'unlock_post', id: row['id']});
+					}
 
-				var updateMessage = function(){
-					editFields(['msg_body', message]);
-					cancelEdit();
-				}
+					var updateMessage = function(){
+						editFields(['msg_body', message]);
+						cancelEdit();
+					}
 
-				var cancelBtn = newel('div', 'sbtn cancel', null, '<span>'+ txt['cancel'] +'</span>');
-				var sendBtn = newel('div', 'sbtn save', null, '<span>'+ txt['save'] +'</span>');
-				cancelBtn.onclick = function(){
-					cancelEdit();
-					message.innerHTML = backupMsg;
-				}
-				sendBtn.onclick = updateMessage;
+					var cancelBtn = newel('div', 'sbtn cancel', null, '<span>'+ txt['cancel'] +'</span>');
+					var sendBtn = newel('div', 'sbtn save', null, '<span>'+ txt['save'] +'</span>');
+					cancelBtn.onclick = function(){
+						cancelEdit();
+						message.innerHTML = backupMsg;
+					}
+					sendBtn.onclick = updateMessage;
 
-				// собираем конструктор
-				container.appendChild(editControls);
-				appendKids(editControls, cancelBtn, sendBtn, newel('div', 'clearboth'));
+					// собираем конструктор
+					container.appendChild(editControls);
+					appendKids(editControls, cancelBtn, sendBtn, newel('div', 'clearboth'));
+
+				} else alert(txt['post_locked']); }, true ); // запрещать кеширование
 			}
 
 			// Удаление сообщения
 			var deleteMessage = function(){
-				var confirmed = confirm(txt['msg_del_confirm']);
-				if (!confirmed) return;
 
 				JsHttpRequest.query( 'ajax_backend.php', { // аргументы:
 
-					  action: 'delete'
+					  action: 'check_lock'
 					, id: row['id']
 
-				}, function(result, errors) { // когда пришел ответ:
+				}, function(result, errors) { if (result == false){ // когда пришел ответ:
 
-					if (result['maxdate']) {
-						if (ifClass(container, 'lastblock')){
-							addClass(prevElem(container), 'lastblock');
+					var confirmed = confirm(txt['msg_del_confirm']);
+					if (!confirmed) return;
+
+					JsHttpRequest.query( 'ajax_backend.php', { // аргументы:
+
+						  action: 'delete'
+						, id: row['id']
+
+					}, function(result, errors) { // когда пришел ответ:
+
+						if (result['maxdate']) {
+							if (ifClass(container, 'lastblock')){
+								addClass(prevElem(container), 'lastblock');
+							}
+							remove(container);
+
+							maxPostDate = sql2stamp(result['maxdate']);
 						}
-						remove(container);
 
-						maxPostDate = sql2stamp(result['maxdate']);
-					}
+					}, true /* запрещать кеширование */ );
 
-				}, true /* запрещать кеширование */ );
+				} else alert (txt['post_locked']); }, true /* запрещать кеширование */ );
+
 			}
 
 			// Добавление сообщения
