@@ -175,23 +175,16 @@ function debugToggle(id){
 	}
 }
 
-function focusDoc(){
-	var p = focusDoc.arguments;
-	document.title = 'A'+p[0];
-}
-
-function blurDoc(){
-	var p = blurDoc.arguments;
-	document.title = 'P'+p[0];
-}
-
-// функция для использования в общей onliad-функции
+// функция для использования в общей onload-функции
 function startInterface(){
 	addDynamicCSS();
 	insertResizers();
 	resizeFrame();
 	ID('debug_toggle').onclick = debugToggle;
 	if (getCookie('toggle_debug') == '1') debugToggle('debug_toggle');
+
+	ID('content_0').appendChild(newel('div', null, 'test'));
+	editCSS('#test', 'width:50px; height:50px; background-color:black');
 }
 
 window.onresize = resizeFrame;

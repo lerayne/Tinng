@@ -33,6 +33,7 @@ body {
 #main_menu #user_panel {
 	float: right;
 	padding: 9px;
+	padding-bottom:0;
 }
 
 #main_menu #logo {

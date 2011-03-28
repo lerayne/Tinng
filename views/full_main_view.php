@@ -13,7 +13,7 @@
 		<script type="text/javascript" language="JavaScript" src="object_spikes.js"></script>
 		<link rel="stylesheet" type="text/css" href="interface/main_interface.css?N">
 		<link rel="stylesheet" type="text/css" href="interface/main_content.css?N">
-		<link rel="shortcut icon" type="image/png" href="images/favicon.png">
+		<link id="favicon" rel="shortcut icon" type="image/png" href="images/favicon.png">
 		<!--[if lt IE 9]>
 		<link rel="stylesheet" type="text/css" href="interface/main_interface_ie.css?N">
 		<![endif]-->

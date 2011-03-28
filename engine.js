@@ -547,7 +547,7 @@ function long_updater(topic, maxdate){
 function Updater(){
 
 	var wait = this;
-	var wtime = cfg['posts_updtimer_focused']*1000;
+	var wtime = cfg['posts_updtimer_blurred']*1000;
 	this.interv = null;
 	var row, branch;
 	var tbar = gcl('col_titlebar', ID('col_2'))[0];
@@ -638,6 +638,16 @@ function Updater(){
 		console ('waiter stopped');
 	}
 
+	// изменить время ожидания. !! Возможно стоит добавить "горячий" старт
+	this.timeout = function(seconds){
+		wtime = seconds*1000;
+		if (wait.interv) {
+			clearInterval(wait.interv);
+			wait.interv = setInterval(function(){update(currentTopic, maxPostDate);}, wtime);
+			console('waiter restarted with interval '+seconds+'s');
+		} else console('interval changed to '+seconds+'s');
+	}
+
 	this.restart = function(cold){
 		this.stop();
 		this.start(cold);
@@ -648,6 +658,7 @@ function Updater(){
 		else wait.start();
 	}
 }
+
 
 function startEngine(){
 	wait = new Updater;
@@ -661,6 +672,21 @@ function startEngine(){
 	var tbar = gcl('col_titlebar', ID('col_2'))[0];
 
 	tbar.onclick = wait.toggle;
+}
+
+
+function focusDoc(){
+	var p = focusDoc.arguments;
+	wait.timeout(cfg['posts_updtimer_focused']);
+	ID('test').style.backgroundColor = 'red';
+	//console('focus actions performed');
+}
+
+function blurDoc(){
+	var p = blurDoc.arguments;
+	wait.timeout(cfg['posts_updtimer_blurred']);
+	ID('test').style.backgroundColor = 'blue';
+	//console('blur actions performed');
 }
 
 /*
