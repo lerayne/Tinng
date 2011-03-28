@@ -1,10 +1,12 @@
 <?php
 
 // время между запросами на обновление темы (в секундах)
-$cfg['posts_update_timer'] = 10;
+$cfg['posts_updtimer_focused'] = 10;
+$cfg['posts_updtimer_blurred'] = 60;
 
 // время между запросами на обновление списка тем (в секундах)
-$cfg['topics_update_timer'] = 30;
+$cfg['topics_updtimer_focused'] = 30;
+$cfg['topics_updtimer_blurred'] = 120;
 
 // Если включено (1) - отображаются все строки консоли, если нет - только необходимые
 $cfg['console_display_all'] = 1;

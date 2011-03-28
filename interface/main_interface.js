@@ -175,6 +175,16 @@ function debugToggle(id){
 	}
 }
 
+function focusDoc(){
+	var p = focusDoc.arguments;
+	document.title = 'A'+p[0];
+}
+
+function blurDoc(){
+	var p = blurDoc.arguments;
+	document.title = 'P'+p[0];
+}
+
 // функция для использования в общей onliad-функции
 function startInterface(){
 	addDynamicCSS();
@@ -182,23 +192,6 @@ function startInterface(){
 	resizeFrame();
 	ID('debug_toggle').onclick = debugToggle;
 	if (getCookie('toggle_debug') == '1') debugToggle('debug_toggle');
-
-	/*
-	var nwbtn = newel('div', 'sbtn');
-	nwbtn.onclick = function(){
-		var req = new JsHttpRequest();
-		// что происходит после получения ответа (responseJS)
-		req.onreadystatechange = function() {if (req.readyState == 4) {
-
-			ID('debug').innerHTML = 'yesss!';
-
-		}}
-		req.open(null, 'engine.php', true);
-		req.send({
-			action: 'stop_waiting'
-		});
-	}
-	gcl('col_menubar', ID('col_0'))[0].appendChild(nwbtn);*/
 }
 
 window.onresize = resizeFrame;

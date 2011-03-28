@@ -547,7 +547,7 @@ function long_updater(topic, maxdate){
 function Updater(){
 
 	var wait = this;
-	var wtime = cfg['posts_update_timer']*1000;
+	var wtime = cfg['posts_updtimer_focused']*1000;
 	this.interv = null;
 	var row, branch;
 	var tbar = gcl('col_titlebar', ID('col_2'))[0];

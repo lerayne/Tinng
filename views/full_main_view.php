@@ -29,6 +29,7 @@
 
 		<script type="text/javascript" language="JavaScript" src="interface/main_interface.js"></script>
 		<script type="text/javascript" language="JavaScript" src="engine.js"></script>
+		<script type="text/javascript" language="JavaScript" src="js/focusing.js"></script>
 
 		<script type="text/javascript" language="JavaScript">
 		<!--
@@ -43,7 +44,8 @@
 		</script>
 
 	</head>
-	<body onLoad="jawiInit()" >
+	<!-- onFocus="activate()" onBlur="deactivate()" -->
+	<body onLoad="jawiInit()">
 		
 		<div id="overlay" class=" none"></div>
 		<div id="load_curtain"></div>
