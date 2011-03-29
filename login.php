@@ -24,6 +24,7 @@ switch ($_GET['action']):
 		);
 
 		if ($raw != false) {
+
 			$time = ($_POST['memorize']) ? time()+(365*24*60*60) : false; // запоминаем на год
 			setcookie('pass', md5($_POST['pass']), $time);
 			setcookie('login', $raw['login'], $time);
