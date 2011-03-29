@@ -8,8 +8,8 @@ header ('Content-type:text/html;charset=utf-8;');
 $main_offset = 10;
 $columns = array('menu', 'topics', 'posts');
 
-$view_device = 'full'; // режим просмотра в зависимости от устройства
-$view = 'main'; // текущее представление
+$display_mode = 'desktop'; // режим просмотра в зависимости от устройства
+$device_path = 'displays/'.$display_mode;
 
-require_once 'views/'.$view_device.'_'.$view.'_view.php';
+require_once $device_path.'/template.php';
 ?>
