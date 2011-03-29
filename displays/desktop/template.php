@@ -10,14 +10,14 @@
 
 		<script type="text/javascript" language="JavaScript" src="libraries/JsHttpRequest.js"></script>
 		<script type="text/javascript" language="JavaScript" src="lib_modified/nicEdit.js"></script>
-		<script type="text/javascript" language="JavaScript" src="spikes.js"></script>
-		<script type="text/javascript" language="JavaScript" src="object_spikes.js"></script>
+		<script type="text/javascript" language="JavaScript" src="js/spikes.js"></script>
+		<script type="text/javascript" language="JavaScript" src="js/object_spikes.js"></script>
 
-		<link rel="stylesheet" type="text/css" href="interface/main_interface.css?N">
-		<link rel="stylesheet" type="text/css" href="interface/main_content.css?N">
+		<link rel="stylesheet" type="text/css" href="<?= $device_path ?>/interface.css?N">
+		<link rel="stylesheet" type="text/css" href="<?= $device_path ?>/content.css?N">
 		<link id="favicon" rel="shortcut icon" type="image/png" href="images/favicon.png">
 		<!--[if lt IE 9]>
-		<link rel="stylesheet" type="text/css" href="interface/main_interface_ie.css?N">
+		<link rel="stylesheet" type="text/css" href="<?= $device_path ?>/interface_ie.css?N">
 		<![endif]-->
 
 		<style type="text/css">
@@ -30,10 +30,10 @@
 
 		<? require_once 'php/js_vars_import.php'?>
 
-		<script type="text/javascript" language="JavaScript" src="interface/main_interface.js"></script>
-		<script type="text/javascript" language="JavaScript" src="engine.js"></script>
+		<script type="text/javascript" language="JavaScript" src="<?= $device_path ?>/interface.js"></script>
+		<script type="text/javascript" language="JavaScript" src="<?= $device_path ?>/content.js"></script>
 		<script type="text/javascript" language="JavaScript" src="js/login.js"></script>
-		<script type="text/javascript" language="JavaScript" src="js/focusing.js"></script>
+		<script type="text/javascript" language="JavaScript" src="<?= $device_path ?>/focusing.js"></script>
 		<script type="text/javascript" language="JavaScript">
 		<!--
 
@@ -58,7 +58,7 @@
 			<div id="left_pan">
 				
 			</div>
-			<div id="user_panel"><? require 'interface/login_block.php'; ?></div>
+			<div id="user_panel"><? require $device_path.'/template_login.php'; ?></div>
 			<div id="right_pan">
 				<div class="button" id="debug_toggle"><span>Панель отладки</span></div>
 			</div>

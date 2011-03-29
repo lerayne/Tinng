@@ -2,7 +2,7 @@
 /* Файл, к которому обращаются все XHR запросы */
 $cfg['wait_time'] = 3;
 
-require_once 'initial.php';
+require_once 'php/initial.php';
 
 //session_name('uc_ajax');
 //session_start();

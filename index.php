@@ -1,5 +1,5 @@
 <?php
-require_once 'initial.php';
+require_once 'php/initial.php';
 
 list($path, $getdata) = explode('?', $GLOBALS['_ENV']['REQUEST_URI']);
 
