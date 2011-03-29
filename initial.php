@@ -13,12 +13,15 @@ $db->query('SET NAMES "utf8"');
 $db->setErrorHandler('databaseErrorHandler');
 $db->setIdentPrefix($safecfg['db_prefix'].'_');
 
-// заглушка аутентификации
-$user = new User ($db->selectRow(
-	'SELECT * FROM ?_users, ?_user_settings WHERE usr_hash = ? AND usr_id = uset_user'
-	, md5('globus')
-));
+// !! простой логин. потом сделать более секьюрный
+$raw_user = $db->selectRow(
+	'SELECT * FROM ?_users, ?_user_settings WHERE usr_hash = ? AND usr_login = ? AND usr_id = uset_user'
+	, $_COOKIE['pass'] , $_COOKIE['login']
+);
 
-if ($user->use_gravatar)
+// заглушка аутентификации
+if ($raw_user != false) $user = new User ($raw_user);
+
+if ($user->gravatar)
 	$user->avatar = 'http://www.gravatar.com/avatar/'.md5(strtolower($user->email)).'?s=48';
 ?>

@@ -32,6 +32,7 @@ function console(string, skip){
 
 // Изменяет высоту элементов, которые должны иметь фиксированную высоту в пикселях
 function resizeFrame() {
+	editCSS('#overlay', 'height:'+frameHeight()+'px;');
 	mainHeight = innerFrameHeight() - ID('debug_depo').offsetHeight - ID('main_menu').offsetHeight;
 	editCSS('#main', 'height:'+mainHeight+'px;'); // главное "окно"
 
@@ -41,6 +42,11 @@ function resizeFrame() {
 
 function removeCurtain(){
 	removeClass(ID('main'), 'invis');
+}
+
+
+function callOverlayPage() {
+	unhide(ID('overlay'));
 }
 
 

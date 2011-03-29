@@ -135,7 +135,7 @@ function Branch (contArea, topicID, parentID) {
 				adress.del('message');
 			}
 
-			var postcount = newel('div', 'postcount', null, row['postcount'] + txt['postcount']);
+			var postcount = newel('div', 'postcount reveal', null, row['postcount'] + txt['postcount']);
 
 			// создаем элемент "тема"
 			var topic = newel('div', 'topicname editabletopic', null,
@@ -599,7 +599,6 @@ function Updater(){
 
 		console('for last date '+result['console']+' changes returned in '+getTimeDiff(date)+' seconds', true);
 
-
 			if (result['data']){
 
 				for (var i in result['data']){ row = result['data'][i];
@@ -648,9 +647,9 @@ function Updater(){
 		addClass(tbar, 'tbar_waiting');
 
 		if (cold != 'cold'){
-			console('waiter started (hot start)');
+			console('waiter started (hot start) with interval '+(wtime/1000)+'s');
 			setTimeout(function(){update(currentTopic, maxPostDate);}, 1000);
-		} else console('waiter started (cold start)');
+		} else console('waiter started (cold start) with interval '+(wtime/1000)+'s');
 
 		wait.interv = setInterval(function(){update(currentTopic, maxPostDate);}, wtime);
 	}
@@ -700,6 +699,13 @@ function startEngine(){
 	var tbar = gcl('col_titlebar', ID('col_2'))[0];
 
 	tbar.onclick = wait.toggle;
+
+	if (ID('loginBtn')) ID('loginBtn').onclick = function(){
+
+		var form = ID('loginForm');
+
+		form.submit();
+	}
 }
 
 

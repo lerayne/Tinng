@@ -26,4 +26,11 @@ $txt['no_topic_name'] = '<span class="subtext">Без названия</span>';
 
 $txt['msg_del_confirm'] = 'Это сообщение будет безвозвратно удалено. Продолжить?';
 $txt['post_locked'] = "Это сообщение заблокировано. \\nСкорее всего - вданный момент его кто-то редактирует";
+
+$txt['login_name'] = 'Логин или email:';
+$txt['login_pass'] = 'Пароль:';
+$txt['login_memorize'] = 'Запомнить';
+$txt['login_btn'] = 'Вход';
+$txt['login_logout'] = 'Выход';
+$txt['login_reg'] = 'Регистрация';
 ?>

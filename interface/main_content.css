@@ -27,7 +27,6 @@
 
 .editabletopic:hover {
 	background: url(../images/textfield_rename.png) right center no-repeat;
-	cursor: text;
 }
 
 .topic:hover {
