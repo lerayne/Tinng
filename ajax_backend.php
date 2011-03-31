@@ -1,6 +1,6 @@
 <?php
 /* Файл, к которому обращаются все XHR запросы */
-$cfg['wait_time'] = 3;
+//$cfg['wait_time'] = 3;
 
 require_once 'php/initial.php';
 

@@ -32,7 +32,7 @@ function console(string, skip){
 
 // Изменяет высоту элементов, которые должны иметь фиксированную высоту в пикселях
 function resizeFrame() {
-	editCSS('#overlay', 'height:'+frameHeight()+'px;');
+	editCSS('#curtain', 'height:'+frameHeight()+'px;');
 	mainHeight = innerFrameHeight() - ID('debug_depo').offsetHeight - ID('main_menu').offsetHeight;
 	editCSS('#main', 'height:'+mainHeight+'px;'); // главное "окно"
 
@@ -46,7 +46,15 @@ function removeCurtain(){
 
 
 function callOverlayPage() {
-	unhide(ID('overlay'));
+	unhide(ID('curtain'));
+	unhide(ID('overdiv'));
+	wait.timeout(cfg['posts_updtimer_blurred'], 'lock');
+}
+
+function closeOverlayPage() {
+	hide(ID('curtain'));
+	hide(ID('overdiv'));
+	wait.timeout(cfg['posts_updtimer_focused'], 'unlock');
 }
 
 
@@ -181,6 +189,22 @@ function debugToggle(id){
 	}
 }
 
+function loadTemplate(name, container, cache){
+
+	cache = !cache;
+
+	container.innerHTML = '';
+	addClass(container, 'throbber');
+
+	// AJAX:
+	JsHttpRequest.query( 'displays/desktop/ajax_template.php', { // аргументы:
+		template: name
+	}, function(result, html) { // что делаем, когда пришел ответ:
+		removeClass(container, 'throbber');
+		container.innerHTML = html;
+	}, cache ); // не запрещать кеширование
+}
+
 // функция для использования в общей onload-функции
 function startInterface(){
 	addDynamicCSS();
@@ -191,6 +215,16 @@ function startInterface(){
 
 	ID('content_0').appendChild(newel('div', null, 'test'));
 	editCSS('#test', 'width:50px; height:50px; background-color:black');
+
+	gcl('close', ID('overdiv'))[0].onclick = closeOverlayPage;
+
+	if (ID('regBtn')) ID('regBtn').onclick = function (){
+
+		callOverlayPage();
+		gcl('title', ID('overdiv'))[0].innerHTML = txt['title_register'];
+		loadTemplate('regform', gcl('overcontent', ID('overdiv'))[0], false);
+
+	}
 }
 
 window.onresize = resizeFrame;

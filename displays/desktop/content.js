@@ -167,7 +167,7 @@ function Branch (contArea, topicID, parentID) {
 					// AJAX-запрос и заполнения поля
 					editFields(['msg_topic', topic]);
 				}
-
+				/*
 				document.onkeypress = function(event){
 					var key = event.keyCode || event.which;
 					if (key == 13){
@@ -175,11 +175,12 @@ function Branch (contArea, topicID, parentID) {
 						document.onkeypress = null;
 					} // on enter
 				}
+				*/
 				okbtn.onclick = submitTopicName;
 			}
 
-			// !! Заглушка: если имеем право переименовывать тему
-			if (1 == 1) {topic.ondblclick = editTopicName;}
+			// если имеем право переименовывать тему
+			if (row['author_id'] == userID) {topic.ondblclick = editTopicName;}
 
 		break;
 		case 'post':
@@ -392,10 +393,14 @@ function Branch (contArea, topicID, parentID) {
 			var plainBtn = addBtn('plainanswer', txt['answer']);
 			plainBtn.onclick = function(){addMessage(plainBtn, 'plain');}
 
-			addBtn('editmessage').onclick = editMessage;
-			message.ondblclick = editMessage;
-			// !! заглушка: сделать функцию удаления всей темы
-			if (row['id'] != topicID) addBtn('deletemessage').onclick = deleteMessage;
+			if (row['author_id'] == userID){
+
+				addBtn('editmessage').onclick = editMessage;
+				message.ondblclick = editMessage;
+				// !! заглушка: сделать функцию удаления всей темы
+				if (row['id'] != topicID) addBtn('deletemessage').onclick = deleteMessage;	
+
+			}
 
 			var collEx = addBtn('collex');
 			hide(collEx);
@@ -665,14 +670,23 @@ function Updater(){
 		console ('waiter stopped');
 	}
 
+	this.lock = false;
+
 	// изменить время ожидания. !! Возможно стоит добавить "горячий" старт
-	this.timeout = function(seconds){
-		wtime = seconds*1000;
-		if (wait.interv) {
-			clearInterval(wait.interv);
-			wait.interv = setInterval(function(){update(currentTopic, maxPostDate);}, wtime);
-			console('waiter restarted with interval '+seconds+'s');
-		} else console('interval changed to '+seconds+'s');
+	this.timeout = function(seconds, lock){
+
+		if (lock == 'unlock') wait.lock = false;
+
+		if (!wait.lock){
+			wtime = seconds*1000;
+			if (wait.interv) {
+				clearInterval(wait.interv);
+				wait.interv = setInterval(function(){update(currentTopic, maxPostDate);}, wtime);
+				console('waiter restarted with interval '+seconds+'s'+(lock == 'lock' ? ' (with lock)' : ''));
+			} else console('interval changed to '+seconds+'s');
+		}
+
+		if (lock == 'lock') wait.lock = true;
 	}
 
 	this.restart = function(cold){
@@ -701,9 +715,7 @@ function startEngine(){
 	tbar.onclick = wait.toggle;
 
 	if (ID('loginBtn')) ID('loginBtn').onclick = function(){
-
 		var form = ID('loginForm');
-
 		form.submit();
 	}
 }

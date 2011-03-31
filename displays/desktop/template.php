@@ -32,7 +32,6 @@
 
 		<script type="text/javascript" language="JavaScript" src="<?= $device_path ?>/interface.js"></script>
 		<script type="text/javascript" language="JavaScript" src="<?= $device_path ?>/content.js"></script>
-		<script type="text/javascript" language="JavaScript" src="js/login.js"></script>
 		<script type="text/javascript" language="JavaScript" src="<?= $device_path ?>/focusing.js"></script>
 		<script type="text/javascript" language="JavaScript">
 		<!--
@@ -50,8 +49,18 @@
 	<!-- onFocus="activate()" onBlur="deactivate()" -->
 	<body onLoad="jawiInit()">
 		
-		<div id="overlay" class=" none"></div>
-		<div id="load_curtain"></div>
+		<div id="curtain" class="none"></div>
+		<div id="overdiv" class="none">
+			<div class="window">
+				<div>
+					<div class="title left"></div>
+					<div class="close right"></div>
+					<div class="clearboth"></div>
+				</div>
+				<div class="overcontent">
+				</div>
+			</div>
+		</div>
 
 		<div id="main_menu">
 			<div id="logo">UltiComm alpha 0.1</div>

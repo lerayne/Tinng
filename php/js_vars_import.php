@@ -1,6 +1,7 @@
 <script type="text/javascript" language="JavaScript">
 <!--
 mainOffset = <?= $main_offset ?>;
+userID = <?= $user ? $user->id : 'null'?>;
 var txt = {};
 var cfg = {};
 <?php
