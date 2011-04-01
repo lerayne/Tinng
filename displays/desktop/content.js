@@ -327,6 +327,9 @@ function Branch (contArea, topicID, parentID) {
 				}
 
 				var sendMsg = function(){
+
+					send.onclick = null;
+
 					textarea.disabled = true;
 					textarea.className = 'throbber_gray';
 
@@ -653,7 +656,7 @@ function Updater(){
 
 		if (cold != 'cold'){
 			console('waiter started (hot start) with interval '+(wtime/1000)+'s');
-			setTimeout(function(){update(currentTopic, maxPostDate);}, 1000);
+			setTimeout(function(){update(currentTopic, maxPostDate)}, 500);
 		} else console('waiter started (cold start) with interval '+(wtime/1000)+'s');
 
 		wait.interv = setInterval(function(){update(currentTopic, maxPostDate);}, wtime);
@@ -681,6 +684,7 @@ function Updater(){
 			wtime = seconds*1000;
 			if (wait.interv) {
 				clearInterval(wait.interv);
+				setTimeout(function(){update(currentTopic, maxPostDate)}, 500);
 				wait.interv = setInterval(function(){update(currentTopic, maxPostDate);}, wtime);
 				console('waiter restarted with interval '+seconds+'s'+(lock == 'lock' ? ' (with lock)' : ''));
 			} else console('interval changed to '+seconds+'s');
