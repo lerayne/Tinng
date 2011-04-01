@@ -15,7 +15,7 @@ $db->query('SET NAMES "utf8"');
 $db->setIdentPrefix($safecfg['db_prefix'].'_');
 
 $message = false;
-$location = $_SERVER["HTTP_HOST"];
+$location = 'http://'.$_SERVER["HTTP_HOST"];
 //if (strpos($location, '?')) list($location, $trash) = split('?', $_SERVER["HTTP_REFERER"]);
 
 switch ($_GET['action']):
@@ -85,7 +85,7 @@ switch ($_GET['action']):
 				'INSERT INTO ?_users (?#) VALUES (?a)', array_keys($new_row), array_values($new_row)
 			);
 			
-			$appr_link = $location.'login.php?action=approve&u='.$unum.'&token='
+			$appr_link = $location.'/login.php?action=approve&u='.$unum.'&token='
 				.md5($_POST['login'].'zerso'.md5($_POST['pass1']).'b0t'.$_POST['email']);
 
 			mail($_POST['email'], $txtp['reg_approve_subject'], $_POST['login'].$txtp['reg_approve_message'].$appr_link);
@@ -133,5 +133,5 @@ echo '<pre>';
 var_dump($_SERVER);
 echo '</pre>';
 
-header("location: http://".$location);
+header("location: ".$location);
 ?>
