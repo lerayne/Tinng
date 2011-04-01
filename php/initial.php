@@ -15,8 +15,14 @@ $db->setIdentPrefix($safecfg['db_prefix'].'_');
 
 // !! простой логин. потом сделать более секьюрный
 $raw_user = $db->selectRow(
-	'SELECT * FROM ?_users, ?_user_settings WHERE usr_hash = ? AND usr_login = ? AND usr_id = uset_user'
-	, $_COOKIE['pass'] , $_COOKIE['login']
+	'SELECT * FROM ?_users, ?_user_settings 
+	WHERE
+		usr_hash = ?
+		AND usr_login = ?
+		AND usr_approved = 1
+		AND `usr_id` = `uset_user`'
+	, $_COOKIE['pass']
+	, $_COOKIE['login']
 );
 
 // заглушка аутентификации

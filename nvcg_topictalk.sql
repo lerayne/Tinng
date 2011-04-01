@@ -3,9 +3,9 @@
 -- http://www.phpmyadmin.net
 --
 -- Хост: localhost
--- Время создания: Мар 29 2011 г., 15:37
--- Версия сервера: 5.0.91
--- Версия PHP: 5.2.6
+-- Время создания: Апр 01 2011 г., 02:37
+-- Версия сервера: 5.5.10
+-- Версия PHP: 5.3.5
 
 SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
 
@@ -27,21 +27,21 @@ SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
 
 DROP TABLE IF EXISTS `jawi_messages`;
 CREATE TABLE IF NOT EXISTS `jawi_messages` (
-  `msg_id` bigint(20) unsigned NOT NULL auto_increment,
+  `msg_id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `msg_author` int(10) unsigned NOT NULL,
-  `msg_parent` bigint(20) unsigned default NULL,
-  `msg_topic_id` bigint(20) unsigned default NULL,
-  `msg_topic` varchar(255) default NULL,
+  `msg_parent` bigint(20) unsigned DEFAULT NULL,
+  `msg_topic_id` bigint(20) unsigned DEFAULT NULL,
+  `msg_topic` varchar(255) DEFAULT NULL,
   `msg_body` text NOT NULL,
-  `msg_created` datetime NOT NULL default '0000-00-00 00:00:00',
-  `msg_modified` timestamp NULL default NULL,
-  `msg_deleted` tinyint(1) unsigned default NULL,
-  `msg_locked` tinyint(1) unsigned default NULL,
-  PRIMARY KEY  (`msg_id`),
+  `msg_created` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
+  `msg_modified` timestamp NULL DEFAULT NULL,
+  `msg_deleted` tinyint(1) unsigned DEFAULT NULL,
+  `msg_locked` tinyint(1) unsigned DEFAULT NULL,
+  PRIMARY KEY (`msg_id`),
   KEY `msg_parent` (`msg_parent`),
   KEY `msg_author` (`msg_author`),
   KEY `msg_topic_id` (`msg_topic_id`)
-) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=260 ;
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=261 ;
 
 --
 -- Дамп данных таблицы `jawi_messages`
@@ -137,7 +137,8 @@ INSERT INTO `jawi_messages` (`msg_id`, `msg_author`, `msg_parent`, `msg_topic_id
 (256, 1, 73, 73, NULL, 'Спасибо :)<br><br>Еще: увеличение времени ожидания waiter-а когда вкладка неактивна, или браузер свернут.<br>', '2011-03-25 17:22:57', NULL, NULL, NULL),
 (257, 1, 76, 76, NULL, 'вфыавыавыаыаы', '2011-03-25 17:28:13', '2011-03-26 02:48:43', 1, NULL),
 (258, 1, 76, 76, NULL, 'блабла<br>', '2011-03-25 17:28:22', '2011-03-26 02:48:38', 1, NULL),
-(259, 1, 77, 77, NULL, 'Бла бла вап ва пвп вп вапвапвап<br>', '2011-03-26 02:14:29', '2011-03-26 02:17:41', 1, NULL);
+(259, 1, 77, 77, NULL, 'Бла бла вап ва пвп вп вапвапвап<br>', '2011-03-26 02:14:29', '2011-03-26 02:17:41', 1, NULL),
+(260, 1, 74, 74, NULL, '<div style="text-align: left;">TACENDA - HIDING</div><div><br></div><div>oh, last night I dreamt of a place (land)</div><div>...</div><div>medicine is keeping people sick</div><div>and the tracher''s work is to limit you</div><div><br></div><blockquote class="webkit-indent-blockquote" style="margin: 0 0 0 40px; border: none; padding: 0px;">then I woke up,&nbsp;crying out loud<div>broken with all I have known</div><div>''cause they''re showing me things I can live without</div><div>''nd hiding what had to be shown</div><div><br></div><div>I will highlight the things they were hiding tight</div><div><br></div><div>We can highlight the things they were hiding tight</div></blockquote><div><div><br></div></div>', '2011-03-30 13:42:41', '2011-03-31 22:40:23', 1, NULL);
 
 -- --------------------------------------------------------
 
@@ -147,12 +148,13 @@ INSERT INTO `jawi_messages` (`msg_id`, `msg_author`, `msg_parent`, `msg_topic_id
 
 DROP TABLE IF EXISTS `jawi_users`;
 CREATE TABLE IF NOT EXISTS `jawi_users` (
-  `usr_id` int(10) unsigned NOT NULL auto_increment,
-  `usr_login` varchar(64) NOT NULL,
-  `usr_email` varchar(128) character set latin1 collate latin1_general_ci NOT NULL,
-  `usr_hash` varchar(128) character set latin1 collate latin1_general_ci NOT NULL,
-  `usr_registered` datetime NOT NULL default '0000-00-00 00:00:00',
-  PRIMARY KEY  (`usr_id`),
+  `usr_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `usr_login` varchar(16) CHARACTER SET latin1 COLLATE latin1_general_ci NOT NULL,
+  `usr_email` varchar(128) CHARACTER SET latin1 COLLATE latin1_general_ci NOT NULL,
+  `usr_hash` varchar(128) CHARACTER SET latin1 COLLATE latin1_general_ci NOT NULL,
+  `usr_registered` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
+  `usr_approved` tinyint(1) unsigned DEFAULT NULL,
+  PRIMARY KEY (`usr_id`),
   UNIQUE KEY `usr_email` (`usr_email`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=2 ;
 
@@ -160,8 +162,8 @@ CREATE TABLE IF NOT EXISTS `jawi_users` (
 -- Дамп данных таблицы `jawi_users`
 --
 
-INSERT INTO `jawi_users` (`usr_id`, `usr_login`, `usr_email`, `usr_hash`, `usr_registered`) VALUES
-(1, 'lerayne', 'lerayne@gmail.com', '062ac7c968833af0f79b2ff4a9de644e', '2010-03-12 15:48:00');
+INSERT INTO `jawi_users` (`usr_id`, `usr_login`, `usr_email`, `usr_hash`, `usr_registered`, `usr_approved`) VALUES
+(1, 'lerayne', 'lerayne@gmail.com', '062ac7c968833af0f79b2ff4a9de644e', '2010-03-12 15:48:00', NULL);
 
 -- --------------------------------------------------------
 
@@ -172,7 +174,7 @@ INSERT INTO `jawi_users` (`usr_id`, `usr_login`, `usr_email`, `usr_hash`, `usr_r
 DROP TABLE IF EXISTS `jawi_user_settings`;
 CREATE TABLE IF NOT EXISTS `jawi_user_settings` (
   `uset_user` int(10) unsigned NOT NULL,
-  `uset_gravatar` tinyint(1) unsigned NOT NULL default '0',
+  `uset_gravatar` tinyint(1) unsigned NOT NULL DEFAULT '0',
   KEY `user_id` (`uset_user`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
