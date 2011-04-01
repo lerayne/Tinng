@@ -205,6 +205,8 @@ function Branch (contArea, topicID, parentID) {
 
 				}, function(result, errors) { if (result == false){ // что делаем, когда пришел ответ:
 
+					wait.stop();
+
 					var req = new JsHttpRequest();
 					req.open(null, 'ajax_backend.php', true);
 					req.send({action: 'lock_post', id: row['id']});
@@ -229,6 +231,8 @@ function Branch (contArea, topicID, parentID) {
 						var req = new JsHttpRequest();
 						req.open(null, 'ajax_backend.php', true);
 						req.send({action: 'unlock_post', id: row['id']});
+
+						wait.start();
 					}
 
 					var updateMessage = function(){
@@ -292,6 +296,8 @@ function Branch (contArea, topicID, parentID) {
 				removeClass(controls, 'reveal');
 				addClass(controls, 'invis');
 
+				wait.stop();
+
 				// бекап функции
 				var backupFunc = button.onclick;
 				button.onclick = null;
@@ -322,8 +328,9 @@ function Branch (contArea, topicID, parentID) {
 					removeClass(controls, 'invis');
 					addClass(controls, 'reveal');
 
+					wait.start();
+
 					button.onclick = backupFunc;
-					//alert(form.nodeName);
 				}
 
 				var sendMsg = function(){
@@ -331,6 +338,7 @@ function Branch (contArea, topicID, parentID) {
 					textarea.className = 'throbber_gray';
 
 					var msg_text = textarea.value || gcl('nicEdit-main')[0].innerHTML;
+					var newBlock;
 
 					// AJAX:
 					JsHttpRequest.query( 'ajax_backend.php', { // аргументы:
@@ -345,8 +353,11 @@ function Branch (contArea, topicID, parentID) {
 						if (plain){
 
 							removeClass(prevElem(answerBlock), 'lastblock');
-							insAfter(container, branch.createBlock(result)); // вставляем новый блок
+							newBlock = branch.createBlock(result)
+							insAfter(container, newBlock); // вставляем новый блок
 							addClass(prevElem(answerBlock), 'lastblock');
+
+							contArea.scrollTop += newBlock.offsetHeight;
 
 						} else {
 
@@ -390,8 +401,10 @@ function Branch (contArea, topicID, parentID) {
 			//var branchBtn = addBtn('addbranch', txt['answer']);
 			//branchBtn.onclick = function(){addMessage(branchBtn);}
 
-			var plainBtn = addBtn('plainanswer', txt['answer']);
-			plainBtn.onclick = function(){addMessage(plainBtn, 'plain');}
+			if (userID) {
+				var plainBtn = addBtn('plainanswer', txt['answer']);
+				plainBtn.onclick = function(){addMessage(plainBtn, 'plain');}
+			}
 
 			if (row['author_id'] == userID){
 
@@ -627,7 +640,8 @@ function Updater(){
 
 					} else { // поста с таким айди нет, значит это новый пост
 
-						branch.appendBlock(row);
+						var newBlock = branch.appendBlock(row);
+						ID('content_2').scrollTop += newBlock.offsetHeight;
 						console('message #'+row['id']+' found as new -> added to view');
 
 					}

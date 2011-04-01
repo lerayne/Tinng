@@ -11,6 +11,8 @@ case 'regform':
 	$quiz_num = mt_rand(0, count($quiz)-1);
 	$this_quiz = $quiz[$quiz_num];
 
+	$post = unserialize(base64_decode($_COOKIE['logdata']));
+
 	?>
 
 	<form action="../../login.php?action=register" method="post">
@@ -18,7 +20,7 @@ case 'regform':
 
 		<tr>
 			<td><?= $txt['reg_login'] ?>:</td>
-			<td> <input type="text" name="login"></td>
+			<td> <input type="text" name="login" value="<?= $post['login'] ?>"></td>
 			<td class="subtext"><?= $txtp['reg_login_expalin'] ?></td>
 		</tr><tr>
 			<td><?= $txt['reg_pass1'] ?>:</td>
@@ -30,7 +32,7 @@ case 'regform':
 			<td class="subtext"></td>
 		</tr><tr>
 			<td><?= $txt['reg_email'] ?>:</td>
-			<td> <input type="text" name="email"></td>
+			<td> <input type="text" name="email" value="<?= $post['email'] ?>"></td>
 			<td class="subtext"><?= $txtp['reg_email_expalin'] ?></td>
 		</tr><tr>
 			<td><?= $txt['reg_quiz'] ?>:</td>
@@ -38,6 +40,8 @@ case 'regform':
 		</tr><tr>
 			<td><?= $txt['reg_answer'] ?>:</td>
 			<td colspan="2"><input type="text" name="quiz"></td>
+		</tr><tr>
+			<td colspan="3"><input type="submit" value="<?= $txt['reg_reg'] ?>"></td>
 		</tr>
 
 	</table>
@@ -47,6 +51,7 @@ case 'regform':
 	</form>
 
 	<?
+
 break;
 
 

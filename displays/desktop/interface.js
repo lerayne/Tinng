@@ -55,6 +55,7 @@ function closeOverlayPage() {
 	hide(ID('curtain'));
 	hide(ID('overdiv'));
 	wait.timeout(cfg['posts_updtimer_focused'], 'unlock');
+	deleteCookie('message');
 }
 
 

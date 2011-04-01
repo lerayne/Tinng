@@ -1,5 +1,7 @@
 <?php
-/* Шаблон для полноценного ajax-ориентированного приложения для современных браузеров */
+
+$message = $_COOKIE['message'];
+
 ?><!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
 	"http://www.w3.org/TR/html4/loose.dtd">
 <html>
@@ -10,6 +12,7 @@
 
 		<script type="text/javascript" language="JavaScript" src="libraries/JsHttpRequest.js"></script>
 		<script type="text/javascript" language="JavaScript" src="lib_modified/nicEdit.js"></script>
+		<script type="text/javascript" language="JavaScript" src="libraries/webtoolkit.js"></script>
 		<script type="text/javascript" language="JavaScript" src="js/spikes.js"></script>
 		<script type="text/javascript" language="JavaScript" src="js/object_spikes.js"></script>
 
@@ -49,15 +52,18 @@
 	<!-- onFocus="activate()" onBlur="deactivate()" -->
 	<body onLoad="jawiInit()">
 		
-		<div id="curtain" class="none"></div>
-		<div id="overdiv" class="none">
+		<div id="curtain"<?= $message ? '' : ' class="none"' ?>></div>
+		<div id="overdiv"<?= $message ? '' : ' class="none"' ?>>
 			<div class="window">
 				<div>
-					<div class="title left"></div>
+					<div class="title left">
+						<?= $message ? $txt['title_message'] : '' ?>
+					</div>
 					<div class="close right"></div>
 					<div class="clearboth"></div>
 				</div>
 				<div class="overcontent">
+					<?= $message ? $txtp['ret_message_'.($message*1)] : '' ?>
 				</div>
 			</div>
 		</div>
@@ -71,7 +77,7 @@
 			<div id="right_pan">
 				<div class="button" id="debug_toggle"><span>Панель отладки</span></div>
 			</div>
-			
+			<div class="clearboth"></div>
 		</div>
 
 		<div id="main" class="invis">
