@@ -2,8 +2,8 @@
 /* Подключаемый файл, который входит как в бекенд для XHR, так и в осовной php-скрипт */
 
 require_once 'config.php';
-require_once 'php/spikes.php';
 require_once 'locale/ru.php';
+require_once 'php/spikes.php';
 require_once 'php/classes.php';
 require_once 'libraries/DbSimple/Generic.php';
 
@@ -15,12 +15,10 @@ $db->setIdentPrefix($safecfg['db_prefix'].'_');
 
 // !! простой логин. потом сделать более секьюрный
 $raw_user = $db->selectRow(
-	'SELECT * FROM ?_users, ?_user_settings 
-	WHERE
+	'SELECT * FROM ?_users WHERE
 		usr_hash = ?
 		AND usr_login = ?
-		AND usr_approved = 1
-		AND `usr_id` = `uset_user`'
+		AND usr_approved = 1'
 	, $_COOKIE['pass']
 	, $_COOKIE['login']
 );
@@ -28,6 +26,6 @@ $raw_user = $db->selectRow(
 // заглушка аутентификации
 if ($raw_user != false) $user = new User ($raw_user);
 
-if ($user->gravatar)
-	$user->avatar = 'http://www.gravatar.com/avatar/'.md5(strtolower($user->email)).'?s=48';
+//if ($user->gravatar)
+//$user->avatar = 'http://www.gravatar.com/avatar/'.md5(strtolower($user->email)).'?s=48';
 ?>

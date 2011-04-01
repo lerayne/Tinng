@@ -15,8 +15,8 @@ $db->query('SET NAMES "utf8"');
 $db->setIdentPrefix($safecfg['db_prefix'].'_');
 
 $message = false;
-$location = $_SERVER["HTTP_REFERER"];
-if (strpos($location, '?')) list($location, $trash) = split('?', $_SERVER["HTTP_REFERER"]);
+$location = $_SERVER["HTTP_HOST"];
+//if (strpos($location, '?')) list($location, $trash) = split('?', $_SERVER["HTTP_REFERER"]);
 
 switch ($_GET['action']):
 
@@ -103,8 +103,9 @@ switch ($_GET['action']):
 			'SELECT * FROM ?_users WHERE usr_id = ?d AND usr_approved <=> NULL', $_GET['u']
 		);
 
-		if (!$user) $message = 16;
+		
 		if ($_GET['token'] != md5($user['usr_login'].'zerso'.$user['usr_hash'].'b0t'.$user['usr_email'])) $message = 17;
+		if (!$user) $message = 16;
 
 		if (!$message):
 
@@ -118,6 +119,8 @@ switch ($_GET['action']):
 
 			mail($user['usr_email'], $txtp['reg_welcome_subject'], $user['usr_login'].$txtp['reg_welcome_message']);
 
+			$message = 21;
+
 		endif;
 
 		setcookie('message', $message);
@@ -127,8 +130,8 @@ switch ($_GET['action']):
 endswitch;
 
 echo '<pre>';
-var_dump($_);
+var_dump($_SERVER);
 echo '</pre>';
 
-//header("location: ".$location);
+header("location: http://".$location);
 ?>

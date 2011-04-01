@@ -20,7 +20,7 @@ $action = $_REQUEST['action'];
 $id = $_REQUEST['id'];
 
 function ready_row($row){
-	if ($row['use_gravatar'] == '1')
+	//if ($row['use_gravatar'] == '1')
 	$row['avatar_url'] = 'http://www.gravatar.com/avatar/'.md5(strtolower($row['author_email'])).'?s=48';
 
 	return $row;
@@ -51,6 +51,7 @@ switch ($action):
 			'SELECT msg_topic FROM ?_messages WHERE msg_id = ?', $id
 		);
 
+		//!! убрал настройки, три таблицы не выбираются. аватары потом переделать!
 		$result['data'] = make_tree($db->select(
 			'SELECT
 				msg_id AS id,
@@ -61,14 +62,12 @@ switch ($action):
 				msg_body AS message,
 				msg_created AS created,
 				msg_modified AS modified,
-				usr_email AS author_email,
-				uset_gravatar AS use_gravatar
-			FROM ?_messages, ?_users, ?_user_settings
+				usr_email AS author_email
+			FROM ?_messages, ?_users
 			WHERE
-				msg_author = usr_id
-				AND (msg_topic_id = ? { OR msg_id = ? })
-				AND usr_id = uset_user
+				(msg_topic_id = ? { OR msg_id = ? })
 				AND msg_deleted <=> NULL
+				AND `msg_author` = `usr_id`
 			ORDER BY msg_created '.($id == '0' ? 'DESC' : 'ASC')
 			, $id
 			,($id == '0') ? DBSIMPLE_SKIP : $id
@@ -119,12 +118,10 @@ switch ($action):
 				msg_body AS message,
 				msg_created AS created,
 				msg_modified AS modified,
-				usr_email AS author_email,
-				uset_gravatar AS use_gravatar
-			FROM ?_messages, ?_users, ?_user_settings
+				usr_email AS author_email
+			FROM ?_messages, ?_users
 			WHERE msg_id = ?
-			AND usr_id = uset_user
-			'
+			AND `msg_author` = `usr_id`'
 			, $new_id
 		));
 
@@ -184,12 +181,10 @@ switch ($action):
 					msg_created AS created,
 					msg_modified AS modified,
 					msg_deleted AS deleted,
-					usr_email AS author_email,
-					uset_gravatar AS use_gravatar
-				FROM ?_messages, ?_users, ?_user_settings
+					usr_email AS author_email
+				FROM ?_messages, ?_users
 				WHERE
-					msg_author = usr_id
-					AND usr_id = uset_user
+					`msg_author` = `usr_id`
 					AND (msg_topic_id = ? OR msg_id = ?)
 					AND (msg_created > ? OR msg_modified > ?)'
 				, $topic , $topic , $maxdate , $maxdate
