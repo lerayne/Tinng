@@ -160,14 +160,18 @@ switch ($action):
 	case 'wait_post':
 
 		$topic = $_REQUEST['topic'];
+
+		// форматируем, отнимаем три лишних нолика микросекунд, прилетевшие из js
 		$maxdate = date('Y-m-d H:i:s', substr($_REQUEST['maxdate'], 0, strlen($_REQUEST['maxdate'])-3));
 
+		// Выбираем количество измененных файлов
 		$number = $db->selectCell(
 			'SELECT COUNT( * ) AS new FROM ?_messages
 			WHERE (msg_topic_id = ?d OR msg_id = ?d) AND (msg_created > ? OR msg_modified > ?)'
 			, $topic , $topic , $maxdate , $maxdate
 		);
 
+		// Если кол-во измененных больше 0 ...
 		if (intval($number) > 0):
 
 			$result['data'] = make_tree($db->select('

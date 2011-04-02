@@ -45,8 +45,6 @@ var veditor = function (){
 function Branch (contArea, topicID, parentID) {
 	if (!parentID) parentID = topicID;
 
-	document.onkeypress = null;
-
 	// чтобы this функций не забивал this объекта
 	var branch = this;
 
@@ -282,6 +280,8 @@ function Branch (contArea, topicID, parentID) {
 							remove(container);
 
 							maxPostDate = sql2stamp(result['maxdate']);
+
+							console('message deleted by user. max date set to '+result['maxdate'])
 						}
 
 					}, true /* запрещать кеширование */ );
@@ -316,6 +316,8 @@ function Branch (contArea, topicID, parentID) {
 
 				var editor = veditor();
 				editor.panelInstance(textarea.id);
+
+				gcl('nicEdit-main', form)[0].focus();
 
 				var cancelMsg = function(){
 
@@ -375,6 +377,8 @@ function Branch (contArea, topicID, parentID) {
 						maxPostDate = sql2stamp(result['created']);
 
 						cancelMsg();
+
+						console('message was added by user');
 
 						// Дебажим:
 						ID('debug').innerHTML = errors;
@@ -728,9 +732,7 @@ function startEngine(){
 		fillPosts(currentTopic, ID('content_2'));
 	}
 
-	var tbar = gcl('col_titlebar', ID('col_2'))[0];
-
-	tbar.onclick = wait.toggle;
+	gcl('col_titlebar', ID('col_2'))[0].onclick = wait.toggle;
 
 	if (ID('loginBtn')) ID('loginBtn').onclick = function(){
 		var form = ID('loginForm');
