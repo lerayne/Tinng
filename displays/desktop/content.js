@@ -263,6 +263,8 @@ function Branch (contArea, topicID, parentID) {
 
 				}, function(result, errors) { if (result == false){ // когда пришел ответ:
 
+					wait.stop();
+
 					var confirmed = confirm(txt['msg_del_confirm']);
 					if (!confirmed) return;
 
@@ -279,9 +281,15 @@ function Branch (contArea, topicID, parentID) {
 							}
 							remove(container);
 
-							maxPostDate = sql2stamp(result['maxdate']);
+							console('<b>Message deleted by user.</b> Max date set to '+result['maxdate'])
 
-							console('message deleted by user. max date set to '+result['maxdate'])
+							//!! если работает - избавится от глобальной переменной и всегда явно передавать
+							// значение в объект. Хотя, если не работает - возможно тоже
+							maxPostDate = sql2stamp(result['maxdate']);
+							//var mpd = sql2stamp(result['maxdate']);
+							wait.coldStart(); // холодный старт - потому что за время пока удалялось
+							// сообщение маловероятно, чтобы кто-то что-то дописал, чего не скажешь
+							// о редактировании и написании сообщение, поэтому там старт горячий
 						}
 
 					}, true /* запрещать кеширование */ );
@@ -378,7 +386,7 @@ function Branch (contArea, topicID, parentID) {
 
 						cancelMsg();
 
-						console('message was added by user');
+						console('<b>Message was added by user.</b> Max date set to '+result['created']);
 
 						// Дебажим:
 						ID('debug').innerHTML = errors;
@@ -664,7 +672,7 @@ function Updater(){
 		}, true ); // запрещать кеширование
 	}
 
-	this.start = function(cold){
+	this.start = function(cold, mpd){
 		if (wait.interv) {
 			colsole('waiter can not be started, because it is allready running');
 			return;
@@ -674,10 +682,14 @@ function Updater(){
 
 		if (cold != 'cold'){
 			console('waiter started (hot start) with interval '+(wtime/1000)+'s');
-			setTimeout(function(){update(currentTopic, maxPostDate)}, 500);
+			setTimeout(function(){update(currentTopic, mpd ? mpd : maxPostDate)}, 1000);
 		} else console('waiter started (cold start) with interval '+(wtime/1000)+'s');
 
-		wait.interv = setInterval(function(){update(currentTopic, maxPostDate);}, wtime);
+		wait.interv = setInterval(function(){update(currentTopic, mpd ? mpd : maxPostDate);}, wtime);
+	}
+
+	this.coldStart = function(){
+		wait.start('cold');
 	}
 
 	this.stop = function(){
@@ -702,7 +714,7 @@ function Updater(){
 			wtime = seconds*1000;
 			if (wait.interv) {
 				clearInterval(wait.interv);
-				setTimeout(function(){update(currentTopic, maxPostDate)}, 500);
+				setTimeout(function(){update(currentTopic, maxPostDate)}, 1000);
 				wait.interv = setInterval(function(){update(currentTopic, maxPostDate);}, wtime);
 				console('waiter restarted with interval '+seconds+'s'+(lock == 'lock' ? ' (with lock)' : ''));
 			} else console('interval changed to '+seconds+'s');
