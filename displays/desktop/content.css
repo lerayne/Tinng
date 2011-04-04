@@ -35,6 +35,10 @@
 	color:black;
 }
 
+.activetopic, .activetopic:hover {
+	background-color: #e1ffe0;
+}
+
 .infobar {
 	padding: 0 20px 0 20px;
 	position: relative;
@@ -151,6 +155,13 @@
 	background-image: url(../../images/comment.png);
 	float:left;
 	margin-left: 0;
+}
+
+#newtopic .topic_name {
+	width:100%;
+	border: 1px solid #cccccc;
+	margin: 4px 0;
+	padding: 4px 0;
 }
 
 .throbber_gray {

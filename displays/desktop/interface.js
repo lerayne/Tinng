@@ -204,16 +204,31 @@ function loadTemplate(name, container, cache){
 	}, cache ); // не запрещать кеширование
 }
 
-// функция для использования в общей onload-функции
-function startInterface(){
-	addDynamicCSS();
-	insertResizers();
-	resizeFrame();
+
+function fillToolbars(){
+
+	var topicsBar = e('@col_menubar', '#col_1');
+	var postsBar = e('@col_menubar', '#col_2');
+
+	var addButton = function(name, bar){
+		var btn = newel('div', 'left sbtn '+name);
+		bar.appendChild(btn);
+		btn.innerHTML = '<span>'+txt['btn_'+name]+'</span>';
+		return btn;
+	}
+
+	var newTopicBtn = addButton('newtopic', postsBar);
+
+	newTopicBtn.onclick = function(){
+		newTopic(newTopicBtn);
+	}
+}
+
+
+function attachActions(){
+
 	e('#debug_toggle').onclick = debugToggle;
 	if (getCookie('toggle_debug') == '1') debugToggle('debug_toggle');
-
-	e('#content_0').appendChild(newel('div', null, 'test'));
-	editCSS('#test', 'width:50px; height:50px; background-color:black');
 
 	e('@close', '#overdiv').onclick = closeOverlayPage;
 
@@ -234,6 +249,22 @@ function startInterface(){
 		form.lochash.value = location.hash;
 		form.submit();
 	}
+
+}
+
+
+// функция для использования в общей onload-функции
+function startInterface(){
+	addDynamicCSS();
+	insertResizers();
+	resizeFrame();
+	
+	e('#content_0').appendChild(newel('div', null, 'test'));
+	editCSS('#test', 'width:50px; height:50px; background-color:black');
+
+	attachActions();
+
+	fillToolbars();
 }
 
 window.onresize = resizeFrame;

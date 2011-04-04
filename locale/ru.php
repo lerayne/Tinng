@@ -6,6 +6,7 @@ $txt['of_the_topic'] = 'темы';
 $txt['topic'] = 'Тема';
 $txt['modified'] = 'изменено ';
 $txt['postcount'] = ' сообщ.';
+$txt['new_topic'] = 'Новая тема';
 
 $txt['from'] = '';
 
@@ -44,6 +45,8 @@ $txt['reg_pass2'] = 'Повтор пароля';
 $txt['reg_quiz'] = 'Загадка';
 $txt['reg_answer'] = 'Ответ';
 $txt['reg_reg'] = 'Зарегистрироваться';
+
+$txt['btn_newtopic'] = 'Новая тема';
 
 $txtp['reg_login_expalin'] = 'Логин может содержать только латинские литеры, цифры и занк "_".
 	Длина логина - от 4 до 16 символов';
