@@ -108,35 +108,10 @@ function rtrim(s) {return s.replace(/\s+$/, '');}
 
 // ОБЕРТКИ DOM (чтение):
 
-// взятие элемента по ID
-function ID(id) {return document.all ? document.all[id] : document.getElementById(id);}
-
-// возвращает массив элементов представляющих собой заданный тег. Если родительский элемент
-// не указан - берется document
-function getTags(tag, refElem) {return (refElem ? refElem : document).getElementsByTagName(tag);}
-
-// возвращает массив элементов имеющих заданный класс. Если родительский элемент не указан -
-// берется document
-function gcl(className, refElem){
-	if (document.getElementsByClassName){
-		return (refElem ? refElem : document).getElementsByClassName(className);
-	} else { //реализация для IE
-		var retnode = [];
-		var myclass = new RegExp('\\b'+className+'\\b');
-		var elem = (refElem ? refElem : document).getElementsByTagName('*');
-		for (var i = 0; i < elem.length; i++) {
-			var classes = elem[i].className;
-			if (myclass.test(classes)) {
-				retnode.push(elem[i]);
-			}
-		}
-		return retnode;
-	}
-}
-
 // возвращает массив только видимых элементов указанного класса
+// !! не используется
 function gclvis(className, refElem){
-	var elems = gcl(className, refElem);
+	var elems = e('.'+className, refElem);
 	var vis = [];
 	for (var i=0, j=0; i<elems.length; i++) if (elems[i].offsetHeight > 0){
 		vis[j] = elems[i];
@@ -149,7 +124,7 @@ function gclvis(className, refElem){
 // имеющих определенный класс внутри document, или заданного элемента
 function classDimen(dim, className, elem) {
 	var ret = 0;
-	var kids = gcl(className, elem ? elem : null);
+	var kids = e('.'+className, elem ? elem : null);
 	for (var i=0; i<kids.length; i++){
 		if (dim == 'h'){
 			ret += kids[i].offsetHeight;
@@ -358,7 +333,7 @@ function editCSS (selector, rules){
 	var newRules = rulesColl(dynamicCSS);
 	var text='';
 	for (var j=newRules.length-1; j>=0; j--) text += newRules[j].cssText+"<br>";
-	ID('debug2').innerHTML = text;
+	e('#debug2').innerHTML = text;
 }
 
 /*
@@ -478,5 +453,108 @@ function deleteCookie(name, path, domain) {
 
 	document.cookie = str;
 	return true;
+}
+
+
+/* свой велосипед вместо jquery :)
+ *
+ * в каждый из двух параметров можно передавать либо объект, либо строку вида:
+ * '#ref' - возвращает уникальный элемент, найденный по ID
+ * '.ref' - возвращает массив элементов, найденных по классу
+ * '@ref' - возвращает первый элемент, найденный по классу
+ * '<ref>' - возвращает массив элементов, найденных по тегу
+ * '[ref]' - возвращает первый элемент, найденный по тегу
+ *
+ * Функция возвращает ссылку на объект refa находящийся внутри объекта refb, а если refb не
+ * задан - внтури document. Указание refb имеет смысл, когда refa - тег или класс, а refb -
+ * конкртеный известный элемент, например e('#col_1') вернет объект с этим ID, e('@titlebar', '#col_1')
+ * вернет ссылку на первый объект с классом titlebar, из тех что находятся в элементе с ID col_1,
+ * а e('<div>', '#col_1') вернет массив всех div-ов находящихся внутри него.
+ */
+function e(refa, refb){
+
+	var object;
+
+	// возвращает массив элементов имеющих заданный класс. Если родительский элемент не указан -
+	// берется document
+	var gcl = function (className, refElem){
+		if (document.getElementsByClassName){
+			return (refElem ? refElem : document).getElementsByClassName(className);
+		} else { //реализация для IE
+			var retnode = [];
+			var myclass = new RegExp('\\b'+className+'\\b');
+			var elem = (refElem ? refElem : document).getElementsByTagName('*');
+			for (var i = 0; i < elem.length; i++) {
+				var classes = elem[i].className;
+				if (myclass.test(classes)) {
+					retnode.push(elem[i]);
+				}
+			}
+			return retnode;
+		}
+	}
+
+	if (refb) refb = e(refb); // рекурсия: второй параметр можно указывать так же как первый
+	if (typeof refb != 'object') refb = null; // второй параметр должен быть указателем на один элемент
+
+	if (typeof refa == 'object') {
+
+		object = refa; // если передан html-объект - возвращаем его сразу.
+
+	} else { // иначе разбираем строку
+
+		var handle = refa.charAt(0);
+		var name = refa.substr(1);
+
+		switch (handle){
+
+			case '#': // берем элемент по ID
+				object = document.all ? document.all[name] : document.getElementById(name);
+			break;
+
+			case '.': // берем массив по классу
+				object = gcl(name, refb);
+			break;
+
+			case '@': // берем первый элемент по классу
+				object = gcl(name, refb)[0];
+			break;
+
+			case '<': // берем массив по тегу
+				name = refa.substr(1, name.length-2).toLowerCase();
+				object = (refb ? refb : document).getElementsByTagName(name);
+			break;
+
+			case '[': // берем первый элемент по тегу
+				name = refa.substr(1, name.length-2).toLowerCase();
+				object = (refb ? refb : document).getElementsByTagName(name)[0];
+			break;
+		}
+	}
+	/*
+	this.hide = function(){
+		return addClass(object, 'none');
+	}
+
+	this.unhide = function(){
+		return removeClass(object, 'none');
+	}
+	*/
+	return object;
+}
+
+// !! почему не работает?
+function f(refa){
+
+	var object = e(refa);
+
+
+	this.hide = function(){
+		addClass(object, 'none');
+	}
+
+	this.unhide = function(){
+		removeClass(object, 'none');
+	}
 }
 

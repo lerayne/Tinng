@@ -127,7 +127,7 @@ function Branch (contArea, topicID, parentID) {
 			// вешаем на клик событие загрузки сообщений
 			container.onclick = function(){
 				branches = {};
-				fillPosts(row['id'], ID('content_2'));
+				fillPosts(row['id'], e('#content_2'));
 				setCookie('currentTopic', row['id']);
 				adress.set('topic', row['id']);
 				adress.del('message');
@@ -215,7 +215,7 @@ function Branch (contArea, topicID, parentID) {
 					var editor = veditor();
 					hide(infobar, controls);
 					editor.panelInstance(message.id);
-					gcl('nicEdit-panel', container)[0].style.paddingLeft = '47px';
+					e('@nicEdit-panel', container).style.paddingLeft = '47px';
 					message.focus();
 					var editControls = newel('div','controls');
 
@@ -325,7 +325,7 @@ function Branch (contArea, topicID, parentID) {
 				var editor = veditor();
 				editor.panelInstance(textarea.id);
 
-				gcl('nicEdit-main', form)[0].focus();
+				e('@nicEdit-main', form).focus();
 
 				var cancelMsg = function(){
 
@@ -350,7 +350,7 @@ function Branch (contArea, topicID, parentID) {
 					textarea.disabled = true;
 					textarea.className = 'throbber_gray';
 
-					var msg_text = textarea.value || gcl('nicEdit-main')[0].innerHTML;
+					var msg_text = textarea.value || e('@nicEdit-main').innerHTML;
 					var newBlock;
 
 					// AJAX:
@@ -389,7 +389,7 @@ function Branch (contArea, topicID, parentID) {
 						console('<b>Message was added by user.</b> Max date set to '+result['created']);
 
 						// Дебажим:
-						ID('debug').innerHTML = errors;
+						e('#debug').innerHTML = errors;
 
 					}, true /* запрещать кеширование */ );
 				}
@@ -465,10 +465,11 @@ function fillPosts(parent, container) {
 	if (wait.interv) wait.stop();
 
 	var col = container.id.replace('content_', '');
-	var tbar = gcl('col_titlebar', ID('col_'+col))[0];
-	var sbar = gcl('col_statusbar', ID('col_'+col))[0];
+	var tbar = e('@col_titlebar', '#col_'+col);
+	var sbar = e('@col_statusbar', '#col_'+col);
 
 	addClass(tbar, 'tbar_throbber');
+	container.innerHTML = '';
 
 	// запоминаем время начала выполнения запроса
 	var d = new Date;
@@ -482,7 +483,6 @@ function fillPosts(parent, container) {
 
 	}, function(result, errors) { // что делаем, когда пришел ответ:
 
-		container.innerHTML = '';
 		removeClass(tbar, 'tbar_throbber');
 
 		branches[parent] = new Branch (container, parent);
@@ -498,8 +498,8 @@ function fillPosts(parent, container) {
 
 		// прокрутка до указанного поста или в конец
 		var refPost;
-		if ((refPost = adress.get('message')) && ID('post_'+refPost)) {
-			ID('post_'+refPost).scrollIntoView();
+		if ((refPost = adress.get('message')) && e('#post_'+refPost)) {
+			e('#post_'+refPost).scrollIntoView();
 		} else {
 			cont.e.scrollTop = cont.e.scrollHeight; // прокручиваем до конца
 		}
@@ -520,7 +520,7 @@ function fillPosts(parent, container) {
 
 		// Дебажим:
 
-		ID('debug').innerHTML = errors;
+		e('#debug').innerHTML = errors;
 		sbar.innerHTML += ' | '+cont.e.scrollTop;
 
 	}, true /* запрещать кеширование */ );
@@ -529,10 +529,10 @@ function fillPosts(parent, container) {
 
 function fillTopics(){
 
-	var container = ID('content_1');
+	var container = e('#content_1');
 	var col = container.id.replace('content_', '');
-	var tbar = gcl('col_titlebar', ID('col_'+col))[0];
-	var sbar = gcl('col_statusbar', ID('col_'+col))[0];
+	var tbar = e('@col_titlebar', '#col_'+col);
+	var sbar = e('@col_statusbar', '#col_'+col);
 
 	addClass(tbar, 'tbar_throbber');
 
@@ -564,7 +564,7 @@ function fillTopics(){
 		// Дебажим:
 		console('topic list loaded');
 
-		ID('debug').innerHTML = errors;
+		e('#debug').innerHTML = errors;
 		sbar.innerHTML += ' | '+cont.e.scrollTop;
 
 	}, true /* запрещать кеширование */ );
@@ -576,11 +576,11 @@ function fillTopics(){
 function long_updater(topic, maxdate){
 
 	// временно в первой колонке
-	var tbar = gcl('col_titlebar', ID('col_0'))[0];
+	var tbar = e('@col_titlebar', '#col_0');
 	addClass(tbar, 'tbar_throbber');
 	var count = 1;
 
-	var interval = setInterval(function(){ID('content_0').innerHTML = count++}, 1000);
+	var interval = setInterval(function(){e('#content_0').innerHTML = count++}, 1000);
 
 	// AJAX:
 	var req = new JsHttpRequest();
@@ -588,8 +588,8 @@ function long_updater(topic, maxdate){
 
 		clearInterval(interval);
 		removeClass(tbar, 'tbar_throbber');
-		ID('content_0').innerHTML = req.responseJS;
-		ID('debug0').innerHTML = req.responseText;
+		e('#content_0').innerHTML = req.responseJS;
+		e('#debug0').innerHTML = req.responseText;
 
 	}}
 	req.open(null, 'ajax_backend.php', true);
@@ -611,7 +611,7 @@ function Updater(){
 	var wtime = cfg['posts_updtimer_blurred']*1000;
 	this.interv = null;
 	var row, branch;
-	var tbar = gcl('col_titlebar', ID('col_2'))[0];
+	var tbar = e('@col_titlebar', '#col_2');
 
 	var update = function (topic, maxdate){
 
@@ -639,7 +639,7 @@ function Updater(){
 					if (!branches[row['parent']]) return; // если ветки с таким идентификатором нет
 					branch = branches[row['parent']];
 
-					var container = ID('post_'+row['id']);
+					var container = e('#post_'+row['id']);
 					
 					if (container && row['deleted']){ // это изменение - удаление поста
 
@@ -649,14 +649,14 @@ function Updater(){
 
 					} else if (container) { // это изменение - редактирование поста
 
-						gcl('created', container)[0].innerHTML = txt['modified'] + row['modified'];
-						gcl('message', container)[0].innerHTML = row['message'];
+						e('@created', container).innerHTML = txt['modified'] + row['modified'];
+						e('@message', container).innerHTML = row['message'];
 						console('message #'+row['id']+' found as edited -> modified in view');
 
 					} else { // поста с таким айди нет, значит это новый пост
 
 						var newBlock = branch.appendBlock(row);
-						ID('content_2').scrollTop += newBlock.offsetHeight;
+						e('#content_2').scrollTop += newBlock.offsetHeight;
 						console('message #'+row['id']+' found as new -> added to view');
 
 					}
@@ -667,7 +667,7 @@ function Updater(){
 
 
 			removeClass(tbar, 'tbar_updating');
-			ID('debug0').innerHTML = errors;
+			e('#debug0').innerHTML = errors;
 
 		}, true ); // запрещать кеширование
 	}
@@ -741,29 +741,24 @@ function startEngine(){
 
 	if ((currentTopic = adress.get('topic'))){
 		branches = {};
-		fillPosts(currentTopic, ID('content_2'));
+		fillPosts(currentTopic, e('#content_2'));
 	}
 
-	gcl('col_titlebar', ID('col_2'))[0].onclick = wait.toggle;
-
-	if (ID('loginBtn')) ID('loginBtn').onclick = function(){
-		var form = ID('loginForm');
-		form.submit();
-	}
+	e('@col_titlebar', '#col_2').onclick = wait.toggle;
 }
 
 
 function focusDoc(){
 	var p = focusDoc.arguments;
 	wait.timeout(cfg['posts_updtimer_focused']);
-	ID('test').style.backgroundColor = 'red';
+	e('#test').style.backgroundColor = 'red';
 	//console('focus actions performed');
 }
 
 function blurDoc(){
 	var p = blurDoc.arguments;
 	wait.timeout(cfg['posts_updtimer_blurred']);
-	ID('test').style.backgroundColor = 'blue';
+	e('#test').style.backgroundColor = 'blue';
 	//console('blur actions performed');
 }
 

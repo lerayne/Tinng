@@ -15,7 +15,7 @@ case 'regform':
 
 	?>
 
-	<form action="../../login.php?action=register" method="post">
+	<form action="login.php?action=register" method="post">
 	<table cellpadding="5" cellspacing="5" border="0">
 
 		<tr>
