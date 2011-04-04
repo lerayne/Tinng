@@ -11,7 +11,7 @@ function resizeContArea(column){
 function console(string, skip){
 	if (skip && !cfg['console_display_all']) return;
 	var date = new Date();
-	var cons = ID('console');
+	var cons = e('#console');
 	var time;
 
 	if (date.toLocaleFormat) {
@@ -33,27 +33,25 @@ function console(string, skip){
 // Изменяет высоту элементов, которые должны иметь фиксированную высоту в пикселях
 function resizeFrame() {
 	editCSS('#curtain', 'height:'+frameHeight()+'px;');
-	mainHeight = innerFrameHeight() - ID('debug_depo').offsetHeight - ID('main_menu').offsetHeight;
+	mainHeight = innerFrameHeight() - e('#debug_depo').offsetHeight - e('#main_menu').offsetHeight;
 	editCSS('#main', 'height:'+mainHeight+'px;'); // главное "окно"
 
-	var cols = gcl('global_column');
+	var cols = e('.global_column');
 	for (var i=0; i<cols.length; i++) {resizeContArea(cols[i]);}
 }
 
 function removeCurtain(){
-	removeClass(ID('main'), 'invis');
+	removeClass(e('#main'), 'invis');
 }
 
 
 function callOverlayPage() {
-	unhide(ID('curtain'));
-	unhide(ID('overdiv'));
+	unhide(e('#curtain'), e('#overdiv'));
 	wait.timeout(cfg['posts_updtimer_blurred'], 'lock');
 }
 
 function closeOverlayPage() {
-	hide(ID('curtain'));
-	hide(ID('overdiv'));
+	hide(e('#curtain'), e('#overdiv'));
 	wait.timeout(cfg['posts_updtimer_focused'], 'unlock');
 	deleteCookie('message');
 }
@@ -63,7 +61,7 @@ function closeOverlayPage() {
 // !! Возможно - унести в пхп (второстепенное)
 function insertResizers(){
 	var type = 'TD';
-	var cols = childElems(ID('app_frame_tr'), type);
+	var cols = childElems(e('#app_frame_tr'), type);
 	var col;
 	for (var i=0; i<cols.length; i++) {col = cols[i];
 
@@ -74,7 +72,7 @@ function insertResizers(){
 			resizer.onmousedown = resizeColumn;
 			resizer.appendChild(newel('DIV', 'fixer'));
 
-			insBefore(ID('content_'+i), collapser = newel('DIV', 'collapser', 'collapser_'+i));
+			insBefore(e('#content_'+i), collapser = newel('DIV', 'collapser', 'collapser_'+i));
 			collapser.onclick = toggleCollapse;
 			
 			if (getCookie('col_'+i+'_collapsed') == '1') toggleCollapse(collapser.id);
@@ -87,8 +85,8 @@ function resizeColumn(event){
 
 	// цена процента, вычисляющаяся из ширины рабочей области
 	var precCost = (innerFrameWidth()
-		//- classDimen('w', 'col_resizer', ID('app_frame_tr'))
-		//- classDimen('w', 'collapsed', ID('app_frame_tr'))
+		//- classDimen('w', 'col_resizer', e('#app_frame_tr'))
+		//- classDimen('w', 'collapsed', e('#app_frame_tr'))
 		)/100;
 
 	var colL = prevElem(this); // что ресайзить будем
@@ -101,7 +99,7 @@ function resizeColumn(event){
 	parent.onmouseup = resizeModeOff;
 
 	// отключаем выделение через CSS (для вебкит)
-	addClass(ID('main'), 'noselect');
+	addClass(e('#main'), 'noselect');
 
 	// минимальная ширина колонки в процентах
 	var minW = 1*(compStyle(colL).minWidth.replace('px', '') / precCost).toFixed(2);
@@ -136,23 +134,23 @@ function resizeColumn(event){
 	function resizeModeOff () {
 		parent.onmousemove = null;
 		parent.onmouseup = null;
-		removeClass(ID('main'), 'noselect');
+		removeClass(e('#main'), 'noselect');
 		setCookie(colL.id+'_width', finalPrec);
 	}
 }
 
 function toggleCollapse(id){
-	var collapser = (typeof id == 'string') ? ID(id) : this;
+	var collapser = (typeof id == 'string') ? e('#'+id) : this;
 
 	var i = collapser.id.replace('collapser_', '');
 
-	addClass(ID('col_'+i), 'collapsed');
-	addClass(ID('resizer_'+i), 'clear');
-	ID('col_'+i).style.width = '14px';
-	ID('col_'+i).style.minWidth = '14px';
+	addClass(e('#col_'+i), 'collapsed');
+	addClass(e('#resizer_'+i), 'clear');
+	e('#col_'+i).style.width = '14px';
+	e('#col_'+i).style.minWidth = '14px';
 
-	ID('col_'+i).onmouseup = toggleShow;
-	ID('resizer_'+i).onmousedown = null;
+	e('#col_'+i).onmouseup = toggleShow;
+	e('#resizer_'+i).onmousedown = null;
 
 	setCookie('col_'+i+'_collapsed', '1');
 }
@@ -161,11 +159,11 @@ function toggleShow(){
 	var i = this.id.replace('col_', '');
 
 	removeClass(this, 'collapsed');
-	removeClass(ID('resizer_'+i), 'clear');
-	ID('col_'+i).removeAttribute('style');
+	removeClass(e('#resizer_'+i), 'clear');
+	e('#col_'+i).removeAttribute('style');
 
-	ID('col_'+i).onmouseup = null;
-	ID('resizer_'+i).onmousedown = resizeColumn;
+	e('#col_'+i).onmouseup = null;
+	e('#resizer_'+i).onmousedown = resizeColumn;
 
 	// выровнять высоты внутренних элементов
 	resizeContArea(this);
@@ -174,9 +172,9 @@ function toggleShow(){
 }
 
 function debugToggle(id){
-	var thys = (typeof id == 'string') ? ID(id) : this;
+	var thys = (typeof id == 'string') ? e('#'+id) : this;
 
-	var hideable = ID('debug_depo');
+	var hideable = e('#debug_depo');
 	if (ifClass(hideable, 'none')){
 		unhide(hideable);
 		addClass(thys, 'btn_active');
@@ -211,20 +209,30 @@ function startInterface(){
 	addDynamicCSS();
 	insertResizers();
 	resizeFrame();
-	ID('debug_toggle').onclick = debugToggle;
+	e('#debug_toggle').onclick = debugToggle;
 	if (getCookie('toggle_debug') == '1') debugToggle('debug_toggle');
 
-	ID('content_0').appendChild(newel('div', null, 'test'));
+	e('#content_0').appendChild(newel('div', null, 'test'));
 	editCSS('#test', 'width:50px; height:50px; background-color:black');
 
-	gcl('close', ID('overdiv'))[0].onclick = closeOverlayPage;
+	e('@close', '#overdiv').onclick = closeOverlayPage;
 
-	if (ID('regBtn')) ID('regBtn').onclick = function (){
-
+	if (e('#regBtn')) e('#regBtn').onclick = function (){
 		callOverlayPage();
-		gcl('title', ID('overdiv'))[0].innerHTML = txt['title_register'];
-		loadTemplate('regform', gcl('overcontent', ID('overdiv'))[0], false);
+		e('@title', '#overdiv').innerHTML = txt['title_register'];
+		loadTemplate('regform', e('@overcontent', '#overdiv'), false);
+	}
 
+	if (e('#loginBtn')) e('#loginBtn').onclick = function(){
+		var form = e('#loginForm');
+		form.lochash.value = location.hash;
+		form.submit();
+	}
+
+	if (e('#logoutBtn')) e('#logoutBtn').onclick = function(){
+		var form = e('#loginForm');
+		form.lochash.value = location.hash;
+		form.submit();
 	}
 }
 
@@ -232,7 +240,7 @@ window.onresize = resizeFrame;
 
 /*
 function test(id) {
-	var theOne = ID(id);
+	var theOne = e('#'+id);
 	theOne.style.visibility = "visible";
     theOne.style.opacity = 0;
     setTimeout(function() {
