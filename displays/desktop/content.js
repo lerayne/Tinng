@@ -131,6 +131,9 @@ function Branch (contArea, topicID, parentID) {
 				setCookie('currentTopic', row['id']);
 				adress.set('topic', row['id']);
 				adress.del('message');
+
+				if (e('@activetopic')) removeClass(e('@activetopic'), 'activetopic');
+				addClass(container, 'activetopic');
 			}
 
 			var postcount = newel('div', 'postcount reveal', null, row['postcount'] + txt['postcount']);
@@ -469,6 +472,7 @@ function fillPosts(parent, container) {
 	var sbar = e('@col_statusbar', '#col_'+col);
 
 	addClass(tbar, 'tbar_throbber');
+	container.innerHTML = '';
 
 	// запоминаем время начала выполнения запроса
 	var d = new Date;
@@ -482,7 +486,6 @@ function fillPosts(parent, container) {
 
 	}, function(result, errors) { // что делаем, когда пришел ответ:
 
-		container.innerHTML = '';
 		removeClass(tbar, 'tbar_throbber');
 
 		branches[parent] = new Branch (container, parent);
@@ -560,6 +563,12 @@ function fillTopics(){
 			if(!first) var first = result['data'][i];
 			cont.appendBlock(result['data'][i]);
 		}
+		
+		var active = adress.get('topic');
+
+		if (active){
+			addClass(e('#topic_'+active), 'activetopic');
+		}
 
 		// Дебажим:
 		console('topic list loaded');
@@ -568,6 +577,38 @@ function fillTopics(){
 		sbar.innerHTML += ' | '+cont.e.scrollTop;
 
 	}, true /* запрещать кеширование */ );
+}
+
+function newTopic(btn){
+
+	btn.onclick = null;
+
+	wait.stop();
+	var cont = e('#content_2');
+	cont.innerHTML = '';
+	if (e('@activetopic')) removeClass(e('@activetopic'), 'activetopic');
+	e('@col_titlebar', '#col_2').innerHTML = txt['new_topic'];
+
+	var answerBlock = newel('div', 'add_message');
+
+	var form = newel('form', null, 'newtopic');
+
+	var textarea = newel('textarea', null, 'textarea');
+
+	var title = newel('input', 'topic_name');
+	title.name = 'topic';
+	title.type = 'text';
+
+	cont.appendChild(answerBlock);
+	answerBlock.appendChild(form);
+	form.appendChild(title);
+	form.appendChild(textarea);
+
+	var editor = veditor();
+	editor.panelInstance(textarea.id);
+
+	title.focus();
+	//e('@nicEdit-main', form).focus();
 }
 
 
@@ -744,7 +785,7 @@ function startEngine(){
 		fillPosts(currentTopic, e('#content_2'));
 	}
 
-	e('@col_titlebar', '#col_2').onclick = wait.toggle;
+	//e('@col_titlebar', '#col_2').onclick = wait.toggle;
 }
 
 

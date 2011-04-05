@@ -15,8 +15,15 @@ $db->query('SET NAMES "utf8"');
 $db->setIdentPrefix($safecfg['db_prefix'].'_');
 
 $message = false;
-$location = 'http://'.$_SERVER["HTTP_HOST"].'/';
-//if (strpos($location, '?')) list($location, $trash) = split('?', $_SERVER["HTTP_REFERER"]);
+
+if ($_SERVER["HTTP_REFERER"]) $location = $_SERVER["HTTP_REFERER"];
+else {
+	$location = 'http://'.$_SERVER["HTTP_HOST"];
+	$path_parts = split('/', $_SERVER['REQUEST_URI']);
+	array_pop($path_parts);
+	$location += join('/', $path_parts);
+	$location += '/';
+}
 
 switch ($_GET['action']):
 
