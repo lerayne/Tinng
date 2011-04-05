@@ -7,13 +7,17 @@
 }
 
 .topic, .post {
-	border-bottom: 1px solid #cccccc;
+	border-bottom: 1px solid #aaaaaa;
 	color:#555555;
 	background-color: white;
 }
 
 .post {
 	color:black;
+}
+
+.topic {
+	border-right:8px solid #aaaaaa;
 }
 
 .topicname {
@@ -36,7 +40,10 @@
 }
 
 .activetopic, .activetopic:hover {
-	background-color: #e1ffe0;
+	background: #e1ffe0;
+	color:black;
+	border-right:0;
+	background:#e1ffe0 url(../../images/actopic_pane.gif) right center no-repeat;
 }
 
 .infobar {
