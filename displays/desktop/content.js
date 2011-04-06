@@ -113,7 +113,7 @@ function Branch (contArea, topicID, parentID) {
 		var infobar		= newel('div', 'infobar');
 		var msgid		= newel('div', 'msgid', null, '&nbsp;#'+row['id']+'&nbsp;')
 		var created		= newel('div', 'created reveal');
-		var author		= newel('div', 'author_email', null, txt['from']+row['author_email']);
+		var author		= newel('div', 'author', null, txt['from']+row['author']);
 		var message		= newel('div', 'message', null, row['message']);
 		var controls	= newel('div', 'controls reveal');
 		var explain		= newel('div', 'explain subtext');
@@ -521,6 +521,9 @@ function fillPosts(parent, container) {
 
 		sbar.innerHTML = finalizeTime(before)+'ms';
 
+		var ntBut = e('@newtopic', '#col_2');
+		ntBut.onclick = function(){newTopic(ntBut)};
+
 		// Дебажим:
 
 		e('#debug').innerHTML = errors;
@@ -581,53 +584,51 @@ function fillTopics(){
 
 function newTopic(btn){
 
+	var backup = btn.onclick;
 	btn.onclick = null;
 
 	wait.stop();
-	var cont = e('#content_2');
-	cont.innerHTML = '';
+
 	if (e('@activetopic')) removeClass(e('@activetopic'), 'activetopic');
 	e('@col_titlebar', '#col_2').innerHTML = txt['new_topic'];
 
+	var cont = e('#content_2');
+		cont.innerHTML = '';
 	var ntBlock = newel('div', 'add_message');
-
 	var form = newel('form', null, 'newtopic');
-
 	var textarea = newel('textarea', null, 'textarea_0');
-
 	var title = newel('input', 'topic_name');
-	title.name = 'topic';
-	title.type = 'text';
-
-	cont.appendChild(ntBlock);
-	ntBlock.appendChild(form);
-	form.appendChild(title);
-	form.appendChild(textarea);
-
-	var editor = veditor();
-	editor.panelInstance(textarea.id);
-
-	var cancelMsg = function(btn){
-		btn.onclick = newTopic(btn);
-		remove(e('@add_message', '#content_2'));
-	}
-
+		title.name = 'topic';
+		title.type = 'text';
 	var answControls = newel('div', 'controls');
-	//form.appendChild(newel('div', 'subtext w80', null, txt['how_to_send_post']));
-	form.appendChild(answControls);
-
-	form.appendChild(newel('div','clearboth'));
-
 	var cancel = newel('div', 'button', 'cancel_post', '<span>'+txt['cancel']+'</span>');
 	var send = newel('div', 'button', 'send_post', '<span>'+txt['send']+'</span>');
-	answControls.appendChild(cancel);
-	answControls.appendChild(send);
 
-	cancel.onclick = function(){ cancelMsg(btn) };
+	var cancelMsg = function(){
+		btn.onclick = backup;
+		remove (ntBlock);
+		branches = {};
+		fillPosts(currentTopic, e('#content_2'));
+		addClass(e('#topic_'+currentTopic), 'activetopic');
+	}
+
+	cont.appendChild(ntBlock);
+		ntBlock.appendChild(form);
+			form.appendChild(title);
+			form.appendChild(textarea);
+			//form.appendChild(newel('div', 'subtext w80', null, txt['how_to_send_post']));
+			form.appendChild(answControls);
+				answControls.appendChild(cancel);
+				answControls.appendChild(send);
+			form.appendChild(newel('div','clearboth'));
+			
+	var editor = veditor();
+	editor.panelInstance(textarea.id);
+	
+	cancel.onclick = cancelMsg;
 	//send.onclick = sendMsg;
 
 	title.focus();
-	//e('@nicEdit-main', form).focus();
 }
 
 

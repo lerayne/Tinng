@@ -39,7 +39,7 @@ $message = $_COOKIE['message'];
 		<script type="text/javascript" language="JavaScript">
 		<!--
 
-		function jawiInit(){
+		window.onload = function(){
 			startInterface();
 			startEngine();
 			removeCurtain();
@@ -50,7 +50,7 @@ $message = $_COOKIE['message'];
 
 	</head>
 	<!-- onFocus="activate()" onBlur="deactivate()" -->
-	<body onLoad="jawiInit()">
+	<body>
 		
 		<div id="curtain"<?= $message ? '' : ' class="none"' ?>></div>
 		<div id="overdiv"<?= $message ? '' : ' class="none"' ?>>

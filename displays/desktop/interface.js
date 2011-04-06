@@ -219,9 +219,7 @@ function fillToolbars(){
 
 	var newTopicBtn = addButton('newtopic', postsBar);
 
-	newTopicBtn.onclick = function(){
-		newTopic(newTopicBtn);
-	}
+	newTopicBtn.onclick = function(){newTopic(newTopicBtn);}
 }
 
 

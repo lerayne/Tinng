@@ -59,14 +59,14 @@
 .infobar .created {
 	float:right;
 	font-size: 10px;
-	color:#cccccc;
+	color:#999999;
 	margin-top: 5px;
 }
 
-.infobar .author_email {
+.infobar .author {
 	float: left;
 	font-weight: bold;
-	color:#888888;
+	color:#006699;
 	margin-top: 5px;
 }
 

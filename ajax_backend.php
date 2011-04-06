@@ -62,7 +62,8 @@ switch ($action):
 				msg_body AS message,
 				msg_created AS created,
 				msg_modified AS modified,
-				usr_email AS author_email
+				usr_email AS author_email,
+				usr_login AS author
 			FROM ?_messages, ?_users
 			WHERE
 				(msg_topic_id = ? { OR msg_id = ? })
@@ -118,7 +119,8 @@ switch ($action):
 				msg_body AS message,
 				msg_created AS created,
 				msg_modified AS modified,
-				usr_email AS author_email
+				usr_email AS author_email,
+				usr_login AS author
 			FROM ?_messages, ?_users
 			WHERE msg_id = ?
 			AND `msg_author` = `usr_id`'
@@ -185,7 +187,8 @@ switch ($action):
 					msg_created AS created,
 					msg_modified AS modified,
 					msg_deleted AS deleted,
-					usr_email AS author_email
+					usr_email AS author_email,
+					usr_login AS author
 				FROM ?_messages, ?_users
 				WHERE
 					`msg_author` = `usr_id`
