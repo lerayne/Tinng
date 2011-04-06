@@ -7,13 +7,17 @@
 }
 
 .topic, .post {
-	border-bottom: 1px solid #cccccc;
+	border-bottom: 1px solid #aaaaaa;
 	color:#555555;
 	background-color: white;
 }
 
 .post {
 	color:black;
+}
+
+.topic {
+	border-right:8px solid #aaaaaa;
 }
 
 .topicname {
@@ -36,7 +40,10 @@
 }
 
 .activetopic, .activetopic:hover {
-	background-color: #e1ffe0;
+	background: #e1ffe0;
+	color:black;
+	border-right:0;
+	background:#e1ffe0 url(../../images/actopic_pane.gif) right center no-repeat;
 }
 
 .infobar {
@@ -52,14 +59,14 @@
 .infobar .created {
 	float:right;
 	font-size: 10px;
-	color:#cccccc;
+	color:#999999;
 	margin-top: 5px;
 }
 
-.infobar .author_email {
+.infobar .author {
 	float: left;
 	font-weight: bold;
-	color:#888888;
+	color:#006699;
 	margin-top: 5px;
 }
 

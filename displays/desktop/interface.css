@@ -9,6 +9,13 @@ body {
 	background:#CCCCCC;
 }
 
+hr {
+	background-color: #666666;
+    border: 0 none;
+    color: #666666;
+    height: 1px;
+}
+
 .noselect .shadow {
 	box-shadow: none;
 	-moz-box-shadow:none;

@@ -521,12 +521,12 @@ function e(refa, refb){
 			break;
 
 			case '<': // берем массив по тегу
-				name = refa.substr(1, name.length-2).toLowerCase();
+				name = refa.substr(1, name.length-1).toLowerCase();
 				object = (refb ? refb : document).getElementsByTagName(name);
 			break;
 
 			case '[': // берем первый элемент по тегу
-				name = refa.substr(1, name.length-2).toLowerCase();
+				name = refa.substr(1, name.length-1).toLowerCase();
 				object = (refb ? refb : document).getElementsByTagName(name)[0];
 			break;
 		}

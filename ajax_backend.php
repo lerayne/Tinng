@@ -43,16 +43,20 @@ switch ($action):
 	case 'load_posts':
 
 		$result['maxdate'] = $db->selectCell(
-			'SELECT GREATEST(MAX(msg_created), MAX(msg_modified)) FROM ?_messages
+			'SELECT GREATEST(MAX(msg_created), IFNULL(MAX(msg_modified),0)) FROM ?_messages
 			WHERE msg_id = ? OR msg_topic_id = ?' , $id , $id
 		);
 
-		$result['topic'] = $db->selectCell(
-			'SELECT msg_topic FROM ?_messages WHERE msg_id = ?', $id
+		$raw = $db->selectRow(
+			'SELECT msg_topic, msg_id FROM ?_messages WHERE msg_id = ?d AND msg_deleted <=> NULL'
+			, $id
 		);
 
+		$result['topic'] = $raw['msg_topic'];
+		$published = $raw['msg_id'];
+
 		//!! убрал настройки, три таблицы не выбираются. аватары потом переделать!
-		$result['data'] = make_tree($db->select(
+		if ($published || $id == '0') $result['data'] = make_tree($db->select(
 			'SELECT
 				msg_id AS id,
 				msg_author AS author_id,
@@ -62,7 +66,8 @@ switch ($action):
 				msg_body AS message,
 				msg_created AS created,
 				msg_modified AS modified,
-				usr_email AS author_email
+				usr_email AS author_email,
+				usr_login AS author
 			FROM ?_messages, ?_users
 			WHERE
 				(msg_topic_id = ? { OR msg_id = ? })
@@ -73,7 +78,7 @@ switch ($action):
 			,($id == '0') ? DBSIMPLE_SKIP : $id
 		));
 
-		if ($id == '0') foreach ($result['data'] as $key => $val):
+		if ($result['data'] && $id == '0') foreach ($result['data'] as $key => $val):
 
 			$result['data'][$key]['postcount'] = 1 + $db->selectCell(
 				'SELECT COUNT( * ) FROM ?_messages
@@ -91,6 +96,7 @@ switch ($action):
 	case 'insert_post':
 
 		$message = $_REQUEST['message'];
+		$title = $_REQUEST['title'];
 		$topic = $_REQUEST['topic'];
 		$parent = $_REQUEST['parent'];
 
@@ -101,6 +107,8 @@ switch ($action):
 			'msg_body' => $message,
 			'msg_created' => date('Y-m-d H:i:s')
 		);
+
+		if ($title) $new_row['msg_topic'] = $title;
 
 		$new_id = $db->query(
 			'INSERT INTO ?_messages (?#) VALUES (?a)',
@@ -118,7 +126,8 @@ switch ($action):
 				msg_body AS message,
 				msg_created AS created,
 				msg_modified AS modified,
-				usr_email AS author_email
+				usr_email AS author_email,
+				usr_login AS author
 			FROM ?_messages, ?_users
 			WHERE msg_id = ?
 			AND `msg_author` = `usr_id`'
@@ -185,7 +194,8 @@ switch ($action):
 					msg_created AS created,
 					msg_modified AS modified,
 					msg_deleted AS deleted,
-					usr_email AS author_email
+					usr_email AS author_email,
+					usr_login AS author
 				FROM ?_messages, ?_users
 				WHERE
 					`msg_author` = `usr_id`
@@ -247,13 +257,26 @@ switch ($action):
 
 
 
-	case 'check_lock':
+	case 'check':
 
 		//!! в дальнейшем в поле msg_locked нужно будет вписывать, например, идентификатор сессии
 		// пользователя, а при проверке спрашивать активна ли еще эта сессия, чтобы избежать
 		// "вечного" запирания при вылете пользователя.
 
-		$result = $db->selectCell('SELECT msg_locked FROM ?_messages WHERE msg_id = ?d', $id);
+		// проверка блокировки сообщения
+		$result['locked'] = $db->selectCell(
+			'SELECT msg_locked FROM ?_messages WHERE msg_id = ?d', $id
+		);
+
+		// проверка налисия непосредственных потомков
+		$result['children'] = $db->selectCell(
+			'SELECT COUNT( * ) FROM ?_messages WHERE msg_parent = ?d', $id
+		);
+
+		// является ли сообщение стартовым в теме
+		$result['is_topic'] = $db->selectCell(
+			'SELECT COUNT( * ) FROM ?_messages WHERE msg_id = ?d AND msg_topic_id = 0', $id
+		);
 
 	break;
 
@@ -263,7 +286,8 @@ switch ($action):
 	case 'delete':
 
 		$db->query(
-			'UPDATE ?_messages SET msg_deleted = 1, msg_modified = ? WHERE msg_id = ?d'
+			'UPDATE ?_messages SET msg_deleted = 1, msg_modified = ?
+			WHERE msg_id = ?d'
 			, date('Y-m-d H:i:s')
 			, $id
 		);
