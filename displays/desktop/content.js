@@ -1,6 +1,7 @@
 // Глобальные переменные
 var currentTopic, maxPostDate;
 var branches = {};
+var topics = {};
 
 
 /* вешаем кнопки клавиатуры
@@ -201,10 +202,10 @@ function Branch (contArea, topicID, parentID) {
 				// AJAX:
 				JsHttpRequest.query( 'ajax_backend.php', { // аргументы:
 
-					  action: 'check_lock'
+					  action: 'check'
 					, id: row['id']
 
-				}, function(result, errors) { if (result == false){ // что делаем, когда пришел ответ:
+				}, function(result, errors) { if (result['locked'] == null){ // что делаем, когда пришел ответ:
 
 					wait.stop();
 
@@ -261,15 +262,23 @@ function Branch (contArea, topicID, parentID) {
 
 				JsHttpRequest.query( 'ajax_backend.php', { // аргументы:
 
-					  action: 'check_lock'
+					  action: 'check'
 					, id: row['id']
 
-				}, function(result, errors) { if (result == false){ // когда пришел ответ:
+				}, function(result, errors) { if (result['locked'] == null){ // когда пришел ответ:
+
+					var confirmed;
+
+					if (result['is_topic'] != '0') {
+						var isTopic = true;
+						confirmed = confirm(txt['topic_del_confirm']);
+					} else {
+						confirmed = confirm(txt['msg_del_confirm']);
+					}
+
+					if (!confirmed) return;
 
 					wait.stop();
-
-					var confirmed = confirm(txt['msg_del_confirm']);
-					if (!confirmed) return;
 
 					JsHttpRequest.query( 'ajax_backend.php', { // аргументы:
 
@@ -279,10 +288,16 @@ function Branch (contArea, topicID, parentID) {
 					}, function(result, errors) { // когда пришел ответ:
 
 						if (result['maxdate']) {
-							if (ifClass(container, 'lastblock')){
+							if (ifClass(container, 'lastblock') && prevElem(container)){
 								addClass(prevElem(container), 'lastblock');
 							}
 							remove(container);
+
+							if (isTopic) {
+								contArea.innerHTML = '';
+								var topicBlock = e('#topic_'+row['id']);
+								if (topicBlock) remove(topicBlock);
+							}
 
 							console('<b>Message deleted by user.</b> Max date set to '+result['maxdate'])
 
@@ -298,7 +313,6 @@ function Branch (contArea, topicID, parentID) {
 					}, true /* запрещать кеширование */ );
 
 				} else alert (txt['post_locked']); }, true /* запрещать кеширование */ );
-
 			}
 
 			// Добавление сообщения
@@ -429,7 +443,8 @@ function Branch (contArea, topicID, parentID) {
 				addBtn('editmessage').onclick = editMessage;
 				message.ondblclick = editMessage;
 				// !! заглушка: сделать функцию удаления всей темы
-				if (row['id'] != topicID) addBtn('deletemessage').onclick = deleteMessage;	
+				//if (row['id'] != topicID)
+				addBtn('deletemessage').onclick = deleteMessage;
 
 			}
 
@@ -557,27 +572,28 @@ function fillTopics(){
 		container.innerHTML = '';
 		removeClass(tbar, 'tbar_throbber');
 
-		var cont = new Branch (container, 0);
+		topics = new Branch (container, 0);
 
 		sbar.innerHTML = finalizeTime(before)+'ms';
 
 		// создаем экземпляр содержимого колонки и заполняем его
 		for (var i in result['data']) {
 			if(!first) var first = result['data'][i];
-			cont.appendBlock(result['data'][i]);
+			topics.appendBlock(result['data'][i]);
 		}
 		
-		var active = adress.get('topic');
+		var active = e('#topic_'+adress.get('topic'));
 
 		if (active){
-			addClass(e('#topic_'+active), 'activetopic');
+			addClass(active, 'activetopic');
+			active.scrollIntoView(false);
 		}
 
 		// Дебажим:
 		console('topic list loaded');
 
 		e('#debug').innerHTML = errors;
-		sbar.innerHTML += ' | '+cont.e.scrollTop;
+		sbar.innerHTML += ' | '+topics.e.scrollTop;
 
 	}, true /* запрещать кеширование */ );
 }
@@ -612,6 +628,32 @@ function newTopic(btn){
 		addClass(e('#topic_'+currentTopic), 'activetopic');
 	}
 
+	var sendMsg = function(){
+
+		var msg_text = textarea.value || e('@nicEdit-main').innerHTML;
+
+		// AJAX:
+		JsHttpRequest.query( 'ajax_backend.php', { // аргументы:
+
+			  action: 'insert_post'
+			, message: msg_text
+			, title: title.value
+			, topic: '0'
+			, parent: '0'
+
+		}, function(result, errors) { // что делаем, когда пришел ответ:
+
+			if (topics) {
+				insBefore(e('[div]', topics.cont), topics.createBlock(result));
+			} else fillTopics(); // если темы не загружены
+
+			currentTopic = result['id'];
+			cancelMsg();
+
+		}, true ); // запрещать кеширование
+
+	}
+
 	cont.appendChild(ntBlock);
 		ntBlock.appendChild(form);
 			form.appendChild(title);
@@ -626,7 +668,7 @@ function newTopic(btn){
 	editor.panelInstance(textarea.id);
 	
 	cancel.onclick = cancelMsg;
-	//send.onclick = sendMsg;
+	send.onclick = sendMsg;
 
 	title.focus();
 }
