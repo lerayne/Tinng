@@ -81,12 +81,18 @@
 	left:0;
 }
 
-.topic .message, .post .message {
+.topic .message {
 	clear:both;
 	line-height: 150%;
 	padding:0 20px;
+	font-size: 11px;
+	overflow: hidden;
+	height: 33px;
 }
 .post .message{
+	clear:both;
+	line-height: 150%;
+	padding:0 20px;
 	border-top:1px dotted #DDDDDD;
 	padding-top: 10px;
 	border-left: 1px dotted #cccccc;
