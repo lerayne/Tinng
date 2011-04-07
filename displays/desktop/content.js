@@ -1,5 +1,5 @@
 // Глобальные переменные
-var currentTopic, maxPostDate;
+var currentTopic, maxPostDate, maxTopicDate;
 var branches = {};
 var topics = {};
 
@@ -593,8 +593,7 @@ function fillTopics(){
 	// AJAX:
 	JsHttpRequest.query( 'ajax_backend.php', { // аргументы:
 
-		  action: 'load_posts'
-		, id: '0'
+		  action: 'load_topics'
 
 	}, function(result, errors) { // что делаем, когда пришел ответ:
 
@@ -880,7 +879,7 @@ function startEngine(){
 		fillPosts(currentTopic, e('#content_2'));
 	}
 
-	//e('@col_titlebar', '#col_2').onclick = wait.toggle;
+	e('@col_titlebar', '#col_2').onclick = wait.toggle;
 }
 
 

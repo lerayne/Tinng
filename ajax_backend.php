@@ -56,7 +56,7 @@ switch ($action):
 		$published = $raw['msg_id'];
 
 		//!! убрал настройки, три таблицы не выбираются. аватары потом переделать!
-		if ($published || $id == '0') $result['data'] = make_tree($db->select(
+		if ($published) $result['data'] = make_tree($db->select(
 			'SELECT
 				msg_id AS id,
 				msg_author AS author_id,
@@ -70,15 +70,44 @@ switch ($action):
 				usr_login AS author
 			FROM ?_messages, ?_users
 			WHERE
-				(msg_topic_id = ? { OR msg_id = ? })
+				(msg_topic_id = ?d OR msg_id = ?d)
 				AND msg_deleted <=> NULL
 				AND `msg_author` = `usr_id`
-			ORDER BY msg_created '.($id == '0' ? 'DESC' : 'ASC')
-			, $id
-			,($id == '0') ? DBSIMPLE_SKIP : $id
+			ORDER BY msg_created ASC'
+			, $id , $id
 		));
 
-		if ($result['data'] && $id == '0') foreach ($result['data'] as $key => $val):
+	break;
+
+
+	case 'load_topics':
+
+		$result['maxdate'] = $db->selectCell(
+			'SELECT GREATEST(MAX(msg_created), IFNULL(MAX(msg_modified),0)) FROM ?_messages
+			WHERE msg_topic_id = 0'
+		);
+
+		$result['data'] = make_tree($db->select(
+			'SELECT
+				msg_id AS id,
+				msg_author AS author_id,
+				msg_parent AS parent,
+				msg_topic_id AS topic_id,
+				msg_topic AS topic,
+				msg_body AS message,
+				msg_created AS created,
+				msg_modified AS modified,
+				usr_email AS author_email,
+				usr_login AS author
+			FROM ?_messages, ?_users
+			WHERE
+				msg_topic_id = 0
+				AND msg_deleted <=> NULL
+				AND `msg_author` = `usr_id`
+			ORDER BY msg_created DESC'
+		));
+
+		if ($result['data']) foreach ($result['data'] as $key => $val):
 
 			$result['data'][$key]['postcount'] = 1 + $db->selectCell(
 				'SELECT COUNT( * ) FROM ?_messages
@@ -89,7 +118,6 @@ switch ($action):
 		endforeach;
 
 	break;
-
 
 
 	// вставляем новое сообщение
