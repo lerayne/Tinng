@@ -126,6 +126,8 @@ function Branch (contArea, topicID, parentID) {
 		switch (type){
 		case 'topic':
 
+			//debug.innerHTML = row['updated'];
+
 			// вешаем на клик событие загрузки сообщений
 			container.onclick = function(){
 				branches = {};
@@ -136,6 +138,13 @@ function Branch (contArea, topicID, parentID) {
 
 				if (e('@activetopic')) removeClass(e('@activetopic'), 'activetopic');
 				addClass(container, 'activetopic');
+			}
+
+			if (row['last']['message']){
+				var lastpost = newel('div', 'lastpost');
+				lastpost.innerHTML = txt['lastpost']+' <span class="author">'+row['last']['author']+'</span>';
+				lastpost.innerHTML += ' ['+row['last']['created']+'] ';
+				lastpost.innerHTML += row['last']['message'];
 			}
 
 			var postcount = newel('div', 'postcount reveal', null, row['postcount'] + txt['postcount']);
@@ -495,7 +504,7 @@ function Branch (contArea, topicID, parentID) {
 		controls.appendChild(newel('div','clearboth'));
 
 		appendKids(infobar, avatar, created, author, msgid, postcount, newel('div','clearboth'));
-		appendKids(container, infobar, topic, message, debug, controls, newel('div','clearboth'));
+		appendKids(container, infobar, topic, message, lastpost, debug, controls, newel('div','clearboth'));
 
 		return container;
 	}

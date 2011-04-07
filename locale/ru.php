@@ -7,6 +7,7 @@ $txt['topic'] = 'Тема';
 $txt['modified'] = 'изменено ';
 $txt['postcount'] = ' сообщ.';
 $txt['new_topic'] = 'Новая тема';
+$txt['lastpost'] = 'Последнее:';
 
 $txt['from'] = '';
 

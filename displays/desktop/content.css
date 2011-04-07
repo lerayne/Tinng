@@ -88,8 +88,30 @@
 	padding:0 20px;
 	font-size: 11px;
 	overflow: hidden;
-	height: 33px;
+	height: 35px;
 }
+
+.topic .lastpost {
+	line-height: 150%;
+	padding-top:5px;
+	margin:0 20px;
+	border-top: 1px solid #cccccc;
+	font-size: 11px;
+	color:#999999;
+	overflow: hidden;
+	height: 35px;
+}
+
+.topic .lastpost * {
+	font-size: 11px;
+	color:#999999;
+}
+
+.topic .lastpost .author {
+	font-weight: bold;
+	color: #006699;
+}
+
 .post .message{
 	clear:both;
 	line-height: 150%;

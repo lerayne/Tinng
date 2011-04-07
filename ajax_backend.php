@@ -2,6 +2,7 @@
 /* Файл, к которому обращаются все XHR запросы */
 //$cfg['wait_time'] = 3;
 
+require_once 'config.php';
 require_once 'php/initial.php';
 
 //session_name('uc_ajax');
@@ -118,7 +119,7 @@ switch ($action):
 				AND msg_deleted <=> NULL
 				AND `msg_author` = `usr_id`
 			ORDER BY msg_created DESC'
-			, 256 // ограничение выборки первого поста
+			, $cfg['cut_length'] // ограничение выборки первого поста
 		));
 
 		if ($result['data']) foreach ($result['data'] as $key => $val):
@@ -126,6 +127,28 @@ switch ($action):
 			$result['data'][$key]['postcount'] = 1 + $db->selectCell(
 				'SELECT COUNT( * ) FROM ?_messages
 				WHERE msg_deleted <=> NULL AND msg_topic_id = ?d'
+				, $val['id']
+			);
+
+			$result['data'][$key]['updated'] = $db->selectCell(
+				'SELECT GREATEST(MAX(msg_created), IFNULL(MAX(msg_modified),0))
+				FROM ?_messages WHERE msg_topic_id = ?d AND msg_deleted <=> NULL'
+				, $val['id']
+			);
+
+			$result['data'][$key]['last'] = $db->selectRow(
+				'SELECT
+					usr_login AS author,
+					LEFT(msg_body, ?d) AS message,
+					GREATEST(msg_created, IFNULL(msg_modified,0)) AS created
+				FROM ?_messages, ?_users
+				WHERE
+					msg_topic_id = ?d
+					AND msg_deleted <=> NULL
+					AND `msg_author` = `usr_id`
+				ORDER BY msg_created DESC
+				LIMIT 1'
+				, $cfg['cut_length']
 				, $val['id']
 			);
 
