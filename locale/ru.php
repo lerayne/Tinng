@@ -15,6 +15,8 @@ $txt['explain_plainanswer'] = 'Ответить на это сообщение';
 $txt['explain_editmessage'] = 'Редактировать сообщение';
 $txt['explain_deletemessage'] = 'Удалить сообщение';
 
+$txt['while_you_wrote'] = 'Пока вы набирали сообщение, содержание темы изменилось. Сообщение не было отправлено.';
+
 $txt['how_to_send_post'] = 'Вы также можете отправить сообщение, нажав Ctrl+Enter, или Alt+Enter';
 
 $txt['cancel'] = 'Отмена';

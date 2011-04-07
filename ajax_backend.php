@@ -222,6 +222,8 @@ switch ($action):
 
 		$fields = $_REQUEST['fields'];
 
+		//!! переделать вставку одним запросом с массивами, без foreach
+
 		foreach ($fields as $key => $val):
 			$db->query(
 				'UPDATE ?_messages SET ?# = ?, msg_modified = ? WHERE msg_id = ?d'

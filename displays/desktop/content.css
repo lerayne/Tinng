@@ -4,6 +4,7 @@
 
 .nicEdit-main {
 	background-color: white;
+	line-height: 150%;
 }
 
 .topic, .post {
@@ -37,13 +38,6 @@
 	background-color: #eeeeee;
 	cursor: pointer;
 	color:black;
-}
-
-.activetopic, .activetopic:hover {
-	background: #e1ffe0;
-	color:black;
-	border-right:0;
-	background:#e1ffe0 url(../../images/actopic_pane.gif) right center no-repeat;
 }
 
 .infobar {
@@ -88,12 +82,18 @@
 	left:0;
 }
 
-.topic .message, .post .message {
+.topic .message {
 	clear:both;
 	line-height: 150%;
 	padding:0 20px;
+	font-size: 11px;
+	overflow: hidden;
+	height: 33px;
 }
 .post .message{
+	clear:both;
+	line-height: 150%;
+	padding:0 20px;
 	border-top:1px dotted #DDDDDD;
 	padding-top: 10px;
 	border-left: 1px dotted #cccccc;
@@ -102,6 +102,25 @@
 
 .topic .message {
 	color: #999999;
+}
+
+.activetopic, .activetopic:hover {
+	background: #e1ffe0;
+	color:black;
+	border-right:0;
+	background:#e1ffe0 url(../../images/actopic_pane.gif) right center no-repeat;
+}
+
+.activetopic .infobar,
+.activetopic .message,
+.activetopic:hover .infobar,
+.activetopic:hover .message {
+	padding-right: 28px;
+}
+
+.activetopic .topicname,
+.activetopic:hover .topicname {
+	margin-right:24px;
 }
 
 #continue_branch_btn {
