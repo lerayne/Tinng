@@ -1,5 +1,5 @@
 // Глобальные переменные
-var currentTopic, maxPostDate, maxTopicDate;
+var currentTopic, maxPostDate, maxTopicDate, maxReadPost;
 var branches = {};
 var topics = {};
 
@@ -116,6 +116,7 @@ function Branch (contArea, topicID, parentID) {
 		var created		= newel('div', 'created reveal');
 		var author		= newel('div', 'author', null, txt['from']+row['author']);
 		var message		= newel('div', 'message', null, row['message']);
+		var debug		= newel('div');
 		var controls	= newel('div', 'controls reveal');
 		var explain		= newel('div', 'explain subtext');
 
@@ -186,6 +187,11 @@ function Branch (contArea, topicID, parentID) {
 
 		break;
 		case 'post':
+
+			//debug.innerHTML += maxReadPost;
+
+			if (maxReadPost && maxReadPost < sql2stamp(row['modified'] || row['created']))
+				addClass(container, 'unread');
 
 			// вешаем ID на контейнер сообщения для возможности прикрепления визивига
 			message.id = 'message_'+row['id'];
@@ -489,7 +495,7 @@ function Branch (contArea, topicID, parentID) {
 		controls.appendChild(newel('div','clearboth'));
 
 		appendKids(infobar, avatar, created, author, msgid, postcount, newel('div','clearboth'));
-		appendKids(container, infobar, topic, message, controls, newel('div','clearboth'));
+		appendKids(container, infobar, topic, message, debug, controls, newel('div','clearboth'));
 
 		return container;
 	}
@@ -531,6 +537,8 @@ function fillPosts(parent, container) {
 	}, function(result, errors) { // что делаем, когда пришел ответ:
 
 		removeClass(tbar, 'tbar_throbber');
+
+		maxReadPost = sql2stamp(result['maxread']);
 
 		branches[parent] = new Branch (container, parent);
 		var cont = branches[parent];
@@ -763,6 +771,7 @@ function Updater(){
 
 				e('@created', container).innerHTML = txt['modified'] + row['modified'];
 				e('@message', container).innerHTML = row['message'];
+				addClass(container, 'unread');
 				console('message #'+row['id']+' found as edited -> modified in view');
 
 			} else { // поста с таким айди нет, значит это новый пост

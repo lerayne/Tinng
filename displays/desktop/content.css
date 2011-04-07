@@ -270,3 +270,6 @@
 	background: url(../../images/throbber-lit.gif) center no-repeat;
 }
 
+.unread {
+	background-color: #fff7d6;
+}

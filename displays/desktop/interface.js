@@ -218,8 +218,30 @@ function fillToolbars(){
 	}
 
 	var newTopicBtn = addButton('newtopic', postsBar);
+	var markRead = addButton('markread', postsBar);
 
 	newTopicBtn.onclick = function(){newTopic(newTopicBtn);}
+
+	markRead.onclick = function(){
+
+		// AJAX:
+		JsHttpRequest.query( 'ajax_backend.php', { // аргументы:
+
+			action: 'mark_read'
+			, id: currentTopic
+
+		}, function(result, errors) { // что делаем, когда пришел ответ:
+
+			// !! глючит!
+			var unreads = e('.unread', '#content_2');
+			var len = unreads.length;
+			for (var i=0; i<len; i++){
+				removeClass(unreads[i], 'unread');
+				//alert('made read i='+(i+1)+' of '+len);
+			}
+
+		}, true ); // запрещать кеширование
+	}
 }
 
 

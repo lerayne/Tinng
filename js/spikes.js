@@ -30,6 +30,7 @@ var is_phone = ua.indexOf('iphone') != -1 || ua.indexOf('ipod') != -1;
 
 
 function sql2stamp(str){
+	if (!str) return false;
 	var str1 = str.split(' ');
 	var dates = str1[0].split('-');
 	var times = str1[1].split(':');

@@ -52,6 +52,19 @@ switch ($action):
 			, $id
 		);
 
+		$once_read = $db->selectCell(
+			'SELECT unr_timestamp FROM ?_unread WHERE unr_user = ?d AND unr_topic = ?d', $user->id , $id
+		);
+
+		// если тема читается в первый раз, установить ее прочитанной в этот момент
+		if (!$once_read):
+			$result['maxread'] = date('Y-m-d H:i:s');
+			$values = Array('unr_user' => $user->id, 'unr_topic' => $id, 'unr_timestamp' => $result['maxread']);
+			$db->query('INSERT INTO ?_unread (?#) VALUES (?a)', array_keys($values), array_values($values));
+		else:
+			$result['maxread'] = $once_read;
+		endif;
+
 		$result['topic'] = $raw['msg_topic'];
 		$published = $raw['msg_id'];
 
@@ -94,7 +107,7 @@ switch ($action):
 				msg_parent AS parent,
 				msg_topic_id AS topic_id,
 				msg_topic AS topic,
-				msg_body AS message,
+				LEFT(msg_body, ?d) AS message,
 				msg_created AS created,
 				msg_modified AS modified,
 				usr_email AS author_email,
@@ -105,6 +118,7 @@ switch ($action):
 				AND msg_deleted <=> NULL
 				AND `msg_author` = `usr_id`
 			ORDER BY msg_created DESC'
+			, 256 // ограничение выборки первого поста
 		));
 
 		if ($result['data']) foreach ($result['data'] as $key => $val):
@@ -139,9 +153,7 @@ switch ($action):
 		if ($title) $new_row['msg_topic'] = $title;
 
 		$new_id = $db->query(
-			'INSERT INTO ?_messages (?#) VALUES (?a)',
-			array_keys($new_row),
-			array_values($new_row)
+			'INSERT INTO ?_messages (?#) VALUES (?a)', array_keys($new_row), array_values($new_row)
 		);
 
 		$result = ready_row($db->selectRow('
@@ -327,6 +339,43 @@ switch ($action):
 		);
 		
 	break;
+
+	case 'mark_read':
+
+		$now = date('Y-m-d H:i:s');
+
+		$exist = $db->selectRow(
+			'SELECT * FROM ?_unread WHERE unr_user = ?d AND unr_topic = ?d'
+			, $user->id
+			, $id
+		);
+
+		if ($exist):
+			$db->query(
+				'UPDATE ?_unread SET unr_timestamp = ? WHERE unr_user = ?d AND unr_topic = ?d'
+				, $now
+				, $user->id
+				, $id
+			);
+		else:
+
+			$values = Array(
+				'unr_user' => $user->id,
+				'unr_topic' => $id,
+				'unr_timestamp' => $now
+			);
+
+			$db->query('INSERT INTO ?_unread (?#) VALUES (?a)', array_keys($values), array_values($values));
+
+		endif;
+		$result = $now;
+
+
+	break;
+
+	default:
+
+		$result = 'command not found';
 
 endswitch;
 
