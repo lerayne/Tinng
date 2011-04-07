@@ -39,13 +39,6 @@
 	color:black;
 }
 
-.activetopic, .activetopic:hover {
-	background: #e1ffe0;
-	color:black;
-	border-right:0;
-	background:#e1ffe0 url(../../images/actopic_pane.gif) right center no-repeat;
-}
-
 .infobar {
 	padding: 0 20px 0 20px;
 	position: relative;
@@ -102,6 +95,25 @@
 
 .topic .message {
 	color: #999999;
+}
+
+.activetopic, .activetopic:hover {
+	background: #e1ffe0;
+	color:black;
+	border-right:0;
+	background:#e1ffe0 url(../../images/actopic_pane.gif) right center no-repeat;
+}
+
+.activetopic .infobar,
+.activetopic .message,
+.activetopic:hover .infobar,
+.activetopic:hover .message {
+	padding-right: 28px;
+}
+
+.activetopic .topicname,
+.activetopic:hover .topicname {
+	margin-right:24px;
 }
 
 #continue_branch_btn {

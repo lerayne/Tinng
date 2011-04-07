@@ -322,6 +322,7 @@ function Branch (contArea, topicID, parentID) {
 				addClass(controls, 'invis');
 
 				wait.stop();
+				var date = new Date();
 
 				// бекап функции
 				var backupFunc = button.onclick;
@@ -360,55 +361,82 @@ function Branch (contArea, topicID, parentID) {
 					button.onclick = backupFunc;
 				}
 
+				// отправка сообщения
 				var sendMsg = function(){
 
-					send.onclick = null;
-
-					textarea.disabled = true;
-					textarea.className = 'throbber_gray';
-
-					var msg_text = textarea.value || e('@nicEdit-main').innerHTML;
-					var newBlock;
+					console('previously checking new posts for this moment');
 
 					// AJAX:
 					JsHttpRequest.query( 'ajax_backend.php', { // аргументы:
 
-						  action: 'insert_post'
-						, topic: topicID
-						, parent: msgParent
-						, message: msg_text
+						action: 'wait_post'
+						, topic: currentTopic
+						, maxdate: maxPostDate
 
 					}, function(result, errors) { // что делаем, когда пришел ответ:
 
-						if (plain){
+						if (result['data']) {
 
-							removeClass(prevElem(answerBlock), 'lastblock');
-							newBlock = branch.createBlock(result)
-							insAfter(container, newBlock); // вставляем новый блок
-							addClass(prevElem(answerBlock), 'lastblock');
+							alert(txt['while_you_wrote']);
+							wait.update(result['data'], result['maxdate']);
 
-							contArea.scrollTop += newBlock.offsetHeight;
+						} else { // если обновленных постов нет - размещаем таки новый пост
 
-						} else {
+							send.onclick = null;
 
-							unhide(collEx);
-							var newBranch = new Branch(branch.cont, topicID, msgParent);
-							newBranch.cont.style.borderLeft = '30px solid #cccccc';
-							insAfter(container, newBranch.cont);
-							newBranch.appendBlock(result);
+							textarea.disabled = true;
+							textarea.className = 'throbber_gray';
+
+							var msg_text = textarea.value || e('@nicEdit-main').innerHTML;
+							var newBlock;
+
+							// AJAX:
+							JsHttpRequest.query( 'ajax_backend.php', { // аргументы:
+
+								  action: 'insert_post'
+								, topic: topicID
+								, parent: msgParent
+								, message: msg_text
+
+							}, function(result, errors) { // что делаем, когда пришел ответ:
+
+								if (plain){
+
+									removeClass(prevElem(answerBlock), 'lastblock');
+									newBlock = branch.createBlock(result);
+
+									var div = e('.post', branch.cont);
+									div = div[div.length-1];
+
+									insAfter(div, newBlock); // вставляем новый блок
+									addClass(prevElem(answerBlock), 'lastblock');
+
+									contArea.scrollTop += newBlock.offsetHeight;
+
+								} else {
+
+									unhide(collEx);
+									var newBranch = new Branch(branch.cont, topicID, msgParent);
+									newBranch.cont.style.borderLeft = '30px solid #cccccc';
+									insAfter(container, newBranch.cont);
+									newBranch.appendBlock(result);
+
+								}
+
+								maxPostDate = sql2stamp(result['created']);
+
+								cancelMsg();
+
+								console('<b>Message was added by user.</b> Max date set to '+result['created']);
+
+								// Дебажим:
+								e('#debug').innerHTML = errors;
+
+							}, true ); // запрещать кеширование
 
 						}
 
-						maxPostDate = sql2stamp(result['created']);
-
-						cancelMsg();
-
-						console('<b>Message was added by user.</b> Max date set to '+result['created']);
-
-						// Дебажим:
-						e('#debug').innerHTML = errors;
-
-					}, true /* запрещать кеширование */ );
+					}, true ); // запрещать кеширование					
 				}
 
 				var answControls = newel('div', 'controls');
@@ -710,13 +738,50 @@ function long_updater(topic, maxdate){
 
 function Updater(){
 
-	var wait = this;
+	var that = this;
 	var wtime = cfg['posts_updtimer_blurred']*1000;
 	this.interv = null;
-	var row, branch;
 	var tbar = e('@col_titlebar', '#col_2');
 
-	var update = function (topic, maxdate){
+	this.update = function(upds, maxd){
+
+		var row, branch;
+
+		for (var i in upds){ row = upds[i];
+
+			if (!branches[row['parent']]) return; // если ветки с таким идентификатором нет
+			branch = branches[row['parent']];
+
+			var container = e('#post_'+row['id']);
+
+			if (container && row['deleted']){ // это изменение - удаление поста
+
+				if (ifClass(container, 'lastblock')) addClass(prevElem(container), 'lastblock');
+				remove(container);
+				console('message #'+row['id']+' found as deleted -> removed from view');
+
+			} else if (container) { // это изменение - редактирование поста
+
+				e('@created', container).innerHTML = txt['modified'] + row['modified'];
+				e('@message', container).innerHTML = row['message'];
+				console('message #'+row['id']+' found as edited -> modified in view');
+
+			} else { // поста с таким айди нет, значит это новый пост
+
+				var newBlock = branch.createBlock(row);
+				var div = e('.post', branch.cont);
+				div = div[div.length-1];
+				insAfter(div, newBlock);
+				addClass(newBlock, 'lastblock');
+				if (prevElem(newBlock)) removeClass(prevElem(newBlock), 'lastblock');
+				e('#content_2').scrollTop += newBlock.offsetHeight;
+				console('message #'+row['id']+' found as new -> added to view');
+			}
+		}
+		maxPostDate = sql2stamp(maxd);
+	}
+
+	var check = function (topic, maxdate){
 
 		addClass(tbar, 'tbar_updating');
 
@@ -733,50 +798,18 @@ function Updater(){
 
 		}, function(result, errors) { // что делаем, когда пришел ответ:
 
-		console('for last date '+result['console']+' changes returned in '+getTimeDiff(date)+' seconds', true);
-
-			if (result['data']){
-
-				for (var i in result['data']){ row = result['data'][i];
-					
-					if (!branches[row['parent']]) return; // если ветки с таким идентификатором нет
-					branch = branches[row['parent']];
-
-					var container = e('#post_'+row['id']);
-					
-					if (container && row['deleted']){ // это изменение - удаление поста
-
-						if (ifClass(container, 'lastblock')) addClass(prevElem(container), 'lastblock');
-						remove(container);
-						console('message #'+row['id']+' found as deleted -> removed from view');
-
-					} else if (container) { // это изменение - редактирование поста
-
-						e('@created', container).innerHTML = txt['modified'] + row['modified'];
-						e('@message', container).innerHTML = row['message'];
-						console('message #'+row['id']+' found as edited -> modified in view');
-
-					} else { // поста с таким айди нет, значит это новый пост
-
-						var newBlock = branch.appendBlock(row);
-						e('#content_2').scrollTop += newBlock.offsetHeight;
-						console('message #'+row['id']+' found as new -> added to view');
-
-					}
-				}
-
-				maxPostDate = sql2stamp(result['maxdate']);
-			}
-
+			console('for last date '+result['console']+' changes returned in '+getTimeDiff(date)+' seconds', true);
 
 			removeClass(tbar, 'tbar_updating');
 			e('#debug0').innerHTML = errors;
+
+			if (result['data']) that.update(result['data'], result['maxdate']);
 
 		}, true ); // запрещать кеширование
 	}
 
 	this.start = function(cold, mpd){
-		if (wait.interv) {
+		if (that.interv) {
 			colsole('waiter can not be started, because it is allready running');
 			return;
 		}
@@ -785,24 +818,24 @@ function Updater(){
 
 		if (cold != 'cold'){
 			console('waiter started (hot start) with interval '+(wtime/1000)+'s');
-			setTimeout(function(){update(currentTopic, mpd ? mpd : maxPostDate)}, 1000);
+			setTimeout(function(){check(currentTopic, mpd ? mpd : maxPostDate)}, 1000);
 		} else console('waiter started (cold start) with interval '+(wtime/1000)+'s');
 
-		wait.interv = setInterval(function(){update(currentTopic, mpd ? mpd : maxPostDate);}, wtime);
+		that.interv = setInterval(function(){check(currentTopic, mpd ? mpd : maxPostDate);}, wtime);
 	}
 
 	this.coldStart = function(){
-		wait.start('cold');
+		that.start('cold');
 	}
 
 	this.stop = function(){
-		if (!wait.interv){
+		if (!that.interv){
 			console ('waiter is not running, cant stop');
 			return;
 		}
 		removeClass(tbar, 'tbar_waiting');
-		clearInterval(wait.interv);
-		wait.interv = null;
+		clearInterval(that.interv);
+		that.interv = null;
 		console ('waiter stopped');
 	}
 
@@ -811,19 +844,19 @@ function Updater(){
 	// изменить время ожидания. !! Возможно стоит добавить "горячий" старт
 	this.timeout = function(seconds, lock){
 
-		if (lock == 'unlock') wait.lock = false;
+		if (lock == 'unlock') that.lock = false;
 
-		if (!wait.lock){
+		if (!that.lock){
 			wtime = seconds*1000;
-			if (wait.interv) {
-				clearInterval(wait.interv);
-				setTimeout(function(){update(currentTopic, maxPostDate)}, 1000);
-				wait.interv = setInterval(function(){update(currentTopic, maxPostDate);}, wtime);
+			if (that.interv) {
+				clearInterval(that.interv);
+				setTimeout(function(){check(currentTopic, maxPostDate)}, 1000);
+				that.interv = setInterval(function(){check(currentTopic, maxPostDate);}, wtime);
 				console('waiter restarted with interval '+seconds+'s'+(lock == 'lock' ? ' (with lock)' : ''));
 			} else console('interval changed to '+seconds+'s');
 		}
 
-		if (lock == 'lock') wait.lock = true;
+		if (lock == 'lock') that.lock = true;
 	}
 
 	this.restart = function(cold){
@@ -832,8 +865,8 @@ function Updater(){
 	}
 
 	this.toggle = function(){
-		if (wait.interv) wait.stop();
-		else wait.start();
+		if (that.interv) that.stop();
+		else that.start();
 	}
 }
 
@@ -853,14 +886,14 @@ function startEngine(){
 
 function focusDoc(){
 	var p = focusDoc.arguments;
-	wait.timeout(cfg['posts_updtimer_focused']);
+	if (wait) wait.timeout(cfg['posts_updtimer_focused']);
 	e('#test').style.backgroundColor = 'red';
 	//console('focus actions performed');
 }
 
 function blurDoc(){
 	var p = blurDoc.arguments;
-	wait.timeout(cfg['posts_updtimer_blurred']);
+	if (wait) wait.timeout(cfg['posts_updtimer_blurred']);
 	e('#test').style.backgroundColor = 'blue';
 	//console('blur actions performed');
 }
