@@ -19,6 +19,7 @@
 
 .topic {
 	border-right:8px solid #aaaaaa;
+	border-bottom-width: 5px;
 }
 
 .topicname {
@@ -89,6 +90,7 @@
 	font-size: 11px;
 	overflow: hidden;
 	height: 35px;
+	color: #656565;
 }
 
 .topic .lastpost {
@@ -97,14 +99,14 @@
 	margin:0 20px;
 	border-top: 1px solid #cccccc;
 	font-size: 11px;
-	color:#999999;
+	color:#656565;
 	overflow: hidden;
 	height: 35px;
 }
 
 .topic .lastpost * {
 	font-size: 11px;
-	color:#999999;
+	color:#656565;
 }
 
 .topic .lastpost .author {
@@ -120,10 +122,6 @@
 	padding-top: 10px;
 	border-left: 1px dotted #cccccc;
 	margin-left: 47px;
-}
-
-.topic .message {
-	color: #999999;
 }
 
 .activetopic, .activetopic:hover {

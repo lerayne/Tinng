@@ -524,7 +524,7 @@ function Branch (contArea, topicID, parentID) {
 // заполняет колонку сообщениями
 function fillPosts(parent, container) {
 
-	if (wait.interv) wait.stop();
+	if (wait.postsInterv) wait.stop();
 
 	var col = container.id.replace('content_', '');
 	var tbar = e('@col_titlebar', '#col_'+col);
@@ -578,7 +578,7 @@ function fillPosts(parent, container) {
 		currentTopic = parent;
 
 		console('posts loaded for topic '+parent+' ('+result['topic'].replace('<br>','')+')');
-		if (!wait.interv) wait.start('cold');
+		if (!wait.postsInterv) wait.start('cold');
 
 		sbar.innerHTML = finalizeTime(before)+'ms';
 
@@ -756,7 +756,8 @@ function Updater(){
 
 	var that = this;
 	var wtime = cfg['posts_updtimer_blurred']*1000;
-	this.interv = null;
+	this.postsInterv = null;
+	this.topicsInterv = null;
 	var tbar = e('@col_titlebar', '#col_2');
 
 	this.update = function(upds, maxd){
@@ -826,7 +827,7 @@ function Updater(){
 	}
 
 	this.start = function(cold, mpd){
-		if (that.interv) {
+		if (that.postsInterv) {
 			colsole('waiter can not be started, because it is allready running');
 			return;
 		}
@@ -838,7 +839,7 @@ function Updater(){
 			setTimeout(function(){check(currentTopic, mpd ? mpd : maxPostDate)}, 1000);
 		} else console('waiter started (cold start) with interval '+(wtime/1000)+'s');
 
-		that.interv = setInterval(function(){check(currentTopic, mpd ? mpd : maxPostDate);}, wtime);
+		that.postsInterv = setInterval(function(){check(currentTopic, mpd ? mpd : maxPostDate);}, wtime);
 	}
 
 	this.coldStart = function(){
@@ -846,13 +847,13 @@ function Updater(){
 	}
 
 	this.stop = function(){
-		if (!that.interv){
+		if (!that.postsInterv){
 			console ('waiter is not running, cant stop');
 			return;
 		}
 		removeClass(tbar, 'tbar_waiting');
-		clearInterval(that.interv);
-		that.interv = null;
+		clearInterval(that.postsInterv);
+		that.postsInterv = null;
 		console ('waiter stopped');
 	}
 
@@ -865,10 +866,10 @@ function Updater(){
 
 		if (!that.lock){
 			wtime = seconds*1000;
-			if (that.interv) {
-				clearInterval(that.interv);
+			if (that.postsInterv) {
+				clearInterval(that.postsInterv);
 				setTimeout(function(){check(currentTopic, maxPostDate)}, 1000);
-				that.interv = setInterval(function(){check(currentTopic, maxPostDate);}, wtime);
+				that.postsInterv = setInterval(function(){check(currentTopic, maxPostDate);}, wtime);
 				console('waiter restarted with interval '+seconds+'s'+(lock == 'lock' ? ' (with lock)' : ''));
 			} else console('interval changed to '+seconds+'s');
 		}
@@ -882,7 +883,7 @@ function Updater(){
 	}
 
 	this.toggle = function(){
-		if (that.interv) that.stop();
+		if (that.postsInterv) that.stop();
 		else that.start();
 	}
 }
