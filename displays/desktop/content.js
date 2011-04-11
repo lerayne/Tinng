@@ -394,7 +394,7 @@ function Branch (contArea, topicID, parentID) {
 						if (result['data']) {
 
 							alert(txt['while_you_wrote']);
-							wait.update(result['data'], result['maxdate']);
+							wait.updatePosts(result['data'], result['maxdate']);
 
 						} else { // если обновленных постов нет - размещаем таки новый пост
 
@@ -755,12 +755,13 @@ function long_updater(topic, maxdate){
 function Updater(){
 
 	var that = this;
-	var wtime = cfg['posts_updtimer_blurred']*1000;
+	var postsWtime = cfg['posts_updtimer_blurred']*1000;
+	var topicsWtime = cfg['topics_updtimer_blurred']*1000;
 	this.postsInterv = null;
 	this.topicsInterv = null;
-	var tbar = e('@col_titlebar', '#col_2');
+	var tbarP = e('@col_titlebar', '#col_2');
 
-	this.update = function(upds, maxd){
+	this.updatePosts = function(upds, maxd){
 
 		var row, branch;
 
@@ -799,9 +800,9 @@ function Updater(){
 		maxPostDate = sql2stamp(maxd);
 	}
 
-	var check = function (topic, maxdate){
+	var checkPosts = function (topic, maxdate){
 
-		addClass(tbar, 'tbar_updating');
+		addClass(tbarP, 'tbar_updating');
 
 		var date = new Date();
 
@@ -818,10 +819,10 @@ function Updater(){
 
 			console('for last date '+result['console']+' changes returned in '+getTimeDiff(date)+' seconds', true);
 
-			removeClass(tbar, 'tbar_updating');
+			removeClass(tbarP, 'tbar_updating');
 			e('#debug0').innerHTML = errors;
 
-			if (result['data']) that.update(result['data'], result['maxdate']);
+			if (result['data']) that.updatePosts(result['data'], result['maxdate']);
 
 		}, true ); // запрещать кеширование
 	}
@@ -832,14 +833,14 @@ function Updater(){
 			return;
 		}
 
-		addClass(tbar, 'tbar_waiting');
+		addClass(tbarP, 'tbar_waiting');
 
 		if (cold != 'cold'){
-			console('waiter started (hot start) with interval '+(wtime/1000)+'s');
-			setTimeout(function(){check(currentTopic, mpd ? mpd : maxPostDate)}, 1000);
-		} else console('waiter started (cold start) with interval '+(wtime/1000)+'s');
+			console('waiter started (hot start) with interval '+(postsWtime/1000)+'s');
+			setTimeout(function(){checkPosts(currentTopic, mpd ? mpd : maxPostDate)}, 1000);
+		} else console('waiter started (cold start) with interval '+(postsWtime/1000)+'s');
 
-		that.postsInterv = setInterval(function(){check(currentTopic, mpd ? mpd : maxPostDate);}, wtime);
+		that.postsInterv = setInterval(function(){checkPosts(currentTopic, mpd ? mpd : maxPostDate);}, postsWtime);
 	}
 
 	this.coldStart = function(){
@@ -851,7 +852,7 @@ function Updater(){
 			console ('waiter is not running, cant stop');
 			return;
 		}
-		removeClass(tbar, 'tbar_waiting');
+		removeClass(tbarP, 'tbar_waiting');
 		clearInterval(that.postsInterv);
 		that.postsInterv = null;
 		console ('waiter stopped');
@@ -865,11 +866,11 @@ function Updater(){
 		if (lock == 'unlock') that.lock = false;
 
 		if (!that.lock){
-			wtime = seconds*1000;
+			postsWtime = seconds*1000;
 			if (that.postsInterv) {
 				clearInterval(that.postsInterv);
-				setTimeout(function(){check(currentTopic, maxPostDate)}, 1000);
-				that.postsInterv = setInterval(function(){check(currentTopic, maxPostDate);}, wtime);
+				setTimeout(function(){checkPosts(currentTopic, maxPostDate)}, 1000);
+				that.postsInterv = setInterval(function(){checkPosts(currentTopic, maxPostDate);}, postsWtime);
 				console('waiter restarted with interval '+seconds+'s'+(lock == 'lock' ? ' (with lock)' : ''));
 			} else console('interval changed to '+seconds+'s');
 		}
