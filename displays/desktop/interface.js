@@ -47,12 +47,12 @@ function removeCurtain(){
 
 function callOverlayPage() {
 	unhide(e('#curtain'), e('#overdiv'));
-	wait.timeout(cfg['posts_updtimer_blurred'], 'lock');
+	wait.timeout(cfg['posts_updtimer_blurred'], cfg['topics_updtimer_blurred'], 'lock');
 }
 
 function closeOverlayPage() {
 	hide(e('#curtain'), e('#overdiv'));
-	wait.timeout(cfg['posts_updtimer_focused'], 'unlock');
+	wait.timeout(cfg['posts_updtimer_focused'], cfg['topics_updtimer_focused'], 'unlock');
 	deleteCookie('message');
 }
 

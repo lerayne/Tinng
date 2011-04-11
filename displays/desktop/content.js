@@ -760,6 +760,7 @@ function Updater(){
 	this.postsInterv = null;
 	this.topicsInterv = null;
 	var tbarP = e('@col_titlebar', '#col_2');
+	var tbarT = e('@col_titlebar', '#col_1');
 
 	this.updatePosts = function(upds, maxd){
 
@@ -827,6 +828,10 @@ function Updater(){
 		}, true ); // запрещать кеширование
 	}
 
+	var checkTopics = function(maxdate){
+		return;
+	}
+
 	this.start = function(cold, mpd){
 		if (that.postsInterv) {
 			colsole('waiter can not be started, because it is allready running');
@@ -834,13 +839,16 @@ function Updater(){
 		}
 
 		addClass(tbarP, 'tbar_waiting');
+		addClass(tbarT, 'tbar_waiting');
 
 		if (cold != 'cold'){
-			console('waiter started (hot start) with interval '+(postsWtime/1000)+'s');
+			console('waiter started (hot start) with interval '+(postsWtime/1000)+'s for posts, '+(topicsWtime/1000)+'s for topics');
 			setTimeout(function(){checkPosts(currentTopic, mpd ? mpd : maxPostDate)}, 1000);
+			setTimeout(function(){checkTopics(currentTopic, mpd ? mpd : maxPostDate)}, 1000);
 		} else console('waiter started (cold start) with interval '+(postsWtime/1000)+'s');
 
 		that.postsInterv = setInterval(function(){checkPosts(currentTopic, mpd ? mpd : maxPostDate);}, postsWtime);
+		that.topicsInterv = setInterval(function(){checkTopics(mpd ? mpd : maxPostDate);}, topicsWtime);
 	}
 
 	this.coldStart = function(){
@@ -853,26 +861,31 @@ function Updater(){
 			return;
 		}
 		removeClass(tbarP, 'tbar_waiting');
+		removeClass(tbarT, 'tbar_waiting');
 		clearInterval(that.postsInterv);
+		clearInterval(that.topicsInterv);
 		that.postsInterv = null;
+		that.topicsInterv = null;
 		console ('waiter stopped');
 	}
 
 	this.lock = false;
 
 	// изменить время ожидания. !! Возможно стоит добавить "горячий" старт
-	this.timeout = function(seconds, lock){
+	this.timeout = function(secondsP, secondsT, lock){
 
 		if (lock == 'unlock') that.lock = false;
 
 		if (!that.lock){
-			postsWtime = seconds*1000;
+			postsWtime = secondsP*1000;
+			topicsWtime = secondsT*1000;
 			if (that.postsInterv) {
 				clearInterval(that.postsInterv);
 				setTimeout(function(){checkPosts(currentTopic, maxPostDate)}, 1000);
 				that.postsInterv = setInterval(function(){checkPosts(currentTopic, maxPostDate);}, postsWtime);
-				console('waiter restarted with interval '+seconds+'s'+(lock == 'lock' ? ' (with lock)' : ''));
-			} else console('interval changed to '+seconds+'s');
+				that.topicsInterv = setInterval(function(){checkTopics(maxPostDate);}, topicsWtime);
+				console('waiter restarted with interval '+secondsP+'s for posts'+(lock == 'lock' ? ' (with lock)' : ''));
+			} else console('interval changed to '+secondsP+'s for posts and '+secondsT+'s for topics');
 		}
 
 		if (lock == 'lock') that.lock = true;
@@ -905,14 +918,14 @@ function startEngine(){
 
 function focusDoc(){
 	var p = focusDoc.arguments;
-	if (wait) wait.timeout(cfg['posts_updtimer_focused']);
+	if (wait) wait.timeout(cfg['posts_updtimer_focused'], cfg['topics_updtimer_focused']);
 	e('#test').style.backgroundColor = 'red';
 	//console('focus actions performed');
 }
 
 function blurDoc(){
 	var p = blurDoc.arguments;
-	if (wait) wait.timeout(cfg['posts_updtimer_blurred']);
+	if (wait) wait.timeout(cfg['posts_updtimer_blurred'], cfg['topics_updtimer_blurred']);
 	e('#test').style.backgroundColor = 'blue';
 	//console('blur actions performed');
 }
