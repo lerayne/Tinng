@@ -291,7 +291,7 @@ switch ($action):
 
 		foreach ($topics as $key => $val):
 			$result['maxds'][$key] = $db->selectCell(
-				'SELECT GREATEST(msg_created, IFNULL(msg_modified, 0)) AS maxdate
+				'SELECT UNIX_TIMESTAMP(GREATEST(msg_created, IFNULL(msg_modified, 0))) AS maxdate
 				FROM ?_messages
 				WHERE (msg_topic_id = ?d OR msg_id = ?d) AND msg_deleted <=> NULL
 				ORDER BY maxdate DESC
@@ -299,6 +299,8 @@ switch ($action):
 				, $key, $key
 			);
 		endforeach;
+
+		$result['maxdate'] = date('Y-m-d H:i:s', max($result['maxds']));
 
 		$result['console'] = 'TOPICS: '.$maxdate.' -> '.(!$number ? 0 :$number);
 

@@ -232,12 +232,11 @@ function fillToolbars(){
 
 		}, function(result, errors) { // что делаем, когда пришел ответ:
 
-			// !! глючит!
-			var unreads = e('.unread', '#content_2');
-			var len = unreads.length;
-			for (var i=0; i<len; i++){
-				removeClass(unreads[i], 'unread');
-				//alert('made read i='+(i+1)+' of '+len);
+			var temp = e('.unread', '#content_2');
+			var unreads = [];
+			for (var i=0; i<temp.length; i++) unreads[i] = temp[i];
+			for (var j=0; j<unreads.length; j++){
+				removeClass(unreads[j], 'unread');
 			}
 
 		}, true ); // запрещать кеширование

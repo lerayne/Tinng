@@ -626,6 +626,8 @@ function fillTopics(){
 			if(!first) var first = result['data'][i];
 			topics.appendBlock(result['data'][i]);
 		}
+
+		maxTopicDate = sql2stamp(result['maxdate']);
 		
 		var active = e('#topic_'+adress.get('topic'));
 
@@ -803,6 +805,8 @@ function Updater(){
 
 	this.updateTopics = function(upds, maxd){
 		var row;
+
+		maxTopicDate = sql2stamp(maxd);
 
 		return;
 	}
