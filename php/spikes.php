@@ -7,6 +7,10 @@ function safe_str($str){
 	);
 }
 
+function jsts2sql($str){
+	return date('Y-m-d H:i:s', substr($str, 0, strlen($str)-3));
+}
+
 $rex['email'] = '/^[\_]*([a-z0-9]+(\.|\_*)?)+@([a-z][a-z0-9\-]+(\.|\-*\.))+[a-z]{2,6}$/';
 $rex['login'] = '/^[a-zA-Z0-9_]{4,16}$/';
 $rex['pass'] = '/^[a-zA-Z0-9_]{6,32}$/';

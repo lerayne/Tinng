@@ -234,9 +234,9 @@ switch ($action):
 		$topic = $_REQUEST['topic'];
 
 		// форматируем, отнимаем три лишних нолика микросекунд, прилетевшие из js
-		$maxdate = date('Y-m-d H:i:s', substr($_REQUEST['maxdate'], 0, strlen($_REQUEST['maxdate'])-3));
+		$maxdate = jsts2sql($_REQUEST['maxdate']);
 
-		// Выбираем количество измененных файлов
+		// Выбираем количество измененных строк
 		$number = $db->selectCell(
 			'SELECT COUNT( * ) AS new FROM ?_messages
 			WHERE (msg_topic_id = ?d OR msg_id = ?d) AND (msg_created > ? OR msg_modified > ?)'
@@ -275,6 +275,32 @@ switch ($action):
 		endif;
 
 		$result['console'] = $maxdate.' -> '.(!$number ? 0 :$number);
+
+	break;
+
+
+	case 'wait_topic':
+
+		// форматируем, отнимаем три лишних нолика микросекунд, прилетевшие из js
+		$maxdate = jsts2sql($_REQUEST['maxdate']);
+
+		// Выбираем количество измененных строк
+		$topics = $db->select(
+			'SELECT msg_id AS topic, msg_id AS ARRAY_KEY FROM ?_messages WHERE msg_topic_id = 0 AND msg_deleted <=> NULL'
+		);
+
+		foreach ($topics as $key => $val):
+			$result['maxds'][$key] = $db->selectCell(
+				'SELECT GREATEST(msg_created, IFNULL(msg_modified, 0)) AS maxdate
+				FROM ?_messages
+				WHERE (msg_topic_id = ?d OR msg_id = ?d) AND msg_deleted <=> NULL
+				ORDER BY maxdate DESC
+				LIMIT 1'
+				, $key, $key
+			);
+		endforeach;
+
+		$result['console'] = 'TOPICS: '.$maxdate.' -> '.(!$number ? 0 :$number);
 
 	break;
 

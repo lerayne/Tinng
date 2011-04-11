@@ -801,6 +801,12 @@ function Updater(){
 		maxPostDate = sql2stamp(maxd);
 	}
 
+	this.updateTopics = function(upds, maxd){
+		var row;
+
+		return;
+	}
+
 	var checkPosts = function (topic, maxdate){
 
 		addClass(tbarP, 'tbar_updating');
@@ -829,7 +835,28 @@ function Updater(){
 	}
 
 	var checkTopics = function(maxdate){
-		return;
+		addClass(tbarT, 'tbar_updating');
+
+		var date = new Date();
+
+		console('TOPICS: for last date '+stamp2sql(maxdate)+' -> request sent', true);
+
+		// AJAX:
+		JsHttpRequest.query( 'ajax_backend.php', { // аргументы:
+
+			action: 'wait_topic'
+			, maxdate: maxdate
+
+		}, function(result, errors) { // что делаем, когда пришел ответ:
+
+			console('TOPICS: for last date '+result['console']+' changes returned in '+getTimeDiff(date)+' seconds', true);
+
+			removeClass(tbarT, 'tbar_updating');
+			e('#debug0').innerHTML = errors;
+
+			if (result['data']) that.updateTopics(result['data'], result['maxdate']);
+
+		}, true ); // запрещать кеширование
 	}
 
 	this.start = function(cold, mpd){
@@ -844,11 +871,11 @@ function Updater(){
 		if (cold != 'cold'){
 			console('waiter started (hot start) with interval '+(postsWtime/1000)+'s for posts, '+(topicsWtime/1000)+'s for topics');
 			setTimeout(function(){checkPosts(currentTopic, mpd ? mpd : maxPostDate)}, 1000);
-			setTimeout(function(){checkTopics(currentTopic, mpd ? mpd : maxPostDate)}, 1000);
+			setTimeout(function(){checkTopics(maxTopicDate)}, 1000);
 		} else console('waiter started (cold start) with interval '+(postsWtime/1000)+'s');
 
 		that.postsInterv = setInterval(function(){checkPosts(currentTopic, mpd ? mpd : maxPostDate);}, postsWtime);
-		that.topicsInterv = setInterval(function(){checkTopics(mpd ? mpd : maxPostDate);}, topicsWtime);
+		that.topicsInterv = setInterval(function(){checkTopics(mpd ? mpd : maxTopicDate);}, topicsWtime);
 	}
 
 	this.coldStart = function(){
@@ -881,9 +908,11 @@ function Updater(){
 			topicsWtime = secondsT*1000;
 			if (that.postsInterv) {
 				clearInterval(that.postsInterv);
+				clearInterval(that.topicsInterv);
 				setTimeout(function(){checkPosts(currentTopic, maxPostDate)}, 1000);
+				setTimeout(function(){checkTopics(maxTopicDate)}, 1000);
 				that.postsInterv = setInterval(function(){checkPosts(currentTopic, maxPostDate);}, postsWtime);
-				that.topicsInterv = setInterval(function(){checkTopics(maxPostDate);}, topicsWtime);
+				that.topicsInterv = setInterval(function(){checkTopics(maxTopicDate);}, topicsWtime);
 				console('waiter restarted with interval '+secondsP+'s for posts'+(lock == 'lock' ? ' (with lock)' : ''));
 			} else console('interval changed to '+secondsP+'s for posts and '+secondsT+'s for topics');
 		}
