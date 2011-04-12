@@ -765,6 +765,7 @@ function Updater(){
 	this.topicsInterv = null;
 	var tbarP = e('@col_titlebar', '#col_2');
 	var tbarT = e('@col_titlebar', '#col_1');
+	var mbarT = e('@col_menubar', '#col_1');
 
 	this.updatePosts = function(upds, maxd){
 
@@ -839,6 +840,7 @@ function Updater(){
 	}
 
 	var checkTopics = function(maxdate){
+
 		addClass(tbarT, 'tbar_updating');
 
 		var date = new Date();
@@ -859,6 +861,8 @@ function Updater(){
 			e('#debug0').innerHTML = errors;
 
 			if (result['data']) that.updateTopics(result['data'], result['maxdate']);
+
+			mbarT.innerHTML = result['new_quant'];
 
 		}, true ); // запрещать кеширование
 	}

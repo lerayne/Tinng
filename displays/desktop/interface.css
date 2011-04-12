@@ -170,7 +170,7 @@ hr {
 }
 
 .col_menubar .markread {
-	background-image: url(../../images/ready.png);
+	background-image: url(../../images/email_open_image.png);
 }
 
 .col_menubar .throbb {
@@ -290,6 +290,7 @@ td.collapsed {
 .col_menubar {
 	height:24px;
 	padding: 2px 10px;
+	color:white;
 }
 
 .col_statusbar {

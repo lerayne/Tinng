@@ -114,10 +114,10 @@ switch ($action):
 		$reverse = $_REQUEST['reverse'];
 
 		// находим последнюю созданную тему (насколько это нужно именно в топиках? проверить)
-		$result['maxdate'] = $db->selectCell(
+		/*$result['maxdate'] = $db->selectCell(
 			'SELECT GREATEST(MAX(msg_created), IFNULL(MAX(msg_modified),0)) FROM ?_messages
 			WHERE msg_topic_id = 0'
-		);
+		);*/
 
 		// главная выборка
 		$result['data'] = make_tree($db->select(
@@ -154,14 +154,16 @@ switch ($action):
 			// найти последнее изменение в теме
 			$raw = $db->selectRow(
 				'SELECT 
-					GREATEST(MAX(msg_created), IFNULL(MAX(msg_modified),0)) AS updated,
-					MAX(msg_created) AS lastpost
+					UNIX_TIMESTAMP(GREATEST(MAX(msg_created), IFNULL(MAX(msg_modified),0))) AS updated,
+					UNIX_TIMESTAMP(MAX(msg_created)) AS lastpost
 				FROM ?_messages WHERE msg_topic_id = ?d AND msg_deleted <=> NULL'
 				, $val['id']
 			);
 
-			$result['data'][$key]['updated'] = $raw['updated'];
-			$result['data'][$key]['lastpost'] = $raw['lastpost'];
+			$maxd[] = $raw['updated'];
+
+			$result['data'][$key]['updated'] = date('Y-m-d H:i:s', $raw['updated']);
+			$result['data'][$key]['lastpost'] = date('Y-m-d H:i:s', $raw['lastpost']);
 
 			// выбрать последний добавленный пост
 			$result['data'][$key]['last'] = $db->selectRow(
@@ -182,7 +184,15 @@ switch ($action):
 
 		endforeach;
 
-		$result['data'] = sort_result($result['data'], 'updated', true); //true = reverse
+		$result['maxdate'] = date('Y-m-d H:i:s', max($maxd));
+
+		switch ($sort):
+			
+			case 'updated':
+				$result['data'] = sort_result($result['data'], 'updated', $reverse);
+			break;
+
+		endswitch;
 
 	break;
 
@@ -308,17 +318,19 @@ switch ($action):
 
 	break;
 
-
+	// считываем обновления в списке тем
 	case 'wait_topic':
 
 		// форматируем, отнимаем три лишних нолика микросекунд, прилетевшие из js
-		$maxdate = jsts2sql($_REQUEST['maxdate']);
+		$maxdate = substr($_REQUEST['maxdate'], 0, strlen($_REQUEST['maxdate'])-3);
 
-		// Выбираем количество измененных строк
+		// Выбираем индексы всех сообщений, являющихся темами
 		$topics = $db->select(
-			'SELECT msg_id AS topic, msg_id AS ARRAY_KEY FROM ?_messages WHERE msg_topic_id = 0 AND msg_deleted <=> NULL'
+			'SELECT msg_id AS topic, msg_id AS ARRAY_KEY FROM ?_messages
+			WHERE msg_topic_id = 0 AND msg_deleted <=> NULL'
 		);
 
+		// для каждой темы выбираем дату последнего обновления в виде timestamp
 		foreach ($topics as $key => $val):
 			$result['maxds'][$key] = $db->selectCell(
 				'SELECT UNIX_TIMESTAMP(GREATEST(msg_created, IFNULL(msg_modified, 0))) AS maxdate
@@ -330,12 +342,19 @@ switch ($action):
 			);
 		endforeach;
 
-		//	заглушка
-		$result['data'] = Array(true,true);
+		$result['new_quant'] = '0';
+
+		if (max($result['maxds'])*1 > $maxdate*1):
+
+			$result['new_quant'] = date('Y-m-d H:i:s', max($result['maxds'])).' > '.date('Y-m-d H:i:s', $maxdate).' -> N';
+			//	заглушка
+			$result['data'] = Array(true,true);
+
+		endif;
 
 		$result['maxdate'] = date('Y-m-d H:i:s', max($result['maxds']));
 
-		$result['console'] = 'TOPICS: '.$maxdate.' -> '.(!$number ? 0 :$number);
+		$result['console'] = 'TOPICS: '.$maxdate.' -> '.$result['new_quant'];
 
 	break;
 
@@ -366,19 +385,15 @@ switch ($action):
 	break;
 
 
-
+	// заблокировать пост (пассивная команда)
 	case 'lock_post':
-
 		$db->query('UPDATE ?_messages SET msg_locked = ?d WHERE msg_id = ?d', $user->id, $id);
-
 	break;
 
 
-
+	// разблокировать пост (пассивная команда)
 	case 'unlock_post':
-
 		$db->query('UPDATE ?_messages SET msg_locked = NULL WHERE msg_id = ?d', $id);
-
 	break;
 
 
@@ -423,6 +438,8 @@ switch ($action):
 		);
 		
 	break;
+
+
 
 	case 'mark_read':
 
