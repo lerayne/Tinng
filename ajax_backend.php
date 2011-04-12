@@ -318,6 +318,7 @@ switch ($action):
 
 	break;
 
+
 	// считываем обновления в списке тем
 	case 'wait_topic':
 
@@ -344,7 +345,29 @@ switch ($action):
 
 		$result['new_quant'] = '0';
 
-		if (max($result['maxds'])*1 > $maxdate*1):
+		if (max($result['maxds'])*1 > $maxdate*1): // если есть дата новее чем указанная
+
+			foreach ($topics as $key => $val):
+				$result['data'][$key] = $db->select(
+					'SELECT
+						msg_id AS id,
+						msg_author AS author_id,
+						msg_parent AS parent,
+						msg_topic_id AS topic_id,
+						msg_topic AS topic,
+						msg_body AS message,
+						msg_created AS created,
+						msg_modified AS modified,
+						msg_deleted AS deleted,
+						usr_email AS author_email,
+						usr_login AS author
+					FROM ?_messages, ?_users
+					WHERE
+						`msg_author` = `usr_id`
+						AND (msg_created > ? OR msg_modified > ?)
+					'
+				);
+			endforeach;
 
 			$result['new_quant'] = date('Y-m-d H:i:s', max($result['maxds'])).' > '.date('Y-m-d H:i:s', $maxdate).' -> N';
 			//	заглушка
