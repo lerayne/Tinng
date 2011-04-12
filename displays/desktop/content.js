@@ -611,6 +611,8 @@ function fillTopics(){
 	JsHttpRequest.query( 'ajax_backend.php', { // аргументы:
 
 		  action: 'load_topics'
+		  , sort: 'updated'
+		  , reverse: 'true'
 
 	}, function(result, errors) { // что делаем, когда пришел ответ:
 
@@ -807,8 +809,6 @@ function Updater(){
 		var row;
 
 		maxTopicDate = sql2stamp(maxd);
-
-		return;
 	}
 
 	var checkPosts = function (topic, maxdate){
@@ -879,7 +879,7 @@ function Updater(){
 		} else console('waiter started (cold start) with interval '+(postsWtime/1000)+'s');
 
 		that.postsInterv = setInterval(function(){checkPosts(currentTopic, mpd ? mpd : maxPostDate);}, postsWtime);
-		that.topicsInterv = setInterval(function(){checkTopics(mpd ? mpd : maxTopicDate);}, topicsWtime);
+		that.topicsInterv = setInterval(function(){checkTopics(maxTopicDate);}, topicsWtime);
 	}
 
 	this.coldStart = function(){

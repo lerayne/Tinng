@@ -38,6 +38,20 @@ function make_tree($raw){
 	return $raw;
 }
 
+function sort_result($array, $field, $reverse){
+
+	$afs = Array(); // array for sort
+	$out = Array();
+
+	foreach ($array as $val) $afs[$val[$field]] = $val;
+	ksort($afs);
+	if ($reverse) $afs = array_reverse($afs);
+
+	foreach ($afs as $val) $out[] = $val;
+
+	return $out;
+}
+
 switch ($action):
 
 	// запрашиваем сообщения
@@ -96,11 +110,16 @@ switch ($action):
 
 	case 'load_topics':
 
+		$sort = $_REQUEST['sort'];
+		$reverse = $_REQUEST['reverse'];
+
+		// находим последнюю созданную тему (насколько это нужно именно в топиках? проверить)
 		$result['maxdate'] = $db->selectCell(
 			'SELECT GREATEST(MAX(msg_created), IFNULL(MAX(msg_modified),0)) FROM ?_messages
 			WHERE msg_topic_id = 0'
 		);
 
+		// главная выборка
 		$result['data'] = make_tree($db->select(
 			'SELECT
 				msg_id AS id,
@@ -122,20 +141,29 @@ switch ($action):
 			, $cfg['cut_length'] // ограничение выборки первого поста
 		));
 
+		// обработка выборки
 		if ($result['data']) foreach ($result['data'] as $key => $val):
 
+			// количество сообщений в каждой теме
 			$result['data'][$key]['postcount'] = 1 + $db->selectCell(
 				'SELECT COUNT( * ) FROM ?_messages
 				WHERE msg_deleted <=> NULL AND msg_topic_id = ?d'
 				, $val['id']
 			);
 
-			$result['data'][$key]['updated'] = $db->selectCell(
-				'SELECT GREATEST(MAX(msg_created), IFNULL(MAX(msg_modified),0))
+			// найти последнее изменение в теме
+			$raw = $db->selectRow(
+				'SELECT 
+					GREATEST(MAX(msg_created), IFNULL(MAX(msg_modified),0)) AS updated,
+					MAX(msg_created) AS lastpost
 				FROM ?_messages WHERE msg_topic_id = ?d AND msg_deleted <=> NULL'
 				, $val['id']
 			);
 
+			$result['data'][$key]['updated'] = $raw['updated'];
+			$result['data'][$key]['lastpost'] = $raw['lastpost'];
+
+			// выбрать последний добавленный пост
 			$result['data'][$key]['last'] = $db->selectRow(
 				'SELECT
 					usr_login AS author,
@@ -153,6 +181,8 @@ switch ($action):
 			);
 
 		endforeach;
+
+		$result['data'] = sort_result($result['data'], 'updated', true); //true = reverse
 
 	break;
 
@@ -299,6 +329,9 @@ switch ($action):
 				, $key, $key
 			);
 		endforeach;
+
+		//	заглушка
+		$result['data'] = Array(true,true);
 
 		$result['maxdate'] = date('Y-m-d H:i:s', max($result['maxds']));
 

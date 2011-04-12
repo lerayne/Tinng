@@ -224,6 +224,8 @@ function fillToolbars(){
 
 	markRead.onclick = function(){
 
+		addClass(markRead, 'throbb');
+
 		// AJAX:
 		JsHttpRequest.query( 'ajax_backend.php', { // аргументы:
 
@@ -238,6 +240,8 @@ function fillToolbars(){
 			for (var j=0; j<unreads.length; j++){
 				removeClass(unreads[j], 'unread');
 			}
+
+			removeClass(markRead, 'throbb');
 
 		}, true ); // запрещать кеширование
 	}

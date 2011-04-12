@@ -169,6 +169,14 @@ hr {
 	background-image: url(../../images/comments_add.png);
 }
 
+.col_menubar .markread {
+	background-image: url(../../images/ready.png);
+}
+
+.col_menubar .throbb {
+	background-image: url(../../images/throbber-white.gif);
+}
+
 #debug_toggle{
 	background-image: url(../../images/bug.png);
 }
@@ -273,10 +281,6 @@ td.collapsed {
 .title_edit {
 	background-color:#008ab8;
 }
-
-.tbar_waiting {background-image: url(../../images/waiting.png);}
-.tbar_updating {background-image: url(../../images/updating.png);}
-.tbar_throbber {background-image: url(../../images/throbber-white.gif);}
 
 .throbber {
 	background: url(../../images/throbber-big.gif) center no-repeat;
@@ -467,3 +471,7 @@ td.collapsed {
 .right {
 	float:right;
 }
+
+.tbar_waiting {background-image: url(../../images/waiting.png);}
+.tbar_updating {background-image: url(../../images/updating.png);}
+.tbar_throbber {background-image: url(../../images/throbber-white.gif);}
