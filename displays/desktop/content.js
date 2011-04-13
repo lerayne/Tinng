@@ -141,7 +141,7 @@ function Branch (contArea, topicID, parentID) {
 			}
 
 			if (row['last']['message']){
-				var lastpost = newel('div', 'lastpost');
+				var lastpost = newel('div', 'lastpost', 'lastpost_'+row['last']['id']);
 				lastpost.innerHTML = txt['lastpost']+' <span class="author">'+row['last']['author']+'</span>';
 				lastpost.innerHTML += ' ['+row['last']['created']+'] ';
 				lastpost.innerHTML += row['last']['message'];
@@ -809,7 +809,7 @@ function Updater(){
 	this.updateTopics = function(upds, maxd){
 		var row;
 
-		maxTopicDate = sql2stamp(maxd);
+		//maxTopicDate = sql2stamp(maxd);
 	}
 
 	var checkPosts = function (topic, maxdate){

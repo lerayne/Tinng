@@ -168,6 +168,7 @@ switch ($action):
 			// выбрать последний добавленный пост
 			$result['data'][$key]['last'] = $db->selectRow(
 				'SELECT
+					msg_id AS id,
 					usr_login AS author,
 					LEFT(msg_body, ?d) AS message,
 					GREATEST(msg_created, IFNULL(msg_modified,0)) AS created
@@ -322,7 +323,7 @@ switch ($action):
 	// считываем обновления в списке тем
 	case 'wait_topic':
 
-		// форматируем, отнимаем три лишних нолика микросекунд, прилетевшие из js
+		// отнимаем три лишних нолика микросекунд, прилетевшие из js
 		$maxdate = substr($_REQUEST['maxdate'], 0, strlen($_REQUEST['maxdate'])-3);
 
 		// Выбираем индексы всех сообщений, являющихся темами
@@ -344,11 +345,13 @@ switch ($action):
 		endforeach;
 
 		$result['new_quant'] = '0';
+		$maxd = max($result['maxds'])*1; // дата последнего обновления
+		$sqlmaxd2 = date('Y-m-d H:i:s', $maxdate); // дата пришедшая с запросом
 
-		if (max($result['maxds'])*1 > $maxdate*1): // если есть дата новее чем указанная
+		if ($maxd > $maxdate*1): // если есть дата новее чем указанная
 
 			foreach ($topics as $key => $val):
-				$result['data'][$key] = $db->select(
+				$raw = $db->selectRow(
 					'SELECT
 						msg_id AS id,
 						msg_author AS author_id,
@@ -364,20 +367,24 @@ switch ($action):
 					FROM ?_messages, ?_users
 					WHERE
 						`msg_author` = `usr_id`
+						AND (msg_id = ?d OR msg_topic_id = ?d)
 						AND (msg_created > ? OR msg_modified > ?)
-					'
+						AND msg_deleted <=> NULL
+					ORDER BY msg_created DESC
+					LIMIT 1'
+					, $key, $key, $sqlmaxd2, $sqlmaxd2
 				);
+
+				if ($raw) $result['data'][$key] = $raw;
 			endforeach;
 
-			$result['new_quant'] = date('Y-m-d H:i:s', max($result['maxds'])).' > '.date('Y-m-d H:i:s', $maxdate).' -> N';
-			//	заглушка
-			$result['data'] = Array(true,true);
+			$result['new_quant'] = count($result['data']);
 
 		endif;
 
-		$result['maxdate'] = date('Y-m-d H:i:s', max($result['maxds']));
+		$result['maxdate'] = date('Y-m-d H:i:s', $maxd);
 
-		$result['console'] = 'TOPICS: '.$maxdate.' -> '.$result['new_quant'];
+		$result['console'] = 'TOPICS: '.$sqlmaxd2.' -> '.$result['new_quant'];
 
 	break;
 
