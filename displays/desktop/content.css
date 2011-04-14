@@ -124,6 +124,10 @@
 	margin-left: 47px;
 }
 
+.unread {
+	background-color: #fff7d6;
+}
+
 .activetopic, .activetopic:hover {
 	background: #e1ffe0;
 	color:black;
@@ -288,8 +292,4 @@
 .updating {
 	color:#bbbbbb;
 	background: url(../../images/throbber-lit.gif) center no-repeat;
-}
-
-.unread {
-	background-color: #fff7d6;
 }

@@ -175,7 +175,7 @@ function debugToggle(id){
 	var thys = (typeof id == 'string') ? e('#'+id) : this;
 
 	var hideable = e('#debug_depo');
-	if (ifClass(hideable, 'none')){
+	if (hasClass(hideable, 'none')){
 		unhide(hideable);
 		addClass(thys, 'btn_active');
 		resizeFrame();

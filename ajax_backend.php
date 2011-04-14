@@ -326,56 +326,70 @@ switch ($action):
 		// отнимаем три лишних нолика микросекунд, прилетевшие из js
 		$maxdate = substr($_REQUEST['maxdate'], 0, strlen($_REQUEST['maxdate'])-3);
 
-		// Выбираем индексы всех сообщений, являющихся темами
+		// Выбираем индексы всех сообщений, являющихся темами в ключи массива $topic
 		$topics = $db->select(
-			'SELECT msg_id AS topic, msg_id AS ARRAY_KEY FROM ?_messages
+			'SELECT msg_id AS ARRAY_KEY, msg_id FROM ?_messages
 			WHERE msg_topic_id = 0 AND msg_deleted <=> NULL'
 		);
 
-		// для каждой темы выбираем дату последнего обновления в виде timestamp
+		// вбиваем id последнего поста темы в значение $topic
 		foreach ($topics as $key => $val):
-			$result['maxds'][$key] = $db->selectCell(
-				'SELECT UNIX_TIMESTAMP(GREATEST(msg_created, IFNULL(msg_modified, 0))) AS maxdate
-				FROM ?_messages
-				WHERE (msg_topic_id = ?d OR msg_id = ?d) AND msg_deleted <=> NULL
-				ORDER BY maxdate DESC
-				LIMIT 1'
+			$topics[$key] = $db->selectCell(
+				'SELECT msg_id FROM ?_messages
+				WHERE msg_deleted <=> NULL AND (msg_topic_id = ?d OR msg_id = ?d)
+				ORDER BY msg_id DESC LIMIT 1'
 				, $key, $key
 			);
 		endforeach;
 
+		// для каждой темы выбираем дату последнего обновления в виде timestamp и кол-во постов
+		foreach ($topics as $key => $val):
+			$raw = $db->selectRow(
+				'SELECT 
+					UNIX_TIMESTAMP(GREATEST(MAX(msg_created), IFNULL(MAX(msg_modified), 0))) AS maxdate,
+					COUNT(*) AS count
+				FROM ?_messages
+				WHERE 
+					(msg_topic_id = ?d OR msg_id = ?d)
+					AND msg_deleted <=> NULL'
+				, $key, $key
+			);
+
+			$maxds[$key] = $raw['maxdate'];
+			$result['quant'][$key] = $raw['count'];
+		endforeach;
+
 		$result['new_quant'] = '0';
-		$maxd = max($result['maxds'])*1; // дата последнего обновления
+		$maxd = max($maxds)*1; // дата последнего обновления
 		$sqlmaxd2 = date('Y-m-d H:i:s', $maxdate); // дата пришедшая с запросом
 
-		if ($maxd > $maxdate*1): // если есть дата новее чем указанная
+		if ($maxd > $maxdate*1): // если есть хоть одна дата новее чем указанная
 
+			// выбрать информацию о записях, если это последний или первый пост и их дата больше заданной
 			foreach ($topics as $key => $val):
-				$raw = $db->selectRow(
+				$raw = $db->select(
 					'SELECT
 						msg_id AS id,
-						msg_author AS author_id,
-						msg_parent AS parent,
 						msg_topic_id AS topic_id,
 						msg_topic AS topic,
-						msg_body AS message,
+						LEFT(msg_body, ?d) AS message,
 						msg_created AS created,
 						msg_modified AS modified,
-						msg_deleted AS deleted,
-						usr_email AS author_email,
+						GREATEST(msg_created, IFNULL(msg_modified,0)) AS maxdate,
 						usr_login AS author
 					FROM ?_messages, ?_users
 					WHERE
 						`msg_author` = `usr_id`
-						AND (msg_id = ?d OR msg_topic_id = ?d)
+						AND (msg_id = ?d OR msg_id = ?d)
 						AND (msg_created > ? OR msg_modified > ?)
-						AND msg_deleted <=> NULL
-					ORDER BY msg_created DESC
-					LIMIT 1'
-					, $key, $key, $sqlmaxd2, $sqlmaxd2
+						AND msg_deleted <=> NULL'
+					, $cfg['cut_length'], $key, $val, $sqlmaxd2, $sqlmaxd2
 				);
 
-				if ($raw) $result['data'][$key] = $raw;
+				if ($raw): $result['data'][$key] = $raw;
+				elseif ($maxds[$key] > $maxdate*1): $result['data'][$key] = $key;
+				endif;
+
 			endforeach;
 
 			$result['new_quant'] = count($result['data']);

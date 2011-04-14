@@ -303,7 +303,7 @@ function Branch (contArea, topicID, parentID) {
 					}, function(result, errors) { // когда пришел ответ:
 
 						if (result['maxdate']) {
-							if (ifClass(container, 'lastblock') && prevElem(container)){
+							if (hasClass(container, 'lastblock') && prevElem(container)){
 								addClass(prevElem(container), 'lastblock');
 							}
 							remove(container);
@@ -576,6 +576,7 @@ function fillPosts(parent, container) {
 		tbar.innerHTML = txt['topic']+': '+result['topic'];
 
 		currentTopic = parent;
+		removeClass(e('#topic_'+parent), 'unread');
 
 		console('posts loaded for topic '+parent+' ('+result['topic'].replace('<br>','')+')');
 		if (!wait.postsInterv) wait.start('cold');
@@ -780,7 +781,7 @@ function Updater(){
 
 			if (container && row['deleted']){ // это изменение - удаление поста
 
-				if (ifClass(container, 'lastblock')) addClass(prevElem(container), 'lastblock');
+				if (hasClass(container, 'lastblock')) addClass(prevElem(container), 'lastblock');
 				remove(container);
 				console('message #'+row['id']+' found as deleted -> removed from view');
 
@@ -806,10 +807,43 @@ function Updater(){
 		maxPostDate = sql2stamp(maxd);
 	}
 
-	this.updateTopics = function(upds, maxd){
-		var row;
+	this.updateTopics = function(upds, maxd, quant){
+		var row, topic, topicFirst, post;
 
-		//maxTopicDate = sql2stamp(maxd);
+		for (var i in upds){ row = upds[i];
+			topic = e('#topic_'+i);
+
+			// поднять наверх
+			topicFirst = e('@topic', '#content_1');
+			if (topic != topicFirst){
+				remove(topic);
+				insBefore(topicFirst, topic);
+			}
+
+			// пометить классом
+			if (!hasClass(topic, 'unread') && !hasClass(topic, 'activetopic')) addClass(topic, 'unread');
+			if (hasClass(topic, 'activetopic')) topic.scrollIntoView(false);
+
+			e('@postcount', topic).innerHTML = quant[i]+txt['postcount'];
+
+			// если пришли данные - вбить
+			if (row.constructor == Array){
+
+				for (var j in row){ post = row[j]
+
+					if (topic.id == 'topic_'+post['id']){
+						e('@created', topic).innerHTML = post['modified'] ? txt['modified']+post['modified'] : post['created'];
+						e('@topicname', topic).innerHTML = post['topic'];
+						e('@message', topic).innerHTML = post['message'];
+					} else {
+						e('@lastpost', topic).innerHTML = txt['lastpost']+' <span class="author">'
+						+post['author']+'</span> ['+post['maxdate']+'] '+post['message'];
+					}
+				}
+			}
+		}
+
+		maxTopicDate = sql2stamp(maxd);
 	}
 
 	var checkPosts = function (topic, maxdate){
@@ -860,7 +894,7 @@ function Updater(){
 			removeClass(tbarT, 'tbar_updating');
 			e('#debug0').innerHTML = errors;
 
-			if (result['data']) that.updateTopics(result['data'], result['maxdate']);
+			if (result['data']) that.updateTopics(result['data'], result['maxdate'], result['quant']);
 
 			mbarT.innerHTML = result['new_quant'];
 

@@ -236,7 +236,7 @@ function appendKids(){
 // ФУНКЦИИ CSS:
 
 // проверка класса
-function ifClass(elem, className){
+function hasClass(elem, className){
 	var exp = new RegExp ('\\b'+className+'\\b');
 	return exp.test(elem.className);
 }
