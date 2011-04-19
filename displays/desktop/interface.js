@@ -4,7 +4,7 @@ function innerFrameWidth() {return frameWidth() - (mainOffset*2);}
 
 function resizeContArea(column){
 	var chromeH = classDimen('h', 'chrome', column);
-	editCSS('#'+column.id+' .content', 'height:'+(mainHeight - chromeH)+'px');
+	editCSS('#'+column.id+' .contents', 'height:'+(mainHeight - chromeH)+'px');
 	editCSS('#'+column.id+' .collapser', 'height:'+(mainHeight - chromeH)+'px');
 }
 
@@ -37,7 +37,7 @@ function resizeFrame() {
 	editCSS('#main', 'height:'+mainHeight+'px;'); // главное "окно"
 
 	var cols = e('.global_column');
-	for (var i=0; i<cols.length; i++) {resizeContArea(cols[i]);}
+	for (var i=0; i<cols.length; i++) resizeContArea(cols[i]);
 }
 
 function removeCurtain(){
@@ -60,24 +60,24 @@ function closeOverlayPage() {
 // Вставляет дополнительные ячейки для изменения размера и скрытия меню
 // !! Возможно - унести в пхп (второстепенное)
 function insertResizers(){
-	var type = 'TD';
-	var cols = childElems(e('#app_frame_tr'), type);
-	var col;
-	for (var i=0; i<cols.length; i++) {col = cols[i];
+	var cols = e('<td>', '#app_frame_tr', true); // true - с отвязкой
 
-		var width;
-		if (i != cols.length - 1) { // если не последняя колонка
-			var collapser, resizer;
-			insAfter(col, resizer = newel(type, 'col_resizer', 'resizer_'+i));
-			resizer.onmousedown = resizeColumn;
-			resizer.appendChild(newel('DIV', 'fixer'));
+	for (var i=0; i<cols.length; i++) { var col = cols[i];
+		
+		if (i == cols.length-1) return; // если последняя колонка
 
-			insBefore(e('#content_'+i), collapser = newel('DIV', 'collapser', 'collapser_'+i));
-			collapser.onclick = toggleCollapse;
-			
-			if (getCookie('col_'+i+'_collapsed') == '1') toggleCollapse(collapser.id);
-			if ((width = getCookie('col_'+i+'_width'))) editCSS('#col_'+i, 'width:' + width + '%');
-		}
+		var portName = col.id.replace('viewport_', '');
+		var collapser, resizer, width;
+		
+		insAfter(col, resizer = newel('TD', 'vport_resizer', 'resizer_'+portName));
+		resizer.onmousedown = resizeColumn;
+		resizer.appendChild(newel('DIV', 'fixer'));
+
+		insBefore(e('@contents', '#viewport_'+portName), collapser = newel('DIV', 'collapser', 'collapser_'+portName));
+		collapser.onclick = toggleCollapse;
+
+		if (getCookie(col.id+'_collapsed') == '1') toggleCollapse(portName);
+		if ((width = getCookie(col.id+'_width'))) editCSS('#'+col.id, 'width:' + width + '%');
 	}
 }
 
@@ -85,7 +85,7 @@ function resizeColumn(event){
 
 	// цена процента, вычисляющаяся из ширины рабочей области
 	var precCost = (innerFrameWidth()
-		//- classDimen('w', 'col_resizer', e('#app_frame_tr'))
+		//- classDimen('w', 'vport_resizer', e('#app_frame_tr'))
 		//- classDimen('w', 'collapsed', e('#app_frame_tr'))
 		)/100;
 
@@ -106,7 +106,7 @@ function resizeColumn(event){
 
 	{ // в этом блоке - то что нужно для управления последней колонкой - предотвращение
 	  // "неправильного ресайза", которое к сожалению работает не вполне корректно
-		var cols = childElems(colL.parentNode, null, 'resizeable');
+		var cols = e('.resizeable', colL.parentNode);
 		var colLast = cols[cols.length-1];
 		var colLastMW = 1*compStyle(colLast).minWidth.replace('px', '');
 		var lastChange = 0;
@@ -139,36 +139,34 @@ function resizeColumn(event){
 	}
 }
 
-function toggleCollapse(id){
-	var collapser = (typeof id == 'string') ? e('#'+id) : this;
+function toggleCollapse(portName){
+	if (typeof portName != 'string') portName = this.id.replace('collapser_', '');
 
-	var i = collapser.id.replace('collapser_', '');
+	addClass(e('#viewport_'+portName), 'collapsed');
+	addClass(e('#resizer_'+portName), 'clear');
+	e('#viewport_'+portName).style.width = '14px';
+	e('#viewport_'+portName).style.minWidth = '14px';
 
-	addClass(e('#col_'+i), 'collapsed');
-	addClass(e('#resizer_'+i), 'clear');
-	e('#col_'+i).style.width = '14px';
-	e('#col_'+i).style.minWidth = '14px';
+	e('#viewport_'+portName).onmouseup = toggleShow;
+	e('#resizer_'+portName).onmousedown = null;
 
-	e('#col_'+i).onmouseup = toggleShow;
-	e('#resizer_'+i).onmousedown = null;
-
-	setCookie('col_'+i+'_collapsed', '1');
+	setCookie('viewport_'+portName+'_collapsed', '1');
 }
 
 function toggleShow(){
-	var i = this.id.replace('col_', '');
+	var portName = this.id.replace('viewport_', '');
 
 	removeClass(this, 'collapsed');
-	removeClass(e('#resizer_'+i), 'clear');
-	e('#col_'+i).removeAttribute('style');
+	removeClass(e('#resizer_'+portName), 'clear');
+	e('#viewport_'+portName).removeAttribute('style');
 
-	e('#col_'+i).onmouseup = null;
-	e('#resizer_'+i).onmousedown = resizeColumn;
+	e('#viewport_'+portName).onmouseup = null;
+	e('#resizer_'+portName).onmousedown = resizeColumn;
 
 	// выровнять высоты внутренних элементов
 	resizeContArea(this);
 
-	setCookie('col_'+i+'_collapsed', '0');
+	setCookie('viewport_'+portName+'_collapsed', '0');
 }
 
 function debugToggle(id){
@@ -207,8 +205,8 @@ function loadTemplate(name, container, cache){
 
 function fillToolbars(){
 
-	var topicsBar = e('@col_menubar', '#col_1');
-	var postsBar = e('@col_menubar', '#col_2');
+	var topicsBar = e('@toolbar', '#viewport_topics');
+	var postsBar = e('@toolbar', '#viewport_posts');
 
 	var addButton = function(name, bar){
 		var btn = newel('div', 'left sbtn '+name);
@@ -234,13 +232,8 @@ function fillToolbars(){
 
 		}, function(result, errors) { // что делаем, когда пришел ответ:
 
-			var temp = e('.unread', '#content_2');
-			var unreads = [];
-			for (var i=0; i<temp.length; i++) unreads[i] = temp[i];
-			for (var j=0; j<unreads.length; j++){
-				removeClass(unreads[j], 'unread');
-			}
-
+			var unreads = e('.unread', e('@contents', '#viewport_posts'), true); // с отвязкой
+			for (var i=0; i<unreads.length; i++) removeClass(unreads[i], 'unread');
 			removeClass(markRead, 'throbb');
 
 		}, true ); // запрещать кеширование
@@ -281,9 +274,6 @@ function startInterface(){
 	addDynamicCSS();
 	insertResizers();
 	resizeFrame();
-	
-	e('#content_0').appendChild(newel('div', null, 'test'));
-	editCSS('#test', 'width:50px; height:50px; background-color:black');
 
 	attachActions();
 

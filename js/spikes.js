@@ -468,11 +468,11 @@ function deleteCookie(name, path, domain) {
  *
  * Функция возвращает ссылку на объект refa находящийся внутри объекта refb, а если refb не
  * задан - внтури document. Указание refb имеет смысл, когда refa - тег или класс, а refb -
- * конкртеный известный элемент, например e('#col_1') вернет объект с этим ID, e('@titlebar', '#col_1')
- * вернет ссылку на первый объект с классом titlebar, из тех что находятся в элементе с ID col_1,
- * а e('<div>', '#col_1') вернет массив всех div-ов находящихся внутри него.
+ * конкртеный известный элемент, например e('#column') вернет объект с этим ID, e('@titlebar', '#column')
+ * вернет ссылку на первый объект с классом titlebar, из тех что находятся в элементе с ID column,
+ * а e('<div>', '#column') вернет массив всех div-ов находящихся внутри него.
  */
-function e(refa, refb){
+function e(refa, refb, unbound){
 
 	var object;
 
@@ -493,6 +493,13 @@ function e(refa, refb){
 			}
 			return retnode;
 		}
+	}
+
+	// Отвязывает массив элементов от параметров, с которыми он был запрошен
+	var unbind = function (elems){
+		var output = [];
+		for (var i=0; i<elems.length; i++) output[i] = elems[i];
+		return output;
 	}
 
 	if (refb) refb = e(refb); // рекурсия: второй параметр можно указывать так же как первый
@@ -532,16 +539,8 @@ function e(refa, refb){
 			break;
 		}
 	}
-	/*
-	this.hide = function(){
-		return addClass(object, 'none');
-	}
 
-	this.unhide = function(){
-		return removeClass(object, 'none');
-	}
-	*/
-	return object;
+	return unbound ? unbind(object) : object;
 }
 
 // !! почему не работает?

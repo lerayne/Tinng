@@ -44,7 +44,7 @@ hr {
 }
 
 #main_menu #logo {
-	color:#006699;
+	color:black;
 	font-size: 18px;
 	float:left;
 	padding: 4px;
@@ -147,16 +147,16 @@ hr {
 	background-position: 2px 2px;
 }
 
-.col_menubar .sbtn {
+.toolbar .sbtn {
 	border-color: #005b89;
 	background-color: #008ab8;
 }
 
-.col_menubar .sbtn span, .col_menubar .sbtn:active span, .col_menubar .sbtn_active span {
+.toolbar .sbtn span, .toolbar .sbtn:active span, .toolbar .sbtn_active span {
 	color:white;
 }
 
-.col_menubar .sbtn_active, .col_menubar .sbtn:active {
+.toolbar .sbtn_active, .toolbar .sbtn:active {
 	background-color:#006699;
 	border-color: #004162;
 
@@ -165,15 +165,15 @@ hr {
 	-webkit-box-shadow:inset 1px 1px 3px #00334d;
 }
 
-.col_menubar .newtopic {
+.toolbar .newtopic {
 	background-image: url(../../images/comments_add.png);
 }
 
-.col_menubar .markread {
+.toolbar .markread {
 	background-image: url(../../images/email_open_image.png);
 }
 
-.col_menubar .throbb {
+.toolbar .throbb {
 	background-image: url(../../images/throbber-white.gif);
 }
 
@@ -211,7 +211,7 @@ hr {
 	-webkit-box-shadow:4px 4px 5px #888888;
 }
 
-.col_resizer {
+.vport_resizer {
 	width: 15px;
 	cursor: e-resize;
 	background:url(../../images/e-resize.gif) center no-repeat;
@@ -268,7 +268,7 @@ td.collapsed {
 
 }
 
-.col_titlebar {
+.titlebar {
 	height:18px;
 	color:white;
 	font-weight:bold;
@@ -287,13 +287,13 @@ td.collapsed {
 	height: 50px;
 }
 
-.col_menubar {
+.toolbar {
 	height:24px;
 	padding: 2px 10px;
 	color:white;
 }
 
-.col_statusbar {
+.statusbar {
 	height:16px;
 	border-top:1px solid #CCCCCC;
 	padding:3px 8px;
@@ -310,7 +310,7 @@ td.collapsed {
 
 }
 
-.content{
+.contents{
 	overflow-y:scroll;
 	overflow-x:hidden;
 }
@@ -338,7 +338,7 @@ td.collapsed {
 }
 
 [type="topics"] {
-	width:30%;
+	width:40%;
 	min-width: 250px;
 }
 

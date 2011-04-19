@@ -87,16 +87,16 @@ $message = $_COOKIE['message'];
 
 					<?php foreach ($columns as $key => $val): ?>
 
-					<td class="global_column shadow resizeable"  type="<?= $val?>" id="col_<?= $key ?>">
+					<td class="global_column shadow resizeable"  type="<?= $val?>" id="viewport_<?= $val ?>">
 						<div class="column_inner">
 							<div class="chrome top_bars">
-								<div class="col_titlebar"><?= $txt['header_'.$val] ?></div>
-								<div class="col_menubar"></div>
+								<div class="titlebar"><?= $txt['header_'.$val] ?></div>
+								<div class="toolbar"></div>
 							</div>
-							<div class="col_content">
-								<div class="content" id="content_<?= $key ?>"></div>
+							<div>
+								<div class="contents"></div>
 							</div>
-							<div class="chrome col_statusbar"></div>
+							<div class="chrome statusbar"></div>
 						</div>
 					</td>
 

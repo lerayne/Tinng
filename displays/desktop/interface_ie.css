@@ -5,20 +5,20 @@
     Description:
         Purpose of the stylesheet follows.
 */
-.col_resizer, .resizer_off {
+.vport_resizer, .resizer_off {
 	width: 9px;
 }
 
-#col_0 {
+#viewport_menu {
 	width:15%;
 	min-width:150px;
 }
 
-#col_1 {
-	width:30%;
+#viewport_topics {
+	width:40%;
 	min-width:300px;
 }
 
-#col_2 {
+#viewport_posts {
 	min-width:300px;
 }
