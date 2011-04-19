@@ -19,9 +19,7 @@ $message = $_COOKIE['message'];
 		<link rel="stylesheet" type="text/css" href="<?= $device_path ?>/interface.css?N">
 		<link rel="stylesheet" type="text/css" href="<?= $device_path ?>/content.css?N">
 		<link id="favicon" rel="shortcut icon" type="image/png" href="images/favicon.png">
-		<!--[if lt IE 9]>
-		<link rel="stylesheet" type="text/css" href="<?= $device_path ?>/interface_ie.css?N">
-		<![endif]-->
+		<!--[if lt IE 9]> <![endif]-->
 
 		<style type="text/css">
 
@@ -87,7 +85,7 @@ $message = $_COOKIE['message'];
 
 					<?php foreach ($columns as $key => $val): ?>
 
-					<td class="global_column shadow resizeable"  type="<?= $val?>" id="viewport_<?= $val ?>">
+					<td class="global_column shadow resizeable" id="viewport_<?= $val ?>">
 						<div class="column_inner">
 							<div class="chrome top_bars">
 								<div class="titlebar"><?= $txt['header_'.$val] ?></div>
@@ -106,6 +104,7 @@ $message = $_COOKIE['message'];
 			</table>
 
 		</div>
+		
 		<div id="debug_depo" class="none">
 			<table width="100%" cellpadding="0" cellspacing="0" border="0">
 			<tr>

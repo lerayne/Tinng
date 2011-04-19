@@ -15,6 +15,7 @@ function databaseErrorHandler($message, $info) {
 }
 
 require_once 'libraries/JsHttpRequest.php';
+ob_start('ob_gzhandler'); // выводим результат в gzip
 $req =& new JsHttpRequest("utf-8");
 
 $action = $_REQUEST['action'];
@@ -525,6 +526,8 @@ switch ($action):
 endswitch;
 
 $GLOBALS['_RESULT'] = $result;
+
+
 
 /*echo'
 <pre>
