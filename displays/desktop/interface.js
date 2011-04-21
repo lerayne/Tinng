@@ -1,6 +1,12 @@
 // обертки для учета ширины бортика
-function innerFrameHeight() {return frameHeight() - (mainOffset*2);}
-function innerFrameWidth() {return frameWidth() - (mainOffset*2);}
+function innerFrameHeight() {
+	var offset = (frameWidth() - e('#app_frame_table').offsetWidth);
+	return frameHeight() - offset;
+}
+
+function innerFrameWidth() {	
+	return e('#app_frame_table').offsetWidth;
+}
 
 function resizeContArea(column){
 	var chromeH = classDimen('h', 'chrome', column);
