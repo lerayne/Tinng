@@ -1,19 +1,3 @@
-// обертки для учета ширины бортика
-function innerFrameHeight() {
-	var offset = (frameWidth() - e('#app_frame_table').offsetWidth);
-	return frameHeight() - offset;
-}
-
-function innerFrameWidth() {	
-	return e('#app_frame_table').offsetWidth;
-}
-
-function resizeContArea(column){
-	var chromeH = classDimen('h', 'chrome', column);
-	editCSS('#'+column.id+' .contents', 'height:'+(mainHeight - chromeH)+'px');
-	editCSS('#'+column.id+' .collapser', 'height:'+(mainHeight - chromeH)+'px');
-}
-
 function console(string, skip){
 	if (skip && !cfg['console_display_all']) return;
 	var date = new Date();
@@ -36,28 +20,44 @@ function console(string, skip){
 	cons.innerHTML = '<b>'+time+'</b> - '+string+'<br>'+cons.innerHTML;
 }
 
+function resizeContArea(column){
+	var chromeH = classDimen('h', 'chrome', column);
+	editCSS('#'+column.id+' .contents', 'height:'+(mainHeight - chromeH)+'px');
+	editCSS('#'+column.id+' .collapser', 'height:'+(mainHeight - chromeH)+'px');
+}
+
 // Изменяет высоту элементов, которые должны иметь фиксированную высоту в пикселях
 function resizeFrame() {
+	var offset = frameWidth() - e('#app_block').offsetWidth;
 	editCSS('#curtain', 'height:'+frameHeight()+'px;');
-	mainHeight = innerFrameHeight() - e('#debug_depo').offsetHeight - e('#main_menu').offsetHeight;
-	editCSS('#main', 'height:'+mainHeight+'px;'); // главное "окно"
+	
+	if (frameHeight() <= 600 || frameWidth() <= 1024){
+		e('#lowres_css').href = 'skins/'+cfg['skin']+'/desktop_lowres.css';
+		// !! затычка...
+		offset = 0;
+	} else {
+		e('#lowres_css').href = '';
+	}
+	
+	mainHeight = frameHeight() - offset - e('#debug_console').offsetHeight - e('#top_bar').offsetHeight;
+	editCSS('#app_area', 'height:'+mainHeight+'px;'); // главное "окно"
 
 	var cols = e('.global_column');
 	for (var i=0; i<cols.length; i++) resizeContArea(cols[i]);
 }
 
 function removeCurtain(){
-	removeClass(e('#main'), 'invis');
+	removeClass(e('#app_area'), 'invis');
 }
 
 
 function callOverlayPage() {
-	unhide(e('#curtain'), e('#overdiv'));
+	unhide(e('#curtain'), e('#over_curtain'));
 	wait.timeout(cfg['posts_updtimer_blurred'], cfg['topics_updtimer_blurred'], 'lock');
 }
 
 function closeOverlayPage() {
-	hide(e('#curtain'), e('#overdiv'));
+	hide(e('#curtain'), e('#over_curtain'));
 	wait.timeout(cfg['posts_updtimer_focused'], cfg['topics_updtimer_focused'], 'unlock');
 	deleteCookie('message');
 }
@@ -66,7 +66,7 @@ function closeOverlayPage() {
 // Вставляет дополнительные ячейки для изменения размера и скрытия меню
 // !! Возможно - унести в пхп (второстепенное)
 function insertResizers(){
-	var cols = e('<td>', '#app_frame_tr', true); // true - с отвязкой
+	var cols = e('<td>', '#app_block_tr', true); // true - с отвязкой
 
 	for (var i=0; i<cols.length; i++) { var col = cols[i];
 		
@@ -90,9 +90,9 @@ function insertResizers(){
 function resizeColumn(event){
 
 	// цена процента, вычисляющаяся из ширины рабочей области
-	var precCost = (innerFrameWidth()
-		//- classDimen('w', 'vport_resizer', e('#app_frame_tr'))
-		//- classDimen('w', 'collapsed', e('#app_frame_tr'))
+	var precCost = (e('#app_block').offsetWidth
+		//- classDimen('w', 'vport_resizer', e('#app_block_tr'))
+		//- classDimen('w', 'collapsed', e('#app_block_tr'))
 		)/100;
 
 	var colL = prevElem(this); // что ресайзить будем
@@ -105,7 +105,7 @@ function resizeColumn(event){
 	parent.onmouseup = resizeModeOff;
 
 	// отключаем выделение через CSS (для вебкит)
-	addClass(e('#main'), 'noselect');
+	addClass(e('#app_area'), 'noselect');
 
 	// минимальная ширина колонки в процентах
 	var minW = 1*(compStyle(colL).minWidth.replace('px', '') / precCost).toFixed(2);
@@ -140,7 +140,7 @@ function resizeColumn(event){
 	function resizeModeOff () {
 		parent.onmousemove = null;
 		parent.onmouseup = null;
-		removeClass(e('#main'), 'noselect');
+		removeClass(e('#app_area'), 'noselect');
 		setCookie(colL.id+'_width', finalPrec);
 	}
 }
@@ -178,7 +178,7 @@ function toggleShow(){
 function debugToggle(id){
 	var thys = (typeof id == 'string') ? e('#'+id) : this;
 
-	var hideable = e('#debug_depo');
+	var hideable = e('#debug_console');
 	if (hasClass(hideable, 'none')){
 		unhide(hideable);
 		addClass(thys, 'btn_active');
@@ -252,12 +252,12 @@ function attachActions(){
 	e('#debug_toggle').onclick = debugToggle;
 	if (getCookie('toggle_debug') == '1') debugToggle('debug_toggle');
 
-	e('@close', '#overdiv').onclick = closeOverlayPage;
+	e('@close', '#over_curtain').onclick = closeOverlayPage;
 
 	if (e('#regBtn')) e('#regBtn').onclick = function (){
 		callOverlayPage();
-		e('@title', '#overdiv').innerHTML = txt['title_register'];
-		loadTemplate('regform', e('@overcontent', '#overdiv'), false);
+		e('@title', '#over_curtain').innerHTML = txt['title_register'];
+		loadTemplate('regform', e('@contents', '#over_curtain'), false);
 	}
 
 	if (e('#loginBtn')) e('#loginBtn').onclick = function(){

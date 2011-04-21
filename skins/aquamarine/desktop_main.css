@@ -1,0 +1,134 @@
+/* общие теги */
+body {
+	background:#CCCCCC;
+	font-family:Tahoma, Verdana, Geneva, Arial, Helvetica, sans-serif;
+	font-size:12px;
+}
+
+hr {
+	color: #555555;
+	background-color: #555555;
+}
+/* универсальные классы*/
+.shadow		{ 
+	box-shadow:			4px 4px 5px #888888;
+	-moz-box-shadow:	4px 4px 5px #888888;
+	-webkit-box-shadow:	4px 4px 5px #888888;
+}
+
+/* черная занавеска и окно на ней */
+#curtain {
+	background: black;
+	opacity:0.65;
+	filter:alpha(opacity=65);
+}
+
+#over_curtain .window {
+	background-color: white;
+	width: 600px;
+	padding: 10px;
+	margin-top: 50px;
+	
+	border-radius:6px;
+	-moz-border-radius:6px;
+	-webkit-border-radius:6px;
+}
+
+#over_curtain .close {
+	background: url(../../images/close.png) no-repeat center;
+	width:22px;
+	height:22px;
+}
+
+#over_curtain .title {
+	color: #555;
+	font-size: 16px;
+}
+
+#over_curtain .contents { 
+	padding:20px; 
+}
+
+/* основное окно программы */
+#app_area {
+	padding: 10px;
+}
+
+#top_bar {
+	height:32px;
+	background-color: #F5F5F5;
+	border-bottom: 1px solid #888888;
+
+	background-image: -webkit-gradient( linear, 0 100%, 0 0, from(#EEEEEE), to(#FFFFFF));
+	background-image: -moz-linear-gradient(top, #FFFFFF, #EEEEEE);
+	filter:progid:DXImageTransform.Microsoft.Gradient(
+		GradientType=0, StartColorStr='#FFFFFF', EndColorStr='#EEEEEE');
+}
+
+#top_bar #user_panel {
+	float: right;
+	padding: 5px 10px 0 10px;
+	padding-bottom:0;
+}
+
+#top_bar #logo {
+	color:black;
+	font-size: 18px;
+	float:left;
+	padding: 4px;
+}
+
+/* вьюпорт */
+.global_column {
+	color:black;
+	background:white;
+
+	border-radius:6px;
+	-moz-border-radius:6px;
+	-webkit-border-radius:6px;
+}
+
+.global_column .caption {
+	background-color:#006699;
+
+	background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#0097c3), to(#006699));
+	background-image: -moz-linear-gradient(top, #0097c3, #006699);
+	filter:progid:DXImageTransform.Microsoft.Gradient(
+		GradientType=0, StartColorStr='#0097c3', EndColorStr='#006699');
+
+	border-radius:6px 6px 0 0;
+	-moz-border-radius:6px 6px 0 0;
+	-webkit-border-radius:6px 6px 0 0;
+
+}
+
+.vport_resizer {
+	width: 15px;
+	background:url(../../images/e-resize.gif) center no-repeat;
+}
+
+.vport_resizer .fixer {
+	width:15px;
+}
+
+.collapser {
+	width:14px;
+	background:url(../../images/arrow-left-a.gif) center no-repeat;
+	border-right:1px dotted #DDDDDD;
+}
+
+.statusbar {
+	height:16px;
+	border-top:1px solid #CCCCCC;
+	padding:3px 8px;
+
+	border-radius:0 0 6px 6px;
+	-moz-border-radius:0 0 6px 6px;
+	-webkit-border-radius:0 0 6px 6px;
+
+	background-image: -webkit-gradient( linear, 0 0, 0 100%, from(#EEEEEE), to(#FFFFFF));
+	background-image: -moz-linear-gradient(bottom, #FFFFFF, #EEEEEE);
+	filter:progid:DXImageTransform.Microsoft.Gradient(
+		GradientType=0, StartColorStr='#EEEEEE', EndColorStr='#FFFFFF');
+
+}
