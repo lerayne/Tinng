@@ -9,85 +9,86 @@ $message = $_COOKIE['message'];
 		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 		<title>UC alpha</title>
-
-		<script type="text/javascript" language="JavaScript" src="libraries/JsHttpRequest.js"></script>
-		<script type="text/javascript" language="JavaScript" src="lib_modified/nicEdit.js"></script>
-		<script type="text/javascript" language="JavaScript" src="libraries/webtoolkit.js"></script>
-		<script type="text/javascript" language="JavaScript" src="js/spikes.js"></script>
-		<script type="text/javascript" language="JavaScript" src="js/object_spikes.js"></script>
-
-		<link rel="stylesheet" type="text/css" href="<?= $device_path ?>/interface.css?N">
-		<link rel="stylesheet" type="text/css" href="<?= $device_path ?>/content.css?N">
+		
 		<link id="favicon" rel="shortcut icon" type="image/png" href="images/favicon.png">
 		<!--[if lt IE 9]> <![endif]-->
-
-		<style type="text/css">
-
-		#main {
-			padding:<?= $main_offset ?>px;
-		}
-
-		</style>
-
-		<? require_once 'php/js_vars_import.php'?>
-
-		<script type="text/javascript" language="JavaScript" src="<?= $device_path ?>/interface.js"></script>
-		<script type="text/javascript" language="JavaScript" src="<?= $device_path ?>/content.js"></script>
-		<script type="text/javascript" language="JavaScript" src="<?= $device_path ?>/focusing.js"></script>
-		<script type="text/javascript" language="JavaScript">
-		<!--
-
-		window.onload = function(){
-			startInterface();
-			startEngine();
-			removeCurtain();
-		}
-
-		// -->
-		</script>
+	
+		<?
+		// стили
+		incl_css(
+			$device_path.'/interface.css',
+			$device_path.'/content.css',
+			'skins/'.$cfg['skin'].'/desktop_main.css'
+		);
+		?>
+		
+		<link rel="stylesheet" id="lowres_css" type="text/css" href="">
+		
+		<?
+		// универсальные библиотеки
+		incl_scripts(
+			'libraries/JsHttpRequest.js',
+			'lib_modified/nicEdit.js',
+			'libraries/webtoolkit.js',
+			'js/spikes.js',
+			'js/object_spikes.js'
+		);
+		
+		// импорт переменных из PHP
+		require_once 'php/js_vars_import.php';
+		
+		//	 скрипты самого сервиса
+		incl_scripts(
+			$device_path.'/interface.js',
+			$device_path.'/content.js',
+			$device_path.'/focusing.js',
+			$device_path.'/onload.js'
+		);
+		?>
 
 	</head>
-	<!-- onFocus="activate()" onBlur="deactivate()" -->
+
 	<body>
 		
+		<!-- затемнение и блок поверх -->
 		<div id="curtain"<?= $message ? '' : ' class="none"' ?>></div>
-		<div id="overdiv"<?= $message ? '' : ' class="none"' ?>>
+		<div id="over_curtain"<?= $message ? '' : ' class="none"' ?>>
 			<div class="window">
-				<div>
+				<div class="caption">
 					<div class="title left">
 						<?= $message ? $txt['title_message'] : '' ?>
 					</div>
-					<div class="close right"></div>
+					<div class="close right pointer"></div>
 					<div class="clearboth"></div>
 				</div>
-				<div class="overcontent">
+				<div class="contents">
 					<?= $message ? $txtp['ret_message_'.($message*1)] : '' ?>
 				</div>
 			</div>
 		</div>
 
-		<div id="main_menu">
-			<div id="logo">UltiComm alpha 0.2</div>
-			<div id="left_pan">
-				
-			</div>
+		<!-- верхняя панель -->
+		<div id="top_bar">
+			<div id="logo">UltiComm alpha 0.1</div>
+			<div class="left"></div>
 			<div id="user_panel"><? require $device_path.'/template_login.php'; ?></div>
-			<div id="right_pan">
-				<div class="button" id="debug_toggle"><span>Панель отладки</span></div>
+			<div class="right">
+				<div class="button" id="debug_toggle"><span>Консоль</span></div>
 			</div>
 			<div class="clearboth"></div>
 		</div>
+		
+		<!-- основной блок -->
+		<div id="app_area" class="invis">
 
-		<div id="main" class="invis">
+			<table id="app_block" border="0" cellpadding="0" cellspacing="0">
+				<tr id="app_block_tr">
 
-			<table id="app_frame_table" border="0" cellpadding="0" cellspacing="0">
-				<tr id="app_frame_tr">
-
-					<?php foreach ($columns as $key => $val): ?>
+					<? foreach ($columns as $key => $val): ?>
 
 					<td class="global_column shadow resizeable" id="viewport_<?= $val ?>">
 						<div class="column_inner">
-							<div class="chrome top_bars">
+							<div class="caption chrome">
 								<div class="titlebar"><?= $txt['header_'.$val] ?></div>
 								<div class="toolbar"></div>
 							</div>
@@ -98,14 +99,15 @@ $message = $_COOKIE['message'];
 						</div>
 					</td>
 
-					<?php endforeach; ?>
+					<? endforeach; ?>
 
 				</tr>
 			</table>
 
 		</div>
 		
-		<div id="debug_depo" class="none">
+		<!-- консоль -->
+		<div id="debug_console" class="none">
 			<table width="100%" cellpadding="0" cellspacing="0" border="0">
 			<tr>
 				<td width="50%" valign="top">
