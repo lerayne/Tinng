@@ -67,7 +67,7 @@ $message = $_COOKIE['message'];
 		</div>
 
 		<div id="main_menu">
-			<div id="logo">UltiComm alpha 0.1</div>
+			<div id="logo">UltiComm alpha 0.2</div>
 			<div id="left_pan">
 				
 			</div>
