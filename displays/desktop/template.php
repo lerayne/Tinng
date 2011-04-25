@@ -69,7 +69,7 @@ $message = $_COOKIE['message'];
 
 		<!-- верхняя панель -->
 		<div id="top_bar">
-			<div id="logo">UltiComm alpha 0.1</div>
+			<div id="logo">UltiComm alpha 0.2</div>
 			<div class="left"></div>
 			<div id="user_panel"><? require $device_path.'/template_login.php'; ?></div>
 			<div class="right">

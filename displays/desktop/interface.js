@@ -1,4 +1,4 @@
-function console(string, skip){
+function consoleWrite(string, skip){
 	if (skip && !cfg['console_display_all']) return;
 	var date = new Date();
 	var cons = e('#console');
@@ -33,7 +33,7 @@ function resizeFrame() {
 	
 	if (frameHeight() <= 600 || frameWidth() <= 1024){
 		e('#lowres_css').href = 'skins/'+cfg['skin']+'/desktop_lowres.css';
-		// !! затычка...
+		// !! затычка. Будет работать толль при условии, что в lowres-версии контур равен 0.
 		offset = 0;
 	} else {
 		e('#lowres_css').href = '';

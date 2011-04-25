@@ -314,7 +314,7 @@ function Branch (contArea, topicID, parentID) {
 								if (topicBlock) remove(topicBlock);
 							}
 
-							console('<b>Message deleted by user.</b> Max date set to '+result['maxdate'])
+							consoleWrite('<b>Message deleted by user.</b> Max date set to '+result['maxdate'])
 
 							//!! если работает - избавится от глобальной переменной и всегда явно передавать
 							// значение в объект. Хотя, если не работает - возможно тоже
@@ -380,7 +380,7 @@ function Branch (contArea, topicID, parentID) {
 				// отправка сообщения
 				var sendMsg = function(){
 
-					console('previously checking new posts for this moment');
+					consoleWrite('previously checking new posts for this moment');
 
 					// AJAX:
 					JsHttpRequest.query( 'ajax_backend.php', { // аргументы:
@@ -443,7 +443,7 @@ function Branch (contArea, topicID, parentID) {
 
 								cancelMsg();
 
-								console('<b>Message was added by user.</b> Max date set to '+result['created']);
+								consoleWrite('<b>Message was added by user.</b> Max date set to '+result['created']);
 
 								// Дебажим:
 								e('#debug').innerHTML = errors;
@@ -577,7 +577,7 @@ function fillPosts(parent, container) {
 		currentTopic = parent;
 		if (e('#topic_'+parent)) removeClass(e('#topic_'+parent), 'unread');
 
-		console('posts loaded for topic '+parent+' ('+result['topic'].replace('<br>','')+')');
+		consoleWrite('posts loaded for topic '+parent+' ('+result['topic'].replace('<br>','')+')');
 		if (!wait.postsInterv) wait.start('cold');
 
 		sbar.innerHTML = finalizeTime(before)+'ms';
@@ -638,7 +638,7 @@ function fillTopics(){
 		}
 
 		// Дебажим:
-		console('topic list loaded');
+		consoleWrite('topic list loaded');
 
 		e('#debug').innerHTML = errors;
 		sbar.innerHTML += ' | '+topics.e.scrollTop;
@@ -781,14 +781,14 @@ function Updater(){
 
 				if (hasClass(container, 'lastblock')) addClass(prevElem(container), 'lastblock');
 				remove(container);
-				console('message #'+row['id']+' found as deleted -> removed from view');
+				consoleWrite('message #'+row['id']+' found as deleted -> removed from view');
 
 			} else if (container) { // это изменение - редактирование поста
 
 				e('@created', container).innerHTML = txt['modified'] + row['modified'];
 				e('@message', container).innerHTML = row['message'];
 				addClass(container, 'unread');
-				console('message #'+row['id']+' found as edited -> modified in view');
+				consoleWrite('message #'+row['id']+' found as edited -> modified in view');
 
 			} else { // поста с таким айди нет, значит это новый пост
 
@@ -799,7 +799,7 @@ function Updater(){
 				addClass(newBlock, 'lastblock');
 				if (prevElem(newBlock)) removeClass(prevElem(newBlock), 'lastblock');
 				e('@contents', '#viewport_posts').scrollTop += newBlock.offsetHeight;
-				console('message #'+row['id']+' found as new -> added to view');
+				consoleWrite('message #'+row['id']+' found as new -> added to view');
 			}
 		}
 		maxPostDate = sql2stamp(maxd);
@@ -850,7 +850,7 @@ function Updater(){
 
 		var date = new Date();
 
-		console('for last date '+stamp2sql(maxdate)+' -> request sent', true);
+		consoleWrite('for last date '+stamp2sql(maxdate)+' -> request sent', true);
 
 		// AJAX:
 		JsHttpRequest.query( 'ajax_backend.php', { // аргументы:
@@ -861,7 +861,7 @@ function Updater(){
 
 		}, function(result, errors) { // что делаем, когда пришел ответ:
 
-			console('for last date '+result['console']+' changes returned in '+getTimeDiff(date)+' seconds', true);
+			consoleWrite('for last date '+result['console']+' changes returned in '+getTimeDiff(date)+' seconds', true);
 
 			removeClass(tbarP, 'tbar_updating');
 			e('#debug0').innerHTML = errors;
@@ -877,7 +877,7 @@ function Updater(){
 
 		var date = new Date();
 
-		console('TOPICS: for last date '+stamp2sql(maxdate)+' -> request sent', true);
+		consoleWrite('TOPICS: for last date '+stamp2sql(maxdate)+' -> request sent', true);
 
 		// AJAX:
 		JsHttpRequest.query( 'ajax_backend.php', { // аргументы:
@@ -887,7 +887,7 @@ function Updater(){
 
 		}, function(result, errors) { // что делаем, когда пришел ответ:
 
-			console('TOPICS: for last date '+result['console']+' changes returned in '+getTimeDiff(date)+' seconds', true);
+			consoleWrite('TOPICS: for last date '+result['console']+' changes returned in '+getTimeDiff(date)+' seconds', true);
 
 			removeClass(tbarT, 'tbar_updating');
 			e('#debug0').innerHTML = errors;
@@ -909,10 +909,10 @@ function Updater(){
 		addClass(tbarT, 'tbar_waiting');
 
 		if (cold != 'cold'){
-			console('waiter started (hot start) with interval '+(postsWtime/1000)+'s for posts, '+(topicsWtime/1000)+'s for topics');
+			consoleWrite('waiter started (hot start) with interval '+(postsWtime/1000)+'s for posts, '+(topicsWtime/1000)+'s for topics');
 			setTimeout(function(){checkPosts(currentTopic, mpd ? mpd : maxPostDate)}, 1000);
 			setTimeout(function(){checkTopics(maxTopicDate)}, 1000);
-		} else console('waiter started (cold start) with interval '+(postsWtime/1000)+'s');
+		} else consoleWrite('waiter started (cold start) with interval '+(postsWtime/1000)+'s');
 
 		that.postsInterv = setInterval(function(){checkPosts(currentTopic, mpd ? mpd : maxPostDate);}, postsWtime);
 		that.topicsInterv = setInterval(function(){checkTopics(maxTopicDate);}, topicsWtime);
@@ -924,7 +924,7 @@ function Updater(){
 
 	this.stop = function(){
 		if (!that.postsInterv){
-			console ('waiter is not running, cant stop');
+			consoleWrite ('waiter is not running, cant stop');
 			return;
 		}
 		removeClass(tbarP, 'tbar_waiting');
@@ -933,7 +933,7 @@ function Updater(){
 		clearInterval(that.topicsInterv);
 		that.postsInterv = null;
 		that.topicsInterv = null;
-		console ('waiter stopped');
+		consoleWrite ('waiter stopped');
 	}
 
 	this.lock = false;
@@ -953,8 +953,8 @@ function Updater(){
 				setTimeout(function(){checkTopics(maxTopicDate)}, 1000);
 				that.postsInterv = setInterval(function(){checkPosts(currentTopic, maxPostDate);}, postsWtime);
 				that.topicsInterv = setInterval(function(){checkTopics(maxTopicDate);}, topicsWtime);
-				console('waiter restarted with interval '+secondsP+'s for posts'+(lock == 'lock' ? ' (with lock)' : ''));
-			} else console('interval changed to '+secondsP+'s for posts and '+secondsT+'s for topics');
+				consoleWrite('waiter restarted with interval '+secondsP+'s for posts'+(lock == 'lock' ? ' (with lock)' : ''));
+			} else consoleWrite('interval changed to '+secondsP+'s for posts and '+secondsT+'s for topics');
 		}
 
 		if (lock == 'lock') that.lock = true;
@@ -989,14 +989,14 @@ function focusDoc(){
 	var p = focusDoc.arguments;
 	if (wait) wait.timeout(cfg['posts_updtimer_focused'], cfg['topics_updtimer_focused']);
 	e('#logo').style.color = 'red';
-	//console('focus actions performed');
+	//consoleWrite('focus actions performed');
 }
 
 function blurDoc(){
 	var p = blurDoc.arguments;
 	if (wait) wait.timeout(cfg['posts_updtimer_blurred'], cfg['topics_updtimer_blurred']);
 	e('#logo').style.color = 'blue';
-	//console('blur actions performed');
+	//consoleWrite('blur actions performed');
 }
 
 /*
