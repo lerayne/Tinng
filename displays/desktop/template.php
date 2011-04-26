@@ -16,9 +16,9 @@ $message = $_COOKIE['message'];
 		<?
 		// стили
 		incl_css(
-			$device_path.'/interface.css',
-			$device_path.'/content.css',
-			'skins/'.$cfg['skin'].'/desktop_main.css'
+			  $device_path.'/interface.css'
+			, $device_path.'/content.css'
+			, 'skins/'.$cfg['skin'].'/desktop_main.css'
 		);
 		?>
 		
@@ -27,11 +27,11 @@ $message = $_COOKIE['message'];
 		<?
 		// универсальные библиотеки
 		incl_scripts(
-			'libraries/JsHttpRequest.js',
-			'lib_modified/nicEdit.js',
-			'libraries/webtoolkit.js',
-			'js/spikes.js',
-			'js/object_spikes.js'
+			  'libraries/JsHttpRequest.js'
+			, 'lib_modified/nicEdit.js'
+			, 'libraries/webtoolkit.js'
+			, 'js/spikes.js'
+			, 'js/object_spikes.js'
 		);
 		
 		// импорт переменных из PHP
@@ -39,10 +39,10 @@ $message = $_COOKIE['message'];
 		
 		//	 скрипты самого сервиса
 		incl_scripts(
-			$device_path.'/interface.js',
-			$device_path.'/content.js',
-			$device_path.'/focusing.js',
-			$device_path.'/onload.js'
+			  $device_path.'/interface.js'
+			, $device_path.'/content.js'
+			, $device_path.'/focusing.js'
+			, $device_path.'/onload.js'
 		);
 		?>
 

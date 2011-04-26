@@ -292,3 +292,301 @@ td.collapsed {
 #viewport_posts {
 	min-width:300px;
 }
+
+/* область содержимого */
+
+.nicEdit-panelContain{
+	border: 0px solid #cccccc;
+}
+
+.nicEdit-main {
+	background-color: white;
+	line-height: 150%;
+}
+
+.topic, .post {
+	border-bottom: 1px solid #aaaaaa;
+	color:#555555;
+	background-color: white;
+}
+
+.post {
+	color:black;
+}
+
+.topic {
+	border-right:8px solid #aaaaaa;
+	border-bottom-width: 5px;
+}
+
+.topicname {
+	margin:2px 16px;
+	padding:2px;
+	border:1px dotted transparent;
+	font-weight: bold;
+	clear:both;
+	border-top:1px dotted #DDDDDD;
+}
+
+.editabletopic:hover {
+	background: url(images/textfield_rename.png) right center no-repeat;
+}
+
+.topic:hover {
+	background-color: #eeeeee;
+	cursor: pointer;
+	color:black;
+}
+
+.infobar {
+	padding: 0 20px 0 20px;
+	position: relative;
+	height: 24px;
+}
+
+.post .infobar{
+	padding-left: 56px;
+}
+
+.infobar .created {
+	float:right;
+	font-size: 10px;
+	color:#999999;
+	margin-top: 5px;
+}
+
+.infobar .author {
+	float: left;
+	font-weight: bold;
+	color:#006699;
+	margin-top: 5px;
+}
+
+.infobar .postcount {
+	float: left;
+	margin-top: 5px;
+}
+
+.infobar .msgid {
+	float:left;
+	color:#cccccc;
+	margin-top: 5px;
+}
+
+.avatar {
+	float:left;
+	position: absolute;
+	top:0;
+	left:0;
+}
+
+.topic .message {
+	clear:both;
+	line-height: 150%;
+	padding:0 20px;
+	font-size: 11px;
+	overflow: hidden;
+	height: 35px;
+	color: #656565;
+}
+
+.topic .lastpost {
+	line-height: 150%;
+	padding-top:5px;
+	margin:0 20px;
+	border-top: 1px solid #cccccc;
+	font-size: 11px;
+	color:#656565;
+	overflow: hidden;
+	height: 35px;
+}
+
+.topic .lastpost * {
+	font-size: 11px;
+	color:#656565;
+}
+
+.topic .lastpost .author {
+	font-weight: bold;
+	color: #006699;
+}
+
+.post .message{
+	clear:both;
+	line-height: 150%;
+	padding:0 20px;
+	border-top:1px dotted #DDDDDD;
+	padding-top: 10px;
+	border-left: 1px dotted #cccccc;
+	margin-left: 47px;
+}
+
+.unread {
+	background-color: #fff7d6;
+}
+
+.activetopic, .activetopic:hover {
+	background: #e1ffe0;
+	color:black;
+	border-right:0;
+	background:#e1ffe0 url(images/actopic_pane.gif) right center no-repeat;
+}
+
+.activetopic .infobar,
+.activetopic .message,
+.activetopic:hover .infobar,
+.activetopic:hover .message {
+	padding-right: 28px;
+}
+
+.activetopic .topicname,
+.activetopic:hover .topicname {
+	margin-right:24px;
+}
+
+#continue_branch_btn {
+	height: 14px;
+	background: url(images/comment_add.png) center no-repeat;
+	padding: 3px;
+}
+
+#continue_branch_btn:hover {
+	background-color: #eeeeee;
+	cursor:pointer;
+}
+
+.continue_branch form, .add_message form {
+	padding:3px 17px 3px 21px;
+	background-color: #efefef;
+}
+
+.add_message {
+	border-bottom:1px solid #cccccc;
+}
+
+.add_message .nicEdit-panelContain {
+	border-bottom-width: 1px;
+}
+
+.continue_branch textarea, .add_message textarea {
+	width: 100%;
+}
+
+.branched {
+	border-left:40px solid #ccc;
+}
+
+.continue_branch .button {
+	background-color: #fAfAfA;
+}
+
+.continue_branch .button:hover, .continue_branch .button:active, .continue_branch .btn_active {
+	background-color: #dddddd;
+}
+
+.add_message .button {
+	background-color: #fAfAfA;
+}
+
+.add_message .button:hover, .add_message .button:active, .add_message .btn_active {
+	background-color: #dddddd;
+}
+
+#cancel_post {
+	background-image: url(images/cancel.png);
+	float: right;
+	margin-right: 0;
+}
+
+#send_post {
+	background-image: url(images/comment.png);
+	float:left;
+	margin-left: 0;
+}
+
+#newtopic .topic_name {
+	width:100%;
+	border: 1px solid #cccccc;
+	margin: 4px 0;
+	padding: 4px 0;
+}
+
+.throbber_gray {
+	background: #ebebeb url(images/throbber-gray.gif) center no-repeat;
+	border:2px solid #ebebeb;
+	color:#777777;
+}
+
+.nicEdit-edframe {
+	background-color:white;
+}
+
+.brancher {
+	border-left: 40px solid white;
+	padding: 3px;
+	background:url(images/bullet_add.png) center right no-repeat;
+	height: 12px;
+}
+
+.brancher:hover {
+	background:#eeeeee url(images/comments_add.png) center right no-repeat;
+	border-color: #cccccc;
+	cursor:pointer;
+}
+
+.post .controls, .topic .controls {
+	margin: 6px 10px;
+
+	border-radius:2px;
+	-moz-border-radius:2px;
+	-webkit-border-radius:2px;
+}
+
+.controls .sbtn {
+	float:right;
+}
+
+.controls .addbranch	{ background-image: url(images/branch.png); }
+.controls .plainanswer	{ background-image: url(images/arrow_down.png); display:none; }
+.controls .editmessage	{ background-image: url(images/comment_edit.png); }
+.controls .deletemessage{ background-image: url(images/comment_delete.png); }
+.controls .cancel		{ background-image: url(images/cancel.png); }
+.controls .save			{ background-image: url(images/accept.png); }
+.controls .collex		{ background-image: url(images/collapse.png); float:left;}
+
+.lastblock .addbranch {display:none;}
+.lastblock .plainanswer {display:block;}
+
+.controls .explain {
+	float:left;
+	padding: 3px;
+}
+
+.edittopicname {
+	background-color: white;
+	border-color:#cccccc;
+}
+
+.topicname input {
+	border:dotted #dddddd;
+	border-width:0 1px 0 0;
+	padding: 2px 1px;
+	width: 90%;
+	font-weight: bold;
+}
+
+.okbtn {
+	float:right;
+	width: 18px;
+	height: 18px;
+	background: url(images/accept.png) center no-repeat;
+}
+
+.okbtn:hover {
+	cursor:pointer;
+}
+
+.updating {
+	color:#bbbbbb;
+	background: url(images/throbber-lit.gif) center no-repeat;
+}

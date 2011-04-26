@@ -19,9 +19,9 @@ hr		{ border: 0 none; height: 1px; }
 	background-position: 3px 3px;
 	background-repeat: no-repeat;
 }
-.global_column .tbar_waiting {background-image: url(images/waiting.png);}
-.global_column .tbar_updating {background-image: url(images/updating.png);}
-.global_column .tbar_throbber {background-image: url(images/throbber-white.gif);}
+.global_column .tbar_waiting	{background-image: url(images/waiting.png);}
+.global_column .tbar_updating	{background-image: url(images/updating.png);}
+.global_column .tbar_throbber	{background-image: url(images/throbber-white.gif);}
 .global_column .statusbar {overflow-y:auto;}
 .column_inner .contents{ overflow-y:scroll; overflow-x:hidden; }
 
@@ -31,19 +31,6 @@ hr		{ border: 0 none; height: 1px; }
 .collapsed { cursor:pointer; }
 .collapsed .column_inner { display: none; }
 .collapser { float:left; cursor:pointer; }
-
-/* дебаг и косоль */
-#debug_console { height:140px; }
-#debug_console #debug_stash, #debug_console #console {
-	border:2px solid red;
-	padding:8px;
-	height:120px;
-	overflow:auto;
-}
-
-.debug {
-	border-bottom:2px dotted #888888;
-}
 
 /* универсальные классы*/
 .left		{ float:left; }
@@ -85,4 +72,18 @@ hr		{ border: 0 none; height: 1px; }
 .throbber {
 	background: url(images/throbber-big.gif) center no-repeat;
 	height: 50px;
+}
+
+/* дебаг и консоль */
+#debug_console { height:140px; }
+
+#debug_console #debug_stash, #debug_console #console {
+	border:2px solid red;
+	padding:8px;
+	height:120px;
+	overflow:auto;
+}
+
+.debug {
+	border-bottom:2px dotted #888888;
 }
