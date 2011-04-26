@@ -590,3 +590,13 @@ td.collapsed {
 	color:#bbbbbb;
 	background: url(images/throbber-lit.gif) center no-repeat;
 }
+
+.throbber {
+	background: url(images/throbber-big.gif) center no-repeat;
+	height: 50px;
+}
+
+.global_column .tbar_waiting	{ background-image: url(images/waiting.png); }
+.global_column .tbar_updating	{ background-image: url(images/updating.png); }
+.global_column .tbar_throbber	{ background-image: url(images/throbber-white.gif); }
+.global_column .titlebar		{ background-image: url(images/ready.png); }

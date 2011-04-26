@@ -15,13 +15,10 @@ hr		{ border: 0 none; height: 1px; }
 /* вьюпорт */
 .global_column { vertical-align:top; }
 .global_column .titlebar {
-	background-image: url(images/ready.png);
 	background-position: 3px 3px;
 	background-repeat: no-repeat;
 }
-.global_column .tbar_waiting	{background-image: url(images/waiting.png);}
-.global_column .tbar_updating	{background-image: url(images/updating.png);}
-.global_column .tbar_throbber	{background-image: url(images/throbber-white.gif);}
+
 .global_column .statusbar {overflow-y:auto;}
 .column_inner .contents{ overflow-y:scroll; overflow-x:hidden; }
 
@@ -67,11 +64,6 @@ hr		{ border: 0 none; height: 1px; }
 	box-shadow:none;
 	-moz-box-shadow:none;
 	-webkit-box-shadow:none;
-}
-
-.throbber {
-	background: url(images/throbber-big.gif) center no-repeat;
-	height: 50px;
 }
 
 /* дебаг и консоль */
