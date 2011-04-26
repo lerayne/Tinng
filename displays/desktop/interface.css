@@ -1,47 +1,39 @@
 /* общие теги */
-body { padding:0; margin:0; }
-hr { border: 0 none; height: 1px; }
+body	{ padding:0; margin:0; }
+hr		{ border: 0 none; height: 1px; }
 
 /* черная занавеска и окно на ней */
+#curtain		{ z-index:800; }
+#over_curtain	{ z-index:810; }
+#over_curtain .window	{ margin: auto; }
 #curtain, #over_curtain	{ position:absolute; width:100%; }
-#curtain		{ z-index:900; }
-#over_curtain	{ z-index:910; }
-#over_curtain .window { margin: auto; }
-
 
 /* основное окно программы */
 #app_area	{ overflow: hidden; }
-.noselect {
-	-moz-user-select: none;
-	-khtml-user-select: none;
-	-webkit-user-select: none;
-	user-select: none;
-	cursor:e-resize;
-	background-color:#AAAAAA;
-}
+#app_block	{ width:100%; height:100%; }
 
-#app_block { width:100%; height:100%; }
+/* вьюпорт */
 .global_column { vertical-align:top; }
-.vport_resizer { cursor: e-resize; }
-td.collapsed { cursor:pointer; }
-.collapsed .column_inner { display: none; }
-.collapser { float:left; cursor:pointer; }
-
 .global_column .titlebar {
-	background-image: url(../../images/ready.png);
+	background-image: url(images/ready.png);
 	background-position: 3px 3px;
 	background-repeat: no-repeat;
 }
-.global_column .tbar_waiting {background-image: url(../../images/waiting.png);}
-.global_column .tbar_updating {background-image: url(../../images/updating.png);}
-.global_column .tbar_throbber {background-image: url(../../images/throbber-white.gif);}
+.global_column .tbar_waiting {background-image: url(images/waiting.png);}
+.global_column .tbar_updating {background-image: url(images/updating.png);}
+.global_column .tbar_throbber {background-image: url(images/throbber-white.gif);}
 .global_column .statusbar {overflow-y:auto;}
 .column_inner .contents{ overflow-y:scroll; overflow-x:hidden; }
 
-#debug_console {
-	height:140px;
-}
+/* инструменты изменения размера и сворачивания */
+.vport_resizer { cursor: e-resize; }
 
+.collapsed { cursor:pointer; }
+.collapsed .column_inner { display: none; }
+.collapser { float:left; cursor:pointer; }
+
+/* дебаг и косоль */
+#debug_console { height:140px; }
 #debug_console #debug_stash, #debug_console #console {
 	border:2px solid red;
 	padding:8px;
@@ -73,7 +65,16 @@ td.collapsed { cursor:pointer; }
 
 .w80		{ width: 80%; }
 .pointer	{ cursor: pointer; }
+.e_resize	{ cursor: e-resize; }
 .clear		{ cursor:auto; background:transparent; }
+
+.noselect {
+	-moz-user-select: none;
+	-khtml-user-select: none;
+	-webkit-user-select: none;
+	user-select: none;
+	background-color:#AAAAAA;
+}
 
 .noselect .shadow {
 	box-shadow:none;
@@ -82,6 +83,6 @@ td.collapsed { cursor:pointer; }
 }
 
 .throbber {
-	background: url(../../images/throbber-big.gif) center no-repeat;
+	background: url(images/throbber-big.gif) center no-repeat;
 	height: 50px;
 }

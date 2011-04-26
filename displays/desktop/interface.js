@@ -106,6 +106,8 @@ function resizeColumn(event){
 
 	// отключаем выделение через CSS (для вебкит)
 	addClass(e('#app_area'), 'noselect');
+	// сохраняем курсор
+	addClass(e('#app_area'), 'e_resize');
 
 	// минимальная ширина колонки в процентах
 	var minW = 1*(compStyle(colL).minWidth.replace('px', '') / precCost).toFixed(2);
@@ -141,6 +143,7 @@ function resizeColumn(event){
 		parent.onmousemove = null;
 		parent.onmouseup = null;
 		removeClass(e('#app_area'), 'noselect');
+		removeClass(e('#app_area'), 'e_resize');
 		setCookie(colL.id+'_width', finalPrec);
 	}
 }
@@ -252,7 +255,7 @@ function attachActions(){
 	e('#debug_toggle').onclick = debugToggle;
 	if (getCookie('toggle_debug') == '1') debugToggle('debug_toggle');
 
-	e('@close', '#over_curtain').onclick = closeOverlayPage;
+	e('@close_btn', '#over_curtain').onclick = closeOverlayPage;
 
 	if (e('#regBtn')) e('#regBtn').onclick = function (){
 		callOverlayPage();

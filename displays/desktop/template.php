@@ -58,7 +58,7 @@ $message = $_COOKIE['message'];
 					<div class="title left">
 						<?= $message ? $txt['title_message'] : '' ?>
 					</div>
-					<div class="close right pointer"></div>
+					<div class="close_btn right pointer"></div>
 					<div class="clearboth"></div>
 				</div>
 				<div class="contents">

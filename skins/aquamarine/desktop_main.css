@@ -1,14 +1,15 @@
 /* общие теги */
 body {
-	background:#CCCCCC;
+	background:#cccccc;
 	font-family:Tahoma, Verdana, Geneva, Arial, Helvetica, sans-serif;
 	font-size:12px;
 }
 
 hr {
-	color: #555555;
-	background-color: #555555;
+	color: #777777;
+	background-color: #777777;
 }
+
 /* универсальные классы*/
 .shadow		{ 
 	box-shadow:			4px 4px 5px #888888;
@@ -34,10 +35,10 @@ hr {
 	-webkit-border-radius:6px;
 }
 
-#over_curtain .close {
-	background: url(../../images/close.png) no-repeat center;
-	width:22px;
-	height:22px;
+#over_curtain .close_btn {
+	background: url(images/close.png) no-repeat center;
+	width:16px;
+	height:16px;
 }
 
 #over_curtain .title {
@@ -104,7 +105,7 @@ hr {
 
 .vport_resizer {
 	width: 15px;
-	background:url(../../images/e-resize.gif) center no-repeat;
+	background:url(images/e-resize.gif) center no-repeat;
 }
 
 .vport_resizer .fixer {
@@ -113,7 +114,7 @@ hr {
 
 .collapser {
 	width:14px;
-	background:url(../../images/arrow-left-a.gif) center no-repeat;
+	background:url(images/arrow-left-a.gif) center no-repeat;
 	border-right:1px dotted #DDDDDD;
 }
 
@@ -133,7 +134,7 @@ hr {
 }
 
 td.collapsed {
-	background:white url(../../images/arrow-right.gif) center no-repeat;
+	background:white url(images/arrow-right.gif) center no-repeat;
 }
 
 .collapser:hover, .collapsed:hover { 
@@ -263,19 +264,19 @@ td.collapsed {
 }
 
 .toolbar .newtopic {
-	background-image: url(../../images/comments_add.png);
+	background-image: url(images/comments_add.png);
 }
 
 .toolbar .markread {
-	background-image: url(../../images/email_open_image.png);
+	background-image: url(images/email_open_image.png);
 }
 
 .toolbar .throbb {
-	background-image: url(../../images/throbber-white.gif);
+	background-image: url(images/throbber-white.gif);
 }
 
 #debug_toggle{
-	background-image: url(../../images/bug.png);
+	background-image: url(images/bug.png);
 }
 
 #viewport_menu {
