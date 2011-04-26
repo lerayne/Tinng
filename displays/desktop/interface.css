@@ -77,37 +77,32 @@ td.collapsed { cursor:pointer; }
 /* универсальные классы*/
 .left		{ float:left; }
 .right		{ float:right; }
+.none		{ display: none; }
+.invis		{ visibility: hidden; }
+.clearboth	{ clear:both; }
 
-.red		{ background: red; }
-.blue		{ background: blue; }
-.green		{ background: green; }
+.reveal, .reveal2, .reveal3 { visibility: hidden; }
+.revealer:hover .reveal, .revealer2:hover .reveal2, .revealer3:hover .reveal3 { visibility: visible; }
+
+.red		{ background-color: red; }
+.blue		{ background-color: blue; }
+.green		{ background-color: green; }
+.dim		{ background-color: #eeeeee;}
 
 .subtext	{ color:#888888; font-size: 10px; }
 .subtext a	{ color:#555555; font-size: 10px; }
 
 .w80		{ width: 80%; }
-
-.invis		{ visibility: hidden; }
-
-.reveal, .reveal2, .reveal3 { visibility: hidden; }
-.revealer:hover .reveal, .revealer2:hover .reveal2, .revealer3:hover .reveal3 { visibility: visible; }
-
-.dim {background-color:#eeeeee;}
-
-.throbber {
-	background: url(../../images/throbber-big.gif) center no-repeat;
-	height: 50px;
-}
 .pointer	{ cursor: pointer; }
-
-.none		{ display: none; }
-
 .clear		{ cursor:auto; background:transparent; }
-
-.clearboth	{ clear:both; }
 
 .noselect .shadow {
 	box-shadow:none;
 	-moz-box-shadow:none;
 	-webkit-box-shadow:none;
+}
+
+.throbber {
+	background: url(../../images/throbber-big.gif) center no-repeat;
+	height: 50px;
 }
