@@ -10,7 +10,7 @@ $message = $_COOKIE['message'];
 
 		<title>UC alpha</title>
 		
-		<link id="favicon" rel="shortcut icon" type="image/png" href="images/favicon.png">
+		<link id="favicon" rel="shortcut icon" type="image/png" href="skins/<?= $cfg['skin'] ?>/images/favicon.png">
 		<!--[if lt IE 9]> <![endif]-->
 	
 		<?

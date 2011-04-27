@@ -56,7 +56,7 @@ hr {
 }
 
 #top_bar {
-	height:32px;
+	min-height:32px;
 	background-color: #F5F5F5;
 	border-bottom: 1px solid #888888;
 
@@ -64,6 +64,10 @@ hr {
 	background-image: -moz-linear-gradient(top, #FFFFFF, #EEEEEE);
 	filter:progid:DXImageTransform.Microsoft.Gradient(
 		GradientType=0, StartColorStr='#FFFFFF', EndColorStr='#EEEEEE');
+}
+
+#top_bar .text {
+	width: 110px;
 }
 
 #top_bar #user_panel {
@@ -328,8 +332,14 @@ td.collapsed {
 	border-top:1px dotted #DDDDDD;
 }
 
-.editabletopic:hover {
-	background: url(images/textfield_rename.png) right center no-repeat;
+.btn_topicedit {
+	background-image: url(images/textfield_rename.png)
+}
+.btn_topicsubmit {
+	background-image: url(images/accept.png)
+}
+.btn_topiccancel {
+	background-image: url(images/cancel.png)
 }
 
 .topic:hover {

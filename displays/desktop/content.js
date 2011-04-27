@@ -129,7 +129,7 @@ function Branch (contArea, topicID, parentID) {
 			//debug.innerHTML = row['updated'];
 
 			// вешаем на клик событие загрузки сообщений
-			container.onclick = function(){
+			var clickload = function(){
 				branches = {};
 				fillPosts(row['id'], e('@contents', '#viewport_posts'));
 				setCookie('currentTopic', row['id']);
@@ -139,6 +139,8 @@ function Branch (contArea, topicID, parentID) {
 				if (e('@activetopic')) removeClass(e('@activetopic'), 'activetopic');
 				addClass(container, 'activetopic');
 			}
+			
+			container.onclick = clickload;
 
 			if (row['last']['message']){
 				var lastpost = newel('div', 'lastpost', 'lastpost_'+row['last']['id']);
@@ -148,36 +150,49 @@ function Branch (contArea, topicID, parentID) {
 			}
 
 			var postcount = newel('div', 'postcount reveal', null, row['postcount'] + txt['postcount']);
-
+			
 			// создаем элемент "тема"
-			var topic = newel('div', 'topicname editabletopic', null,
-				row['topic'] ? row['topic'] : '&nbsp;');
-
+			var topic = newel('div', 'topicname editabletopic revealer2');
+			var topicname = newel('div', 'left', null, row['topic'] ? row['topic'] : '&nbsp;');
+			var topicedit_btn = newel('div', 'sbtn btn_topicedit right reveal2');
+			var topicsubmit_btn = newel('div', 'sbtn btn_topicsubmit right none');
+			var topiccancel_btn = newel('div', 'sbtn btn_topiccancel right none');
+			
+			topicedit_btn.onmouseover = function(){
+				container.onclick = null;
+			}
+			
+			topicedit_btn.onmouseout = function(){
+				if (!hasClass(topicname, 'edittopicname')) container.onclick = clickload;
+			}
+			
+			appendKids(topic, topicname, topicedit_btn, topiccancel_btn, topicsubmit_btn, newel('div', 'clearboth'));
+			
+			var cancelNameEdit = function(){
+				hide(topicsubmit_btn, topiccancel_btn);
+				unhide(topicedit_btn);
+				topicname.contentEditable = false;
+				removeClass(topicname, 'edittopicname');
+				topicname.ondblclick = editTopicName;
+				container.onclick = clickload;
+			}
+			
 			// функция инлайн-редактирования темы
 			var editTopicName = function(){
-				topic.ondblclick = null;
-				topic.contentEditable = true;
-				var text = topic.innerHTML;
-				topic.focus();
-				addClass(topic, 'edittopicname');
-
-				var okbtn = insAfter(topic, newel('div', 'okbtn', null));
+				hide(topicedit_btn);
+				topicname.ondblclick = null;
+				topicname.contentEditable = true;
+				var text = topicname.innerHTML;
+				topicname.focus();
+				addClass(topicname, 'edittopicname');
 
 				//!! дописать отмену и расположение кнопок
 				var submitTopicName = function(){
-					removeClass(topic, 'edittopicname');
-					topic.ondblclick = editTopicName;
-					remove(okbtn);
-					topic.contentEditable = false;
-
-					// !! не работает. попробовать регекспом
-					if (topic.innerHTML == ''){
-						topic.innerHTML = text;
-						return;
-					}
+					
+					cancelNameEdit();
 
 					// AJAX-запрос и заполнения поля
-					editFields(['msg_topic', topic]);
+					editFields(['msg_topic', topicname]);
 				}
 				/*
 				document.onkeypress = function(event){
@@ -188,11 +203,17 @@ function Branch (contArea, topicID, parentID) {
 					} // on enter
 				}
 				*/
-				okbtn.onclick = submitTopicName;
+				unhide(topicsubmit_btn, topiccancel_btn);
+				
+				topicsubmit_btn.onclick = submitTopicName;
+				topiccancel_btn.onclick = cancelNameEdit;
 			}
 
 			// если имеем право переименовывать тему
-			if (row['author_id'] == userID) {topic.ondblclick = editTopicName;}
+			if (row['author_id'] == userID) {
+				topicname.ondblclick = editTopicName;
+				topicedit_btn.onclick = editTopicName;
+			}
 
 		break;
 		case 'post':
