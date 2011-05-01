@@ -43,13 +43,12 @@ function sort_result($array, $field, $reverse){
 
 	$afs = Array(); // array for sort
 	$out = Array();
-
-	foreach ($array as $val) $afs[$val[$field]] = $val;
+	
+	// сортировка двумерного массива по полю field. Работает даже с неуникальными ключами
+	foreach ($array as $key => $val) $afs[$val[$field].$key] = $val;
 	ksort($afs);
 	if ($reverse) $afs = array_reverse($afs);
-
 	foreach ($afs as $val) $out[] = $val;
-
 	return $out;
 }
 
@@ -111,10 +110,10 @@ switch ($action):
 
 	case 'load_topics':
 
-		$sort = $_REQUEST['sort'];
+		$sort = $_REQUEST['sort'] ? $_REQUEST['sort'] : 'updated';
 		$reverse = $_REQUEST['reverse'];
 
-		// находим последнюю созданную тему (насколько это нужно именно в топиках? проверить)
+		// находим последнюю созданную тему (насколько это нужно именно в топиках? проверить. пока нормально работает и без)
 		/*$result['maxdate'] = $db->selectCell(
 			'SELECT GREATEST(MAX(msg_created), IFNULL(MAX(msg_modified),0)) FROM ?_messages
 			WHERE msg_topic_id = 0'
@@ -157,8 +156,8 @@ switch ($action):
 				'SELECT 
 					UNIX_TIMESTAMP(GREATEST(MAX(msg_created), IFNULL(MAX(msg_modified),0))) AS updated,
 					UNIX_TIMESTAMP(MAX(msg_created)) AS lastpost
-				FROM ?_messages WHERE msg_topic_id = ?d AND msg_deleted <=> NULL'
-				, $val['id']
+				FROM ?_messages WHERE (msg_topic_id = ?d OR msg_id = ?d) AND msg_deleted <=> NULL'
+				, $val['id'], $val['id']
 			);
 
 			$maxd[] = $raw['updated'];
@@ -325,26 +324,24 @@ switch ($action):
 	case 'wait_topic':
 
 		// отнимаем три лишних нолика микросекунд, прилетевшие из js
-		$maxdate = substr($_REQUEST['maxdate'], 0, strlen($_REQUEST['maxdate'])-3);
+		$req_maxdate_ts = substr($_REQUEST['maxdate'], 0, strlen($_REQUEST['maxdate'])-3)*1;
 
-		// Выбираем индексы всех сообщений, являющихся темами в ключи массива $topic
+		// Получаем массив всех тем $topics, в форме 'id темы' => 'id ее последнего поста'
 		$topics = $db->select(
 			'SELECT msg_id AS ARRAY_KEY, msg_id FROM ?_messages
 			WHERE msg_topic_id = 0 AND msg_deleted <=> NULL'
 		);
-
-		// вбиваем id последнего поста темы в значение $topic
-		foreach ($topics as $key => $val):
-			$topics[$key] = $db->selectCell(
+		foreach ($topics as $topic_id => $none):
+			$topics[$topic_id] = $db->selectCell(
 				'SELECT msg_id FROM ?_messages
 				WHERE msg_deleted <=> NULL AND (msg_topic_id = ?d OR msg_id = ?d)
 				ORDER BY msg_id DESC LIMIT 1'
-				, $key, $key
+				, $topic_id, $topic_id
 			);
 		endforeach;
 
 		// для каждой темы выбираем дату последнего обновления в виде timestamp и кол-во постов
-		foreach ($topics as $key => $val):
+		foreach ($topics as $topic_id => $none):
 			$raw = $db->selectRow(
 				'SELECT 
 					UNIX_TIMESTAMP(GREATEST(MAX(msg_created), IFNULL(MAX(msg_modified), 0))) AS maxdate,
@@ -353,21 +350,21 @@ switch ($action):
 				WHERE 
 					(msg_topic_id = ?d OR msg_id = ?d)
 					AND msg_deleted <=> NULL'
-				, $key, $key
+				, $topic_id, $topic_id
 			);
 
-			$maxds[$key] = $raw['maxdate'];
-			$result['quant'][$key] = $raw['count'];
+			$cur_maxdates[$topic_id] = $raw['maxdate']*1; // числовые значения
+			$result['quant'][$topic_id] = $raw['count'];
 		endforeach;
 
 		$result['new_quant'] = '0';
-		$maxd = max($maxds)*1; // дата последнего обновления
-		$sqlmaxd2 = date('Y-m-d H:i:s', $maxdate); // дата пришедшая с запросом
+		$cur_latest_maxdate_ts = max($cur_maxdates); // дата последнего обновления
+		$req_maxdate_sql = date('Y-m-d H:i:s', $req_maxdate_ts); // дата пришедшая с запросом
 
-		if ($maxd > $maxdate*1): // если есть хоть одна дата новее чем указанная
+		if ($cur_latest_maxdate_ts > $req_maxdate_ts): // если есть хоть одна дата новее чем указанная
 
 			// выбрать информацию о записях, если это последний или первый пост и их дата больше заданной
-			foreach ($topics as $key => $val):
+			foreach ($topics as $topic_id => $last_post_id):
 				$raw = $db->select(
 					'SELECT
 						msg_id AS id,
@@ -384,11 +381,12 @@ switch ($action):
 						AND (msg_id = ?d OR msg_id = ?d)
 						AND (msg_created > ? OR msg_modified > ?)
 						AND msg_deleted <=> NULL'
-					, $cfg['cut_length'], $key, $val, $sqlmaxd2, $sqlmaxd2
+					, $cfg['cut_length'], $topic_id, $last_post_id, $req_maxdate_sql, $req_maxdate_sql
 				);
 
-				if ($raw): $result['data'][$key] = $raw;
-				elseif ($maxds[$key] > $maxdate*1): $result['data'][$key] = $key;
+				if ($raw): $result['data'][$topic_id] = $raw;
+				// иначе (если есть изменения, но не в первом или последнем посте) выдать только номер темы
+				elseif ($cur_maxdates[$topic_id] > $req_maxdate_ts): $result['data'][$topic_id] = $topic_id;
 				endif;
 
 			endforeach;
@@ -397,11 +395,11 @@ switch ($action):
 
 		endif;
 
-		$result['maxdate'] = date('Y-m-d H:i:s', $maxd);
+		$result['maxdate'] = date('Y-m-d H:i:s', $cur_latest_maxdate_ts);
 
-		$result['console'] = 'TOPICS: '.$sqlmaxd2.' -> '.$result['new_quant'];
+		$result['console'] = 'TOPICS: '.$req_maxdate_sql.' -> '.$result['new_quant'];
 
-	break;
+	break;	
 
 
 
