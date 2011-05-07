@@ -645,7 +645,7 @@ function fillTopics(){
 
 		// создаем экземпляр содержимого колонки и заполняем его
 		for (var i in result['data']) {
-			if(!first) var first = result['data'][i];
+			//if(!first) var first = result['data'][i];
 			topics.appendBlock(result['data'][i]);
 		}
 

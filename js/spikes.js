@@ -66,7 +66,6 @@ function getTimeDiff(date){
 	return diff.getSeconds()+'.'+ms;
 }
 
-
 // ФУНКЦИИ ГЛОБАЛЬНЫХ ОБЪЕКТОВ
 
 // взятие высоты рабочей области браузера
@@ -182,6 +181,30 @@ function newel (tag, className, id, content){
 	return elem;
 }
 
+function div(className, id, content){
+	return newel ('div', className, id, content)
+}
+
+function nuclear(){
+	return newel ('div', 'clearboth')
+}
+
+function thisInsAfter(obj, insafter){ 
+	if (insafter) for (var i in insafter) if (typeof obj[i] != 'undefined') 
+		insAfter(obj[insafter[i]] , obj[i]);
+}
+
+function thisClassedDiv (obj, hash){
+	for (var i in hash){
+		for (var j in hash[i]) if (typeof hash[i][j] == 'undefined') hash[i][j] = null;
+		obj[i] = div(i+(hash[i][1] ? ' '+hash[i][1] : ''), hash[i][2], hash[i][0]);
+	}
+}
+
+function addField(obj, name, id, content){
+	obj[name] = div(name, id, content);
+}
+
 // обертка вставки нового элемента перед текущим
 function insBefore (refNode, newNode){
 	refNode.parentNode.insertBefore(newNode, refNode);
@@ -231,6 +254,11 @@ function appendKids(){
 	return parent;
 }
 
+function appKids(){
+	for (var i=0; i<arguments.length; i++){
+		if (arguments[i] && arguments[i].nodeType == 1) this.appendChild(arguments[i]);
+	}
+}
 
 
 // ФУНКЦИИ CSS:
@@ -248,15 +276,18 @@ function compStyle(el) {
 
 // добавление класса к элементу
 function addClass (elem, className) {
-	elem.className += ((elem.className.length == 0) ? '' : ' ')+className;
+	if (!hasClass(elem, className)) 
+		elem.className += ((elem.className.length == 0) ? '' : ' ')+className;
 }
 
 // изьятие класса из элемента
 function removeClass (elem, className) {
 	// !! Сделать убирание классов через регекспы (второстепенное)
-	elem.className = elem.className.replace(' '+className, '');
-	elem.className = elem.className.replace(className, '');
-	if (elem.className.length == 0) elem.removeAttribute('class');
+	if (hasClass(elem, className)){
+		elem.className = elem.className.replace(' '+className, '');
+		elem.className = elem.className.replace(className, '');
+		if (elem.className.length == 0) elem.removeAttribute('class');
+	}
 }
 
 // обертки скрытия и отмены скрытия

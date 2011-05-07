@@ -17,7 +17,6 @@ $message = $_COOKIE['message'];
 		// стили
 		incl_css(
 			  $device_path.'/interface.css'
-			, $device_path.'/content.css'
 			, 'skins/'.$cfg['skin'].'/desktop_main.css'
 		);
 		?>

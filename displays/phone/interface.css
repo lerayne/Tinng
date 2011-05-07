@@ -1,0 +1,27 @@
+/* общие теги */
+body	{ padding:0; margin:0; }
+hr		{ border: 0 none; height: 1px; }
+
+/* универсальные классы*/
+.left		{ float:left; }
+.right		{ float:right; }
+.none		{ display: none; }
+.invis		{ visibility: hidden; }
+.clearboth	{ clear:both; }
+
+.reveal, .reveal2, .reveal3 { visibility: hidden; }
+.revealer:hover .reveal, .revealer2:hover .reveal2, .revealer3:hover .reveal3 { visibility: visible; }
+
+.red		{ background-color: red; }
+.blue		{ background-color: blue; }
+.green		{ background-color: green; }
+.dim		{ background-color: #eeeeee;}
+
+.subtext	{ color:#888888; font-size: 10px; }
+.subtext a	{ color:#555555; font-size: 10px; }
+
+.w80		{ width: 80%; }
+.pointer	{ cursor: pointer; }
+.e_resize	{ cursor: e-resize; }
+.clear		{ cursor:auto; background:transparent; }
+
