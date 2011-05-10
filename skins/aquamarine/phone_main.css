@@ -43,6 +43,12 @@ hr {
 	display:table-row;
 }
 
+.post {
+	background-color: white;
+	border-bottom: 4px solid #cccccc;
+	display:table-row;
+}
+
 .infobar {
 	padding: 4px 4px 0 4px;
 }
@@ -79,11 +85,8 @@ hr {
 	border-top: 1px dashed #cccccc;
 }
 
-.before_cell {
-	display: table-cell;
-	width: 0%;
-	border-bottom: 1px solid black;
-	background: #cccccc;
+.topic .before_cell {
+	display: none;
 }
 
 .data_cell {
@@ -92,9 +95,24 @@ hr {
 	border-bottom: 1px solid black;
 }
 
-.after_cell {
+.topic .after_cell {
 	display: table-cell;
 	width: 15%;
 	background: #006699;
 	border-bottom: 1px solid white;
+}
+
+.post .before_cell {
+	display: table-cell;
+	width:15%;
+	background: #006699;
+	border-bottom: 1px solid #006699;
+}
+
+.post .after_cell{
+	display: none;
+}
+
+.activetopic {
+	background-color: #e1ffe0;
 }

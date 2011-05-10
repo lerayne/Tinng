@@ -189,15 +189,14 @@ function nuclear(){
 	return newel ('div', 'clearboth')
 }
 
-function thisInsAfter(obj, insafter){ 
-	if (insafter) for (var i in insafter) if (typeof obj[i] != 'undefined') 
-		insAfter(obj[insafter[i]] , obj[i]);
-}
-
-function thisClassedDiv (obj, hash){
-	for (var i in hash){
-		for (var j in hash[i]) if (typeof hash[i][j] == 'undefined') hash[i][j] = null;
-		obj[i] = div(i+(hash[i][1] ? ' '+hash[i][1] : ''), hash[i][2], hash[i][0]);
+function createDivs (obj, collection){
+	for (var i in collection){ 
+		var prop = collection[i];
+		
+		obj[i] = div(i, prop['id'], prop['content']);
+		
+		if (prop['addClass']) obj[i].className += ' '+prop['addClass'];
+		if (prop['class']) obj[i].className = prop['class'];
 	}
 }
 

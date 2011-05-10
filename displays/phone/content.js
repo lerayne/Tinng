@@ -3,7 +3,11 @@ var Item = Class({
 	initialize: function(row, type){
 		this.populate(row, type);
 		this.attachActions();
-		this.construct();
+		this.assemble();
+	},
+	
+	div: function(obj){
+		createDivs(this, obj);
 	},
 	
 	// Создание элементов (универсальных, которые есть во всех объектах)
@@ -13,27 +17,43 @@ var Item = Class({
 		this.type = type;
 		
 		this.container = div(this.type, this.type+'_'+this.row['id']);
-
-		thisClassedDiv( this, {	
-			  before_cell:	[]
-			, data_cell:	[]
-			, after_cell:	[]
-			, infobar:		[]
-			, created:		[this.row['modified'] ? txt['modified']+this.row['modified'] : this.row['created'], 'right']
-			, author:		[txt['from']+this.row['author'], 'left']
-			, msgid:		['&nbsp;#'+this.row['id']+'&nbsp;', 'left']
-			, message:		[this.row['message']]
-			, debug:		[]
-			, controls:		[]
-			, explain:		[]
+		
+		this.div({ 
+			before_cell:[],
+			after_cell:	[],
+			data_cell:	[],
+			infobar:	[],
+			debug:		[],
+			controls:	[],
+			explain:	[],
+			
+			created: {
+				content: this.row['modified'] ? txt['modified']+this.row['modified'] : this.row['created'],
+				addClass: 'right'
+			},
+			
+			author: {
+				content: txt['from']+this.row['author'],
+				addClass: 'left'
+			},
+			
+			msgid: {
+				content: '&nbsp;#'+this.row['id']+'&nbsp;',
+				addClass: 'left'
+			},
+			
+			message: {
+				content: this.row['message']
+			}
+			
 		});
 	},
 	
-	// программируем кнопки
+	// Созданеи действий с объектами
 	attachActions: function(){},
 	
-	// сборка шаблона
-	construct: function(){
+	// сборка объектов в фрагмент DOM
+	assemble: function(){
 		
 		appendKids ( this.container
 			, this.before_cell
@@ -67,15 +87,19 @@ var Topic = Class (Item, {
 	populate: function(){
 		Item.prototype.populate.apply(this, arguments);
 		
-		thisClassedDiv( this, {
-			  postcount: [this.row['postcount'] + txt['postcount'], 'left']
-			, topicname: [this.row['topic'] ? this.row['topic'] : '&nbsp;']
+		this.div({
+			postcount: {
+				content: this.row['postcount'] + txt['postcount'],
+				addClass: 'left'
+			},
+			topicname: {
+				content: this.row['topic']
+			}
 		});
 		
 		if (this.row['last']['message']){
-			thisClassedDiv( this, {
-				lastpost: [null, null, 'lastpost_'+this.row['last']['id']]
-			});
+			
+			this.lastpost = div('lastpost', null, 'lastpost_'+this.row['last']['id']);
 			this.lastpost.innerHTML = txt['lastpost']+' <span class="author">'+this.row['last']['author']
 				+'</span>' + ' ['+this.row['last']['created']+'] '+this.row['last']['message'];
 		}
@@ -84,15 +108,29 @@ var Topic = Class (Item, {
 	attachActions: function(){
 		Item.prototype.attachActions.apply(this, arguments);
 		var that = this;
-
+		
+		// по клику на правой колонке - загрузить тему
 		this.after_cell.onclick = function(){
-			fillPosts(that.row['id'], e('#viewport_posts'));
+			fillPosts(that.row['id']);
 			tabs.switchto('posts');
 			if (e('@activetopic')) removeClass(e('@activetopic'), 'activetopic');
 			addClass(that.container, 'activetopic');
 		}
-	}
+	}	
+});
+
+var Post = Class(Item, {
 	
+	attachActions: function(){
+		Item.prototype.attachActions.apply(this, arguments);
+		var that = this;
+		
+		// по клику на левой колонке - возвращаемся к темам
+		this.before_cell.onclick = function(){
+			tabs.switchto('topics');
+			if (e('@activetopic')) e('@activetopic').scrollIntoView();
+		}
+	}
 });
 
 
@@ -110,8 +148,7 @@ function Branch(contArea, topicID, parentID){
 	this.coll = [];
 	
 	this.createBlock = function(row) {
-		//var type = (topicID == '0') ? 'topic' : 'post';
-		return new Topic(row, 'topic');
+		return (topicID == '0') ? new Topic(row, 'topic') : new Post(row, 'post');
 	}
 	
 	this.appendBlock = function(row){
@@ -156,8 +193,29 @@ function fillTopics(){
 	}, true /* запрещать кеширование */ );
 }
 
-function fillPosts(){
-	return;
+function fillPosts(parent){
+	var container = e('#viewport_posts');
+	
+	JsHttpRequest.query( 'ajax_backend.php', { // аргументы:
+
+		  action: 'load_posts'
+		  , id: parent
+
+	}, function(result, errors) { // что делаем, когда пришел ответ:
+		
+		container.innerHTML = '';
+		
+		topics = new Branch(container, parent);
+		
+		// создаем экземпляр содержимого колонки и заполняем его
+		for (var i in result['data']) {
+			//if(!first) var first = result['data'][i];
+			topics.appendBlock(result['data'][i]);
+		}
+
+		maxPostDate = sql2stamp(result['maxdate']);
+		
+	}, true /* запрещать кеширование */ );
 }
 
 function startEngine(){
