@@ -1,25 +1,36 @@
-function Item () {}
-Item.prototype = {
+var Item = Class({
 	
-	// Создание универсальных элементов
+	initialize: function(row, type){
+		this.populate(row, type);
+		this.attachActions();
+		this.construct();
+	},
+	
+	// Создание элементов (универсальных, которые есть во всех объектах)
 	populate: function(row, type){
-	
-		this.container = div(type, type+'_'+row['id']);
+		
+		this.row = row;
+		this.type = type;
+		
+		this.container = div(this.type, this.type+'_'+this.row['id']);
 
 		thisClassedDiv( this, {	
 			  before_cell:	[]
 			, data_cell:	[]
 			, after_cell:	[]
 			, infobar:		[]
-			, created:		[row['modified'] ? txt['modified']+row['modified'] : row['created'], 'right']
-			, author:		[txt['from']+row['author'], 'left']
-			, msgid:		['&nbsp;#'+row['id']+'&nbsp;', 'left']
-			, message:		[row['message']]
+			, created:		[this.row['modified'] ? txt['modified']+this.row['modified'] : this.row['created'], 'right']
+			, author:		[txt['from']+this.row['author'], 'left']
+			, msgid:		['&nbsp;#'+this.row['id']+'&nbsp;', 'left']
+			, message:		[this.row['message']]
 			, debug:		[]
 			, controls:		[]
 			, explain:		[]
 		});
-	}, 
+	},
+	
+	// программируем кнопки
+	attachActions: function(){},
 	
 	// сборка шаблона
 	construct: function(){
@@ -48,50 +59,43 @@ Item.prototype = {
 			, nuclear()
 		);
 	}
-}
+});
 
-function Topic(row) {
-	this.populate(row, 'topic');
+
+var Topic = Class (Item, {
 	
-	thisClassedDiv( this, {
-		  postcount: [row['postcount'] + txt['postcount'], 'left']
-		, topicname: [row['topic'] ? row['topic'] : '&nbsp;']
-	});
-
-	if (row['last']['message']){
+	populate: function(){
+		Item.prototype.populate.apply(this, arguments);
+		
 		thisClassedDiv( this, {
-			lastpost: [null, null, 'lastpost_'+row['last']['id']]
+			  postcount: [this.row['postcount'] + txt['postcount'], 'left']
+			, topicname: [this.row['topic'] ? this.row['topic'] : '&nbsp;']
 		});
-		this.lastpost.innerHTML = 
-			txt['lastpost']+' <span class="author">'+row['last']['author']
-			+'</span>' + ' ['+row['last']['created']+'] '+row['last']['message'];
-	}
-
-	this.after_cell.onclick = function(){
-		fillPosts(row['id'], e('#viewport_posts'));
-		tabs.switchto('posts');
-		if (e('@activetopic')) removeClass(e('@activetopic'), 'activetopic');
-		addClass(this.container, 'activetopic');
-	}
-
-	this.construct();
-}
-
-extend(Item, Topic);
-
-function TopicFin(row){
-	TopicFin.superclass.constructor.apply(this, arguments);
-}
-
-extend(Topic, TopicFin);
-
-
-/*
-function Post (row, type) {
+		
+		if (this.row['last']['message']){
+			thisClassedDiv( this, {
+				lastpost: [null, null, 'lastpost_'+this.row['last']['id']]
+			});
+			this.lastpost.innerHTML = txt['lastpost']+' <span class="author">'+this.row['last']['author']
+				+'</span>' + ' ['+this.row['last']['created']+'] '+this.row['last']['message'];
+		}
+	},
 	
-}
-extend(Item, Post);
-*/
+	attachActions: function(){
+		Item.prototype.attachActions.apply(this, arguments);
+		var that = this;
+
+		this.after_cell.onclick = function(){
+			fillPosts(that.row['id'], e('#viewport_posts'));
+			tabs.switchto('posts');
+			if (e('@activetopic')) removeClass(e('@activetopic'), 'activetopic');
+			addClass(that.container, 'activetopic');
+		}
+	}
+	
+});
+
+
 function Branch(contArea, topicID, parentID){
 	if (!parentID) parentID = topicID;
 	var branch = this;
@@ -107,7 +111,7 @@ function Branch(contArea, topicID, parentID){
 	
 	this.createBlock = function(row) {
 		//var type = (topicID == '0') ? 'topic' : 'post';
-		return new Topic(row);
+		return new Topic(row, 'topic');
 	}
 	
 	this.appendBlock = function(row){

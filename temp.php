@@ -14,6 +14,96 @@
 		</style>
 		
 		<script type="text/javascript" language="JavaScript">
+
+// Конструтор классов, спасибо Riim (javascript.ru)
+var Class = (function() {
+
+	var extend = Object.extend = function(self, obj) {
+		if (self == null) self = {};
+		for (var key in obj) self[key] = obj[key];
+		return self;
+	}
+
+	return function(parent, declaration) {
+		
+		var Klass = function() {
+			this.initialize.apply(this, arguments);
+		}
+		
+		if (typeof parent == 'function') {
+			function F(){}
+			F.prototype = parent.prototype;
+			Klass.prototype = new F();
+		} else {
+			if (parent != null) declaration = parent;
+			parent = Object;
+		}
+
+		extend(Klass.prototype, declaration).initialize || (Klass.prototype.initialize = Function.blank);
+		Klass.superclass = parent;
+		Klass.prototype.superclass = parent.prototype;
+		return Klass.prototype.constructor = Klass;
+	};
+
+})();
+
+/*
+var Class = function(parent, declaration) {
+	
+	var extend = Object.extend = function(self, obj) {
+		if (self == null) self = {};
+		for (var key in obj) self[key] = obj[key];
+		return self;
+	}
+	
+	var Klass = function() {
+		this.initialize.apply(this, arguments);
+	}
+	
+	if (typeof parent == 'function') {
+		function F(){}
+		F.prototype = parent.prototype;
+		Klass.prototype = new F();
+	} else {
+		if (parent != null) declaration = parent;
+		parent = Object;
+	}
+	
+	extend(Klass.prototype, declaration).initialize || (Klass.prototype.initialize = Function.blank);
+	Klass.$super = parent;
+	Klass.prototype.$super = parent.prototype;
+	return Klass.prototype.constructor = Klass;
+
+}
+*/
+var Pa = Class({
+	initialize: function(color) {
+		this.populate(color);
+	},
+
+	populate: function(color) {
+		this.container = div('container', 'empty');
+		this.container.style.background = color;
+	}
+});
+
+var Ci = Class(Pa, {
+	populate: function(color) {
+		Pa.prototype.populate.call(this, color);
+		this.header = div('header', 'Заголовок!');
+		this.container.appendChild(this.header);
+	}
+});
+
+var GCi = Class(Ci, {
+	populate: function(color) {
+		Ci.prototype.populate.call(this, color);
+		this.message = div('messge', 'Сообщение!');
+		this.container.appendChild(this.message);
+	}
+});
+
+			
 // та самая extend		
 function extend(Parent, Child) {
 	var F = function() { }
@@ -34,8 +124,10 @@ function div(className, content){
 // начинаем экспереметировать с наследованием по варианту 1 (не используем прототип, используем конструтор суперкласса)
 
 function Parent(color){
-	this.container = div('container', 'empty');
+	this.container = div('container');
 	this.container.style.background = color;
+	
+	this.container.innerHTML += this.constructor;
 }
 
 extend(Parent, Child = function(){
@@ -54,43 +146,46 @@ extend(Child, GrandChild = function(){
 
 // вариант 2, все свойства и методы добавляются через прототип: 
 
-function P(){}
-P.prototype = {
-	populate: function(color){
-		this.container = div('container', 'empty');
-		this.container.style.background = color;
-	}
-}
-
-function C(color){
+function P(color){
 	this.populate(color);
 }
-C.prototype = {
-	func: function(color){
-		this.populate(color);
-		this.header = div('header', 'Заголовок!');
-		this.container.appendChild(this.header);
-	}
+P.prototype.populate = function(color){
+	this.container = div('container', 'empty');
+	this.container.style.background = color;
 }
-extend(P, C);
 
-// эта функция 
-function GC(color){
-	this.func(color);
-	
+extend(P, C = function(color){
+	this.populate(color);
+});
+C.prototype.populate = function(){
+	P.prototype.populate.apply(this, arguments);
+	this.header = div('header', 'Заголовок!');
+	this.container.appendChild(this.header);
+}
+
+extend(C, GC = function(color){
+	this.populate(color);
+});
+GC.prototype.populate = function(){
+	C.prototype.populate.apply(this, arguments);
 	this.message = div('messge', 'Сообщение!');
 	this.container.appendChild(this.message);
 }
-extend(C, GC);
+
+ // func по прежнему недоступна, сама функция работает потому что все действия затолканы в конструктор
 
 window.onload = function(){
 	document.body.appendChild(new Parent('#7777FF').container); // выводит только "empty"
 	document.body.appendChild(new Child('#9999FF').container); // выводит "empty" и "Заголовок!"
 	document.body.appendChild(new GrandChild('#BBBBFF').container); // "empty", "Заголовок!" и "Сообщение!"
 	
-	// document.body.appendChild(new P('#77FF77').container); // вообще ничего не выводит, потому что populate не вызывается
-	document.body.appendChild(new C('#99FF99').container); // работает нормально, выводит только empty
-	document.body.appendChild(new GC('#BBFFBB').container); // func не наследуется
+	document.body.appendChild(new P('#FF7777').container); // выводит только "empty"
+	document.body.appendChild(new C('#FF9999').container); // работает нормально, выводит только empty
+	document.body.appendChild(new GC('#FFbbbb').container); // func не наследуется
+	
+	document.body.appendChild(new Pa('#229922').container); // выводит только "empty"
+	document.body.appendChild(new Ci('#55BB55').container); // выводит "empty" и "Заголовок!"
+	document.body.appendChild(new GCi('#77EE77').container); // "empty", "Заголовок!" и "Сообщение!"
 }
 		</script>
 
