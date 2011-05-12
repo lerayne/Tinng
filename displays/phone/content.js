@@ -1,91 +1,7 @@
-var Item = Class({
-	
-	initialize: function(row, type){
-		this.populate(row, type);
-		this.attachActions();
-		this.assemble();
-	},
-	
-	div: function(obj){
-		createDivs(this, obj);
-	},
-	
-	// Создание элементов (универсальных, которые есть во всех объектах)
-	populate: function(row, type){
-		
-		this.row = row;
-		this.type = type;
-		
-		this.container = div(this.type, this.type+'_'+this.row['id']);
-		
-		this.div({ 
-			before_cell:[],
-			after_cell:	[],
-			data_cell:	[],
-			infobar:	[],
-			debug:		[],
-			controls:	[],
-			explain:	[],
-			
-			created: {
-				content: this.row['modified'] ? txt['modified']+this.row['modified'] : this.row['created'],
-				addClass: 'right'
-			},
-			
-			author: {
-				content: txt['from']+this.row['author'],
-				addClass: 'left'
-			},
-			
-			msgid: {
-				content: '&nbsp;#'+this.row['id']+'&nbsp;',
-				addClass: 'left'
-			},
-			
-			message: {
-				content: this.row['message']
-			}
-			
-		});
-	},
-	
-	// Созданеи действий с объектами
-	attachActions: function(){},
-	
-	// сборка объектов в фрагмент DOM
-	assemble: function(){
-		
-		appendKids ( this.container
-			, this.before_cell
-			, this.data_cell
-			, this.after_cell
-		);
-
-		appendKids ( this.data_cell
-			, this.infobar
-			, this.topicname
-			, this.message
-			, this.lastpost
-			, this.debug
-			, this.controls 
-			, nuclear()
-		);
-
-		appendKids ( this.infobar
-			, this.created
-			, this.author
-			, this.msgid
-			, this.postcount
-			, nuclear()
-		);
-	}
-});
-
-
-var Topic = Class (Item, {
+var TopicItem = Class ( MessageItem, {
 	
 	populate: function(){
-		Item.prototype.populate.apply(this, arguments);
+		TopicItem.superclass.prototype.populate.apply(this, arguments);
 		
 		this.div({
 			postcount: {
@@ -106,7 +22,7 @@ var Topic = Class (Item, {
 	},
 	
 	attachActions: function(){
-		Item.prototype.attachActions.apply(this, arguments);
+		TopicItem.superclass.prototype.attachActions.apply(this, arguments);
 		var that = this;
 		
 		// по клику на правой колонке - загрузить тему
@@ -119,10 +35,10 @@ var Topic = Class (Item, {
 	}	
 });
 
-var Post = Class(Item, {
+var PostItem = Class( MessageItem, {
 	
 	attachActions: function(){
-		Item.prototype.attachActions.apply(this, arguments);
+		PostItem.superclass.prototype.attachActions.apply(this, arguments);
 		var that = this;
 		
 		// по клику на левой колонке - возвращаемся к темам
@@ -142,13 +58,13 @@ function Branch(contArea, topicID, parentID){
 	this.e = contArea;
 
 	// создание контейнера для новой ветки
-	this.cont = newel('div', null, 'branch_'+parentID);
+	this.cont = div(null, 'branch_'+parentID);
 	this.e.appendChild(this.cont);
 	
 	this.coll = [];
 	
 	this.createBlock = function(row) {
-		return (topicID == '0') ? new Topic(row, 'topic') : new Post(row, 'post');
+		return (topicID == '0') ? new TopicItem(row, 'topic') : new PostItem(row, 'post');
 	}
 	
 	this.appendBlock = function(row){

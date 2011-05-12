@@ -31,6 +31,7 @@ $message = $_COOKIE['message'];
 			, 'libraries/webtoolkit.js'
 			, 'js/spikes.js'
 			, 'js/object_spikes.js'
+			, 'js/global_content.js'
 		);
 		
 		// импорт переменных из PHP
