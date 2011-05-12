@@ -16,7 +16,7 @@ $message = $_COOKIE['message'];
 		<?
 		// стили
 		incl_css(
-			  $device_path.'/interface.css'
+			  $device_path.'interface.css'
 			, 'skins/'.$cfg['skin'].'/desktop_main.css'
 		);
 		?>
@@ -39,10 +39,10 @@ $message = $_COOKIE['message'];
 		
 		//	 скрипты самого сервиса
 		incl_scripts(
-			  $device_path.'/interface.js'
-			, $device_path.'/content.js'
-			, $device_path.'/focusing.js'
-			, $device_path.'/onload.js'
+			  $device_path.'interface.js'
+			, $device_path.'content.js'
+			, $device_path.'focusing.js'
+			, $device_path.'onload.js'
 		);
 		?>
 
@@ -71,7 +71,7 @@ $message = $_COOKIE['message'];
 		<div id="top_bar">
 			<div id="logo">UltiComm alpha 0.2</div>
 			<div class="left"></div>
-			<div id="user_panel"><? require $device_path.'/template_login.php'; ?></div>
+			<div id="user_panel"><? require $device_path.'template_login.php'; ?></div>
 			<div class="right">
 				<div class="button" id="debug_toggle"><span>Консоль</span></div>
 			</div>

@@ -13,7 +13,7 @@ if (   strpos($_SERVER['HTTP_USER_AGENT'], 'Android')
 	|| $_GET['mode'] == 'iphone'
 ) $display_mode = 'phone';
 
-$device_path = 'displays/'.$display_mode;
+$device_path = 'displays/'.$display_mode.'/'.$display_mode.'_';
 
-require_once $device_path.'/template.php';
+require_once $device_path.'template.php';
 ?>

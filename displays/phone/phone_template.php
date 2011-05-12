@@ -17,7 +17,7 @@
 		<?
 		// стили
 		incl_css(
-			  $device_path.'/interface.css'
+			  $device_path.'interface.css'
 			, 'skins/'.$cfg['skin'].'/phone_main.css'
 		);
 		?>
@@ -39,10 +39,10 @@
 		
 		//	 скрипты самого сервиса
 		incl_scripts(
-			  $device_path.'/interface.js'
-			, $device_path.'/content.js'
-			, $device_path.'/focusing.js'
-			, $device_path.'/onload.js'
+			  $device_path.'interface.js'
+			, $device_path.'content.js'
+			, $device_path.'focusing.js'
+			, $device_path.'onload.js'
 		);
 		?>
 
