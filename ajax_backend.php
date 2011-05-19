@@ -252,7 +252,7 @@ switch ($action):
 	case 'long_wait_post':
 
 		$begin = time(); // now
-		$wait_time = 10;//ini_get('max_execution_time')-5;
+		$wait_time = ini_get('max_execution_time')-5;
 
 		//$topic = $_REQUEST['topic'];
 		$maxdate = date('Y-m-d H:i:s', substr($_REQUEST['maxdate'], 0, strlen($_REQUEST['maxdate'])-3));
@@ -264,20 +264,33 @@ switch ($action):
 			$raw = $db->selectCell(
 				'SELECT COUNT( * ) AS new
 				FROM ?_messages
-				WHERE msg_topic_id = 0 AND (msg_created > ? OR msg_modified > ?)'
+				WHERE (msg_created > ? OR msg_modified > ?)'
 				, $maxdate , $maxdate
 			);
-			fwrite($log, date('H:i:s', time()).' - '.$raw."\n");
-			
-			if (connection_aborted()) {
-				fwrite($log, "aborted\n");
-				exit();
-			}
+			//fwrite($log, date('H:i:s', time()).' - '.$raw."\n");
 			
 			sleep($cfg['db_wait_time']);
 		} while ($raw == '0' && (time() - $begin) < $wait_time);
-
-		$result = $maxdate.'<br>'.$raw;
+		
+		if ($raw):
+			
+			$result['action'] = 'update_message';
+		
+			$result['body'] = $db->select(
+				'SELECT 
+					msg_id AS id,
+					msg_body AS message,
+					GREATEST(MAX(msg_created), IFNULL(MAX(msg_modified), 0)) AS maxdate
+				FROM ?_messages 
+				WHERE (msg_created > ? OR msg_modified > ?)'
+				, $maxdate, $maxdate
+			);
+			
+			$result['maxdate'] = $db->selectCell(
+				'SELECT GREATEST(MAX(msg_created), IFNULL(MAX(msg_modified), 0)) FROM ?_messages'
+			);
+			
+		endif;
 
 	break;
 	

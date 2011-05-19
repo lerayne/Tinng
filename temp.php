@@ -16,11 +16,9 @@ if (   strpos($_SERVER['HTTP_USER_AGENT'], 'Android')
 
 $device_path = 'displays/'.$display_mode.'/'.$display_mode.'_';
 
-//ignore_user_abort(true);
-
 $log = fopen('ajax_log.txt', 'w+');
 function ex ($log){
-	fwrite($log, 'process terminated '.connection_status()."\n");
+	fwrite($log, date('H:i:s', time()).' - process terminated '.connection_status()."\n");
 }
 register_shutdown_function("ex", $log);
 
@@ -168,23 +166,40 @@ function loadTopics(){
 	}, true ); // запрещать кеширование
 }
 
-function wait(){
+function wait(md){
 	req = new JsHttpRequest();
 	req.onreadystatechange = function() { if (req.readyState == 4) {
 
 		document.body.appendChild(div('errors',null, req.responseText));
-
+		var nd = update(req.responseJS);
+		wait(nd ? nd : md);
 	}}
 	req.open(null, 'ajax_backend.php', true);
 	req.send({
 
 		action: 'long_wait_post',
-		maxdate: sql2stamp(Gmaxdate)
+		maxdate: sql2stamp(md)
 
 	});
 }
 
+function update(data){
+	for (var i in data){ var message = data[i];
+	
+		switch (message['action']){
+			case 'update_message':
+
+				var body = message['body'];
+
+			break;
+		}
+	}
+	
+	return data['maxdate'];
+}
+
 function stop(){
+	req.onreadystatechange = function() { return; }
 	req.abort();
 }
 
@@ -210,7 +225,7 @@ window.onload = function(){
 		
 		<div class='controls'>
 			
-			<input type="button" value="start wait" onclick="wait()" />
+			<input type="button" value="start wait" onclick="wait(Gmaxdate)" />
 			<span class="waiter"></span>
 			<input type="button" value="stop wait" onclick="stop()" />
 			
