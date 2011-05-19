@@ -1,11 +1,15 @@
-var MessageItem = Class({
+var Elem = Class({
 	
-	initialize: function(row, type, contArea, topicID, branch){
-		this.populate(row, type, contArea, topicID, branch);
-		this.attachActions();
-		this.assemble();
-		return this.container;
+	initialize: function(CSSclass, ID, HTML){
+		this.e = div(CSSclass, ID, HTML);
 	},
+	
+	blockAndWait: function(){
+		this.e.className += ' throbber';
+	}
+});
+
+var MessageItem = Class({
 	
 	div: function(obj){
 		createDivs(this, obj);
@@ -86,5 +90,12 @@ var MessageItem = Class({
 			, this.postcount
 			, nuclear()
 		);
+	},
+	
+	initialize: function(row, type, contArea, topicID, branch){
+		this.populate(row, type, contArea, topicID, branch);
+		this.attachActions();
+		this.assemble();
+		return this.container;
 	}
 });

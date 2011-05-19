@@ -1,6 +1,5 @@
 <?php
 /* Файл, к которому обращаются все XHR запросы */
-//$cfg['wait_time'] = 3;
 
 require_once 'config.php';
 require_once 'php/initial.php';
@@ -17,6 +16,12 @@ function databaseErrorHandler($message, $info) {
 require_once 'libraries/JsHttpRequest.php';
 ob_start('ob_gzhandler'); // выводим результат в gzip
 $req =& new JsHttpRequest("utf-8");
+
+$log = fopen('ajax_log.txt', 'w+');
+function ex ($log){
+	fwrite($log, 'process terminated '.connection_status()."\n");
+}
+register_shutdown_function("ex", $log);
 
 $action = $_REQUEST['action'];
 $id = $_REQUEST['id'];
@@ -243,29 +248,39 @@ switch ($action):
 
 
 	// ожидаем изменений 
-	/*
+	
 	case 'long_wait_post':
 
-		$begin = time();
-		$wait_time = ini_get('max_execution_time')-5;
+		$begin = time(); // now
+		$wait_time = 10;//ini_get('max_execution_time')-5;
 
-		$topic = $_REQUEST['topic'];
+		//$topic = $_REQUEST['topic'];
 		$maxdate = date('Y-m-d H:i:s', substr($_REQUEST['maxdate'], 0, strlen($_REQUEST['maxdate'])-3));
-
+		
+		fwrite($log, 'maxexec: '.$wait_time."\n");
+		fwrite($log, 'XHR: '.$_GET['JsHttpRequest']."\n\n");
+		
 		do {
 			$raw = $db->selectCell(
 				'SELECT COUNT( * ) AS new
 				FROM ?_messages
-				WHERE msg_topic_id = ? AND (msg_created > ? OR msg_modified > ?)'
-				, $topic , $maxdate , $maxdate
+				WHERE msg_topic_id = 0 AND (msg_created > ? OR msg_modified > ?)'
+				, $maxdate , $maxdate
 			);
-			sleep($cfg['wait_time']);
+			fwrite($log, date('H:i:s', time()).' - '.$raw."\n");
+			
+			if (connection_aborted()) {
+				fwrite($log, "aborted\n");
+				exit();
+			}
+			
+			sleep($cfg['db_wait_time']);
 		} while ($raw == '0' && (time() - $begin) < $wait_time);
 
 		$result = $maxdate.'<br>'.$raw;
 
 	break;
-	*/
+	
 
 
 
@@ -399,7 +414,15 @@ switch ($action):
 
 		$result['console'] = 'TOPICS: '.$req_maxdate_sql.' -> '.$result['new_quant'];
 
-	break;	
+	break;
+	
+	
+	
+	case 'long_poll_test':
+		
+		
+		
+	break;
 
 
 

@@ -203,7 +203,7 @@ function loadTemplate(name, container, cache){
 	addClass(container, 'throbber');
 
 	// AJAX:
-	JsHttpRequest.query( 'displays/desktop/ajax_template.php', { // аргументы:
+	JsHttpRequest.query( 'displays/desktop/desktop_ajax_template.php', { // аргументы:
 		template: name
 	}, function(result, html) { // что делаем, когда пришел ответ:
 		removeClass(container, 'throbber');

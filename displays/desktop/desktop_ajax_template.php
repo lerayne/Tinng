@@ -21,19 +21,19 @@ case 'regform':
 		<tr>
 			<td><?= $txt['reg_login'] ?>:</td>
 			<td> <input type="text" name="login" value="<?= $post['login'] ?>"></td>
-			<td class="subtext"><?= $txtp['reg_login_expalin'] ?></td>
+			<td ><?= $txtp['reg_login_expalin'] ?></td>
 		</tr><tr>
 			<td><?= $txt['reg_pass1'] ?>:</td>
 			<td> <input type="password" name="pass1"></td>
-			<td class="subtext"><?= $txtp['reg_pass_expalin'] ?></td>
+			<td ><?= $txtp['reg_pass_expalin'] ?></td>
 		</tr><tr>
 			<td><?= $txt['reg_pass2'] ?>:</td>
 			<td> <input type="password" name="pass2"></td>
-			<td class="subtext"></td>
+			<td ></td>
 		</tr><tr>
 			<td><?= $txt['reg_email'] ?>:</td>
 			<td> <input type="text" name="email" value="<?= $post['email'] ?>"></td>
-			<td class="subtext"><?= $txtp['reg_email_expalin'] ?></td>
+			<td ><?= $txtp['reg_email_expalin'] ?></td>
 		</tr><tr>
 			<td><?= $txt['reg_quiz'] ?>:</td>
 			<td colspan="2"><?= $this_quiz['body'] ?></td>
