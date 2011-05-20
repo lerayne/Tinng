@@ -217,15 +217,26 @@ function fillToolbars(){
 	var topicsBar = e('@toolbar', '#viewport_topics');
 	var postsBar = e('@toolbar', '#viewport_posts');
 
-	var addButton = function(name, bar){
+	var addButton = function(name, bar, title){
 		var btn = newel('div', 'left sbtn '+name);
 		bar.appendChild(btn);
-		btn.innerHTML = '<span>'+txt['btn_'+name]+'</span>';
+		btn.innerHTML = title ? title : '<span>'+txt['btn_'+name]+'</span>';
 		return btn;
 	}
 
 	var newTopicBtn = addButton('newtopic', postsBar);
 	var markRead = addButton('markread', postsBar);
+	
+	var stopWait = addButton('stop', topicsBar, 'stop');
+	var startWait = addButton('stop', topicsBar, 'start');
+	
+	stopWait.onclick = function(){
+		wait.abort();
+	}
+	
+	startWait.onclick = function(){
+		wait.start(maxTopicDate);
+	}
 
 	newTopicBtn.onclick = function(){newTopic(newTopicBtn);}
 

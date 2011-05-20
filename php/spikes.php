@@ -7,8 +7,12 @@ function safe_str($str){
 	);
 }
 
+function jsts2phpts ($str){
+	return substr($str, 0, strlen($str)-3);
+}
+
 function jsts2sql($str){
-	return date('Y-m-d H:i:s', substr($str, 0, strlen($str)-3));
+	return date('Y-m-d H:i:s', jsts2phpts($str));
 }
 
 function incl_scripts(){

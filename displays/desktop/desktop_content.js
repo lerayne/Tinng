@@ -1,7 +1,9 @@
 // Глобальные переменные
-var currentTopic, maxPostDate, maxTopicDate, maxReadPost;
+var maxPostDate, maxTopicDate, maxReadPost;
+var currentTopic = 0;
 var branches = {};
 var topics = {};
+var messages = {};
 
 
 /* вешаем кнопки клавиатуры
@@ -43,10 +45,10 @@ var veditor = function (){
 
 
 // расширение основного класса сообщения для десктопа
-var DesktopMessageItem = Class ( MessageItem,{
+var DesktopMessageItem = Class ( MessageItem, {
 	
-	populate: function(){
-		DesktopMessageItem.superclass.prototype.populate.apply(this, arguments);
+	createElems: function(){
+		DesktopMessageItem.superclass.prototype.createElems.apply(this, arguments);
 		
 		this.container.className += ' revealer';
 		this.created.className += ' reveal';
@@ -81,7 +83,7 @@ var DesktopMessageItem = Class ( MessageItem,{
 
 				maxPostDate = sql2stamp(result[j]['msg_modified']);
 
-				if (errors) console('error: '+errors);
+				if (errors) consoleWrite('error: '+errors);
 			}
 
 		}, true /* запрещать кеширование */ );
@@ -108,25 +110,39 @@ var DesktopMessageItem = Class ( MessageItem,{
 // класс элемента темы
 var TopicItem = Class( DesktopMessageItem, {
 	
+	
 	// добавляем элементы
-	populate: function(){
-		TopicItem.superclass.prototype.populate.apply(this, arguments);
+	createElems: function(){
+		TopicItem.superclass.prototype.createElems.apply(this, arguments);
 		
-		if (this.row['last']['message']){
+		if (this.row['last'] && this.row['last']['message'])
 			this.lastpost = div('lastpost', 'lastpost_'+this.row['last']['id']);
-			this.lastpost.innerHTML = txt['lastpost']+' <span class="author">'+this.row['last']['author']
-				+'</span>' + ' ['+this.row['last']['created']+'] ' + this.row['last']['message'];
-		}
 
-		this.postcount = div('postcount reveal', null, this.row['postcount'] + txt['postcount']);
+		this.postcount = div('postcount reveal');
 
 		// создаем элемент "тема"
 		this.topicname = div('topicname editabletopic revealer2');
-		this.topicfield = div('left', null, this.row['topic'] ? this.row['topic'] : '&nbsp;');
+		this.topicfield = div('left');
 		this.topicedit_btn = div('sbtn btn_topicedit right reveal2');
 		this.topicsubmit_btn = div('sbtn btn_topicsubmit right none');
 		this.topiccancel_btn = div('sbtn btn_topiccancel right none');
 	},
+	
+	
+	
+	// заполняем их данными
+	fillData: function(){
+		TopicItem.superclass.prototype.fillData.apply(this, arguments);
+		
+		if (this.lastpost) this.lastpost.innerHTML = 
+			this.lastpost.innerHTML = txt['lastpost']+' <span class="author">'+this.row['last']['author']
+				+'</span>' + ' ['+this.row['last']['created']+'] ' + this.row['last']['message'];
+		
+		this.postcount.innerHTML = this.row['postcount'] + txt['postcount'];
+		this.topicfield.innerHTML = this.row['topic'] ? this.row['topic'] : '&nbsp;';
+	},
+	
+	
 	
 	// цепляем к ним действия
 	attachActions: function(){
@@ -202,6 +218,9 @@ var TopicItem = Class( DesktopMessageItem, {
 		}
 	},
 	
+	
+	
+	
 	// собираем элементы в DOM
 	assemble: function(){
 		TopicItem.superclass.prototype.assemble.apply(this, arguments);
@@ -217,11 +236,14 @@ var TopicItem = Class( DesktopMessageItem, {
 });
 
 
+
+
 // класс элемента поста
 var PostItem = Class( DesktopMessageItem, {
 	
-	populate: function(){
-		PostItem.superclass.prototype.populate.apply(this, arguments);
+	
+	createElems: function(){
+		PostItem.superclass.prototype.createElems.apply(this, arguments);
 		
 		// вешаем маркер непрочитанности
 		if (maxReadPost && maxReadPost < sql2stamp(this.row['modified'] || this.row['created']))
@@ -232,7 +254,13 @@ var PostItem = Class( DesktopMessageItem, {
 
 		this.avatar	= div('avatar', null, '<img src="'+this.row['avatar_url']+'">');
 	},
-	
+	/*
+	fillData: function(){
+		PostItem.superclass.prototype.fillData.apply(this, arguments);
+		
+		
+	},
+	*/
 	attachActions: function(){
 		PostItem.superclass.prototype.attachActions.apply(this, arguments);
 		var that = this;
@@ -250,7 +278,7 @@ var PostItem = Class( DesktopMessageItem, {
 				  action: 'check'
 				, id: that.row['id']
 
-			}, function(result, errors) { if (result['locked'] == null){ // что делаем, когда пришел ответ:
+			}, function(result, errors) {if (result['locked'] == null){ // что делаем, когда пришел ответ:
 
 				wait.stop();
 
@@ -298,7 +326,7 @@ var PostItem = Class( DesktopMessageItem, {
 				that.container.appendChild(editControls);
 				appendKids(editControls, cancelBtn, sendBtn, nuclear());
 
-			} else alert(txt['post_locked']); }, true ); // запрещать кеширование
+			} else alert(txt['post_locked']);}, true ); // запрещать кеширование
 		}
 		
 		// Удаление сообщения
@@ -309,7 +337,7 @@ var PostItem = Class( DesktopMessageItem, {
 				  action: 'check'
 				, id: that.row['id']
 
-			}, function(result, errors) { if (result['locked'] == null){ // когда пришел ответ:
+			}, function(result, errors) {if (result['locked'] == null){ // когда пришел ответ:
 
 				var confirmed;
 
@@ -357,7 +385,7 @@ var PostItem = Class( DesktopMessageItem, {
 
 				}, true /* запрещать кеширование */ );
 
-			} else alert (txt['post_locked']); }, true /* запрещать кеширование */ );
+			} else alert (txt['post_locked']);}, true /* запрещать кеширование */ );
 		}
 		
 		// Добавление сообщения
@@ -545,7 +573,10 @@ var Branch = function(contArea, topicID, parentID){
 	this.e.appendChild(this.cont);
 	
 	this.createBlock = function(row){
-		var elem = (topicID == '0') ? new TopicItem(row, 'topic') : new PostItem(row, 'post', contArea, topicID, that);
+		var elem = (topicID == '0') 
+			? new TopicItem(row, 'topic') 
+			: messages[row['id']] = new PostItem(row, 'post', contArea, topicID, that);
+		
 		return elem.container;
 	}
 	
@@ -616,7 +647,6 @@ function fillPosts(parent, container) {
 		if (e('#topic_'+parent)) removeClass(e('#topic_'+parent), 'unread');
 
 		consoleWrite('posts loaded for topic '+parent+' ('+result['topic'].replace('<br>','')+')');
-		if (!wait.postsInterv) wait.start('cold');
 
 		sbar.innerHTML = finalizeTime(before)+'ms';
 
@@ -677,6 +707,7 @@ function fillTopics(){
 
 		// Дебажим:
 		consoleWrite('topic list loaded');
+		wait.start(maxTopicDate);
 
 		e('#debug').innerHTML = errors;
 		sbar.innerHTML += ' | '+topics.e.scrollTop;
@@ -759,41 +790,113 @@ function newTopic(btn){
 }
 
 
-// эта функция будет обновлять темы
-/*
-function long_updater(topic, maxdate){
 
-	// временно в первой колонке
-	var tbar = e('@titlebar', '#viewport_menu');
-	addClass(tbar, 'tbar_throbber');
-	var count = 1;
-
-	var interval = setInterval(function(){e('@contents', '#viewport_menu').innerHTML = count++}, 1000);
-
-	// AJAX:
-	var req = new JsHttpRequest();
-	req.onreadystatechange = function() {if (req.readyState == 4) {
-
-		clearInterval(interval);
-		removeClass(tbar, 'tbar_throbber');
-		e('@contents', '#viewport_menu').innerHTML = req.responseJS;
-		e('#debug0').innerHTML = req.responseText;
-
-	}}
-	req.open(null, 'ajax_backend.php', true);
-	req.send({
-
-		action: 'long_wait_post'
-		, topic: topic
-		, maxdate: maxdate
-
-	});
-
-	return req;
-}
-*/
 
 function Updater(){
+	var that = this;
+	
+	this.started = false;
+	var req = false;
+	
+	// ЗАПУСК ОЖИДАЛКИ
+	this.start = function(maxdateTS, forced){
+		if (!that.started || forced){
+			
+			// устанавливаем флаг, блокирующий параллельный старт еще одного запроса
+			that.started = true;
+			
+			// забиваем начальную дату в свойство (на всякий случай !! возможно потом убрать)
+			that.maxdateTS = maxdateTS;
+			
+			// Отправляем запрос
+			req = new JsHttpRequest();
+			req.onreadystatechange = function() {if (req.readyState == 4) {
+				
+				// разбираем пришедший пакет и выполняем обновления
+				that.maxdateTS = parseResult(req.responseJS);
+				
+				// Рекурсия - при окончании предыдущего (forced (true) - только при рестарте ожидалки)
+				that.start(that.maxdateTS, true);
+			}}
+			req.open(null, 'ajax_backend.php', true);
+			req.send({
+				action: 'load_updates',
+				maxdateTS: that.maxdateTS,
+				curTopic: currentTopic 
+			});
+		}
+	}
+	
+	// РАЗБОР ПАКЕТА И ВЫПОЛНЕНИЕ ОБНОВЛЕНИЙ
+	var parseResult = function(result){
+		
+		// разбираем темы
+		if (result['topics']){
+			
+			var container = e('@contents', '#viewport_topics');
+			var tbar = e('@titlebar', '#viewport_topics');
+			var sbar = e('@statusbar', '#viewport_topics');
+			
+			for (var i in result['topics']){var entry = result['topics'][i]
+				
+				if (topics[entry['id']]){ // если в текущем массиве загруженных тем такая уже есть
+					
+					
+					
+				} else { // если в текущем массиве тем такой нет
+					
+					// если тема не удалена
+					if (!entry['deleted']){
+						var thisTopic = topics[entry['id']] = new TopicItem(entry, 'topic');
+						container.appendChild(thisTopic.container);
+					}
+				}
+			}
+		}
+		
+		// разбираем сообщения
+		if (result['posts']){
+			
+			var container = e('@contents', '#viewport_posts');
+			var tbar = e('@titlebar', '#viewport_posts');
+			var sbar = e('@statusbar', '#viewport_posts');
+			
+			for (var i in result['posts']){var entry = result['posts'][i]
+				
+				if (messages[entry['id']]){ // если в текущем массиве загруженных сообщений такое уже есть
+					
+					
+					
+				} else { // если в текущем массиве сообщений такого нет
+					
+					if (!entry['deleted']){ // если сообщение не удалено
+						
+					}
+				}
+			}
+		}
+		
+		// Выдать новый TS полученный из пакета обновлений
+		return sql2stamp(result['new_maxdate']);
+	}
+	
+	// забронируем
+	this.timeout = function(){}
+	
+	// аборт конечно варварский, но пока так
+	this.abort = function(){
+		if (that.started && req){
+			req.onreadystatechange = function() {} // иначе рестартует, воспринимая аборт как конец
+			req.abort();
+			that.started = false;
+		}
+	}
+}
+
+
+
+
+function sUpdater(){
 
 	var that = this;
 	var postsWtime = cfg['posts_updtimer_blurred']*1000;
@@ -808,7 +911,7 @@ function Updater(){
 
 		var row, branch;
 
-		for (var i in upds){ row = upds[i];
+		for (var i in upds){row = upds[i];
 
 			if (!branches[row['parent']]) return; // если ветки с таким идентификатором нет
 			branch = branches[row['parent']];
@@ -846,7 +949,7 @@ function Updater(){
 	this.updateTopics = function(upds, maxd, quant){
 		var row, topic, topicFirst, post;
 
-		for (var i in upds){ row = upds[i];
+		for (var i in upds){row = upds[i];
 			topic = e('#topic_'+i);
 
 			// поднять наверх
@@ -865,7 +968,7 @@ function Updater(){
 			// если пришли данные - вбить
 			if (row.constructor == Array){
 
-				for (var j in row){ post = row[j]
+				for (var j in row){post = row[j]
 
 					if (topic.id == 'topic_'+post['id']){
 						e('@created', topic).innerHTML = post['modified'] ? txt['modified']+post['modified'] : post['created'];
@@ -1012,12 +1115,19 @@ function Updater(){
 
 function startEngine(){
 	wait = new Updater;
-	fillTopics();
+	
+	/*
+	
+	//fillTopics();
 
 	if ((currentTopic = adress.get('topic'))){
-		branches = {};
-		fillPosts(currentTopic, e('@contents', '#viewport_posts'));
+		//branches = {}; fillPosts(currentTopic, e('@contents', '#viewport_posts'));
 	}
+	*/
+   
+	currentTopic = adress.get('topic')
+	
+	wait.start(0);
 
 	e('@titlebar', '#viewport_posts').onclick = wait.toggle;
 }
@@ -1025,14 +1135,14 @@ function startEngine(){
 
 function focusDoc(){
 	var p = focusDoc.arguments;
-	if (wait) wait.timeout(cfg['posts_updtimer_focused'], cfg['topics_updtimer_focused']);
+	//if (wait) wait.timeout(cfg['posts_updtimer_focused'], cfg['topics_updtimer_focused']);
 	e('#logo').style.color = 'red';
 	//consoleWrite('focus actions performed');
 }
 
 function blurDoc(){
 	var p = blurDoc.arguments;
-	if (wait) wait.timeout(cfg['posts_updtimer_blurred'], cfg['topics_updtimer_blurred']);
+	//if (wait) wait.timeout(cfg['posts_updtimer_blurred'], cfg['topics_updtimer_blurred']);
 	e('#logo').style.color = 'blue';
 	//consoleWrite('blur actions performed');
 }

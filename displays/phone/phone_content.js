@@ -1,7 +1,7 @@
 var TopicItem = Class ( MessageItem, {
 	
-	populate: function(){
-		TopicItem.superclass.prototype.populate.apply(this, arguments);
+	createElems: function(){
+		TopicItem.superclass.prototype.createElems.apply(this, arguments);
 		
 		this.div({
 			postcount: {

@@ -11,53 +11,53 @@ var Elem = Class({
 
 var MessageItem = Class({
 	
-	div: function(obj){
-		createDivs(this, obj);
+	div: function(collection){
+		
+		for (var i in collection) { var prop = collection[i];
+
+			this[i] = div(i, prop['id'], prop['content']);
+
+			if (prop['addClass']) this[i].className += ' '+prop['addClass'];
+			if (prop['className']) this[i].className = prop['className'];
+		}
 	},
 	
 	// Создание элементов (универсальных, которые есть во всех объектах)
-	populate: function(row, type, contArea, topicID, branch){
+	createElems: function(row, type, contArea, topicID, branch){
 		
 		this.row = row;
 		this.type = type;
+		
 		if (contArea) this.contArea = contArea;
 		if (topicID) this.topicID = topicID;
 		if (branch) this.branch = branch;
 		
-		this.container = div(this.type, this.type+'_'+this.row['id']);
-		
-		this.div({ 
+		this.div({
 			before_cell:[],
 			after_cell:	[],
 			data_cell:	[],
 			infobar:	[],
 			debug:		[],
 			controls:	[],
-			
-			explain: {
-				addClass: 'subtext'
-			},
-			
-			created: {
-				content: this.row['modified'] ? txt['modified']+this.row['modified'] : this.row['created'],
-				addClass: 'right'
-			},
-			
-			author: {
-				content: txt['from']+this.row['author'],
-				addClass: 'left'
-			},
-			
-			msgid: {
-				content: '&nbsp;#'+this.row['id']+'&nbsp;',
-				addClass: 'left'
-			},
-			
-			message: {
-				content: this.row['message']
-			}
-			
+			container: { className: this.type },
+			explain: { addClass: 'subtext' },
+			created: { addClass: 'right' },
+			author: { addClass: 'left' },
+			msgid: { addClass: 'left' },
+			message: []
 		});
+		
+		this.container.id = this.type+'_'+this.row['id'];
+	},
+	
+	fillData: function(row){
+		
+		this.row = row;
+		
+		this.created.innerHTML	= this.row['modified'] ? txt['modified']+this.row['modified'] : this.row['created'];
+		this.author.innerHTML	= txt['from']+this.row['author'];
+		this.msgid.innerHTML	= '&nbsp;#'+this.row['id']+'&nbsp;';
+		this.message.innerHTML	= this.row['message'];
 	},
 	
 	// Создание действий с объектами
@@ -93,9 +93,9 @@ var MessageItem = Class({
 	},
 	
 	initialize: function(row, type, contArea, topicID, branch){
-		this.populate(row, type, contArea, topicID, branch);
+		this.createElems(row, type, contArea, topicID, branch);
+		this.fillData(row);
 		this.attachActions();
 		this.assemble();
-		return this.container;
 	}
 });

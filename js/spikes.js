@@ -189,21 +189,6 @@ function nuclear(){
 	return newel ('div', 'clearboth')
 }
 
-function createDivs (obj, collection){
-	for (var i in collection){ 
-		var prop = collection[i];
-		
-		obj[i] = div(i, prop['id'], prop['content']);
-		
-		if (prop['addClass']) obj[i].className += ' '+prop['addClass'];
-		if (prop['class']) obj[i].className = prop['class'];
-	}
-}
-
-function addField(obj, name, id, content){
-	obj[name] = div(name, id, content);
-}
-
 // обертка вставки нового элемента перед текущим
 function insBefore (refNode, newNode){
 	refNode.parentNode.insertBefore(newNode, refNode);
