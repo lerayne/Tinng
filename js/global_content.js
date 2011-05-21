@@ -23,10 +23,9 @@ var MessageItem = Class({
 	},
 	
 	// Создание элементов (универсальных, которые есть во всех объектах)
-	createElems: function(row, type, contArea, topicID, branch){
+	createElems: function(row, contArea, topicID, branch){
 		
 		this.row = row;
-		this.type = type;
 		
 		if (contArea) this.contArea = contArea;
 		if (topicID) this.topicID = topicID;
@@ -39,15 +38,13 @@ var MessageItem = Class({
 			infobar:	[],
 			debug:		[],
 			controls:	[],
-			container: { className: this.type },
-			explain: { addClass: 'subtext' },
-			created: { addClass: 'right' },
-			author: { addClass: 'left' },
-			msgid: { addClass: 'left' },
-			message: []
+			container:	[],
+			explain:	{ addClass: 'subtext' },
+			created:	{ addClass: 'right' },
+			author:		{ addClass: 'left' },
+			msgid:		{ addClass: 'left' },
+			message:	[]
 		});
-		
-		this.container.id = this.type+'_'+this.row['id'];
 	},
 	
 	fillData: function(row){
@@ -92,8 +89,8 @@ var MessageItem = Class({
 		);
 	},
 	
-	initialize: function(row, type, contArea, topicID, branch){
-		this.createElems(row, type, contArea, topicID, branch);
+	initialize: function(row, contArea, topicID, branch){
+		this.createElems(row, contArea, topicID, branch);
 		this.fillData(row);
 		this.attachActions();
 		this.assemble();

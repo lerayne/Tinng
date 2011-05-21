@@ -231,11 +231,11 @@ function fillToolbars(){
 	var startWait = addButton('stop', topicsBar, 'start');
 	
 	stopWait.onclick = function(){
-		wait.abort();
+		wait.stop();
 	}
 	
 	startWait.onclick = function(){
-		wait.start(maxTopicDate);
+		wait.start(wait.maxdateTS);
 	}
 
 	newTopicBtn.onclick = function(){newTopic(newTopicBtn);}

@@ -115,6 +115,9 @@ var TopicItem = Class( DesktopMessageItem, {
 	createElems: function(){
 		TopicItem.superclass.prototype.createElems.apply(this, arguments);
 		
+		this.container.id = 'topic_'+this.row['id'];
+		this.container.className = 'topic';
+		
 		if (this.row['last'] && this.row['last']['message'])
 			this.lastpost = div('lastpost', 'lastpost_'+this.row['last']['id']);
 
@@ -244,6 +247,9 @@ var PostItem = Class( DesktopMessageItem, {
 	
 	createElems: function(){
 		PostItem.superclass.prototype.createElems.apply(this, arguments);
+		
+		this.container.id = 'post_'+this.row['id'];
+		this.container.className = 'post';
 		
 		// вешаем маркер непрочитанности
 		if (maxReadPost && maxReadPost < sql2stamp(this.row['modified'] || this.row['created']))
@@ -559,6 +565,20 @@ var PostItem = Class( DesktopMessageItem, {
 });
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 var Branch = function(contArea, topicID, parentID){
 	if (!parentID) parentID = topicID;
 
@@ -827,6 +847,18 @@ function Updater(){
 		}
 	}
 	
+	// забронируем
+	this.timeout = function(){}
+	
+	// аборт конечно варварский, но пока так
+	this.stop = function(){
+		if (that.started && req){
+			req.onreadystatechange = function() {} // иначе рестартует, воспринимая аборт как конец
+			req.abort();
+			that.started = false;
+		}
+	}
+	
 	// РАЗБОР ПАКЕТА И ВЫПОЛНЕНИЕ ОБНОВЛЕНИЙ
 	var parseResult = function(result){
 		
@@ -841,15 +873,12 @@ function Updater(){
 				
 				if (topics[entry['id']]){ // если в текущем массиве загруженных тем такая уже есть
 					
+					// тут будут инструкции обновления
 					
+				} else if (!entry['deleted']) { // если в текущем массиве тем такой нет и пришедшая не удалена
 					
-				} else { // если в текущем массиве тем такой нет
-					
-					// если тема не удалена
-					if (!entry['deleted']){
-						var thisTopic = topics[entry['id']] = new TopicItem(entry, 'topic');
-						container.appendChild(thisTopic.container);
-					}
+					topics[entry['id']] = new TopicItem(entry, 'topic');
+					container.appendChild(topics[entry['id']].container);
 				}
 			}
 		}
@@ -862,34 +891,30 @@ function Updater(){
 			var sbar = e('@statusbar', '#viewport_posts');
 			
 			for (var i in result['posts']){var entry = result['posts'][i]
-				
+								
 				if (messages[entry['id']]){ // если в текущем массиве загруженных сообщений такое уже есть
 					
+					// тут будут инструкции обновления
 					
+				} else if (!entry['deleted']) { // если в текущем массиве сообщений такого нет и пришедшее не удалено
 					
-				} else { // если в текущем массиве сообщений такого нет
+					// !! не учитывается ветвление!
+					// один из вариантов решения - хранить в базе в поле msg_parent id самого 
+					// сообщения, если сообщение заглавное в ветке (т.е. если раньше там было 0)
+					// тогда var parent = entry['parent']
+					var parent = currentTopic;
 					
-					if (!entry['deleted']){ // если сообщение не удалено
-						
-					}
+					// если такой ветки еще нет - создаем 
+					if (!branches[parent]) branches[parent] = new Branch(container, currentTopic, parent);
+					
+					// добавляем новое сообщение к существующей (или новосозданной) ветке
+					branches[parent].appendBlock(entry);
 				}
 			}
 		}
 		
 		// Выдать новый TS полученный из пакета обновлений
 		return sql2stamp(result['new_maxdate']);
-	}
-	
-	// забронируем
-	this.timeout = function(){}
-	
-	// аборт конечно варварский, но пока так
-	this.abort = function(){
-		if (that.started && req){
-			req.onreadystatechange = function() {} // иначе рестартует, воспринимая аборт как конец
-			req.abort();
-			that.started = false;
-		}
 	}
 }
 
