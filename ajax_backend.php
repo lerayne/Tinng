@@ -132,13 +132,13 @@ switch ($action):
 		// В данный момент с этим связана трудность - приходится сильно грузить базу запросами. 
 		// Пока решаю как есть, в будущем - придумать решение
 		
-		// ID всех тем, проходящих по условию - 
-		// в массив в форме 'id темы' => [id ее последнего поста], [удален ли этот пост]
+		// выбирем все неудаленные темы (в этом списке удаленные нас не интересуют)
 		$selected_topics = $db->select(
 			'SELECT msg_id AS ARRAY_KEY, msg_id FROM ?_messages 
 			WHERE msg_topic_id = 0 AND msg_deleted <=> NULL'
 			. ($condition ? ' AND '.$condition : '')
 		);
+		// для каждой темы ищем последний пост (если обновлен)
 		foreach ($selected_topics as $topic_id => $null){
 			$lastpost = $db->selectRow(
 				'SELECT
@@ -157,6 +157,7 @@ switch ($action):
 				, $cfg['cut_length'], $topic_id, $maxdateSQL, $maxdateSQL
 			);
 			
+			// и если он удален - ищем последний актуальный
 			if ($lastpost['deleted']){
 				$lastpost = $db->selectRow(
 					'SELECT
@@ -178,7 +179,9 @@ switch ($action):
 			
 			// если обновление последнего сообщения найдено, "пустых" обновлений не искать
 			if ($lastpost) {
+				
 				$result['lastposts'][$topic_id] = $lastpost;
+				
 			} else {
 			// но если не найдено - проверить, вдруг есть?
 				
@@ -190,6 +193,14 @@ switch ($action):
 				);
 				 
 				if ($updated) $result['lastposts'][$topic_id] = $updated;
+			}
+			
+			// если есть хоть какое-то обновление в данной теме - запрашиваем кол-во постов в ней
+			if ($result['lastposts'][$topic_id]) {
+				$result['lastposts'][$topic_id]['postsquant'] = $db->selectCell(
+					'SELECT COUNT(*) FROM ?_messages WHERE msg_topic_id = ?d OR msg_id = ?d'
+					, $topic_id, $topic_id
+				);
 			}
 
 		}
@@ -388,18 +399,12 @@ switch ($action):
 
 	break;
 
-*/
+
 	
 	case 'load_topics':
 
 		$sort = $_REQUEST['sort'] ? $_REQUEST['sort'] : 'updated';
 		$reverse = $_REQUEST['sortRev'];
-
-		/* находим последнюю созданную тему (насколько это нужно именно в топиках? проверить. пока нормально работает и без)
-		$result['maxdate'] = $db->selectCell(
-			'SELECT GREATEST(MAX(msg_created), IFNULL(MAX(msg_modified),0)) FROM ?_messages
-			WHERE msg_topic_id = 0'
-		);*/
 
 		// главная выборка
 		$result['data'] = make_tree($db->select(
@@ -427,7 +432,7 @@ switch ($action):
 		if ($result['data']) foreach ($result['data'] as $key => $val):
 
 			// количество сообщений в каждой теме
-			$result['data'][$key]['postcount'] = 1 + $db->selectCell(
+			$result['data'][$key]['postsquant'] = 1 + $db->selectCell(
 				'SELECT COUNT( * ) FROM ?_messages
 				WHERE msg_deleted <=> NULL AND msg_topic_id = ?d'
 				, $val['id']
@@ -560,6 +565,8 @@ switch ($action):
 		$result['console'] = 'TOPICS: '.$req_maxdate_sql.' -> '.$result['new_quant'];
 
 	break;
+	 */
+	
 
 
 	// вставляем новое сообщение
@@ -689,7 +696,7 @@ switch ($action):
 	break;
 
 
-
+	// помечаем сообщеие прочитанным
 	case 'mark_read':
 
 		$now = date('Y-m-d H:i:s');

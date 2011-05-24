@@ -84,7 +84,7 @@ var MessageItem = Class({
 			, this.created
 			, this.author
 			, this.msgid
-			, this.postcount
+			, this.postsquant
 			, nuclear()
 		);
 	},

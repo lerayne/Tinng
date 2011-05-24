@@ -4,8 +4,8 @@ var TopicItem = Class ( MessageItem, {
 		TopicItem.superclass.prototype.createElems.apply(this, arguments);
 		
 		this.div({
-			postcount: {
-				content: this.row['postcount'] + txt['postcount'],
+			postsquant: {
+				content: this.row['postsquant'] + txt['postsquant'],
 				addClass: 'left'
 			},
 			topicname: {

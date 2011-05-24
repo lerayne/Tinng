@@ -50,9 +50,9 @@ var DesktopMessageItem = Class ( MessageItem, {
 	createElems: function(){
 		DesktopMessageItem.superclass.prototype.createElems.apply(this, arguments);
 		
-		this.container.className += ' revealer';
-		this.created.className += ' reveal';
-		this.controls.className += ' reveal';
+		addClass(this.container, 'revealer');
+		addClass(this.created, 'reveal');
+		addClass(this.controls, 'reveal');
 	},
 	
 	editFields: function (){
@@ -116,12 +116,12 @@ var TopicItem = Class( DesktopMessageItem, {
 		TopicItem.superclass.prototype.createElems.apply(this, arguments);
 		
 		this.container.id = 'topic_'+this.row['id'];
-		this.container.className = 'topic';
+		addClass(this.container, 'topic');
 		
 		if (this.row['last'] && this.row['last']['message'])
 			this.lastpost = div('lastpost', 'lastpost_'+this.row['last']['id']);
 
-		this.postcount = div('postcount reveal');
+		this.postsquant = div('postsquant reveal');
 
 		// создаем элемент "тема"
 		this.topicname = div('topicname editabletopic revealer2');
@@ -141,7 +141,7 @@ var TopicItem = Class( DesktopMessageItem, {
 			this.lastpost.innerHTML = txt['lastpost']+' <span class="author">'+this.row['last']['author']
 				+'</span>' + ' ['+this.row['last']['created']+'] ' + this.row['last']['message'];
 		
-		this.postcount.innerHTML = this.row['postcount'] + txt['postcount'];
+		this.postsquant.innerHTML = /*this.row['postsquant']*/ '1' + txt['postsquant'];
 		this.topicfield.innerHTML = this.row['topic'] ? this.row['topic'] : '&nbsp;';
 	},
 	
@@ -157,6 +157,8 @@ var TopicItem = Class( DesktopMessageItem, {
 		
 		this.lastpost.innerHTML =  txt['lastpost']+' <span class="author">'+this.lpost['author']
 				+'</span>' + ' ['+this.lpost['created']+'] ' + this.lpost['message'];
+			
+		this.postsquant.innerHTML = this.lpost['postsquant'] + txt['postsquant'];
 	},
 	
 	
@@ -267,7 +269,7 @@ var PostItem = Class( DesktopMessageItem, {
 		PostItem.superclass.prototype.createElems.apply(this, arguments);
 		
 		this.container.id = 'post_'+this.row['id'];
-		this.container.className = 'post';
+		addClass(this.container, 'post');
 		
 		// вешаем маркер непрочитанности
 		if (maxReadPost && maxReadPost < sql2stamp(this.row['modified'] || this.row['created']))
@@ -854,7 +856,9 @@ function Updater(){
 				that.maxdateTS = parseResult(req.responseJS);
 				
 				// Рекурсия - при окончании предыдущего (forced (true) - только при рестарте ожидалки)
-				that.start(that.maxdateTS, true);
+				// таймаут - чтобы скрипт успел внести изменения на странице прежде чем отправлять новый запрос
+				setTimeout(function(){that.start(that.maxdateTS, true)}, 500);
+				
 			}}
 			req.open(null, 'ajax_backend.php', true);
 			req.send({
@@ -881,7 +885,7 @@ function Updater(){
 	var parseResult = function(result){
 		
 		// разбираем темы
-		if (result['topics']){
+		if (result && result['topics']){
 			
 			var container = e('@contents', '#viewport_topics');
 			var tbar = e('@titlebar', '#viewport_topics');
@@ -903,15 +907,14 @@ function Updater(){
 
 		
 		// разбираем последние посты
-		if (result['lastposts']){
-			for (var k in result['lastposts']){
-				
-				if (topics[k].container) topics[k].fillLast(result['lastposts'][k]);
+		if (result && result['lastposts']){
+			for (var i in result['lastposts']){
+				if (topics[i]) topics[i].fillLast(result['lastposts'][i]);
 			}
 		}
 		
 		// разбираем сообщения
-		if (result['posts']){
+		if (result && result['posts']){
 			
 			var container = e('@contents', '#viewport_posts');
 			var tbar = e('@titlebar', '#viewport_posts');
@@ -1015,7 +1018,7 @@ function sUpdater(){
 			if (!hasClass(topic, 'unread') && !hasClass(topic, 'activetopic')) addClass(topic, 'unread');
 			if (hasClass(topic, 'activetopic')) topic.scrollIntoView(false);
 
-			e('@postcount', topic).innerHTML = quant[i]+txt['postcount'];
+			e('@postsquant', topic).innerHTML = quant[i]+txt['postsquant'];
 
 			// если пришли данные - вбить
 			if (row.constructor == Array){
