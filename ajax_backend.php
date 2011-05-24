@@ -114,6 +114,7 @@ switch ($action):
 				LEFT(msg_body, ?d) AS message,
 				msg_created AS created,
 				msg_modified AS modified,
+				GREATEST(msg_created, IFNULL(msg_modified, 0)) AS maxdate,
 				msg_deleted AS deleted,
 				usr_email AS author_email,
 				usr_login AS author
@@ -127,15 +128,6 @@ switch ($action):
 			, $cfg['cut_length'] // ограничение выборки первого поста
 			, $maxdateSQL , $maxdateSQL
 		));
-		
-		// пока оставляем так, над сортировкой поработать!
-		switch ($sort):
-			
-			case 'updated':
-				$result['topics'] = sort_result($result['topics'], 'updated', $reverse);
-			break;
-
-		endswitch;
 		
 		// необходимо узнать нет ли обновлений среди параметров: 
 		// кол-во постов в теме, послений пост, изменение/удаление любого поста в теме. 
@@ -153,6 +145,7 @@ switch ($action):
 			$lastpost = $db->selectRow(
 				'SELECT
 					msg_id AS id,
+					msg_topic_id AS topic_id,
 					LEFT(msg_body, ?d) AS message,
 					msg_created AS created,
 					msg_modified AS modified,
@@ -172,6 +165,7 @@ switch ($action):
 				$lastpost = $db->selectRow(
 					'SELECT
 						msg_id AS id,
+						msg_topic_id AS topic_id,
 						LEFT(msg_body, ?d) AS message,
 						msg_created AS created,
 						msg_modified AS modified,
@@ -195,8 +189,12 @@ switch ($action):
 			} else {
 			// но если не найдено - проверить, вдруг есть?
 				
-				$updated = $db->selectCell(
-					'SELECT msg_deleted FROM ?_messages 
+				$updated = $db->selectRow(
+					'SELECT 
+						msg_deleted,
+						msg_topic_id AS topic_id,
+						GREATEST(msg_created, IFNULL(msg_modified,0)) AS maxdate
+					FROM ?_messages 
 					WHERE msg_modified > ?
 					ORDER BY msg_modified DESC LIMIT 1'
 					, $maxdateSQL
@@ -214,6 +212,17 @@ switch ($action):
 			}
 
 		}
+		
+		
+		// пока оставляем так, над сортировкой поработать!
+		switch ($sort):
+			
+			case 'updated':
+				$result['topics'] = sort_result($result['topics'], 'maxdate', $reverse);
+				$result['lastposts'] = sort_result($result['lastposts'], 'maxdate', !$reverse);
+			break;
+
+		endswitch;
 
 		
 		// ЕСЛИ В ЗАПРОСЕ УКАЗАНА ТЕМА

@@ -51,7 +51,7 @@ var DesktopMessageItem = Class ( MessageItem, {
 	createElems: function(){
 		DesktopMessageItem.superclass.prototype.createElems.apply(this, arguments);
 		
-		addClass(this.container, 'revealer');
+		addClass(this.item, 'revealer');
 		addClass(this.created, 'reveal');
 		addClass(this.controls, 'reveal');
 	},
@@ -118,8 +118,8 @@ var TopicItem = Class( DesktopMessageItem, {
 	createElems: function(){
 		TopicItem.superclass.prototype.createElems.apply(this, arguments);
 		
-		this.container.id = 'topic_'+this.row['id'];
-		addClass(this.container, 'topic');
+		this.item.id = 'topic_'+this.row['id'];
+		addClass(this.item, 'topic');
 		
 		if (this.row['last'] && this.row['last']['message'])
 			this.lastpost = div('lastpost', 'lastpost_'+this.row['last']['id']);
@@ -135,7 +135,6 @@ var TopicItem = Class( DesktopMessageItem, {
 	},
 	
 	
-	
 	// заполняем их данными
 	fillData: function(){
 		TopicItem.superclass.prototype.fillData.apply(this, arguments);
@@ -147,6 +146,7 @@ var TopicItem = Class( DesktopMessageItem, {
 		this.postsquant.innerHTML = /*this.row['postsquant']*/ '1' + txt['postsquant'];
 		this.topicfield.innerHTML = this.row['topic'] ? this.row['topic'] : '&nbsp;';
 	},
+	
 	
 	// альтернативная вариация lastpost, когда он подается в отдельном массиве
 	fillLast: function(lpost){
@@ -166,7 +166,19 @@ var TopicItem = Class( DesktopMessageItem, {
 	
 	
 	markActive: function(){
-		addClass(this.container, 'activetopic');
+		if (e('@activetopic')) removeClass(e('@activetopic'), 'activetopic');
+		addClass(this.item, 'activetopic');
+	},
+	
+	
+	bump: function(){
+		var container = this.item.parentNode;
+		var firstTopic = e('@topic', container);
+		
+		if (firstTopic != this.item){
+			remove(this.item);
+			insBefore(firstTopic, this.item);
+		}
 	},
 	
 	
@@ -178,19 +190,18 @@ var TopicItem = Class( DesktopMessageItem, {
 		// вешаем на клик событие загрузки сообщений
 		var clickload = function(){
 			wait.stop();
-			wait.loadTopic(that.row['id']);
-			
-			//fillPosts(that.row['id'], e('@contents', '#viewport_posts'));
+			wait.loadTopic(that.row['id']); //fillPosts(that.row['id'], e('@contents', '#viewport_posts'));
+			that.markActive();
 		}
 
-		this.container.onclick = clickload;
+		this.item.onclick = clickload;
 		
 		this.topicedit_btn.onmouseover = function(){
-			that.container.onclick = null;
+			that.item.onclick = null;
 		}
 
 		this.topicedit_btn.onmouseout = function(){
-			if (!hasClass(that.topicfield, 'edittopicname')) that.container.onclick = clickload;
+			if (!hasClass(that.topicfield, 'edittopicname')) that.item.onclick = clickload;
 		}
 
 		var cancelNameEdit = function(){
@@ -199,7 +210,7 @@ var TopicItem = Class( DesktopMessageItem, {
 			that.topicfield.contentEditable = false;
 			removeClass(that.topicfield, 'edittopicname');
 			that.topicfield.ondblclick = editTopicName;
-			that.container.onclick = clickload;
+			that.item.onclick = clickload;
 		}
 
 		// функция инлайн-редактирования темы
@@ -267,12 +278,12 @@ var PostItem = Class( DesktopMessageItem, {
 	createElems: function(){
 		PostItem.superclass.prototype.createElems.apply(this, arguments);
 		
-		this.container.id = 'post_'+this.row['id'];
-		addClass(this.container, 'post');
+		this.item.id = 'post_'+this.row['id'];
+		addClass(this.item, 'post');
 		
 		// вешаем маркер непрочитанности
 		if (maxReadPost && maxReadPost < sql2stamp(this.row['modified'] || this.row['created']))
-			addClass(this.container, 'unread');
+			addClass(this.item, 'unread');
 
 		// вешаем ID на контейнер сообщения для возможности прикрепления визивига
 		this.message.id = 'message_'+this.row['id'];
@@ -288,7 +299,7 @@ var PostItem = Class( DesktopMessageItem, {
 		PostItem.superclass.prototype.attachActions.apply(this, arguments);
 		var that = this;
 		
-		this.container.onclick = function(){
+		this.item.onclick = function(){
 			adress.set('message', that.row['id']);
 		}
 		
@@ -315,7 +326,7 @@ var PostItem = Class( DesktopMessageItem, {
 				var editor = veditor();
 				hide(that.infobar, that.controls);
 				editor.panelInstance(that.message.id);
-				e('@nicEdit-panel', that.container).style.paddingLeft = '47px';
+				e('@nicEdit-panel', that.item).style.paddingLeft = '47px';
 				that.message.focus();
 				var editControls = div('controls');
 
@@ -346,7 +357,7 @@ var PostItem = Class( DesktopMessageItem, {
 				sendBtn.onclick = updateMessage;
 
 				// собираем конструктор
-				that.container.appendChild(editControls);
+				that.item.appendChild(editControls);
 				appendKids(editControls, cancelBtn, sendBtn, nuclear());
 
 			} else alert(txt['post_locked']);}, true ); // запрещать кеширование
@@ -383,10 +394,10 @@ var PostItem = Class( DesktopMessageItem, {
 				}, function(result, errors) { // когда пришел ответ:
 
 					if (result['maxdate']) {
-						if (hasClass(that.container, 'lastblock') && prevElem(that.container)){
-							addClass(prevElem(that.container), 'lastblock');
+						if (hasClass(that.item, 'lastblock') && prevElem(that.item)){
+							addClass(prevElem(that.item), 'lastblock');
 						}
-						remove(that.container);
+						remove(that.item);
 
 						if (isTopic) {
 							that.contArea.innerHTML = ''; // !! contArea!!!!
@@ -432,7 +443,7 @@ var PostItem = Class( DesktopMessageItem, {
 			var msgParent = plain ? that.topicID : that.row['id']
 			var textarea = newel('textarea', null, 'textarea_'+msgParent);
 
-			insAfter(that.container, answerBlock);
+			insAfter(that.item, answerBlock);
 			answerBlock.appendChild(form);
 			form.appendChild(textarea);
 
@@ -500,7 +511,7 @@ var PostItem = Class( DesktopMessageItem, {
 
 								removeClass(prevElem(answerBlock), 'lastblock');
 								newBlock = new PostItem(result, 'post', that.contArea, that.topicID, that.branch);
-								newBlock = newBlock.container;
+								newBlock = newBlock.item;
 									
 								// вычисляем последний пост в ветке
 								var ediv = e('.post', that.branch.cont);
@@ -516,7 +527,7 @@ var PostItem = Class( DesktopMessageItem, {
 								unhide(collEx);
 								var newBranch = new Branch(that.branch.cont, that.topicID, msgParent);
 								newBranch.cont.style.borderLeft = '30px solid #cccccc';
-								insAfter(that.container, newBranch.cont);
+								insAfter(that.item, newBranch.cont);
 								newBranch.appendBlock(result);
 
 							}
@@ -596,11 +607,9 @@ var Branch = function(contArea, topicID, parentID){
 	this.e.appendChild(this.cont);
 	
 	this.createBlock = function(row){
-		var elem = (topicID == '0') 
-			? new TopicItem(row, 'topic') 
-			: messages[row['id']] = new PostItem(row, 'post', contArea, topicID, that);
+		var elem = messages[row['id']] = new PostItem(row, contArea, topicID, that);
 		
-		return elem.container;
+		return elem.item;
 	}
 	
 	this.appendBlock = function(row){
@@ -762,10 +771,6 @@ function Updater(){
 		// хеш-строка адреса
 		adress.set('topic', topic);
 		adress.del('message');
-		
-		// индикация активной темы
-		if (e('@activetopic')) removeClass(e('@activetopic'), 'activetopic');
-		addClass(topics[topic].container, 'activetopic');
 	}
 	
 	// забронируем
@@ -794,12 +799,18 @@ function Updater(){
 				
 				if (topics[entry['id']]){ // если в текущем массиве загруженных тем такая уже есть
 					
-					// тут будут инструкции обновления
+					if (entry['deleted']){
+						remove(topics[entry['id']].item);
+						delete(topics[entry['id']]);
+					} else {
+						topics[entry['id']].fillData(entry);
+						topics[entry['id']].bump();
+					}
 					
 				} else if (!entry['deleted']) { // если в текущем массиве тем такой нет и пришедшая не удалена
 					
-					topics[entry['id']] = new TopicItem(entry, 'topic');
-					topicsCont.appendChild(topics[entry['id']].container);
+					topics[entry['id']] = new TopicItem(entry);
+					topicsCont.appendChild(topics[entry['id']].item);
 				}
 			}
 		}
@@ -807,10 +818,17 @@ function Updater(){
 		
 		// разбираем последние посты
 		if (result && result['lastposts']){
-			for (var i in result['lastposts']){
-				if (topics[i]) topics[i].fillLast(result['lastposts'][i]);
+			for (var i in result['lastposts']) { var entry = result['lastposts'][i];
+				
+				var topic = topics[entry['topic_id']];
+				
+				if (topic) {
+					topic.fillLast(entry);
+					topic.bump();
+				}
 			}
 		}
+		
 		
 		// разбираем сообщения
 		if (result && result['posts']){
@@ -819,7 +837,10 @@ function Updater(){
 								
 				if (messages[entry['id']]){ // если в текущем массиве загруженных сообщений такое уже есть
 					
-					// тут будут инструкции обновления
+					if (entry['deleted']){
+						remove(messages[entry['id']].item);
+						delete(messages[entry['id']]);
+					} else messages[entry['id']].fillData(entry);
 					
 				} else if (!entry['deleted']) { // если в текущем массиве такого нет и пришедшее не удалено
 					

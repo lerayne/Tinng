@@ -38,7 +38,7 @@ var MessageItem = Class({
 			infobar:	[],
 			debug:		[],
 			controls:	[],
-			container:	[],
+			item:		[],
 			explain:	{ addClass: 'subtext' },
 			created:	{ addClass: 'right' },
 			author:		{ addClass: 'left' },
@@ -63,7 +63,7 @@ var MessageItem = Class({
 	// сборка объектов в фрагмент DOM
 	assemble: function(){
 		
-		appendKids ( this.container
+		appendKids ( this.item
 			, this.before_cell
 			, this.data_cell
 			, this.after_cell

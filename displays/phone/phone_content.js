@@ -30,7 +30,7 @@ var TopicItem = Class ( MessageItem, {
 			fillPosts(that.row['id']);
 			tabs.switchto('posts');
 			if (e('@activetopic')) removeClass(e('@activetopic'), 'activetopic');
-			addClass(that.container, 'activetopic');
+			addClass(that.item, 'activetopic');
 		}
 	}	
 });
@@ -68,7 +68,7 @@ function Branch(contArea, topicID, parentID){
 	}
 	
 	this.appendBlock = function(row){
-		var block = branch.createBlock(row).container;
+		var block = branch.createBlock(row).item;
 		branch.cont.appendChild(block);
 		addClass(block, 'lastblock');
 		if (prevElem(block)) removeClass(prevElem(block), 'lastblock');
