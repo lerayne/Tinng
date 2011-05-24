@@ -71,11 +71,12 @@ switch ($action):
 		
 		// ЖДЕМ ИЗМЕНЕНИЙ
 		do {
-			$changes_q = $db->selectCell(
+			$changes_q = $_REQUEST['loadTopic'] ? 1 : $db->selectCell(
 				'SELECT COUNT( * ) FROM ?_messages WHERE (msg_created > ? OR msg_modified > ?)'
 				. ($condition ? ' AND '.$condition : '') // забито под условие польз. поиска по темам
 				, $maxdateSQL , $maxdateSQL
 			);
+				
 			if ($changes_q == '0') sleep($cfg['db_wait_time']); // ждем если ничего не пришло
 			
 		} while ($changes_q == '0' && (time() - $begin) < $wait_time); // если нет ответа и не вышло время
@@ -90,8 +91,8 @@ switch ($action):
 		
 		// РАЗБИРАЕМ ИЗМЕНЕИЯ
 		
-		$sort = $_REQUEST['sort'] ? $_REQUEST['sort'] : 'updated';
-		$reverse = $_REQUEST['reverse'];
+		$sort = $_REQUEST['topicSort'] ? $_REQUEST['topicSort'] : 'updated';
+		$reverse = $_REQUEST['tsReverse'];
 
 		// новая максимальная дата (скорее всего от этого лишнего запроса можно избавиться)
 		$result['new_maxdate'] = $db->selectCell(
@@ -126,6 +127,15 @@ switch ($action):
 			, $cfg['cut_length'] // ограничение выборки первого поста
 			, $maxdateSQL , $maxdateSQL
 		));
+		
+		// пока оставляем так, над сортировкой поработать!
+		switch ($sort):
+			
+			case 'updated':
+				$result['topics'] = sort_result($result['topics'], 'updated', $reverse);
+			break;
+
+		endswitch;
 		
 		// необходимо узнать нет ли обновлений среди параметров: 
 		// кол-во постов в теме, послений пост, изменение/удаление любого поста в теме. 
@@ -208,6 +218,8 @@ switch ($action):
 		
 		// ЕСЛИ В ЗАПРОСЕ УКАЗАНА ТЕМА
 		if (($topic = $_REQUEST['curTopic'])){ // да, тут действительно присвоение
+			
+			if ($_REQUEST['loadTopic']) $maxdateSQL = 0;
 
 			// проверяем, существует ли тема (не удалена ли) и читаем ее заголовок
 			$topic_name = $db->selectCell(

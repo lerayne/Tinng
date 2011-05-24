@@ -72,7 +72,7 @@ hr {
 
 #top_bar #user_panel {
 	float: right;
-	padding: 5px 10px 0 10px;
+	padding: 5px 0 0 10px;
 	padding-bottom:0;
 }
 
@@ -149,7 +149,7 @@ td.collapsed {
 	height:18px;
 	color:white;
 	font-weight:bold;
-	padding:4px 6px 0 22px;
+	padding:4px 6px 0 14px;
 }
 
 .global_column .toolbar {
@@ -596,6 +596,12 @@ td.collapsed {
 	cursor:pointer;
 }
 
+.state_ind {
+	width:32px;
+	height:32px;
+	background: url(images/close.png) center no-repeat;
+}
+
 .updating {
 	color:#bbbbbb;
 	background: url(images/throbber-lit.gif) center no-repeat;
@@ -605,8 +611,10 @@ td.collapsed {
 	background: url(images/throbber-big.gif) center no-repeat;
 	height: 50px;
 }
-
+/*
 .global_column .titlebar		{ background-image: url(images/ready.png); }
 .global_column .tbar_waiting	{ background-image: url(images/waiting.png); }
 .global_column .tbar_updating	{ background-image: url(images/updating.png); }
 .global_column .tbar_throbber	{ background-image: url(images/throbber-white.gif); }
+*/
+
