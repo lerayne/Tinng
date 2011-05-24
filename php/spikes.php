@@ -22,6 +22,10 @@ function incl_scripts(){
 	endforeach;
 }
 
+function now($format){
+	return ($format == 'sql') ? date('Y-m-d H:i:s') : time();
+}
+
 function incl_css(){
 	$arr = func_get_args();
 	foreach ($arr as $val):

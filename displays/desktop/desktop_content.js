@@ -137,7 +137,7 @@ var TopicItem = Class( DesktopMessageItem, {
 	fillData: function(){
 		TopicItem.superclass.prototype.fillData.apply(this, arguments);
 		
-		if (this.lastpost) this.lastpost.innerHTML = 
+		if (this.lastpost)
 			this.lastpost.innerHTML = txt['lastpost']+' <span class="author">'+this.row['last']['author']
 				+'</span>' + ' ['+this.row['last']['created']+'] ' + this.row['last']['message'];
 		
@@ -145,6 +145,24 @@ var TopicItem = Class( DesktopMessageItem, {
 		this.topicfield.innerHTML = this.row['topic'] ? this.row['topic'] : '&nbsp;';
 	},
 	
+	// альтернативная вариация lastpost, когда он подается в отдельном массиве
+	fillLast: function(lpost){
+		
+		this.lpost = lpost;
+		
+		if (!this.lastpost){
+			this.lastpost = div('lastpost', 'lastpost_'+this.lpost['id']);
+			insAfter(this.message, this.lastpost);
+		}
+		
+		this.lastpost.innerHTML =  txt['lastpost']+' <span class="author">'+this.lpost['author']
+				+'</span>' + ' ['+this.lpost['created']+'] ' + this.lpost['message'];
+	},
+	
+	
+	makeActive: function(){
+		this.container.className += ' activetopic';
+	},
 	
 	
 	// цепляем к ним действия
@@ -880,6 +898,15 @@ function Updater(){
 					topics[entry['id']] = new TopicItem(entry, 'topic');
 					container.appendChild(topics[entry['id']].container);
 				}
+			}
+		}
+
+		
+		// разбираем последние посты
+		if (result['lastposts']){
+			for (var k in result['lastposts']){
+				
+				if (topics[k].container) topics[k].fillLast(result['lastposts'][k]);
 			}
 		}
 		

@@ -61,10 +61,10 @@ function sort_result($array, $field, $reverse){
 
 switch ($action):
 	
-	// ОСНОВНОЙ ЗАГРУЗЧИК ДАННЫХ О СООБЩЕНИЯХ И ТЕМАХ
+	// ОСНОВНОЙ ЗАГРУЗЧИК И ОБНОВИТЕЛЬ ДАННЫХ
 	case 'load_updates':
 
-		$begin = time(); // now
+		$begin = now();
 		$wait_time = ini_get('max_execution_time') - $cfg['db_wait_time'] - 2;
 		
 		$maxdateSQL = $result['old_maxdate'] = jsts2sql($_REQUEST['maxdateTS']);
@@ -82,114 +82,205 @@ switch ($action):
 		
 		
 		if ($changes_q == '0'){
-		// если результатов 0 то отправляем старую макс. дату
-			
-			$result['new_maxdate'] = $result['old_maxdate'];	
+			// если результатов 0 то отправляем старую макс. дату и сбрасываем case
+			$result['new_maxdate'] = $result['old_maxdate'];
+			break;
+		}
 		
-		} else {
+		
 		// РАЗБИРАЕМ ИЗМЕНЕИЯ
-			
-			// новая максимальная дата (скорее всего от этого лишнего запроса можно избавиться)
-			$result['new_maxdate'] = $db->selectCell(
-				'SELECT GREATEST(MAX(msg_created), IFNULL(MAX(msg_modified), 0)) FROM ?_messages'
-				. ($condition ? ' WHERE '.$condition : '') // забито под условие польз. поиска по темам
-			);
-			// количество обновленных строк (это не кол-во новых транзакций!)
-			$result['changes_quant'] = $raw;
-			
-			
-			// выбираем сообщения по условию: 
-			// 1. дата больше заданной (новые, или обновленные)
-			// 2. являются стартовыми (т.е. темами)
-			// 3. также выбирать и удаленные (для отслеживания удаления)
-			$result['topics'] = make_tree($db->select(
+		
+		$sort = $_REQUEST['sort'] ? $_REQUEST['sort'] : 'updated';
+		$reverse = $_REQUEST['reverse'];
+
+		// новая максимальная дата (скорее всего от этого лишнего запроса можно избавиться)
+		$result['new_maxdate'] = $db->selectCell(
+			'SELECT GREATEST(MAX(msg_created), IFNULL(MAX(msg_modified), 0)) FROM ?_messages'
+			. ($condition ? ' WHERE '.$condition : '') // забито под условие польз. поиска по темам
+		);
+		
+		// количество обновленных строк (это не кол-во новых транзакций!)
+		$result['changes_quant'] = $changes_q;
+
+		// выбираем обновленные темы (втч удаленные)
+		$result['topics'] = make_tree($db->select(
+			'SELECT
+				msg_id AS id,
+				msg_author AS author_id,
+				msg_parent AS parent,
+				msg_topic_id AS topic_id,
+				msg_topic AS topic,
+				LEFT(msg_body, ?d) AS message,
+				msg_created AS created,
+				msg_modified AS modified,
+				msg_deleted AS deleted,
+				usr_email AS author_email,
+				usr_login AS author
+			FROM ?_messages, ?_users
+			WHERE
+				(msg_created > ? OR msg_modified > ?)
+				AND msg_topic_id = 0
+				AND `msg_author` = `usr_id`'.
+			($condition ? ' AND '.$condition : '')
+
+			, $cfg['cut_length'] // ограничение выборки первого поста
+			, $maxdateSQL , $maxdateSQL
+		));
+		
+		// необходимо узнать нет ли обновлений среди параметров: 
+		// кол-во постов в теме, послений пост, изменение/удаление любого поста в теме. 
+		// В данный момент с этим связана трудность - приходится сильно грузить базу запросами. 
+		// Пока решаю как есть, в будущем - придумать решение
+		
+		// ID всех тем, проходящих по условию - 
+		// в массив в форме 'id темы' => [id ее последнего поста], [удален ли этот пост]
+		$selected_topics = $db->select(
+			'SELECT msg_id AS ARRAY_KEY, msg_id FROM ?_messages 
+			WHERE msg_topic_id = 0 AND msg_deleted <=> NULL'
+			. ($condition ? ' AND '.$condition : '')
+		);
+		foreach ($selected_topics as $topic_id => $null){
+			$lastpost = $db->selectRow(
 				'SELECT
 					msg_id AS id,
-					msg_author AS author_id,
-					msg_parent AS parent,
-					msg_topic_id AS topic_id,
-					msg_topic AS topic,
 					LEFT(msg_body, ?d) AS message,
 					msg_created AS created,
 					msg_modified AS modified,
 					msg_deleted AS deleted,
-					usr_email AS author_email,
+					GREATEST(msg_created, IFNULL(msg_modified,0)) AS maxdate,
 					usr_login AS author
-				FROM ?_messages, ?_users
-				WHERE
-					(msg_created > ? OR msg_modified > ?)
-					AND msg_topic_id = 0
-					AND `msg_author` = `usr_id`'.
-				($condition ? ' AND '.$condition : '')
-				
-				, $cfg['cut_length'] // ограничение выборки первого поста
-				, $maxdateSQL , $maxdateSQL
-			));
+				FROM ?_messages, ?_users WHERE
+					`msg_author` = `usr_id`
+					AND msg_topic_id = ?d
+					AND (msg_created > ? OR msg_modified > ?)
+				ORDER BY msg_id DESC LIMIT 1'
+				, $cfg['cut_length'], $topic_id, $maxdateSQL, $maxdateSQL
+			);
 			
-			// ЕСЛИ В ЗАПРОСЕ УКАЗАНА ТЕМА
-			if (($topic = $_REQUEST['curTopic'])){ // да, тут действительно присвоение
-				
-				$raw = $db->selectRow(
-					'SELECT msg_topic, msg_id FROM ?_messages WHERE msg_id = ?d AND msg_deleted <=> NULL'
-					, $topic
+			if ($lastpost['deleted']){
+				$lastpost = $db->selectRow(
+					'SELECT
+						msg_id AS id,
+						LEFT(msg_body, ?d) AS message,
+						msg_created AS created,
+						msg_modified AS modified,
+						msg_deleted AS deleted,
+						GREATEST(msg_created, IFNULL(msg_modified,0)) AS maxdate,
+						usr_login AS author
+					FROM ?_messages, ?_users WHERE
+						`msg_author` = `usr_id`
+						AND msg_topic_id = ?d
+						AND msg_deleted <=> NULL
+					ORDER BY msg_id DESC LIMIT 1'
+					, $cfg['cut_length'], $topic_id
 				);
-				$result['topicName'] = $raw['msg_topic']; // имя загружаемой темы
-				$topic_not_deleted = $raw['msg_id']; // узнаем не удалена ли тема
+			}
+			
+			// если обновление последнего сообщения найдено, "пустых" обновлений не искать
+			if ($lastpost) {
+				$result['lastposts'][$topic_id] = $lastpost;
+			} else {
+			// но если не найдено - проверить, вдруг есть?
 				
+				$updated = $db->selectCell(
+					'SELECT msg_deleted FROM ?_messages 
+					WHERE msg_modified > ?
+					ORDER BY msg_modified DESC LIMIT 1'
+					, $maxdateSQL
+				);
+				 
+				if ($updated) $result['lastposts'][$topic_id] = $updated;
+			}
 
-				// если тема не удалена 
-				if ($topic_not_deleted){
-					
-					// если мы загружаем тему в первый раз, а не ждем апдейтов
-					if ($_REQUEST['maxdateTS'] == '0'){ 
+		}
 
-						// проверяем была ли тема хотя-бы раз прочитана этим пользователем
-						$once_read = $db->selectCell(
-							'SELECT unr_timestamp FROM ?_unread WHERE unr_user = ?d AND unr_topic = ?d', $user->id , $topic
+		
+		// ЕСЛИ В ЗАПРОСЕ УКАЗАНА ТЕМА
+		if (($topic = $_REQUEST['curTopic'])){ // да, тут действительно присвоение
+
+			// проверяем, существует ли тема (не удалена ли) и читаем ее заголовок
+			$topic_name = $db->selectCell(
+				'SELECT msg_topic FROM ?_messages WHERE msg_id = ?d AND msg_deleted <=> NULL'
+				, $topic
+			);
+
+			if ($topic_name === null){
+			// если тема удалена (если удалена, name === null, если пустая - name === "")
+
+				$result['topic_prop']['deleted'] = true; // по этому флагу отслеживаем онлайн-удаление темы 
+
+			} else {
+			// если тема не удалена
+
+				if ($_REQUEST['maxdateTS'] == '0') { // если загружаем новую тему
+
+					// хотим узнать, когда пользователь отмечал эту тему прочитанной
+					$date_read = $db->selectCell(
+						'SELECT unr_timestamp FROM ?_unread WHERE unr_user = ?d AND unr_topic = ?d'
+						, $user->id , $topic
+					);
+
+					// ой, ни разу! Установить ее прочитанной в этот момент!
+					if (!$date_read) {
+
+						$date_read = now('sql');
+						$values = Array(
+							'unr_user' => $user->id,
+							'unr_topic' => $topic,
+							'unr_timestamp' => $date_read
 						);
+						$db->query('INSERT INTO ?_unread (?#) VALUES (?a)'
+							, array_keys($values), array_values($values) );
 
-						// если тема читается в первый раз, установить ее прочитанной в этот момент
-						if (!$once_read){
-							$result['maxread'] = date('Y-m-d H:i:s');
-							$values = Array('unr_user' => $user->id, 'unr_topic' => $topic, 'unr_timestamp' => $result['maxread']);
-							$db->query('INSERT INTO ?_unread (?#) VALUES (?a)', array_keys($values), array_values($values));
-							// + надо отдать что-то чтобы JS знал, что тема читается в первый раз и прокручивать ее в конец не нужно
-						} else {
-							$result['maxread'] = $once_read;
-						}
+						$date_read = 'firstRead'; // клиент должен знать!
 					}
-					
-					// выбираем ВСЕ сообщения с более новой датой (даже удаленные, чтобы знать о них)
-					$result['posts'] = make_tree($db->select(
-						'SELECT
-							msg_id AS id,
-							msg_author AS author_id,
-							msg_parent AS parent,
-							msg_topic_id AS topic_id,
-							msg_topic AS topic,
-							msg_body AS message,
-							msg_created AS created,
-							msg_modified AS modified,
-							msg_deleted AS deleted,
-							usr_email AS author_email,
-							usr_login AS author
-						FROM ?_messages, ?_users
-						WHERE
-							(msg_topic_id = ?d OR msg_id = ?d)
-							AND (msg_created > ? OR msg_modified > ?)
-							AND `msg_author` = `usr_id`
-						ORDER BY msg_created ASC'
-						, $topic, $topic
-						, $maxdateSQL, $maxdateSQL
-					));
-				} else { // если тема удалена
-					
+
+					$result['topic_prop']['date_read'] = $date_read; // вывести в клиент
 				}
+				
+				
+				$result['topic_prop']['name'] = $topic_name; // вывод в клиент имени
+				
+				// выбираем ВСЕ сообщения с более новой датой (даже удаленные)
+				$result['posts'] = make_tree($db->select(
+					'SELECT
+						msg_id AS id,
+						msg_author AS author_id,
+						msg_parent AS parent,
+						msg_topic_id AS topic_id,
+						msg_topic AS topic,
+						msg_body AS message,
+						msg_created AS created,
+						msg_modified AS modified,
+						msg_deleted AS deleted,
+						usr_email AS author_email,
+						usr_login AS author
+					FROM ?_messages, ?_users
+					WHERE
+						(msg_topic_id = ?d OR msg_id = ?d)
+						AND (msg_created > ? OR msg_modified > ?)
+						AND `msg_author` = `usr_id`
+					ORDER BY msg_created ASC'
+					, $topic, $topic
+					, $maxdateSQL, $maxdateSQL
+				));
 			}
 		}
-		
+			
 	break;
 
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/*
+	
 	// запрашиваем сообщения
 	case 'load_posts':
 		
@@ -297,14 +388,15 @@ switch ($action):
 
 	break;
 
-
+*/
+	
 	case 'load_topics':
 
 		$sort = $_REQUEST['sort'] ? $_REQUEST['sort'] : 'updated';
-		$reverse = $_REQUEST['reverse'];
+		$reverse = $_REQUEST['sortRev'];
 
-		// находим последнюю созданную тему (насколько это нужно именно в топиках? проверить. пока нормально работает и без)
-		/*$result['maxdate'] = $db->selectCell(
+		/* находим последнюю созданную тему (насколько это нужно именно в топиках? проверить. пока нормально работает и без)
+		$result['maxdate'] = $db->selectCell(
 			'SELECT GREATEST(MAX(msg_created), IFNULL(MAX(msg_modified),0)) FROM ?_messages
 			WHERE msg_topic_id = 0'
 		);*/
