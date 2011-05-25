@@ -228,7 +228,7 @@ switch ($action):
 		// ЕСЛИ В ЗАПРОСЕ УКАЗАНА ТЕМА
 		if (($topic = $_REQUEST['curTopic'])){ // да, тут действительно присвоение
 			
-			if ($_REQUEST['loadTopic']) $maxdateSQL = 0;
+			if ($_REQUEST['loadTopic']) $maxdateSQL = jsts2sql($_REQUEST['maxdateTS'] = '0');
 
 			// проверяем, существует ли тема (не удалена ли) и читаем ее заголовок
 			$topic_name = $db->selectCell(
@@ -246,6 +246,8 @@ switch ($action):
 
 				if ($_REQUEST['maxdateTS'] == '0') { // если загружаем новую тему
 
+					$result['topic_prop']['id'] = $topic;
+					
 					// хотим узнать, когда пользователь отмечал эту тему прочитанной
 					$date_read = $db->selectCell(
 						'SELECT unr_timestamp FROM ?_unread WHERE unr_user = ?d AND unr_topic = ?d'

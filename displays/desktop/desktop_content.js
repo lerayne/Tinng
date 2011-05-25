@@ -168,6 +168,7 @@ var TopicItem = Class( DesktopMessageItem, {
 	markActive: function(){
 		if (e('@activetopic')) removeClass(e('@activetopic'), 'activetopic');
 		addClass(this.item, 'activetopic');
+		//this.item.scrollIntoView(false); // снизу
 	},
 	
 	
@@ -191,7 +192,6 @@ var TopicItem = Class( DesktopMessageItem, {
 		var clickload = function(){
 			wait.stop();
 			wait.loadTopic(that.row['id']); //fillPosts(that.row['id'], e('@contents', '#viewport_posts'));
-			that.markActive();
 		}
 
 		this.item.onclick = clickload;
@@ -720,7 +720,7 @@ function Updater(){
 	var tTbar =		 e('@titlebar'  , vpTopics);
 	var SInd =		 e('@state_ind' ,'#top_bar');
 	
-	// ЗАПУСК ОЖИДАЛКИ
+	// ФУНКЦИЯ ЦИКЛИЧНОГО ОЖИДАНИЯ
 	this.start = function(maxdateTS, forced, loadTopic){
 		if (!that.started || forced){
 			
@@ -757,6 +757,7 @@ function Updater(){
 		}
 	}
 	
+	// обертка для загрузки выбранной темы
 	this.loadTopic = function(topic){
 		
 		// чистим всё
@@ -811,7 +812,7 @@ function Updater(){
 					
 					topics[entry['id']] = new TopicItem(entry);
 					topicsCont.appendChild(topics[entry['id']].item);
-				}
+				}	
 			}
 		}
 
@@ -832,6 +833,12 @@ function Updater(){
 		
 		// разбираем сообщения
 		if (result && result['posts']){
+			
+			var tProps = result['topic_prop'];
+			
+			// делаем тему в столбце тем активной.
+			if (tProps['id']) topics[tProps['id']].markActive();
+			pTbar.innerHTML = result['topic_prop']['name'];
 			
 			for (var i in result['posts']) { var entry = result['posts'][i];
 								
