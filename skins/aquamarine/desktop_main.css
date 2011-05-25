@@ -474,7 +474,7 @@ td.collapsed {
 	border-bottom:1px solid #cccccc;
 }
 
-.add_message .nicEdit-panelContain {
+.add_message .nicEdit-panelContain, #answer_here .nicEdit-panelContain {
 	border-bottom-width: 1px;
 }
 
@@ -618,3 +618,17 @@ td.collapsed {
 .global_column .tbar_throbber	{ background-image: url(images/throbber-white.gif); }
 */
 
+#viewport_posts .typing_panel {
+	min-height:80px;
+	background: #eeeeee;
+	border-top:1px solid #cccccc;
+	padding:5px;
+}
+
+#answer_here {
+	margin:5px;
+}
+
+#answer_here textarea {
+	width: 100%;
+}

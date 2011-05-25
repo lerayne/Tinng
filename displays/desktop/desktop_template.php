@@ -96,6 +96,7 @@ $message = $_COOKIE['message'];
 							<div>
 								<div class="contents"></div>
 							</div>
+							<div class="chrome typing_panel"></div>
 							<div class="chrome statusbar"></div>
 						</div>
 					</td>

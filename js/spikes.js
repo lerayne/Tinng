@@ -108,48 +108,23 @@ function rtrim(s) {return s.replace(/\s+$/, '');}
 
 // ОБЕРТКИ DOM (чтение):
 
-// возвращает массив только видимых элементов указанного класса
+// возвращает массив только видимых элементов указанной коллекции
 // !! не используется
-function gclvis(className, refElem){
-	var elems = e('.'+className, refElem);
+function visibleItems(elems){
 	var vis = [];
-	for (var i=0, j=0; i<elems.length; i++) if (elems[i].offsetHeight > 0){
-		vis[j] = elems[i];
-		j++;
-	}
+	for (var i=0, j=0; i<elems.length; i++) if (elems[i].offsetHeight > 0) vis[j++] = elems[i];
 	return vis;
 }
 
 // выдает одно из изменений (например, суммарную высоту) всех интерфейсных элементов,
 // имеющих определенный класс внутри document, или заданного элемента
-function classDimen(dim, className, elem) {
+function classDimen(dim, elems) {
 	var ret = 0;
-	var kids = e('.'+className, elem ? elem : null);
-	for (var i=0; i<kids.length; i++){
+	for (var i=0; i<elems.length; i++){
 		if (dim == 'h'){
-			ret += kids[i].offsetHeight;
+			ret += elems[i].offsetHeight;
 		} else if (dim == 'w'){
-			ret += kids[i].offsetWidth;
-		}
-	}
-	return ret;
-}
-
-// возвращает массив дочерних узлов (по ID), являющихся элементами,
-// причем тег и класс можно указать
-function childElems(refNode, certainTag, certainClass){
-	var ret = [];
-	var j = 0;
-	var ns = refNode.childNodes;
-	var myclass = new RegExp('\\b'+certainClass+'\\b');
-	for (var i=0; i<ns.length; i++){
-		if (
-			ns[i].nodeType == 1
-			&& (ns[i].nodeName == certainTag || !certainTag)
-			&& (myclass.test(ns[i].className) || !certainClass)
-		){
-			ret[j] = ns[i];
-			j++;
+			ret += elems[i].offsetWidth;
 		}
 	}
 	return ret;
@@ -226,15 +201,12 @@ function destroy(elem){
 	elem = null;
 }
 
-// Добавляет к элементу указанному в первом аргументе дочерние элементы всех остальных аргументов
+// Добавляет к элементу указанному в первом аргументе дочерние элементы из всех остальных аргументов
 function appendKids(){
-	var args = appendKids.arguments;
-	var parent = args[0];
-
-	for (var i=1; i<args.length; i++){
-		if (args[i] && args[i].nodeType == 1) parent.appendChild(args[i]);
+	var parent = arguments[0];
+	for (var i=1; i<arguments.length; i++){
+		if (arguments[i] && arguments[i].nodeType == 1) parent.appendChild(arguments[i]);
 	}
-
 	return parent;
 }
 
@@ -291,17 +263,17 @@ function unhide() {
 
 // добавление правила к листу стилей
 function addRule(sheet, selector, attributes, index){
-	if (sheet.addRule) sheet.addRule(selector, attributes, index);
-	if (sheet.insertRule) sheet.insertRule(selector+'{'+attributes+'}', index);
+	if (sheet.addRule) { sheet.addRule(selector, attributes, index); }
+	else if (sheet.insertRule) sheet.insertRule(selector+'{'+attributes+'}', index);
 }
 
 // удаление правила из листа по номеру
 function deleteRule(sheet, index){
-	if (sheet.deleteRule) sheet.deleteRule(index);
-	if (sheet.removeRule) sheet.removeRule(index);
+	if (sheet.deleteRule) { sheet.deleteRule(index); }
+	else if (sheet.removeRule) sheet.removeRule(index);
 }
 
-// возвращает коллекцию правил листа (кроссбраузерность)
+// возвращает коллекцию правил листа (кроссбраузерно)
 function rulesColl(sheet) {return sheet.cssRules ? sheet.cssRules : sheet.rules;}
 
 // добавляет динамический лист стилей (использование данной функции по body onload

@@ -15,5 +15,7 @@ if (   strpos($_SERVER['HTTP_USER_AGENT'], 'Android')
 
 $device_path = 'displays/'.$display_mode.'/'.$display_mode.'_';
 
+session_start();
+
 require_once $device_path.'template.php';
 ?>

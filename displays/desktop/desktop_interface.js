@@ -21,7 +21,7 @@ function consoleWrite(string, skip){
 }
 
 function resizeContArea(column){
-	var chromeH = classDimen('h', 'chrome', column);
+	var chromeH = classDimen('h', e('.chrome', column));
 	editCSS('#'+column.id+' .contents', 'height:'+(mainHeight - chromeH)+'px');
 	editCSS('#'+column.id+' .collapser', 'height:'+(mainHeight - chromeH)+'px');
 }
@@ -67,7 +67,7 @@ function closeOverlayPage() {
 // !! Возможно - унести в пхп (второстепенное)
 function insertResizers(){
 	var cols = e('<td>', '#app_block_tr', true); // true - с отвязкой
-
+	
 	for (var i=0; i<cols.length; i++) { var col = cols[i];
 		
 		if (i == cols.length-1) return; // если последняя колонка
@@ -91,8 +91,8 @@ function resizeColumn(event){
 
 	// цена процента, вычисляющаяся из ширины рабочей области
 	var precCost = (e('#app_block').offsetWidth
-		//- classDimen('w', 'vport_resizer', e('#app_block_tr'))
-		//- classDimen('w', 'collapsed', e('#app_block_tr'))
+		//- classDimen('w', e('.vport_resizer', '#app_block_tr'))
+		//- classDimen('w', e('.collapsed', '#app_block_tr'))
 		)/100;
 
 	var colL = prevElem(this); // что ресайзить будем
@@ -288,10 +288,43 @@ function attachActions(){
 
 }
 
+function insertTypeforms(){
+	var container = e('@typing_panel', '#viewport_posts');
+	
+	var form = newel('form', null, 'answer_here');
+	var textarea = newel('textarea', null, 'textarea_0');
+		textarea.rows = 1;
+	var controls = div('controls');
+	//var cancel = div('button', 'cancel_post', '<span>'+txt['cancel']+'</span>');
+	var send = div('button', 'send_post', '<span>'+txt['send']+'</span>');
+	
+	container.appendChild(form);
+	
+	appendKids( form
+		, textarea
+		, controls
+	);
+		
+	appendKids( controls
+		//, cancel
+		, send
+		, nuclear()
+	);
+		
+	var editor = veditor();
+	editor.panelInstance(textarea.id);
+	
+	setTimeout(
+		function(){e('@nicEdit-main', form).focus();}
+		, 500
+	);
+}
+
 
 // функция для использования в общей onload-функции
 function startInterface(){
 	addDynamicCSS();
+	insertTypeforms();
 	insertResizers();
 	resizeFrame();
 

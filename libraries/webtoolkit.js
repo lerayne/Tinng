@@ -1,3 +1,28 @@
+// создает новый экземпляр визивига с указанными параметрами
+// !! форматирование шрифтов невозможно из-за неправильной работы выпадающих списков
+function veditor(){
+	var editor = new nicEditor({
+		buttonList:[
+			'bold','italic','underline','strikethrough',
+			'left','center','right','justify',
+			'indent','outdent',
+			//'forecolor',
+			'ol','ul',
+			'subscript','superscript',
+			//'link','unlink','image',
+			'hr',
+			//'fontFormat',
+			'removeformat'
+			//,'xhtml'
+		],
+		xhtml:true,
+		externalCSS: 'interface/nicedit.css',
+		iconsPath : 'lib_modified/nicEditorIcons.gif'
+	});
+	return editor;
+}
+
+
 function extend(Parent, Child) {
 	var F = function() { }
 	F.prototype = Parent.prototype;
@@ -239,5 +264,3 @@ function md5 ( str ) {	// Calculate the md5 hash of a string
 
 	return temp.toLowerCase();
 }
-
-

@@ -19,31 +19,6 @@ document.onkeypress = function(event){
 }*/
 
 
-// создает новый экземпляр визивига с указанными параметрами
-// !! форматирование шрифтов невозможно из-за неправильной работы выпадающих списков
-var veditor = function (){
-	var editor = new nicEditor({
-		buttonList:[
-			'bold','italic','underline','strikethrough',
-			'left','center','right','justify',
-			'indent','outdent',
-			//'forecolor',
-			'ol','ul',
-			'subscript','superscript',
-			//'link','unlink','image',
-			'hr',
-			//'fontFormat',
-			'removeformat'
-			//,'xhtml'
-		],
-		xhtml:true,
-		externalCSS: 'interface/nicedit.css',
-		iconsPath : 'lib_modified/nicEditorIcons.gif'
-	});
-	return editor;
-}
-
-
 // расширение основного класса сообщения для десктопа
 var DesktopMessageItem = Class ( MessageItem, {
 	
@@ -757,6 +732,27 @@ function Updater(){
 		}
 	}
 	
+	// остановщик ожидателя long-poll
+	this.stop = function(){
+		if (that.started && req){
+			
+			// переопределяем, иначе wait рестартует, воспринимая аборт как полноценное завершение запроса
+			req.onreadystatechange = function() {
+
+				var stopWait = new JsHttpRequest();
+				stopWait.open(null, 'ajax_light_backend.php', true);
+				stopWait.send({
+					  action: 'stop_waiting'
+					, file: getCookie('PHPSESSID')+'-'+req._ldObj.id
+				});
+				
+				removeClass(SInd, 'updating');
+			}
+			req.abort();
+			that.started = false;
+		}
+	}
+	
 	// обертка для загрузки выбранной темы
 	this.loadTopic = function(topic){
 		
@@ -776,19 +772,6 @@ function Updater(){
 	
 	// забронируем
 	this.timeout = function(){}
-	
-	// аборт конечно варварский, но пока так
-	this.stop = function(){
-		if (that.started && req){
-			
-			// переопределяем, иначе wait рестартует, воспринимая аборт как полноценное завершение запроса
-			req.onreadystatechange = function() { 
-				removeClass(SInd, 'updating');
-			}
-			req.abort();
-			that.started = false;
-		}
-	}
 	
 	// РАЗБОР ПАКЕТА И ВЫПОЛНЕНИЕ ОБНОВЛЕНИЙ
 	var parseResult = function(result){
@@ -836,9 +819,7 @@ function Updater(){
 			
 			var tProps = result['topic_prop'];
 			
-			// делаем тему в столбце тем активной.
-			if (tProps['id']) topics[tProps['id']].markActive();
-			pTbar.innerHTML = result['topic_prop']['name'];
+			pTbar.innerHTML = tProps['name'];
 			
 			for (var i in result['posts']) { var entry = result['posts'][i];
 								
@@ -862,6 +843,22 @@ function Updater(){
 					
 					// добавляем новое сообщение к существующей (или новосозданной) ветке
 					branches[parent].appendBlock(entry);
+				}
+			}
+			
+			// наличие id означает что тема загружается полностью
+			if (tProps['id']) {
+				topics[tProps['id']].markActive(); // делаем тему в столбце тем активной
+				
+				// управляем автопрокруткой
+				var refPost;
+				if ((refPost = adress.get('message'))){
+					
+					messages[refPost].item.scrollIntoView(false);
+					
+				} else if (tProps['date_read'] != 'firstRead') {
+					
+					messages[entry['id']].item.scrollIntoView(false);
 				}
 			}
 		}
