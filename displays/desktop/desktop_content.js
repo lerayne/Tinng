@@ -677,7 +677,9 @@ function newTopic(btn){
 function Updater(){
 	var that = this;
 	
-	this.started = false;
+	this.startBlocked = false;
+	this.paused = false;
+	that.maxdateTS = 0;
 	
 	this.topicSort = 'updated';
 	this.tsReverse = true;
@@ -688,36 +690,36 @@ function Updater(){
 	var vpTopics = e('#viewport_topics');
 	
 	var postsCont =	 e('@contents'  , vpPosts);
-	var pSbar =		 e('@statusbar' , vpPosts);
+	//var pSbar =		 e('@statusbar' , vpPosts);
 	var pTbar =		 e('@titlebar'  , vpPosts);
 	var topicsCont = e('@contents'  , vpTopics);
-	var tSbar =		 e('@statusbar' , vpTopics);
-	var tTbar =		 e('@titlebar'  , vpTopics);
+	//var tSbar =		 e('@statusbar' , vpTopics);
+	//var tTbar =		 e('@titlebar'  , vpTopics);
 	var SInd =		 e('@state_ind' ,'#top_bar');
 	
 	// ФУНКЦИЯ ЦИКЛИЧНОГО ОЖИДАНИЯ
-	this.start = function(maxdateTS, forced, loadTopic){
-		if (!that.started || forced){
+	this.start = function(forceDateTS, loadTopic){
+		if (!that.startBlocked || forceDateTS){
 			
 			// устанавливаем флаг, блокирующий параллельный старт еще одного запроса
-			that.started = true;
+			that.startBlocked = true;
 			
-			// забиваем начальную дату в свойство (на всякий случай !! возможно потом убрать)
-			that.maxdateTS = maxdateTS;
+			// если не нужно менять дату (только форсировать старт) то на вход функции можно подать 1
+			if (forceDateTS && forceDateTS !== 1) that.maxdateTS = forceDateTS;
 			
 			addClass(SInd, 'updating'); // индикация ожидания вкл
 			
 			// Отправляем запрос
 			req = new JsHttpRequest();
 			req.onreadystatechange = function() {if (req.readyState == 4) {
+				that.startBlocked = false;
 				
 				// разбираем пришедший пакет и выполняем обновления
 				that.maxdateTS = parseResult(req.responseJS);
 				
 				removeClass(SInd, 'updating'); // индикация ожидания откл
 				
-				// Рекурсия (forced (true) - только при рестарте ожидалки)
-				setTimeout(function(){that.start(that.maxdateTS, true)}, 500);
+				setTimeout(function(){that.start()}, 500);
 				
 			}}
 			req.open(null, 'ajax_backend.php', true);
@@ -734,22 +736,23 @@ function Updater(){
 	
 	// остановщик ожидателя long-poll
 	this.stop = function(){
-		if (that.started && req){
+		if (that.startBlocked && req){
 			
-			// переопределяем, иначе wait рестартует, воспринимая аборт как полноценное завершение запроса
+			// переопределяем, иначе wait воспринимает экстренную остановку как полноценное завершение запроса
 			req.onreadystatechange = function() {
 
-				var stopWait = new JsHttpRequest();
-				stopWait.open(null, 'ajax_light_backend.php', true);
-				stopWait.send({
+				JsHttpRequest.query( 'ajax_light_backend.php', {
 					  action: 'stop_waiting'
 					, file: getCookie('PHPSESSID')+'-'+req._ldObj.id
-				});
+				}, function(){}, true );
 				
 				removeClass(SInd, 'updating');
 			}
 			req.abort();
-			that.started = false;
+			that.startBlocked = false;
+		} else { // если стоп вызывается когда this.startBlocked == null, значит это произошло между запусками
+			// это заблокирует старт и он станет возможен только при помощи форсированного запуска с датой
+			that.startBlocked = true;
 		}
 	}
 	
@@ -763,7 +766,7 @@ function Updater(){
 		
 		// запрашиваем новую тему
 		currentTopic = topic;
-		that.start(that.maxdateTS, null, true);
+		that.start(1, true);
 		
 		// хеш-строка адреса
 		adress.set('topic', topic);
@@ -779,16 +782,18 @@ function Updater(){
 		// разбираем темы
 		if (result && result['topics']){
 			
-			for (var i in result['topics']) { var entry = result['topics'][i];
+			for (var i in result['topics']) { 
+				var entry = result['topics'][i];
+				var topic = topics[entry['id']];
 				
-				if (topics[entry['id']]){ // если в текущем массиве загруженных тем такая уже есть
+				if (topic){ // если в текущем массиве загруженных тем такая уже есть
 					
 					if (entry['deleted']){
-						remove(topics[entry['id']].item);
+						remove(topic.item);
 						delete(topics[entry['id']]);
 					} else {
-						topics[entry['id']].fillData(entry);
-						topics[entry['id']].bump();
+						topic.fillData(entry);
+						topic.bump();
 					}
 					
 				} else if (!entry['deleted']) { // если в текущем массиве тем такой нет и пришедшая не удалена
@@ -802,8 +807,8 @@ function Updater(){
 		
 		// разбираем последние посты
 		if (result && result['lastposts']){
-			for (var i in result['lastposts']) { var entry = result['lastposts'][i];
-				
+			for (var i in result['lastposts']) { 
+				var entry = result['lastposts'][i];
 				var topic = topics[entry['topic_id']];
 				
 				if (topic) {
@@ -821,14 +826,16 @@ function Updater(){
 			
 			pTbar.innerHTML = tProps['name'];
 			
-			for (var i in result['posts']) { var entry = result['posts'][i];
+			for (var i in result['posts']) { 
+				var entry = result['posts'][i];
+				var message = messages[entry['id']];
 								
-				if (messages[entry['id']]){ // если в текущем массиве загруженных сообщений такое уже есть
+				if (message){ // если в текущем массиве загруженных сообщений такое уже есть
 					
 					if (entry['deleted']){
-						remove(messages[entry['id']].item);
+						remove(message.item);
 						delete(messages[entry['id']]);
-					} else messages[entry['id']].fillData(entry);
+					} else message.fillData(entry);
 					
 				} else if (!entry['deleted']) { // если в текущем массиве такого нет и пришедшее не удалено
 					
@@ -843,12 +850,17 @@ function Updater(){
 					
 					// добавляем новое сообщение к существующей (или новосозданной) ветке
 					branches[parent].appendBlock(entry);
+					
+					var lastvisible = message;
 				}
 			}
 			
 			// наличие id означает что тема загружается полностью
 			if (tProps['id']) {
 				topics[tProps['id']].markActive(); // делаем тему в столбце тем активной
+				
+				// если тема загружается не вручную кликом по ней - промотать до неё в списке
+				if (!tProps['manual']) topics[tProps['id']].item.scrollIntoView(false);
 				
 				// управляем автопрокруткой
 				var refPost;
@@ -857,8 +869,8 @@ function Updater(){
 					messages[refPost].item.scrollIntoView(false);
 					
 				} else if (tProps['date_read'] != 'firstRead') {
-					
-					messages[entry['id']].item.scrollIntoView(false);
+					// !! тут будет прокрутка до первого непрочитанного поста
+					lastvisible.item.scrollIntoView(false);
 				}
 			}
 		}
@@ -868,8 +880,63 @@ function Updater(){
 	}
 }
 
+// функция добавления сообщения набросана как попало! разобраться!
+function insertTypeforms(){
+	var container = e('@typing_panel', '#viewport_posts');
+	
+	var form = newel('form', null, 'answer_here');
+	var textarea = newel('textarea', null, 'textarea_0');
+		textarea.rows = 1;
+	var controls = div('controls');
+	//var cancel = div('button', 'cancel_post', '<span>'+txt['cancel']+'</span>');
+	var send = div('button', 'send_post', '<span>'+txt['send']+'</span>');
+	
+	form.appendChild(textarea);
+	
+	appendKids( container
+		, form
+		, controls
+	);
+		
+	appendKids( controls
+		//, cancel
+		, send
+		, nuclear()
+	);
+		
+	var editor = veditor();
+	editor.panelInstance(textarea.id);
+	var field = e('@nicEdit-main', form);
+	field.parentNode.className = 'nicEdit-wrapper';
+	//field.style.overflow = 'auto';
+	
+	setTimeout(function(){field.focus();}, 500);
+	
+	
+	var pSbar = e('@statusbar', '#viewport_posts');
+	var areaHeight = field.offsetHeight;
+	pSbar.innerHTML = areaHeight;
+	
+	resizeContArea(e('#viewport_posts'));
+	
+	field.onkeyup = function(){
+		pSbar.innerHTML = field.offsetHeight;
+		
+		if (areaHeight != field.offsetHeight){
+			resizeContArea(e('#viewport_posts'));
+			areaHeight = field.offsetHeight;
+		}
+	}
+	
+	send.onclick = function(){
+		
+	}
+}
+
 
 function startEngine(){
+	insertTypeforms();
+	
 	wait = new Updater;
 	
 	/* //fillTopics();
@@ -878,7 +945,7 @@ function startEngine(){
 	} */
    
 	currentTopic = adress.get('topic');
-	wait.start(0);
+	wait.start();
 }
 
 /*

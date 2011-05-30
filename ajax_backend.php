@@ -21,7 +21,7 @@ ob_start('ob_gzhandler'); // выводим результат в gzip
 $req =& new JsHttpRequest("utf-8");
 
 $result['xhr'] = $xhr_id;
-$result['sessid'] = $sessid;
+//$result['sessid'] = $sessid;
 
 /*
 $log = fopen('ajax_log.txt', 'w+');
@@ -73,15 +73,14 @@ switch ($action):
 	case 'load_updates':
 
 		$begin = now();
-		$wait_time = ini_get('max_execution_time') - $cfg['db_wait_time'] - 2;
+		$wait_time = 10;// ini_get('max_execution_time') - $cfg['db_wait_time'] - 2;
 		
 		$maxdateSQL = $result['old_maxdate'] = jsts2sql($_REQUEST['maxdateTS']);
 		
-		$checkfile = 'data/xhr_session/'.$sessid.'-'.$xhr_id;
-		fopen($checkfile, 'w');
+		fopen($checkfile = 'data/xhr_session/'.$sessid.'-'.$xhr_id, 'w');
 		
 		// ЖДЕМ ИЗМЕНЕНИЙ
-		do { if (!file_exists($checkfile)) die();
+		do { if (!file_exists($checkfile)) {/*fopen('data/xhr_session/stop', 'w');*/ die();}
 			
 			$changes_q = $_REQUEST['loadTopic'] ? 1 : $db->selectCell(
 				'SELECT COUNT( * ) FROM ?_messages WHERE (msg_created > ? OR msg_modified > ?)'
@@ -120,11 +119,11 @@ switch ($action):
 		$result['topics'] = make_tree($db->select(
 			'SELECT
 				msg_id AS id,
+				LEFT(msg_body, ?d) AS message,
 				msg_author AS author_id,
 				msg_parent AS parent,
 				msg_topic_id AS topic_id,
 				msg_topic AS topic,
-				LEFT(msg_body, ?d) AS message,
 				msg_created AS created,
 				msg_modified AS modified,
 				GREATEST(msg_created, IFNULL(msg_modified, 0)) AS maxdate,
@@ -158,8 +157,8 @@ switch ($action):
 			$lastpost = $db->selectRow(
 				'SELECT
 					msg_id AS id,
-					msg_topic_id AS topic_id,
 					LEFT(msg_body, ?d) AS message,
+					msg_topic_id AS topic_id,
 					msg_created AS created,
 					msg_modified AS modified,
 					msg_deleted AS deleted,
@@ -177,9 +176,9 @@ switch ($action):
 			if ($lastpost['deleted']){
 				$lastpost = $db->selectRow(
 					'SELECT
-						msg_id AS id,
-						msg_topic_id AS topic_id,
+						msg_id AS id,\
 						LEFT(msg_body, ?d) AS message,
+						msg_topic_id AS topic_id,
 						msg_created AS created,
 						msg_modified AS modified,
 						msg_deleted AS deleted,
@@ -241,7 +240,10 @@ switch ($action):
 		// ЕСЛИ В ЗАПРОСЕ УКАЗАНА ТЕМА
 		if (($topic = $_REQUEST['curTopic'])){ // да, тут действительно присвоение
 			
-			if ($_REQUEST['loadTopic']) $maxdateSQL = jsts2sql($_REQUEST['maxdateTS'] = '0');
+			if ($_REQUEST['loadTopic']) {
+				$maxdateSQL = jsts2sql($_REQUEST['maxdateTS'] = '0');
+				$result['topic_prop']['manual'] = true;
+			}
 
 			// проверяем, существует ли тема (не удалена ли) и читаем ее заголовок
 			$topic_name = $db->selectCell(
@@ -293,11 +295,11 @@ switch ($action):
 				$result['posts'] = make_tree($db->select(
 					'SELECT
 						msg_id AS id,
+						msg_body AS message,
 						msg_author AS author_id,
 						msg_parent AS parent,
 						msg_topic_id AS topic_id,
 						msg_topic AS topic,
-						msg_body AS message,
 						msg_created AS created,
 						msg_modified AS modified,
 						msg_deleted AS deleted,
@@ -315,12 +317,6 @@ switch ($action):
 			}
 		}
 			
-	break;
-	
-	
-	// стираем файл, который необходим для работы ожидающего цикла
-	case 'stop_waiting':
-		unlink('data/xhr_session/'.$_REQUEST['file']);
 	break;
 
 

@@ -12,7 +12,7 @@ function consoleWrite(string, skip){
 		t['H'] = date.getHours();
 		t['M'] = date.getMinutes();
 		t['S'] = date.getSeconds();
-		for (var i in t) { if (t[i]*1 < 10) t[i] = '0'+t[i]; }
+		for (var i in t) {if (t[i]*1 < 10) t[i] = '0'+t[i];}
 
 		time = t['H'] + ':' + t['M'] + ':' + t['S'];
 	}
@@ -68,7 +68,7 @@ function closeOverlayPage() {
 function insertResizers(){
 	var cols = e('<td>', '#app_block_tr', true); // true - с отвязкой
 	
-	for (var i=0; i<cols.length; i++) { var col = cols[i];
+	for (var i=0; i<cols.length; i++) {var col = cols[i];
 		
 		if (i == cols.length-1) return; // если последняя колонка
 
@@ -228,14 +228,14 @@ function fillToolbars(){
 	var markRead = addButton('markread', postsBar);
 	
 	var stopWait = addButton('stop', topicsBar, 'stop');
-	var startWait = addButton('stop', topicsBar, 'start');
+	var startWait = addButton('start', topicsBar, 'start');
 	
 	stopWait.onclick = function(){
 		wait.stop();
 	}
 	
 	startWait.onclick = function(){
-		wait.start(wait.maxdateTS);
+		wait.start(1);
 	}
 
 	newTopicBtn.onclick = function(){newTopic(newTopicBtn);}
@@ -288,43 +288,10 @@ function attachActions(){
 
 }
 
-function insertTypeforms(){
-	var container = e('@typing_panel', '#viewport_posts');
-	
-	var form = newel('form', null, 'answer_here');
-	var textarea = newel('textarea', null, 'textarea_0');
-		textarea.rows = 1;
-	var controls = div('controls');
-	//var cancel = div('button', 'cancel_post', '<span>'+txt['cancel']+'</span>');
-	var send = div('button', 'send_post', '<span>'+txt['send']+'</span>');
-	
-	container.appendChild(form);
-	
-	appendKids( form
-		, textarea
-		, controls
-	);
-		
-	appendKids( controls
-		//, cancel
-		, send
-		, nuclear()
-	);
-		
-	var editor = veditor();
-	editor.panelInstance(textarea.id);
-	
-	setTimeout(
-		function(){e('@nicEdit-main', form).focus();}
-		, 500
-	);
-}
-
 
 // функция для использования в общей onload-функции
 function startInterface(){
 	addDynamicCSS();
-	insertTypeforms();
 	insertResizers();
 	resizeFrame();
 

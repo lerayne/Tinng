@@ -619,14 +619,26 @@ td.collapsed {
 */
 
 #viewport_posts .typing_panel {
-	min-height:80px;
+	min-height:30px;
 	background: #eeeeee;
 	border-top:1px solid #cccccc;
-	padding:5px;
+	padding:5px 10px;
+}
+
+#viewport_posts .typing_panel .controls {
+	display:table-cell;
+	padding:0 8px;
+	vertical-align: bottom;
+}
+
+#viewport_posts .typing_panel .controls .button{
+	margin: 0;
 }
 
 #answer_here {
-	margin:5px;
+	display:table-cell;
+	width:100%;
+
 }
 
 #answer_here textarea {
