@@ -73,7 +73,7 @@ switch ($action):
 	case 'load_updates':
 
 		$begin = now();
-		$wait_time = 10;// ini_get('max_execution_time') - $cfg['db_wait_time'] - 2;
+		$wait_time = ini_get('max_execution_time') - $cfg['db_wait_time'] - 2;
 		
 		$maxdateSQL = $result['old_maxdate'] = jsts2sql($_REQUEST['maxdateTS']);
 		

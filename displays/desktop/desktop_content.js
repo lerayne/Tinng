@@ -165,8 +165,21 @@ var TopicItem = Class( DesktopMessageItem, {
 		
 		// вешаем на клик событие загрузки сообщений
 		var clickload = function(){
+			
 			wait.stop();
-			wait.loadTopic(that.row['id']); //fillPosts(that.row['id'], e('@contents', '#viewport_posts'));
+		
+			// чистим всё
+			e('@contents', '#viewport_posts').innerHTML = '';
+			branches = {};
+			messages = {};
+
+			// запрашиваем новую тему
+			currentTopic = that.row['id'];
+			wait.start(1, true);
+
+			// хеш-строка адреса
+			adress.set('topic', that.row['id']);
+			adress.del('message');
 		}
 
 		this.item.onclick = clickload;
@@ -672,30 +685,19 @@ function newTopic(btn){
 }
 
 
-
-
-function Updater(){
+function Updater(parseFunc){
 	var that = this;
 	
 	this.startBlocked = false;
 	this.paused = false;
-	that.maxdateTS = 0;
+	this.maxdateTS = 0;
 	
 	this.topicSort = 'updated';
 	this.tsReverse = true;
 	
 	var req = false;
 	
-	var vpPosts  = e('#viewport_posts');
-	var vpTopics = e('#viewport_topics');
-	
-	var postsCont =	 e('@contents'  , vpPosts);
-	//var pSbar =		 e('@statusbar' , vpPosts);
-	var pTbar =		 e('@titlebar'  , vpPosts);
-	var topicsCont = e('@contents'  , vpTopics);
-	//var tSbar =		 e('@statusbar' , vpTopics);
-	//var tTbar =		 e('@titlebar'  , vpTopics);
-	var SInd =		 e('@state_ind' ,'#top_bar');
+	var SInd = e('@state_ind' ,'#top_bar');
 	
 	// ФУНКЦИЯ ЦИКЛИЧНОГО ОЖИДАНИЯ
 	this.start = function(forceDateTS, loadTopic){
@@ -715,7 +717,7 @@ function Updater(){
 				that.startBlocked = false;
 				
 				// разбираем пришедший пакет и выполняем обновления
-				that.maxdateTS = parseResult(req.responseJS);
+				that.maxdateTS = parseFunc(req.responseJS);
 				
 				removeClass(SInd, 'updating'); // индикация ожидания откл
 				
@@ -756,129 +758,121 @@ function Updater(){
 		}
 	}
 	
-	// обертка для загрузки выбранной темы
-	this.loadTopic = function(topic){
-		
-		// чистим всё
-		postsCont.innerHTML = '';
-		branches = {};
-		messages = {};
-		
-		// запрашиваем новую тему
-		currentTopic = topic;
-		that.start(1, true);
-		
-		// хеш-строка адреса
-		adress.set('topic', topic);
-		adress.del('message');
-	}
-	
 	// забронируем
 	this.timeout = function(){}
+}
+
+
+// РАЗБОР ПАКЕТА И ВЫПОЛНЕНИЕ ОБНОВЛЕНИЙ
+function parseResult(result){
 	
-	// РАЗБОР ПАКЕТА И ВЫПОЛНЕНИЕ ОБНОВЛЕНИЙ
-	var parseResult = function(result){
-		
-		// разбираем темы
-		if (result && result['topics']){
-			
-			for (var i in result['topics']) { 
-				var entry = result['topics'][i];
-				var topic = topics[entry['id']];
-				
-				if (topic){ // если в текущем массиве загруженных тем такая уже есть
-					
-					if (entry['deleted']){
-						remove(topic.item);
-						delete(topics[entry['id']]);
-					} else {
-						topic.fillData(entry);
-						topic.bump();
-					}
-					
-				} else if (!entry['deleted']) { // если в текущем массиве тем такой нет и пришедшая не удалена
-					
-					topics[entry['id']] = new TopicItem(entry);
-					topicsCont.appendChild(topics[entry['id']].item);
-				}	
+	var entry, topic, message;
+
+	var vpPosts  = e('#viewport_posts');
+	var vpTopics = e('#viewport_topics');
+	
+	var postsCont =	 e('@contents'  , vpPosts);
+	var pSbar =		 e('@statusbar' , vpPosts);
+	var pTbar =		 e('@titlebar'  , vpPosts);
+	var topicsCont = e('@contents'  , vpTopics);
+	var tSbar =		 e('@statusbar' , vpTopics);
+	var tTbar =		 e('@titlebar'  , vpTopics);
+
+	// разбираем темы
+	if (result && result['topics']) { for (var i in result['topics']) { 
+		entry = result['topics'][i];
+		topic = topics[entry['id']];
+
+		if (topic){ // если в текущем массиве загруженных тем такая уже есть
+
+			if (entry['deleted']){
+				remove(topic.item);
+				delete(topics[entry['id']]);
+			} else {
+				topic.fillData(entry);
+				topic.bump();
+			}
+
+		} else if (!entry['deleted']) { // если в текущем массиве тем такой нет и пришедшая не удалена
+
+			topics[entry['id']] = new TopicItem(entry);
+			topicsCont.appendChild(topics[entry['id']].item);
+		}	
+	}}
+
+
+	// разбираем последние посты
+	if (result && result['lastposts']) { for (var i in result['lastposts']) { 
+		entry = result['lastposts'][i];
+		topic = topics[entry['topic_id']];
+
+		if (topic) {
+			topic.fillLast(entry);
+			topic.bump();
+		}
+	}}
+
+
+	// разбираем сообщения
+	if (result && result['posts']){
+
+		var tProps = result['topic_prop'];
+
+		pTbar.innerHTML = tProps['name'];
+
+		for (var i in result['posts']) { 
+			entry = result['posts'][i];
+			message = messages[entry['id']];
+
+			if (message){ // если в текущем массиве загруженных сообщений такое уже есть
+
+				if (entry['deleted']){
+					remove(message.item);
+					delete(messages[entry['id']]);
+				} else message.fillData(entry);
+
+			} else if (!entry['deleted']) { // если в текущем массиве такого нет и пришедшее не удалено
+
+				// !! не учитывается ветвление!
+				// один из вариантов решения - хранить в базе в поле msg_parent id самого 
+				// сообщения, если сообщение заглавное в ветке (т.е. если раньше там было 0)
+				// тогда var parent = entry['parent']
+				var parent = currentTopic;
+
+				// если такой ветки еще нет - создаем 
+				if (!branches[parent]) branches[parent] = new Branch(postsCont, currentTopic, parent);
+
+				// добавляем новое сообщение к существующей (или новосозданной) ветке
+				branches[parent].appendBlock(entry);
+
+				var lastvisible = messages[entry['id']];
 			}
 		}
 
-		
-		// разбираем последние посты
-		if (result && result['lastposts']){
-			for (var i in result['lastposts']) { 
-				var entry = result['lastposts'][i];
-				var topic = topics[entry['topic_id']];
-				
-				if (topic) {
-					topic.fillLast(entry);
-					topic.bump();
-				}
+		// наличие id означает что тема загружается полностью
+		if (tProps['id']) {
+			topics[tProps['id']].markActive(); // делаем тему в столбце тем активной
+
+			// если тема загружается не вручную кликом по ней - промотать до неё в списке
+			if (!tProps['manual']) topics[tProps['id']].item.scrollIntoView(false);
+
+			// управляем автопрокруткой
+			var refPost;
+			if ((refPost = adress.get('message'))){
+
+				messages[refPost].item.scrollIntoView(false);
+
+			} else if (tProps['date_read'] != 'firstRead') {
+				// !! тут будет прокрутка до первого непрочитанного поста
+				lastvisible.item.scrollIntoView(false);
 			}
 		}
-		
-		
-		// разбираем сообщения
-		if (result && result['posts']){
-			
-			var tProps = result['topic_prop'];
-			
-			pTbar.innerHTML = tProps['name'];
-			
-			for (var i in result['posts']) { 
-				var entry = result['posts'][i];
-				var message = messages[entry['id']];
-								
-				if (message){ // если в текущем массиве загруженных сообщений такое уже есть
-					
-					if (entry['deleted']){
-						remove(message.item);
-						delete(messages[entry['id']]);
-					} else message.fillData(entry);
-					
-				} else if (!entry['deleted']) { // если в текущем массиве такого нет и пришедшее не удалено
-					
-					// !! не учитывается ветвление!
-					// один из вариантов решения - хранить в базе в поле msg_parent id самого 
-					// сообщения, если сообщение заглавное в ветке (т.е. если раньше там было 0)
-					// тогда var parent = entry['parent']
-					var parent = currentTopic;
-					
-					// если такой ветки еще нет - создаем 
-					if (!branches[parent]) branches[parent] = new Branch(postsCont, currentTopic, parent);
-					
-					// добавляем новое сообщение к существующей (или новосозданной) ветке
-					branches[parent].appendBlock(entry);
-					
-					var lastvisible = message;
-				}
-			}
-			
-			// наличие id означает что тема загружается полностью
-			if (tProps['id']) {
-				topics[tProps['id']].markActive(); // делаем тему в столбце тем активной
-				
-				// если тема загружается не вручную кликом по ней - промотать до неё в списке
-				if (!tProps['manual']) topics[tProps['id']].item.scrollIntoView(false);
-				
-				// управляем автопрокруткой
-				var refPost;
-				if ((refPost = adress.get('message'))){
-					
-					messages[refPost].item.scrollIntoView(false);
-					
-				} else if (tProps['date_read'] != 'firstRead') {
-					// !! тут будет прокрутка до первого непрочитанного поста
-					lastvisible.item.scrollIntoView(false);
-				}
-			}
-		}
-		
-		// Выдать новый TS полученный из пакета обновлений
-		return sql2stamp(result['new_maxdate']);
 	}
+
+	// Выдать новый TS полученный из пакета обновлений
+	return sql2stamp(result['new_maxdate']);
 }
+
 
 // функция добавления сообщения набросана как попало! разобраться!
 function insertTypeforms(){
@@ -937,7 +931,7 @@ function insertTypeforms(){
 function startEngine(){
 	insertTypeforms();
 	
-	wait = new Updater;
+	wait = new Updater(parseResult);
 	
 	/* //fillTopics();
 	if ((currentTopic = adress.get('topic'))){
