@@ -4,4 +4,6 @@ window.onload = function(){
 	removeCurtain();
 }
 
-
+window.onbeforeunload = function(){
+	wait.stop();
+}
