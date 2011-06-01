@@ -24,22 +24,19 @@ $message = $_COOKIE['message'];
 		<link rel="stylesheet" id="lowres_css" type="text/css" href="">
 		
 		<?
-		// универсальные библиотеки
-		incl_scripts(
-			  'libraries/JsHttpRequest.js'
-			, 'lib_modified/nicEdit.js'
-			, 'libraries/webtoolkit.js'
-			, 'js/spikes.js'
-			, 'js/object_spikes.js'
-			, 'js/global_content.js'
-		);
+		
 		
 		// импорт переменных из PHP
 		require_once 'php/js_vars_import.php';
 		
-		//	 скрипты самого сервиса
 		incl_scripts(
-			  $device_path.'interface.js'
+			 'libraries/JsHttpRequest.js'
+			, 'lib_modified/nicEdit.js' 
+			, 'libraries/webtoolkit.js'
+			, 'js/spikes.js'
+			, 'js/object_spikes.js'
+			, 'js/global_content.js'
+			, $device_path.'interface.js'
 			, $device_path.'content.js'
 			//, $device_path.'focusing.js'
 			, $device_path.'onload.js'

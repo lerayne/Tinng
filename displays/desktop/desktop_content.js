@@ -411,6 +411,7 @@ var PostItem = Class( DesktopMessageItem, {
 		}
 		
 		// Добавление сообщения
+		/*
 		var addMessage = function(button, plain){
 
 			removeClass(that.controls, 'reveal');
@@ -549,15 +550,15 @@ var PostItem = Class( DesktopMessageItem, {
 			send.onclick = sendMsg;
 
 			that.contArea.scrollTop += answerBlock.offsetHeight;
-		}
+		}*/
 		
 		// добавляем кнопки
 		//var branchBtn = addBtn('addbranch', txt['answer']);
 		//branchBtn.onclick = function(){addMessage(branchBtn);}
 
 		if (userID) {
-			var plainBtn = this.addBtn('plainanswer', txt['answer']);
-			plainBtn.onclick = function(){addMessage(plainBtn, 'plain');}
+			//var plainBtn = this.addBtn('plainanswer', txt['answer']);
+			//plainBtn.onclick = function(){addMessage(plainBtn, 'plain');}
 		}
 
 		if (this.row['author_id'] == userID){
@@ -567,8 +568,8 @@ var PostItem = Class( DesktopMessageItem, {
 			this.addBtn('deletemessage').onclick = deleteMessage;
 		}
 		
-		var collEx = this.addBtn('collex none');
-		collEx.onclick = function(){alert('collapse/expand ');}
+		//var collEx = this.addBtn('collex none');
+		//collEx.onclick = function(){alert('collapse/expand ');}
 
 		this.controls.appendChild(this.explain);
 	},
@@ -603,8 +604,8 @@ var Branch = function(contArea, topicID, parentID){
 	this.appendBlock = function(row){
 		var block = that.createBlock(row);
 		that.cont.appendChild(block);
-		addClass(block, 'lastblock');
-		if (prevElem(block)) removeClass(prevElem(block), 'lastblock');
+		//addClass(block, 'lastblock');
+		//if (prevElem(block)) removeClass(prevElem(block), 'lastblock');
 		return block;
 	}
 }
@@ -700,7 +701,7 @@ function Updater(parseFunc){
 	var SInd = e('@state_ind' ,'#top_bar');
 	
 	// ФУНКЦИЯ ЦИКЛИЧНОГО ОЖИДАНИЯ
-	this.start = function(forceDateTS, loadTopic){
+	this.start = function(forceDateTS, loadTopic, insert, update){
 		if (!that.startBlocked || forceDateTS){
 			
 			// устанавливаем флаг, блокирующий параллельный старт еще одного запроса
@@ -731,9 +732,17 @@ function Updater(parseFunc){
 				curTopic: currentTopic,
 				topicSort: that.topicSort,
 				tsReverse: that.tsReverse,
-				loadTopic: loadTopic ? loadTopic : null
+				loadTopic: loadTopic ? loadTopic : null,
+				insert: insert ? insert : null,
+				update: update ? update : null
 			});
 		}
+	}
+	
+	this.writeAndStart = function(insert, update){
+		
+		// внезапный финт ушами: все записи и обновления базы делаются одним запросом с чтением
+		that.start(1, null, insert, update);
 	}
 	
 	// остановщик ожидателя long-poll
@@ -752,7 +761,7 @@ function Updater(parseFunc){
 			}
 			req.abort();
 			that.startBlocked = false;
-		} else { // если стоп вызывается когда this.startBlocked == null, значит это произошло между запусками
+		} else { // если стоп вызывается когда this.startBlocked == false, значит это произошло между запусками
 			// это заблокирует старт и он станет возможен только при помощи форсированного запуска с датой
 			that.startBlocked = true;
 		}
@@ -848,6 +857,8 @@ function parseResult(result){
 				var lastvisible = messages[entry['id']];
 			}
 		}
+		
+		if (tProps['scrollto']) messages[tProps['scrollto']].item.scrollIntoView(false);
 
 		// наличие id означает что тема загружается полностью
 		if (tProps['id']) {
@@ -872,6 +883,8 @@ function parseResult(result){
 	// Выдать новый TS полученный из пакета обновлений
 	return sql2stamp(result['new_maxdate']);
 }
+
+
 
 
 // функция добавления сообщения набросана как попало! разобраться!
@@ -924,6 +937,13 @@ function insertTypeforms(){
 	
 	send.onclick = function(){
 		
+		wait.stop();
+		
+		wait.writeAndStart({
+			message: field.innerHTML
+		});
+		
+		field.innerHTML = '';
 	}
 }
 

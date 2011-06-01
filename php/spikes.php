@@ -17,6 +17,52 @@ function jsts2sql($str){
 
 function incl_scripts(){
 	$arr = func_get_args();
+	
+	global $safecfg, $display_mode;
+	
+	if ($safecfg['production']){
+		
+		foreach ($arr as $val):
+			$script .= file_get_contents($val);
+		endforeach;
+		
+		$filename = 'data/compiled_js/'.$display_mode.'_'. md5($script) .'.js' ;
+		
+		if (!file_exists($filename)){
+			
+			$dir = opendir('data/compiled_js/');
+			while (($file = readdir($dir)) !== false) {
+				if (!(strpos($file, $display_mode) === false)) unlink('data/compiled_js/'.$file); 
+			}
+
+			$conn = curl_init("http://closure-compiler.appspot.com/compile");
+
+			$param[] = 'js_code='.urlencode($script);
+			$param[] = 'compilation_level=SIMPLE_OPTIMIZATIONS';
+			$param[] = 'output_info=compiled_code';
+
+			curl_setopt($conn, CURLOPT_POST, true);
+			curl_setopt($conn, CURLOPT_POSTFIELDS, join('&', $param));
+			curl_setopt($conn, CURLOPT_RETURNTRANSFER, true);
+
+			$compiled_script = curl_exec($conn);
+			
+			file_put_contents($filename, ($compiled_script) ? $compiled_script : $script);
+		}
+		
+		echo '<script type="text/javascript" language="JavaScript" src="'.$filename.'"></script>';
+		
+	} else {
+		
+		foreach ($arr as $val):
+			echo '<script type="text/javascript" language="JavaScript" src="'.$val.'"></script>'."\n";
+		endforeach;
+	}	
+}
+
+function incl_scripts_l(){
+	$arr = func_get_args();
+	
 	foreach ($arr as $val):
 		echo '<script type="text/javascript" language="JavaScript" src="'.$val.'"></script>'."\n";
 	endforeach;

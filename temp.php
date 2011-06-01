@@ -1,7 +1,5 @@
 <?
 
-phpinfo();
-
 require_once 'php/initial.php';
 
 list($path, $getdata) = explode('?', $GLOBALS['_ENV']['REQUEST_URI']);
@@ -233,6 +231,22 @@ window.onload = function(){
 			<input type="button" value="stop wait" onclick="stop()" />
 			
 		</div>
+		
+		<form action="http://closure-compiler.appspot.com/compile" method="POST">
+    <p>Type JavaScript code to optimize here:</p>
+    <textarea name="js_code" cols="50" rows="5">
+    function hello(name) {
+      // Greets the user
+      alert('Hello, ' + name);
+    }
+    hello('New user');
+    </textarea>
+    <input type="hidden" name="compilation_level" value="WHITESPACE_ONLY">
+    <input type="hidden" name="output_format" value="text">
+    <input type="hidden" name="output_info" value="compiled_code">
+    <br><br>
+    <input type="submit" value="Optimize">
+    </form>
 		
 	</body>
 </html>

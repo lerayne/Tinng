@@ -1,10 +1,8 @@
 <?php
 /* Файл, к которому обращаются все XHR запросы */
 
-require_once 'config.php';
 require_once 'php/initial.php';
 
-//session_name('uc_ajax');
 //session_start();
 
 function databaseErrorHandler($message, $info) {
@@ -38,6 +36,7 @@ $id = $_REQUEST['id'];
 function ready_row($row){
 	//if ($row['use_gravatar'] == '1')
 	$row['avatar_url'] = 'http://www.gravatar.com/avatar/'.md5(strtolower($row['author_email'])).'?s=48';
+	unset($row['author_email']); // не выводим мыло во избежание спама
 
 	return $row;
 }
@@ -71,28 +70,65 @@ switch ($action):
 	
 	// ОСНОВНОЙ ЗАГРУЗЧИК И ОБНОВИТЕЛЬ ДАННЫХ
 	case 'load_updates':
-
-		$begin = now();
-		$wait_time = ini_get('max_execution_time') - $cfg['db_wait_time'] - 2;
 		
 		$maxdateSQL = $result['old_maxdate'] = jsts2sql($_REQUEST['maxdateTS']);
 		
-		fopen($checkfile = 'data/xhr_session/'.$sessid.'-'.$xhr_id, 'w');
-		
-		// ЖДЕМ ИЗМЕНЕНИЙ
-		do { if (!file_exists($checkfile)) {/*fopen('data/xhr_session/stop', 'w');*/ die();}
+		// функция подсчитывающая кол-во обновившихся полей
+		function count_updates() { global $db, $condition, $maxdateSQL;
 			
-			$changes_q = $_REQUEST['loadTopic'] ? 1 : $db->selectCell(
+			return $_REQUEST['loadTopic'] ? 1 : $db->selectCell(
 				'SELECT COUNT( * ) FROM ?_messages WHERE (msg_created > ? OR msg_modified > ?)'
 				. ($condition ? ' AND '.$condition : '') // забито под условие польз. поиска по темам
 				, $maxdateSQL , $maxdateSQL
 			);
-			
-			if ($changes_q == '0') sleep($cfg['db_wait_time']); // ждем если ничего не пришло
-			
-		} while ($changes_q == '0' && (time() - $begin) < $wait_time); // если нет ответа и не вышло время
+		}
 		
-		unlink($checkfile);
+		
+		// Если мы что-то пишем - цикл ожидания не запускается. Скорее всего обновления будут, 
+		// максимум что нужно  посчитать их
+		$insert = $_REQUEST['insert'];
+		$update = $_REQUEST['update'];
+		
+		if ($insert || $update){
+			
+			$new_row = Array(
+				'msg_author' => $user->id,
+				'msg_parent' => $_REQUEST['curTopic'],
+				'msg_topic_id' => $_REQUEST['curTopic'],
+				'msg_body' => $insert['message'],
+				'msg_created' => date('Y-m-d H:i:s')
+			);
+
+			if ($insert['title']) $new_row['msg_topic'] = $insert['title'];
+
+			$new_id = $db->query(
+				'INSERT INTO ?_messages (?#) VALUES (?a)', array_keys($new_row), array_values($new_row)
+			);
+			
+			$result['topic_prop']['scrollto'] = $new_id;
+			
+			$changes_q = count_updates();
+			
+		} else {
+		// иначе запускаем цикл
+			
+			$begin = now();
+			$wait_time = ini_get('max_execution_time') - $cfg['db_wait_time'] - 2;
+
+			fopen($checkfile = 'data/xhr_session/'.$sessid.'-'.$xhr_id, 'w');
+
+			// ЖДЕМ ИЗМЕНЕНИЙ
+			do { if (!file_exists($checkfile)) {/*fopen('data/xhr_session/stop', 'w');*/ die();}
+
+				$changes_q = count_updates();
+
+				if ($changes_q == '0') sleep($cfg['db_wait_time']); // ждем если ничего не пришло
+
+			} while ($changes_q == '0' && (time() - $begin) < $wait_time); // если нет ответа и не вышло время
+
+			unlink($checkfile);
+			
+		}
 		
 		if ($changes_q == '0'){
 			// если результатов 0 то отправляем старую макс. дату и сбрасываем case
