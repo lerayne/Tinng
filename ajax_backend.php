@@ -59,6 +59,7 @@ function sort_result($array, $field, $reverse){
 	$out = Array();
 	
 	// сортировка двумерного массива по полю field. Работает даже с неуникальными ключами
+	// внимание! возвращает нумерованный массив, а не хеш-таблицу!
 	foreach ($array as $key => $val) $afs[$val[$field].$key] = $val;
 	ksort($afs);
 	if ($reverse) $afs = array_reverse($afs);
@@ -86,26 +87,57 @@ switch ($action):
 		
 		// Если мы что-то пишем - цикл ожидания не запускается. Скорее всего обновления будут, 
 		// максимум что нужно  посчитать их
-		$insert = $_REQUEST['insert'];
-		$update = $_REQUEST['update'];
+		$subAction = $_REQUEST['subAction'];
 		
-		if ($insert || $update){
+		if ($subAction){
 			
-			$new_row = Array(
-				'msg_author' => $user->id,
-				'msg_parent' => $_REQUEST['curTopic'],
-				'msg_topic_id' => $_REQUEST['curTopic'],
-				'msg_body' => $insert['message'],
-				'msg_created' => date('Y-m-d H:i:s')
-			);
-
-			if ($insert['title']) $new_row['msg_topic'] = $insert['title'];
-
-			$new_id = $db->query(
-				'INSERT INTO ?_messages (?#) VALUES (?a)', array_keys($new_row), array_values($new_row)
-			);
+			$params = $_REQUEST['params'];
 			
-			$result['topic_prop']['scrollto'] = $new_id;
+			
+			switch ($subAction){
+				
+				// вставляем новое сообщение (адаптировать для старта темы!)
+				case 'insert_post':
+
+					$new_row = Array(
+						'msg_author' => $user->id,
+						'msg_parent' => $_REQUEST['curTopic'],
+						'msg_topic_id' => $_REQUEST['curTopic'],
+						'msg_body' => $params['message'],
+						'msg_created' => date('Y-m-d H:i:s')
+					);
+
+					if ($params['title']) $new_row['msg_topic'] = $params['title'];
+
+					$new_id = $db->query(
+						'INSERT INTO ?_messages (?#) VALUES (?a)', array_keys($new_row), array_values($new_row)
+					);
+
+					$result['topic_prop']['scrollto'] = $new_id;
+
+				break;
+				
+				// удаляет сообщение
+				case 'delete_post':
+					
+					// проверка блокировки сообщения
+					$locked = $db->selectCell(
+						'SELECT msg_locked FROM ?_messages WHERE msg_id = ?d', $params['id']
+					);
+					
+					if ($locked){
+						
+						$result['error'] = 'post_locked';
+						
+					} else $db->query(
+						'UPDATE ?_messages SET msg_deleted = 1, msg_modified = ?
+						WHERE msg_id = ?d'
+						, date('Y-m-d H:i:s')
+						, $params['id']
+					);
+					
+				break;
+			}
 			
 			$changes_q = count_updates();
 			
@@ -190,7 +222,14 @@ switch ($action):
 		);
 		// для каждой темы ищем последний пост (если обновлен)
 		foreach ($selected_topics as $topic_id => $null){
-			$lastpost = $db->selectRow(
+			
+			// тут ошибка! выбирается последнее созданное из обновленных, даже если это не последнее 
+			// сообщение в теме! пока это отражается только тем, что при удалении любого сообщения в 
+			// теме этот запрос выбирает его, так как у него максимальный modified из всех в теме. 
+			// К счастью, следующий обработчик видит этот deleted и передает реально последнее сообщение 
+			// в теме, но а) передается избыточное сообщение, б) это может сказаться при редактировании
+			// сообщений
+			$common_query = 
 				'SELECT
 					msg_id AS id,
 					LEFT(msg_body, ?d) AS message,
@@ -201,7 +240,10 @@ switch ($action):
 					GREATEST(msg_created, IFNULL(msg_modified,0)) AS maxdate,
 					usr_login AS author
 				FROM ?_messages, ?_users WHERE
-					`msg_author` = `usr_id`
+					`msg_author` = `usr_id`';
+			
+			$lastpost = $db->selectRow(
+				$common_query.'
 					AND msg_topic_id = ?d
 					AND (msg_created > ? OR msg_modified > ?)
 				ORDER BY msg_id DESC LIMIT 1'
@@ -210,18 +252,14 @@ switch ($action):
 			
 			// и если он удален - ищем последний актуальный
 			if ($lastpost['deleted']){
+				
+				$result['debug'][$topic_id] 
+					= 'the very last for topic '.$topic_id.' (#'.$lastpost['id'].') was deleted';
+				
+				// этот запрос ищет последнее неудаленное сообщение в теме, вне зависимости от того, 
+				// было ли оно обновлено
 				$lastpost = $db->selectRow(
-					'SELECT
-						msg_id AS id,\
-						LEFT(msg_body, ?d) AS message,
-						msg_topic_id AS topic_id,
-						msg_created AS created,
-						msg_modified AS modified,
-						msg_deleted AS deleted,
-						GREATEST(msg_created, IFNULL(msg_modified,0)) AS maxdate,
-						usr_login AS author
-					FROM ?_messages, ?_users WHERE
-						`msg_author` = `usr_id`
+					$common_query.'
 						AND msg_topic_id = ?d
 						AND msg_deleted <=> NULL
 					ORDER BY msg_id DESC LIMIT 1'
@@ -244,8 +282,9 @@ switch ($action):
 						GREATEST(msg_created, IFNULL(msg_modified,0)) AS maxdate
 					FROM ?_messages 
 					WHERE msg_modified > ?
+					AND msg_topic_id = ?d
 					ORDER BY msg_modified DESC LIMIT 1'
-					, $maxdateSQL
+					, $maxdateSQL, $topic_id
 				);
 				 
 				if ($updated) $result['lastposts'][$topic_id] = $updated;
@@ -357,6 +396,7 @@ switch ($action):
 
 
 	// вставляем новое сообщение
+	/*
 	case 'insert_post':
 
 		$message = $_REQUEST['message'];
@@ -397,7 +437,7 @@ switch ($action):
 		));
 
 	break;
-
+	*/
 
 
 	
@@ -452,7 +492,7 @@ switch ($action):
 			'SELECT msg_locked FROM ?_messages WHERE msg_id = ?d', $id
 		);
 
-		// проверка налисия непосредственных потомков
+		// проверка наличия непосредственных потомков
 		$result['children'] = $db->selectCell(
 			'SELECT COUNT( * ) FROM ?_messages WHERE msg_parent = ?d', $id
 		);

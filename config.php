@@ -29,5 +29,5 @@ $safecfg['db'] = 'mysql://nvcg_main:maedanaena84@localhost/nvcg_topictalk';
 $safecfg['db_prefix'] = 'jawi'; // знак "_" вставляется автоматически, указывать его здесь не нужно
 
 // когда установлен - CSS и JS компилируются в малое количество файлов и обфусцируются
-$safecfg['production'] = 1;
+$safecfg['production'] = 0;
 ?>

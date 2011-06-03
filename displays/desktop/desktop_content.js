@@ -353,213 +353,24 @@ var PostItem = Class( DesktopMessageItem, {
 		
 		// Удаление сообщения
 		var deleteMessage = function(){
-
-			JsHttpRequest.query( 'ajax_backend.php', { // аргументы:
-
-				  action: 'check'
-				, id: that.row['id']
-
-			}, function(result, errors) {if (result['locked'] == null){ // когда пришел ответ:
-
-				var confirmed;
-
-				if (result['is_topic'] != '0') {
-					var isTopic = true;
-					confirmed = confirm(txt['topic_del_confirm']);
-				} else {
-					confirmed = confirm(txt['msg_del_confirm']);
-				}
-
-				if (!confirmed) return;
-
+			
+			if (confirm(txt['msg_del_confirm'])){
 				wait.stop();
 
-				JsHttpRequest.query( 'ajax_backend.php', { // аргументы:
-
-					  action: 'delete'
-					, id: that.row['id']
-
-				}, function(result, errors) { // когда пришел ответ:
-
-					if (result['maxdate']) {
-						if (hasClass(that.item, 'lastblock') && prevElem(that.item)){
-							addClass(prevElem(that.item), 'lastblock');
-						}
-						remove(that.item);
-
-						if (isTopic) {
-							that.contArea.innerHTML = ''; // !! contArea!!!!
-							var topicBlock = e('#topic_'+that.row['id']);
-							if (topicBlock) remove(topicBlock);
-						}
-
-						consoleWrite('<b>Message deleted by user.</b> Max date set to '+result['maxdate'])
-
-						//!! если работает - избавится от глобальной переменной и всегда явно передавать
-						// значение в объект. Хотя, если не работает - возможно тоже
-						maxPostDate = sql2stamp(result['maxdate']);
-						//var mpd = sql2stamp(result['maxdate']);
-					}
-
-					wait.coldStart(); // холодный старт - потому что за время пока удалялось
-					// сообщение маловероятно, чтобы кто-то что-то дописал, чего не скажешь
-					// о редактировании и написании сообщение, поэтому там старт горячий
-
-				}, true /* запрещать кеширование */ );
-
-			} else alert (txt['post_locked']);}, true /* запрещать кеширование */ );
+				wait.writeAndStart( 'delete_post', {
+					id: that.row['id']
+				});
+			}
 		}
-		
-		// Добавление сообщения
-		/*
-		var addMessage = function(button, plain){
-
-			removeClass(that.controls, 'reveal');
-			addClass(that.controls, 'invis');
-
-			wait.stop();
-			var date = new Date();
-
-			// бекап функции
-			var backupFunc = button.onclick;
-			button.onclick = null;
-
-			// добавление блока
-			var answerBlock = div('add_message');
-			if (!plain) addClass(answerBlock, 'branched');
-
-			var form = newel('form');
-			var msgParent = plain ? that.topicID : that.row['id']
-			var textarea = newel('textarea', null, 'textarea_'+msgParent);
-
-			insAfter(that.item, answerBlock);
-			answerBlock.appendChild(form);
-			form.appendChild(textarea);
-
-			var editor = veditor();
-			editor.panelInstance(textarea.id);
-
-			e('@nicEdit-main', form).focus();
-
-			var cancelMsg = function(){
-
-				that.contArea.scrollTop -= answerBlock.offsetHeight;
-
-				editor.removeInstance(textarea.id);
-				editor.removePanel(textarea.id);
-
-				remove(answerBlock);
-				removeClass(that.controls, 'invis');
-				addClass(that.controls, 'reveal');
-
-				wait.start();
-
-				button.onclick = backupFunc;
-			}
-
-			// отправка сообщения
-			var sendMsg = function(){
-
-				consoleWrite('previously checking new posts for this moment');
-
-				// AJAX:
-				JsHttpRequest.query( 'ajax_backend.php', { // аргументы:
-
-					action: 'wait_post'
-					, topic: currentTopic
-					, maxdate: maxPostDate
-
-				}, function(result, errors) { // что делаем, когда пришел ответ:
-
-					if (result['data']) {
-
-						alert(txt['while_you_wrote']);
-						wait.updatePosts(result['data'], result['maxdate']);
-
-					} else { // если обновленных постов нет - размещаем таки новый пост
-
-						send.onclick = null;
-
-						textarea.disabled = true;
-						textarea.className = 'throbber_gray';
-
-						var msg_text = textarea.value || e('@nicEdit-main').innerHTML;
-						var newBlock;
-
-						// AJAX:
-						JsHttpRequest.query( 'ajax_backend.php', { // аргументы:
-
-							  action: 'insert_post'
-							, topic: that.topicID
-							, parent: msgParent
-							, message: msg_text
-
-						}, function(result, errors) { // что делаем, когда пришел ответ:
-
-							if (plain){
-
-								removeClass(prevElem(answerBlock), 'lastblock');
-								newBlock = new PostItem(result, 'post', that.contArea, that.topicID, that.branch);
-								newBlock = newBlock.item;
-									
-								// вычисляем последний пост в ветке
-								var ediv = e('.post', that.branch.cont);
-								ediv = ediv[ediv.length-1];
-
-								insAfter(ediv, newBlock); // вставляем новый блок
-								addClass(prevElem(answerBlock), 'lastblock');
-
-								that.contArea.scrollTop += newBlock.offsetHeight;
-
-							} else {
-
-								unhide(collEx);
-								var newBranch = new Branch(that.branch.cont, that.topicID, msgParent);
-								newBranch.cont.style.borderLeft = '30px solid #cccccc';
-								insAfter(that.item, newBranch.cont);
-								newBranch.appendBlock(result);
-
-							}
-
-							maxPostDate = sql2stamp(result['created']);
-
-							cancelMsg();
-
-							consoleWrite('<b>Message was added by user.</b> Max date set to '+result['created']);
-
-							// Дебажим:
-							e('#debug').innerHTML = errors;
-
-						}, true ); // запрещать кеширование
-					}
-				}, true ); // запрещать кеширование					
-			}
-
-			var answControls = div('controls');
-			//form.appendChild(div('subtext w80', null, txt['how_to_send_post']));
-			form.appendChild(answControls);
-
-			form.appendChild(nuclear());
-
-			var cancel = div('button', 'cancel_post', '<span>'+txt['cancel']+'</span>');
-			var send = div('button', 'send_post', '<span>'+txt['send']+'</span>');
-			answControls.appendChild(cancel);
-			answControls.appendChild(send);
-
-			cancel.onclick = cancelMsg;
-			send.onclick = sendMsg;
-
-			that.contArea.scrollTop += answerBlock.offsetHeight;
-		}*/
 		
 		// добавляем кнопки
 		//var branchBtn = addBtn('addbranch', txt['answer']);
 		//branchBtn.onclick = function(){addMessage(branchBtn);}
 
-		if (userID) {
-			//var plainBtn = this.addBtn('plainanswer', txt['answer']);
-			//plainBtn.onclick = function(){addMessage(plainBtn, 'plain');}
-		}
+		/* if (userID) {
+			var plainBtn = this.addBtn('plainanswer', txt['answer']);
+			plainBtn.onclick = function(){addMessage(plainBtn, 'plain');}
+		} */
 
 		if (this.row['author_id'] == userID){
 
@@ -701,7 +512,7 @@ function Updater(parseFunc){
 	var SInd = e('@state_ind' ,'#top_bar');
 	
 	// ФУНКЦИЯ ЦИКЛИЧНОГО ОЖИДАНИЯ
-	this.start = function(forceDateTS, loadTopic, insert, update){
+	this.start = function(forceDateTS, loadTopic, subAction, params){
 		if (!that.startBlocked || forceDateTS){
 			
 			// устанавливаем флаг, блокирующий параллельный старт еще одного запроса
@@ -733,8 +544,8 @@ function Updater(parseFunc){
 				topicSort: that.topicSort,
 				tsReverse: that.tsReverse,
 				loadTopic: loadTopic ? loadTopic : null,
-				insert: insert ? insert : null,
-				update: update ? update : null
+				subAction: subAction ? subAction : null,
+				params: params ? params : null
 			});
 		}
 	}
@@ -786,6 +597,8 @@ function parseResult(result){
 	var topicsCont = e('@contents'  , vpTopics);
 	var tSbar =		 e('@statusbar' , vpTopics);
 	var tTbar =		 e('@titlebar'  , vpTopics);
+	
+	if (result && result['error']) alert(txt['post_locked']);
 
 	// разбираем темы
 	if (result && result['topics']) { for (var i in result['topics']) { 
@@ -868,8 +681,8 @@ function parseResult(result){
 			if (!tProps['manual']) topics[tProps['id']].item.scrollIntoView(false);
 
 			// управляем автопрокруткой
-			var refPost;
-			if ((refPost = adress.get('message'))){
+			var refPost = adress.get('message');
+			if (messages[refPost]){
 
 				messages[refPost].item.scrollIntoView(false);
 
@@ -939,7 +752,7 @@ function insertTypeforms(){
 		
 		wait.stop();
 		
-		wait.writeAndStart({
+		wait.writeAndStart( 'insert_post' , {
 			message: field.innerHTML
 		});
 		
@@ -952,40 +765,25 @@ function startEngine(){
 	insertTypeforms();
 	
 	wait = new Updater(parseResult);
-	
-	/* //fillTopics();
-	if ((currentTopic = adress.get('topic'))){
-		//branches = {}; fillPosts(currentTopic, e('@contents', '#viewport_posts'));
-	} */
    
 	currentTopic = adress.get('topic');
 	wait.start();
 }
 
 /*
-
 // AJAX:
 JsHttpRequest.query( 'ajax_backend.php', { // аргументы:
-
 	action: 'load_posts'
-
 }, function(result, errors) { // что делаем, когда пришел ответ:
 
 }, true ); // запрещать кеширование
-
 ===============
-
 var req = new JsHttpRequest();
 req.onreadystatechange = function() { if (req.readyState == 4) {
-
-
 
 }}
 req.open(null, 'ajax_backend.php', true);
 req.send({
-
 	action: 'wait_post'
-
 });
-
 */
