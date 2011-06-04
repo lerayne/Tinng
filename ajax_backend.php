@@ -566,8 +566,8 @@ endswitch;
 $GLOBALS['_RESULT'] = $result;
 
 
-
-/*echo'
+/*
+echo'
 <pre>
 <b>Request method:</b>'.$_SERVER['REQUEST_METHOD']."\n
 <b>Loader used:</b>". $req->LOADER."\n
