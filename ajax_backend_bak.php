@@ -1,5 +1,7 @@
 <?	
 
+switch($var):
+	
 	
 	// СТАРЫЕ ФУНКЦИИ БЕКЕНДА
 	
@@ -277,4 +279,49 @@
 
 	break;
 	
+	
+	// вставляем новое сообщение
+	case 'insert_post':
+
+		$message = $_REQUEST['message'];
+		$title = $_REQUEST['title'];
+		$topic = $_REQUEST['topic'];
+		$parent = $_REQUEST['parent'];
+
+		$new_row = Array(
+			'msg_author' => $user->id,
+			'msg_parent' => $parent,
+			'msg_topic_id' => $topic,
+			'msg_body' => $message,
+			'msg_created' => date('Y-m-d H:i:s')
+		);
+
+		if ($title) $new_row['msg_topic'] = $title;
+
+		$new_id = $db->query(
+			'INSERT INTO ?_messages (?#) VALUES (?a)', array_keys($new_row), array_values($new_row)
+		);
+
+		$result = ready_row($db->selectRow('
+			SELECT
+				msg_id AS id,
+				msg_author AS author_id,
+				msg_parent AS parent,
+				msg_topic_id AS topic_id,
+				msg_topic AS topic,
+				msg_body AS message,
+				msg_created AS created,
+				msg_modified AS modified,
+				usr_email AS author_email,
+				usr_login AS author
+			FROM ?_messages, ?_users
+			WHERE msg_id = ?
+			AND `msg_author` = `usr_id`'
+			, $new_id
+		));
+
+	break;
+	
+	
+endswitch;	
 ?>

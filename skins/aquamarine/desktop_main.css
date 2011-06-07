@@ -644,3 +644,7 @@ td.collapsed {
 #answer_here textarea {
 	width: 100%;
 }
+
+.redBack {
+	background-color: red;
+}

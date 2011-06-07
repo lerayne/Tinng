@@ -175,7 +175,7 @@ var TopicItem = Class( DesktopMessageItem, {
 
 			// запрашиваем новую тему
 			currentTopic = that.row['id'];
-			wait.start(1, true);
+			wait.start(1, 'load_topic');
 
 			// хеш-строка адреса
 			adress.set('topic', that.row['id']);
@@ -263,7 +263,7 @@ var TopicItem = Class( DesktopMessageItem, {
 var PostItem = Class( DesktopMessageItem, {
 	
 	
-	createElems: function(){
+	createElems: function() {
 		PostItem.superclass.prototype.createElems.apply(this, arguments);
 		
 		this.item.id = 'post_'+this.row['id'];
@@ -297,16 +297,10 @@ var PostItem = Class( DesktopMessageItem, {
 			// AJAX:
 			JsHttpRequest.query( 'ajax_backend.php', { // аргументы:
 
-				  action: 'check'
+				  action: 'check_n_lock'
 				, id: that.row['id']
 
 			}, function(result, errors) {if (result['locked'] == null){ // что делаем, когда пришел ответ:
-
-				wait.stop();
-
-				var req = new JsHttpRequest();
-				req.open(null, 'ajax_backend.php', true);
-				req.send({action: 'lock_post', id: that.row['id']});
 
 				var backupMsg = that.message.innerHTML;
 
@@ -326,9 +320,9 @@ var PostItem = Class( DesktopMessageItem, {
 					unhide(that.infobar, that.controls);
 					var req = new JsHttpRequest();
 					req.open(null, 'ajax_backend.php', true);
-					req.send({action: 'unlock_post', id: that.row['id']});
+					req.send({ action: 'unlock_post', id: that.row['id'] });
 
-					wait.start();
+					wait.start(1);
 				}
 
 				var updateMessage = function(){
@@ -501,7 +495,6 @@ function Updater(parseFunc){
 	var that = this;
 	
 	this.startBlocked = false;
-	this.paused = false;
 	this.maxdateTS = 0;
 	
 	this.topicSort = 'updated';
@@ -512,7 +505,7 @@ function Updater(parseFunc){
 	var SInd = e('@state_ind' ,'#top_bar');
 	
 	// ФУНКЦИЯ ЦИКЛИЧНОГО ОЖИДАНИЯ
-	this.start = function(forceDateTS, loadTopic, subAction, params){
+	this.start = function(forceDateTS, subAction, params){
 		if (!that.startBlocked || forceDateTS){
 			
 			// устанавливаем флаг, блокирующий параллельный старт еще одного запроса
@@ -543,17 +536,16 @@ function Updater(parseFunc){
 				curTopic: currentTopic,
 				topicSort: that.topicSort,
 				tsReverse: that.tsReverse,
-				loadTopic: loadTopic ? loadTopic : null,
 				subAction: subAction ? subAction : null,
 				params: params ? params : null
 			});
 		}
 	}
 	
-	this.writeAndStart = function(insert, update){
+	this.writeAndStart = function(subAction, params){
 		
 		// внезапный финт ушами: все записи и обновления базы делаются одним запросом с чтением
-		that.start(1, null, insert, update);
+		that.start(1, subAction, params);
 	}
 	
 	// остановщик ожидателя long-poll
@@ -649,7 +641,7 @@ function parseResult(result){
 			if (message){ // если в текущем массиве загруженных сообщений такое уже есть
 
 				if (entry['deleted']){
-					remove(message.item);
+					shownRemove(message.item);
 					delete(messages[entry['id']]);
 				} else message.fillData(entry);
 

@@ -182,7 +182,12 @@ function insAfter (refNode, newNode){
 
 // удаление элемента
 function remove(elem){
-	elem.parentNode.removeChild(elem);
+	elem.parentNode.removeChild(elem)
+}
+
+function shownRemove(elem){
+	addClass(elem, 'redBack');
+	setTimeout(function() { remove(elem) }, 500);
 }
 
 // полное уничтожение объекта с освобождением памяти

@@ -3,8 +3,6 @@
 
 require_once 'php/initial.php';
 
-//session_start();
-
 function databaseErrorHandler($message, $info) {
     //if (!error_reporting()) return;
     echo "SQL Error: $message<br><pre>"; print_r($info); echo "</pre>";
@@ -35,7 +33,7 @@ $id = $_REQUEST['id'];
 // подготовка каждой строки
 function ready_row($row){
 	//if ($row['use_gravatar'] == '1')
-	$row['avatar_url'] = 'http://www.gravatar.com/avatar/'.md5(strtolower($row['author_email'])).'?s=48';
+	$row['avatar_url'] = 'http://www.gravatar.com/avatar/' .md5(strtolower($row['author_email'])).'?s=48';
 	unset($row['author_email']); // не выводим мыло во избежание спама
 
 	return $row;
@@ -74,27 +72,27 @@ switch ($action):
 		
 		$maxdateSQL = $result['old_maxdate'] = jsts2sql($_REQUEST['maxdateTS']);
 		
-		// функция подсчитывающая кол-во обновившихся полей
-		function count_updates() { global $db, $condition, $maxdateSQL;
+		// функция достающая новую макс-дату, если обновления есть
+		function get_new_maxdate() { 
+			global $db, $condition, $maxdateSQL;
 			
-			return $_REQUEST['loadTopic'] ? 1 : $db->selectCell(
-				'SELECT COUNT( * ) FROM ?_messages WHERE (msg_created > ? OR msg_modified > ?)'
+			$localDateCompare = ($_REQUEST['subAction'] == 'load_topic') ? 0 : $maxdateSQL;
+			
+			return $db->selectCell (
+				'SELECT GREATEST(MAX(msg_created), IFNULL(MAX(msg_modified), 0))
+				FROM ?_messages WHERE (msg_created > ? OR msg_modified > ?)'
 				. ($condition ? ' AND '.$condition : '') // забито под условие польз. поиска по темам
-				, $maxdateSQL , $maxdateSQL
+				, $localDateCompare , $localDateCompare
 			);
 		}
 		
-		
 		// Если мы что-то пишем - цикл ожидания не запускается. Скорее всего обновления будут, 
-		// максимум что нужно  посчитать их
-		$subAction = $_REQUEST['subAction'];
-		
-		if ($subAction){
+		// максимум что нужно - узнать, есть ли они
+		if ($_REQUEST['subAction']){
 			
 			$params = $_REQUEST['params'];
 			
-			
-			switch ($subAction){
+			switch ($_REQUEST['subAction']) {
 				
 				// вставляем новое сообщение (адаптировать для старта темы!)
 				case 'insert_post':
@@ -139,7 +137,7 @@ switch ($action):
 				break;
 			}
 			
-			$changes_q = count_updates();
+			$result['new_maxdate'] = get_new_maxdate();
 			
 		} else {
 		// иначе запускаем цикл
@@ -150,19 +148,20 @@ switch ($action):
 			fopen($checkfile = 'data/xhr_session/'.$sessid.'-'.$xhr_id, 'w');
 
 			// ЖДЕМ ИЗМЕНЕНИЙ
-			do { if (!file_exists($checkfile)) {/*fopen('data/xhr_session/stop', 'w');*/ die();}
+			do { 
+				if (!file_exists($checkfile)) {/*fopen('data/xhr_session/stop', 'w');*/ die();}
 
-				$changes_q = count_updates();
+				$result['new_maxdate'] = get_new_maxdate();
 
-				if ($changes_q == '0') sleep($cfg['db_wait_time']); // ждем если ничего не пришло
+				if (!$result['new_maxdate']) sleep($cfg['db_wait_time']); // ждем если ничего не пришло
 
-			} while ($changes_q == '0' && (time() - $begin) < $wait_time); // если нет ответа и не вышло время
+			} while (!$result['new_maxdate'] && (time() - $begin) < $wait_time); // если нет ответа и не вышло время
 
 			unlink($checkfile);
 			
 		}
 		
-		if ($changes_q == '0'){
+		if (!$result['new_maxdate']){
 			// если результатов 0 то отправляем старую макс. дату и сбрасываем case
 			$result['new_maxdate'] = $result['old_maxdate'];
 			break;
@@ -173,15 +172,6 @@ switch ($action):
 		
 		$sort = $_REQUEST['topicSort'] ? $_REQUEST['topicSort'] : 'updated';
 		$reverse = $_REQUEST['tsReverse'];
-
-		// новая максимальная дата (скорее всего от этого лишнего запроса можно избавиться)
-		$result['new_maxdate'] = $db->selectCell(
-			'SELECT GREATEST(MAX(msg_created), IFNULL(MAX(msg_modified), 0)) FROM ?_messages'
-			. ($condition ? ' WHERE '.$condition : '') // забито под условие польз. поиска по темам
-		);
-		
-		// количество обновленных строк (это не кол-во новых транзакций!)
-		$result['changes_quant'] = $changes_q;
 
 		// выбираем обновленные темы (втч удаленные)
 		$result['topics'] = make_tree($db->select(
@@ -223,12 +213,6 @@ switch ($action):
 		// для каждой темы ищем последний пост (если обновлен)
 		foreach ($selected_topics as $topic_id => $null){
 			
-			// тут ошибка! выбирается последнее созданное из обновленных, даже если это не последнее 
-			// сообщение в теме! пока это отражается только тем, что при удалении любого сообщения в 
-			// теме этот запрос выбирает его, так как у него максимальный modified из всех в теме. 
-			// К счастью, следующий обработчик видит этот deleted и передает реально последнее сообщение 
-			// в теме, но а) передается избыточное сообщение, б) это может сказаться при редактировании
-			// сообщений
 			$common_query = 
 				'SELECT
 					msg_id AS id,
@@ -242,6 +226,12 @@ switch ($action):
 				FROM ?_messages, ?_users WHERE
 					`msg_author` = `usr_id`';
 			
+			// тут ошибка! выбирается последнее созданное из обновленных, даже если это не последнее 
+			// сообщение в теме! пока это отражается только тем, что при удалении любого сообщения в 
+			// теме этот запрос выбирает его, так как у него максимальный modified из всех в теме. 
+			// К счастью, следующий обработчик видит этот deleted и передает реально последнее сообщение 
+			// в теме, но а) передается избыточное сообщение, б) это может сказаться при редактировании
+			// сообщений
 			$lastpost = $db->selectRow(
 				$common_query.'
 					AND msg_topic_id = ?d
@@ -315,7 +305,7 @@ switch ($action):
 		// ЕСЛИ В ЗАПРОСЕ УКАЗАНА ТЕМА
 		if (($topic = $_REQUEST['curTopic'])){ // да, тут действительно присвоение
 			
-			if ($_REQUEST['loadTopic']) {
+			if ($_REQUEST['subAction'] == 'load_topic') {
 				$maxdateSQL = jsts2sql($_REQUEST['maxdateTS'] = '0');
 				$result['topic_prop']['manual'] = true;
 			}
@@ -395,53 +385,6 @@ switch ($action):
 	break;
 
 
-	// вставляем новое сообщение
-	/*
-	case 'insert_post':
-
-		$message = $_REQUEST['message'];
-		$title = $_REQUEST['title'];
-		$topic = $_REQUEST['topic'];
-		$parent = $_REQUEST['parent'];
-
-		$new_row = Array(
-			'msg_author' => $user->id,
-			'msg_parent' => $parent,
-			'msg_topic_id' => $topic,
-			'msg_body' => $message,
-			'msg_created' => date('Y-m-d H:i:s')
-		);
-
-		if ($title) $new_row['msg_topic'] = $title;
-
-		$new_id = $db->query(
-			'INSERT INTO ?_messages (?#) VALUES (?a)', array_keys($new_row), array_values($new_row)
-		);
-
-		$result = ready_row($db->selectRow('
-			SELECT
-				msg_id AS id,
-				msg_author AS author_id,
-				msg_parent AS parent,
-				msg_topic_id AS topic_id,
-				msg_topic AS topic,
-				msg_body AS message,
-				msg_created AS created,
-				msg_modified AS modified,
-				usr_email AS author_email,
-				usr_login AS author
-			FROM ?_messages, ?_users
-			WHERE msg_id = ?
-			AND `msg_author` = `usr_id`'
-			, $new_id
-		));
-
-	break;
-	*/
-
-
-	
-	
 
 	// обновляем N ячеек в строке
 	case 'update':
@@ -468,7 +411,7 @@ switch ($action):
 	break;
 
 
-	// заблокировать пост (пассивная команда)
+	// заблокировать пост (пассивная команда) пока функция без дела сидит :)
 	case 'lock_post':
 		$db->query('UPDATE ?_messages SET msg_locked = ?d WHERE msg_id = ?d', $user->id, $id);
 	break;
@@ -476,11 +419,13 @@ switch ($action):
 
 	// разблокировать пост (пассивная команда)
 	case 'unlock_post':
+		
 		$db->query('UPDATE ?_messages SET msg_locked = NULL WHERE msg_id = ?d', $id);
+		
 	break;
 
 
-
+	// пока функция без дела сидит :)
 	case 'check':
 
 		//!! в дальнейшем в поле msg_locked нужно будет вписывать, например, идентификатор сессии
@@ -505,8 +450,28 @@ switch ($action):
 	break;
 
 
+	case 'check_n_lock':
+		
+		$result['locked'] = $db->selectCell(
+			'SELECT msg_locked FROM ?_messages WHERE msg_id = ?d', $id
+		);
+		
+		if (!$result['locked'])
+			$db->query('UPDATE ?_messages SET msg_locked = ?d WHERE msg_id = ?d', $user->id, $id);
+		
+	break;
+	
+	
+	
+	case 'close_session':
+	
+		//$db->query('UPDATE ?_messages SET msg_locked = NULL WHERE msg_locked = ?d', $user->id);
+		
+	break;
+
 
 	// удаляем одно сообщение
+	/*
 	case 'delete':
 
 		$db->query(
@@ -521,7 +486,7 @@ switch ($action):
 		);
 		
 	break;
-
+	*/
 
 	// помечаем сообщеие прочитанным
 	case 'mark_read':
