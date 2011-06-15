@@ -182,28 +182,28 @@ switch ($action):
 				msg.id,
 				LEFT(msg.message, ?d) AS message,
 				msg.author_id,
-				msg.parent_id AS parent,
+				msg.parent_id,
 				msg.topic_id,
-				msg.topic_name AS topic,
+				msg.topic_name,
 				msg.created,
 				msg.modified,
 				IFNULL(msg.modified, msg.created) AS maxdate,
 				msg.deleted,
-				usr.usr_email AS author_email,
-				usr.usr_login AS author,
+				usr.email AS author_email,
+				usr.login AS author,
 				LEFT(mlast.message, ?d) AS lastpost,
 				IFNULL(mlast.modified, mlast.created) AS lastdate,
-				lma.usr_login AS lastauthor,
+				lma.login AS lastauthor,
 				(SELECT COUNT(mcount.id) FROM ?_messages mcount 
 					WHERE mcount.topic_id = msg.id AND mcount.deleted <=> NULL) AS mquant
 			FROM ?_messages msg
 			JOIN ?_users usr 
-				ON msg.author_id = usr.usr_id
+				ON msg.author_id = usr.id
 			LEFT JOIN ?_messages mlast
 				ON mlast.deleted <=> NULL
 				AND mlast.id = (SELECT MAX(mmax.id) FROM ?_messages mmax WHERE mmax.topic_id = msg.id 
 								AND mmax.deleted <=> NULL)
-			LEFT JOIN ?_users lma ON lma.usr_id = mlast.author_id
+			LEFT JOIN ?_users lma ON lma.id = mlast.author_id
 			WHERE
 				(IFNULL(msg.modified, msg.created) > ? OR IFNULL(mlast.modified, mlast.created) > ?)
 				AND msg.topic_id = 0'.
@@ -236,9 +236,9 @@ switch ($action):
 					msg.modified,
 					msg.deleted,
 					IFNULL(msg.modified, msg.created) AS maxdate,
-					usr_login AS author
-				FROM ?_messages msg, ?_users WHERE
-					msg.author_id = `usr_id`';
+					usr.login AS author
+				FROM ?_messages msg, ?_users usr WHERE
+					msg.author_id = usr.id';
 			
 			// тут ошибка! выбирается последнее созданное из обновленных, даже если это не последнее 
 			// сообщение в теме! пока это отражается только тем, что при удалении любого сообщения в 
@@ -345,7 +345,7 @@ switch ($action):
 					
 					// хотим узнать, когда пользователь отмечал эту тему прочитанной
 					$date_read = $db->selectCell(
-						'SELECT unr_timestamp FROM ?_unread WHERE unr_user = ?d AND unr_topic = ?d'
+						'SELECT timestamp FROM ?_unread WHERE user = ?d AND topic = ?d'
 						, $user->id , $topic
 					);
 
@@ -354,9 +354,9 @@ switch ($action):
 
 						$date_read = now('sql');
 						$values = Array(
-							'unr_user' => $user->id,
-							'unr_topic' => $topic,
-							'unr_timestamp' => $date_read
+							'user' => $user->id,
+							'topic' => $topic,
+							'timestamp' => $date_read
 						);
 						$db->query('INSERT INTO ?_unread (?#) VALUES (?a)'
 							, array_keys($values), array_values($values) );
@@ -376,19 +376,19 @@ switch ($action):
 						msg.id,
 						msg.message,
 						msg.author_id,
-						msg.parent_id AS parent,
+						msg.parent_id,
 						msg.topic_id,
-						msg.topic_name AS topic,
+						msg.topic_name,
 						msg.created,
 						msg.modified,
 						msg.deleted,
-						usr_email AS author_email,
-						usr_login AS author
-					FROM ?_messages msg, ?_users
+						usr.email AS author_email,
+						usr.login AS author
+					FROM ?_messages msg, ?_users usr
 					WHERE
 						(msg.topic_id = ?d OR msg.id = ?d)
 						AND IFNULL(msg.modified, msg.created) > ?
-						AND msg.author_id = `usr_id`
+						AND msg.author_id = usr.id
 					ORDER BY msg.created ASC'
 					, $topic, $topic
 					, $maxdateSQL
@@ -448,17 +448,17 @@ switch ($action):
 
 		// проверка блокировки сообщения
 		$result['locked'] = $db->selectCell(
-			'SELECT msg_locked FROM ?_messages WHERE msg_id = ?d', $id
+			'SELECT locked FROM ?_messages WHERE id = ?d', $id
 		);
 
 		// проверка наличия непосредственных потомков
 		$result['children'] = $db->selectCell(
-			'SELECT COUNT( * ) FROM ?_messages WHERE msg_parent = ?d', $id
+			'SELECT COUNT( id ) FROM ?_messages WHERE parent_id = ?d', $id
 		);
 
 		// является ли сообщение стартовым в теме
 		$result['is_topic'] = $db->selectCell(
-			'SELECT COUNT( * ) FROM ?_messages WHERE msg_id = ?d AND msg_topic_id = 0', $id
+			'SELECT COUNT( id ) FROM ?_messages WHERE id = ?d AND topic_id = 0', $id
 		);
 
 	break;
@@ -508,14 +508,14 @@ switch ($action):
 		$now = date('Y-m-d H:i:s');
 
 		$exist = $db->selectRow(
-			'SELECT * FROM ?_unread WHERE unr_user = ?d AND unr_topic = ?d'
+			'SELECT * FROM ?_unread WHERE user = ?d AND topic = ?d'
 			, $user->id
 			, $id
 		);
 
 		if ($exist):
 			$db->query(
-				'UPDATE ?_unread SET unr_timestamp = ? WHERE unr_user = ?d AND unr_topic = ?d'
+				'UPDATE ?_unread SET timestamp = ? WHERE user = ?d AND topic = ?d'
 				, $now
 				, $user->id
 				, $id
@@ -523,9 +523,9 @@ switch ($action):
 		else:
 
 			$values = Array(
-				'unr_user' => $user->id,
-				'unr_topic' => $id,
-				'unr_timestamp' => $now
+				'user' => $user->id,
+				'topic' => $id,
+				'timestamp' => $now
 			);
 
 			$db->query('INSERT INTO ?_unread (?#) VALUES (?a)', array_keys($values), array_values($values));

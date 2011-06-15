@@ -119,7 +119,7 @@ var TopicItem = Class( DesktopMessageItem, {
 				+'</span>' + ' ['+this.row['last']['created']+'] ' + this.row['last']['message'];
 		*/
 		this.postsquant.innerHTML = /*this.row['postsquant']*/ '1' + txt['postsquant'];
-		this.topicfield.innerHTML = this.row['topic'] ? this.row['topic'] : '&nbsp;';
+		this.topicfield.innerHTML = this.row['topic_name'] ? this.row['topic_name'] : '&nbsp;';
 	},
 	
 	
