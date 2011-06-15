@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Хост: localhost
--- Время создания: Июн 03 2011 г., 18:37
+-- Время создания: Июн 14 2011 г., 21:58
 -- Версия сервера: 5.0.92
 -- Версия PHP: 5.2.6
 
@@ -372,7 +372,7 @@ CREATE TABLE IF NOT EXISTS `jawi_unread` (
   PRIMARY KEY  (`unr_id`),
   KEY `unr_topic` (`unr_topic`),
   KEY `unr_user` (`unr_user`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=49 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=57 ;
 
 --
 -- Дамп данных таблицы `jawi_unread`
@@ -426,7 +426,15 @@ INSERT INTO `jawi_unread` (`unr_id`, `unr_user`, `unr_topic`, `unr_timestamp`) V
 (45, 7, 474, '2011-05-30 13:57:23'),
 (46, 7, 473, '2011-05-30 13:59:36'),
 (47, 7, 76, '2011-05-30 14:00:23'),
-(48, 7, 472, '2011-05-30 14:08:22');
+(48, 7, 472, '2011-05-30 14:08:22'),
+(49, 16, 74, '2011-06-05 22:30:29'),
+(50, 16, 473, '2011-06-05 22:30:45'),
+(51, 16, 76, '2011-06-05 22:32:32'),
+(52, 16, 472, '2011-06-05 22:33:55'),
+(53, 16, 48, '2011-06-06 08:06:20'),
+(54, 16, 73, '2011-06-06 13:01:50'),
+(55, 16, 474, '2011-06-06 13:02:42'),
+(56, 16, 77, '2011-06-06 13:02:55');
 
 -- --------------------------------------------------------
 
@@ -444,7 +452,7 @@ CREATE TABLE IF NOT EXISTS `jawi_users` (
   `usr_approved` tinyint(1) unsigned default NULL,
   PRIMARY KEY  (`usr_id`),
   UNIQUE KEY `usr_email` (`usr_email`)
-) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=16 ;
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=17 ;
 
 --
 -- Дамп данных таблицы `jawi_users`
@@ -462,7 +470,8 @@ INSERT INTO `jawi_users` (`usr_id`, `usr_login`, `usr_email`, `usr_hash`, `usr_r
 (12, 'Integra', 'juliav20@gmail.com', 'adb00236071c05878eaeec5b3b96103d', '2011-04-08 01:11:14', 1),
 (13, 'kastaneda', 'kastaneda@gmail.com', '3fc0a7acf087f549ac2b266baf94b8b1', '2011-04-12 11:12:57', 1),
 (14, 'guayard', 'guayard@gmail.com', '228822ea0c419772c37c6bf563fe24c4', '2011-04-26 09:24:15', 1),
-(15, 'naso', 'asya_pustota@inbox.ru', '1d86924a6a0dcbfb731ea41460c76424', '2011-05-19 10:55:03', 1);
+(15, 'naso', 'asya_pustota@inbox.ru', '1d86924a6a0dcbfb731ea41460c76424', '2011-05-19 10:55:03', 1),
+(16, 'leon', 'dinoel.zik@gmail.com', '2811f88baed57b2a403dfb5bc2e1e80a', '2011-06-05 22:28:39', 1);
 
 -- --------------------------------------------------------
 
@@ -495,4 +504,5 @@ INSERT INTO `jawi_user_settings` (`uset_user`, `uset_gravatar`) VALUES
 (12, 1),
 (13, 1),
 (14, 1),
-(15, 1);
+(15, 1),
+(16, 1);

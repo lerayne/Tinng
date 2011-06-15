@@ -39,6 +39,7 @@ function ready_row($row){
 	return $row;
 }
 
+
 // создание дерева (!! пока не работает)
 function make_tree($raw){
 	foreach ($raw as $key => $val):
@@ -50,6 +51,7 @@ function make_tree($raw){
 	endforeach;
 	return $raw;
 }
+
 
 function sort_result($array, $field, $reverse){
 
@@ -65,6 +67,7 @@ function sort_result($array, $field, $reverse){
 	return $out;
 }
 
+
 switch ($action):
 	
 	// ОСНОВНОЙ ЗАГРУЗЧИК И ОБНОВИТЕЛЬ ДАННЫХ
@@ -79,10 +82,10 @@ switch ($action):
 			$localDateCompare = ($_REQUEST['subAction'] == 'load_topic') ? 0 : $maxdateSQL;
 			
 			return $db->selectCell (
-				'SELECT GREATEST(MAX(msg_created), IFNULL(MAX(msg_modified), 0))
-				FROM ?_messages WHERE (msg_created > ? OR msg_modified > ?)'
+				'SELECT GREATEST(MAX(created), IFNULL(MAX(modified), 0))
+				FROM ?_messages WHERE IFNULL(modified, created) > ?'
 				. ($condition ? ' AND '.$condition : '') // забито под условие польз. поиска по темам
-				, $localDateCompare , $localDateCompare
+				, $localDateCompare
 			);
 		}
 		
@@ -98,14 +101,14 @@ switch ($action):
 				case 'insert_post':
 
 					$new_row = Array(
-						'msg_author' => $user->id,
-						'msg_parent' => $_REQUEST['curTopic'],
-						'msg_topic_id' => $_REQUEST['curTopic'],
-						'msg_body' => $params['message'],
-						'msg_created' => date('Y-m-d H:i:s')
+						'author_id' => $user->id,
+						'parent_id' => $_REQUEST['curTopic'],
+						'topic_id' => $_REQUEST['curTopic'],
+						'message' => $params['message'],
+						'created' => date('Y-m-d H:i:s')
 					);
 
-					if ($params['title']) $new_row['msg_topic'] = $params['title'];
+					if ($params['title']) $new_row['topic_name'] = $params['title'];
 
 					$new_id = $db->query(
 						'INSERT INTO ?_messages (?#) VALUES (?a)', array_keys($new_row), array_values($new_row)
@@ -120,7 +123,7 @@ switch ($action):
 					
 					// проверка блокировки сообщения
 					$locked = $db->selectCell(
-						'SELECT msg_locked FROM ?_messages WHERE msg_id = ?d', $params['id']
+						'SELECT locked FROM ?_messages WHERE id = ?d', $params['id']
 					);
 					
 					if ($locked){
@@ -128,8 +131,8 @@ switch ($action):
 						$result['error'] = 'post_locked';
 						
 					} else $db->query(
-						'UPDATE ?_messages SET msg_deleted = 1, msg_modified = ?
-						WHERE msg_id = ?d'
+						'UPDATE ?_messages SET deleted = ?d, modified = ? WHERE id = ?d'
+						, $user->id
 						, date('Y-m-d H:i:s')
 						, $params['id']
 					);
@@ -176,26 +179,37 @@ switch ($action):
 		// выбираем обновленные темы (втч удаленные)
 		$result['topics'] = make_tree($db->select(
 			'SELECT
-				msg_id AS id,
-				LEFT(msg_body, ?d) AS message,
-				msg_author AS author_id,
-				msg_parent AS parent,
-				msg_topic_id AS topic_id,
-				msg_topic AS topic,
-				msg_created AS created,
-				msg_modified AS modified,
-				GREATEST(msg_created, IFNULL(msg_modified, 0)) AS maxdate,
-				msg_deleted AS deleted,
-				usr_email AS author_email,
-				usr_login AS author
-			FROM ?_messages, ?_users
+				msg.id,
+				LEFT(msg.message, ?d) AS message,
+				msg.author_id,
+				msg.parent_id AS parent,
+				msg.topic_id,
+				msg.topic_name AS topic,
+				msg.created,
+				msg.modified,
+				IFNULL(msg.modified, msg.created) AS maxdate,
+				msg.deleted,
+				usr.usr_email AS author_email,
+				usr.usr_login AS author,
+				LEFT(mlast.message, ?d) AS lastpost,
+				IFNULL(mlast.modified, mlast.created) AS lastdate,
+				lma.usr_login AS lastauthor,
+				(SELECT COUNT(mcount.id) FROM ?_messages mcount 
+					WHERE mcount.topic_id = msg.id AND mcount.deleted <=> NULL) AS mquant
+			FROM ?_messages msg
+			JOIN ?_users usr 
+				ON msg.author_id = usr.usr_id
+			LEFT JOIN ?_messages mlast
+				ON mlast.deleted <=> NULL
+				AND mlast.id = (SELECT MAX(mmax.id) FROM ?_messages mmax WHERE mmax.topic_id = msg.id 
+								AND mmax.deleted <=> NULL)
+			LEFT JOIN ?_users lma ON lma.usr_id = mlast.author_id
 			WHERE
-				(msg_created > ? OR msg_modified > ?)
-				AND msg_topic_id = 0
-				AND `msg_author` = `usr_id`'.
+				(IFNULL(msg.modified, msg.created) > ? OR IFNULL(mlast.modified, mlast.created) > ?)
+				AND msg.topic_id = 0'.
 			($condition ? ' AND '.$condition : '')
 
-			, $cfg['cut_length'] // ограничение выборки первого поста
+			, $cfg['cut_length'], $cfg['cut_length'] // ограничение выборки первого поста
 			, $maxdateSQL , $maxdateSQL
 		));
 		
@@ -206,8 +220,8 @@ switch ($action):
 		
 		// выбирем все неудаленные темы (в этом списке удаленные нас не интересуют)
 		$selected_topics = $db->select(
-			'SELECT msg_id AS ARRAY_KEY, msg_id FROM ?_messages 
-			WHERE msg_topic_id = 0 AND msg_deleted <=> NULL'
+			'SELECT id AS ARRAY_KEY, id FROM ?_messages 
+			WHERE topic_id = 0 AND deleted <=> NULL'
 			. ($condition ? ' AND '.$condition : '')
 		);
 		// для каждой темы ищем последний пост (если обновлен)
@@ -215,16 +229,16 @@ switch ($action):
 			
 			$common_query = 
 				'SELECT
-					msg_id AS id,
-					LEFT(msg_body, ?d) AS message,
-					msg_topic_id AS topic_id,
-					msg_created AS created,
-					msg_modified AS modified,
-					msg_deleted AS deleted,
-					GREATEST(msg_created, IFNULL(msg_modified,0)) AS maxdate,
+					msg.id,
+					LEFT(msg.message, ?d) AS message,
+					msg.topic_id,
+					msg.created,
+					msg.modified,
+					msg.deleted,
+					IFNULL(msg.modified, msg.created) AS maxdate,
 					usr_login AS author
-				FROM ?_messages, ?_users WHERE
-					`msg_author` = `usr_id`';
+				FROM ?_messages msg, ?_users WHERE
+					msg.author_id = `usr_id`';
 			
 			// тут ошибка! выбирается последнее созданное из обновленных, даже если это не последнее 
 			// сообщение в теме! пока это отражается только тем, что при удалении любого сообщения в 
@@ -234,10 +248,10 @@ switch ($action):
 			// сообщений
 			$lastpost = $db->selectRow(
 				$common_query.'
-					AND msg_topic_id = ?d
-					AND (msg_created > ? OR msg_modified > ?)
-				ORDER BY msg_id DESC LIMIT 1'
-				, $cfg['cut_length'], $topic_id, $maxdateSQL, $maxdateSQL
+					AND msg.topic_id = ?d
+					AND IFNULL(msg.modified, msg.created) > ?
+				ORDER BY msg.id DESC LIMIT 1'
+				, $cfg['cut_length'], $topic_id, $maxdateSQL
 			);
 			
 			// и если он удален - ищем последний актуальный
@@ -250,9 +264,9 @@ switch ($action):
 				// было ли оно обновлено
 				$lastpost = $db->selectRow(
 					$common_query.'
-						AND msg_topic_id = ?d
-						AND msg_deleted <=> NULL
-					ORDER BY msg_id DESC LIMIT 1'
+						AND msg.topic_id = ?d
+						AND msg.deleted <=> NULL
+					ORDER BY msg.id DESC LIMIT 1'
 					, $cfg['cut_length'], $topic_id
 				);
 			}
@@ -267,13 +281,13 @@ switch ($action):
 				
 				$updated = $db->selectRow(
 					'SELECT 
-						msg_deleted,
-						msg_topic_id AS topic_id,
-						GREATEST(msg_created, IFNULL(msg_modified,0)) AS maxdate
-					FROM ?_messages 
-					WHERE msg_modified > ?
-					AND msg_topic_id = ?d
-					ORDER BY msg_modified DESC LIMIT 1'
+						msg.deleted,
+						msg.topic_id,
+						IFNULL(msg.modified, msg.created) AS maxdate
+					FROM ?_messages msg
+					WHERE msg.modified > ?
+					AND msg.topic_id = ?d
+					ORDER BY msg.modified DESC LIMIT 1'
 					, $maxdateSQL, $topic_id
 				);
 				 
@@ -283,7 +297,7 @@ switch ($action):
 			// если есть хоть какое-то обновление в данной теме - запрашиваем кол-во постов в ней
 			if ($result['lastposts'][$topic_id]) {
 				$result['lastposts'][$topic_id]['postsquant'] = $db->selectCell(
-					'SELECT COUNT(*) FROM ?_messages WHERE msg_topic_id = ?d OR msg_id = ?d'
+					'SELECT COUNT(*) FROM ?_messages WHERE (topic_id = ?d OR id = ?d) AND deleted <=> NULL'
 					, $topic_id, $topic_id
 				);
 			}
@@ -312,7 +326,7 @@ switch ($action):
 
 			// проверяем, существует ли тема (не удалена ли) и читаем ее заголовок
 			$topic_name = $db->selectCell(
-				'SELECT msg_topic FROM ?_messages WHERE msg_id = ?d AND msg_deleted <=> NULL'
+				'SELECT msg.topic_name AS topic FROM ?_messages msg WHERE msg.id = ?d AND msg.deleted <=> NULL'
 				, $topic
 			);
 
@@ -359,25 +373,25 @@ switch ($action):
 				// выбираем ВСЕ сообщения с более новой датой (даже удаленные)
 				$result['posts'] = make_tree($db->select(
 					'SELECT
-						msg_id AS id,
-						msg_body AS message,
-						msg_author AS author_id,
-						msg_parent AS parent,
-						msg_topic_id AS topic_id,
-						msg_topic AS topic,
-						msg_created AS created,
-						msg_modified AS modified,
-						msg_deleted AS deleted,
+						msg.id,
+						msg.message,
+						msg.author_id,
+						msg.parent_id AS parent,
+						msg.topic_id,
+						msg.topic_name AS topic,
+						msg.created,
+						msg.modified,
+						msg.deleted,
 						usr_email AS author_email,
 						usr_login AS author
-					FROM ?_messages, ?_users
+					FROM ?_messages msg, ?_users
 					WHERE
-						(msg_topic_id = ?d OR msg_id = ?d)
-						AND (msg_created > ? OR msg_modified > ?)
-						AND `msg_author` = `usr_id`
-					ORDER BY msg_created ASC'
+						(msg.topic_id = ?d OR msg.id = ?d)
+						AND IFNULL(msg.modified, msg.created) > ?
+						AND msg.author_id = `usr_id`
+					ORDER BY msg.created ASC'
 					, $topic, $topic
-					, $maxdateSQL, $maxdateSQL
+					, $maxdateSQL
 				));
 			}
 		}
@@ -413,14 +427,14 @@ switch ($action):
 
 	// заблокировать пост (пассивная команда) пока функция без дела сидит :)
 	case 'lock_post':
-		$db->query('UPDATE ?_messages SET msg_locked = ?d WHERE msg_id = ?d', $user->id, $id);
+		$db->query('UPDATE ?_messages SET locked = ?d WHERE id = ?d', $user->id, $id);
 	break;
 
 
 	// разблокировать пост (пассивная команда)
 	case 'unlock_post':
 		
-		$db->query('UPDATE ?_messages SET msg_locked = NULL WHERE msg_id = ?d', $id);
+		$db->query('UPDATE ?_messages SET locked = NULL WHERE id = ?d', $id);
 		
 	break;
 
@@ -453,11 +467,11 @@ switch ($action):
 	case 'check_n_lock':
 		
 		$result['locked'] = $db->selectCell(
-			'SELECT msg_locked FROM ?_messages WHERE msg_id = ?d', $id
+			'SELECT locked FROM ?_messages WHERE id = ?d', $id
 		);
 		
 		if (!$result['locked'])
-			$db->query('UPDATE ?_messages SET msg_locked = ?d WHERE msg_id = ?d', $user->id, $id);
+			$db->query('UPDATE ?_messages SET locked = ?d WHERE id = ?d', $user->id, $id);
 		
 	break;
 	
@@ -538,5 +552,28 @@ echo'
 <b>Loader used:</b>". $req->LOADER."\n
 <b>_REQUEST:</b>". print_r($_REQUEST, 1)."\n
 <b>_RESULT:</b> ". print_r($GLOBALS['_RESULT'], 1)."
-</pre>";*/
+</pre>";
+/*
+select jawi_messages.msg_id,
+       (select count(jawi_messagesCount.msg_id)  
+        from jawi_messages jawi_messagesCount  
+        where jawi_messagesCount.msg_topic_id = jawi_messages.msg_id 
+              and ifnull(jawi_messagesCount.msg_deleted,0) = 0 ) msgCount,
+        jawi_messagesLast.msg_id,
+        jawi_messagesLast.msg_created
+from jawi_messages left join jawi_messages jawi_messagesLast on jawi_messages.msg_id = jawi_messagesLast.msg_topic_id
+                                                            and ifnull(jawi_messagesLast.msg_deleted,0) = 0 
+                                                            and jawi_messagesLast.msg_created = (select max(jawi_messagesMax.msg_created) from jawi_messages jawi_messagesMax where jawi_messagesMax.msg_topic_id = jawi_messages.msg_id and ifnull(jawi_messagesMax.msg_deleted,0) = 0)   
+                                                           
+where jawi_messages.msg_topic_id = 0 and ifnull(jawi_messages.msg_deleted,0) = 0  
+
+
+
+if(msg_modified > msg_created, 1, 0)
+
+
+ifnull(`msg_modified`, `msg_created`) > ?
+
+
+ */
 ?>

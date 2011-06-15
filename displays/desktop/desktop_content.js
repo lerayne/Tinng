@@ -113,11 +113,11 @@ var TopicItem = Class( DesktopMessageItem, {
 	// заполняем их данными
 	fillData: function(){
 		TopicItem.superclass.prototype.fillData.apply(this, arguments);
-		
+		/*
 		if (this.lastpost)
 			this.lastpost.innerHTML = txt['lastpost']+' <span class="author">'+this.row['last']['author']
 				+'</span>' + ' ['+this.row['last']['created']+'] ' + this.row['last']['message'];
-		
+		*/
 		this.postsquant.innerHTML = /*this.row['postsquant']*/ '1' + txt['postsquant'];
 		this.topicfield.innerHTML = this.row['topic'] ? this.row['topic'] : '&nbsp;';
 	},
@@ -318,10 +318,7 @@ var PostItem = Class( DesktopMessageItem, {
 					editor.removeInstance(that.message.id);
 					editor.removePanel(that.message.id);
 					unhide(that.infobar, that.controls);
-					var req = new JsHttpRequest();
-					req.open(null, 'ajax_backend.php', true);
-					req.send({ action: 'unlock_post', id: that.row['id'] });
-
+					
 					wait.start(1);
 				}
 
@@ -332,10 +329,17 @@ var PostItem = Class( DesktopMessageItem, {
 
 				var cancelBtn = div('sbtn cancel', null, '<span>'+ txt['cancel'] +'</span>');
 				var sendBtn = div('sbtn save', null, '<span>'+ txt['save'] +'</span>');
+				
 				cancelBtn.onclick = function(){
 					cancelEdit();
 					that.message.innerHTML = backupMsg;
+					
+					JsHttpRequest.query( 'ajax_backend.php', { // аргументы:
+						action: 'unlock_post'
+						, id: that.row['id']
+					}, function(){}, false );
 				}
+				
 				sendBtn.onclick = updateMessage;
 
 				// собираем конструктор

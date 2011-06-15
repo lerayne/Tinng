@@ -68,7 +68,7 @@ function incl_scripts_l(){
 	endforeach;
 }
 
-function now($format){
+function now($format = false){
 	return ($format == 'sql') ? date('Y-m-d H:i:s') : time();
 }
 
