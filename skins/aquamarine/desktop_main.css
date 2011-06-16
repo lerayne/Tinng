@@ -400,7 +400,7 @@ td.collapsed {
 	color: #656565;
 }
 
-.topic .lastpost {
+.topic .lastpost div {
 	line-height: 150%;
 	padding-top:5px;
 	margin:0 20px;

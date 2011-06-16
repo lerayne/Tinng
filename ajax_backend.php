@@ -171,7 +171,7 @@ switch ($action):
 		}
 		
 		
-		// РАЗБИРАЕМ ИЗМЕНЕИЯ
+		// ЧИТАЕМ ИЗМЕНЕИЯ
 		
 		$sort = $_REQUEST['topicSort'] ? $_REQUEST['topicSort'] : 'updated';
 		$reverse = $_REQUEST['tsReverse'];
@@ -190,18 +190,19 @@ switch ($action):
 				msg.deleted,
 				usr.email AS author_email,
 				usr.login AS author,
+				mlast.id AS last_id,
 				LEFT(mlast.message, ?d) AS lastpost,
 				IFNULL(mlast.modified, mlast.created) AS lastdate,
 				lma.login AS lastauthor,
 				(SELECT COUNT(mcount.id) FROM ?_messages mcount 
-					WHERE mcount.topic_id = msg.id AND mcount.deleted <=> NULL) AS mquant
+					WHERE mcount.topic_id = msg.id AND mcount.deleted <=> NULL) AS postsquant
 			FROM ?_messages msg
 			LEFT JOIN ?_users usr 
 				ON msg.author_id = usr.id
 			LEFT JOIN ?_messages mupd 
 				ON mupd.topic_id = msg.id
-				AND mupd.modified =
-					(SELECT MAX(mmax.modified) FROM ?_messages mmax WHERE mmax.topic_id = msg.id)
+				AND IFNULL(mupd.modified, mupd.created) =
+					(SELECT GREATEST(MAX(mmax.created), MAX(IFNULL(mmax.modified, 0))) FROM ?_messages mmax WHERE mmax.topic_id = msg.id)
 			LEFT JOIN ?_messages mlast
 				ON mlast.topic_id = msg.id 
 				AND mlast.deleted <=> NULL
@@ -298,6 +299,8 @@ switch ($action):
 				if ($updated) $result['lastposts'][$topic_id] = $updated;
 			}
 			
+			//unset ($result['lastposts']);
+			
 			// если есть хоть какое-то обновление в данной теме - запрашиваем кол-во постов в ней
 			if ($result['lastposts'][$topic_id]) {
 				$result['lastposts'][$topic_id]['postsquant'] = $db->selectCell(
@@ -314,7 +317,7 @@ switch ($action):
 			
 			case 'updated':
 				$result['topics'] = sort_result($result['topics'], 'maxdate', $reverse);
-				$result['lastposts'] = sort_result($result['lastposts'], 'maxdate', !$reverse);
+				//$result['lastposts'] = sort_result($result['lastposts'], 'maxdate', !$reverse);
 			break;
 
 		endswitch;

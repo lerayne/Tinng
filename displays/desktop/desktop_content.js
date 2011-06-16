@@ -107,23 +107,26 @@ var TopicItem = Class( DesktopMessageItem, {
 		this.topicedit_btn = div('sbtn btn_topicedit right reveal2');
 		this.topicsubmit_btn = div('sbtn btn_topicsubmit right none');
 		this.topiccancel_btn = div('sbtn btn_topiccancel right none');
+		
+		this.lastpost = div('lastpost' /*, 'lastpost_'+this.row['last_id']*/);
 	},
 	
 	
 	// заполняем их данными
 	fillData: function(){
 		TopicItem.superclass.prototype.fillData.apply(this, arguments);
-		/*
-		if (this.lastpost)
-			this.lastpost.innerHTML = txt['lastpost']+' <span class="author">'+this.row['last']['author']
-				+'</span>' + ' ['+this.row['last']['created']+'] ' + this.row['last']['message'];
-		*/
-		this.postsquant.innerHTML = /*this.row['postsquant']*/ '1' + txt['postsquant'];
+		
+		if (this.row['lastpost']) this.lastpost.innerHTML =  '<div>'+txt['lastpost']+' <span class="author">'
+			+this.row['lastauthor']+'</span>' + ' ['+this.row['lastdate']+'] ' + this.row['lastpost']+'</div>';
+		
+		
+		this.postsquant.innerHTML = ((this.row['postsquant']*1)+1) + txt['postsquant'];
 		this.topicfield.innerHTML = this.row['topic_name'] ? this.row['topic_name'] : '&nbsp;';
 	},
 	
 	
 	// альтернативная вариация lastpost, когда он подается в отдельном массиве
+	/*
 	fillLast: function(lpost){
 		
 		this.lpost = lpost;
@@ -137,7 +140,7 @@ var TopicItem = Class( DesktopMessageItem, {
 				+'</span>' + ' ['+this.lpost['created']+'] ' + this.lpost['message'];
 			
 		this.postsquant.innerHTML = this.lpost['postsquant'] + txt['postsquant'];
-	},
+	},*/
 	
 	
 	markActive: function(){
@@ -620,6 +623,7 @@ function parseResult(result){
 
 
 	// разбираем последние посты
+	/*
 	if (result && result['lastposts']) { for (var i in result['lastposts']) { 
 		entry = result['lastposts'][i];
 		topic = topics[entry['topic_id']];
@@ -629,6 +633,7 @@ function parseResult(result){
 			topic.bump();
 		}
 	}}
+	*/
 
 
 	// разбираем сообщения

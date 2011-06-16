@@ -1,14 +1,3 @@
-var Elem = Class({
-	
-	initialize: function(CSSclass, ID, HTML){
-		this.e = div(CSSclass, ID, HTML);
-	},
-	
-	blockAndWait: function(){
-		this.e.className += ' throbber';
-	}
-});
-
 var MessageItem = Class({
 	
 	div: function(collection){
