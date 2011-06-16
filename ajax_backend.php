@@ -183,7 +183,6 @@ switch ($action):
 				LEFT(msg.message, ?d) AS message,
 				msg.author_id,
 				msg.parent_id,
-				msg.topic_id,
 				msg.topic_name,
 				msg.created,
 				msg.modified,
@@ -197,17 +196,22 @@ switch ($action):
 				(SELECT COUNT(mcount.id) FROM ?_messages mcount 
 					WHERE mcount.topic_id = msg.id AND mcount.deleted <=> NULL) AS mquant
 			FROM ?_messages msg
-			JOIN ?_users usr 
+			LEFT JOIN ?_users usr 
 				ON msg.author_id = usr.id
+			LEFT JOIN ?_messages mupd 
+				ON mupd.topic_id = msg.id
+				AND mupd.modified =
+					(SELECT MAX(mmax.modified) FROM ?_messages mmax WHERE mmax.topic_id = msg.id)
 			LEFT JOIN ?_messages mlast
-				ON mlast.deleted <=> NULL
-				AND mlast.id = (SELECT MAX(mmax.id) FROM ?_messages mmax WHERE mmax.topic_id = msg.id 
-								AND mmax.deleted <=> NULL)
-			LEFT JOIN ?_users lma ON lma.id = mlast.author_id
-			WHERE
-				(IFNULL(msg.modified, msg.created) > ? OR IFNULL(mlast.modified, mlast.created) > ?)
-				AND msg.topic_id = 0'.
-			($condition ? ' AND '.$condition : '')
+				ON mlast.topic_id = msg.id 
+				AND mlast.deleted <=> NULL
+				AND mlast.id = 
+					(SELECT MAX(mmax.id) FROM ?_messages mmax WHERE mmax.topic_id = msg.id AND mmax.deleted <=> NULL)
+			LEFT JOIN ?_users lma 
+				ON lma.id = mlast.author_id
+			WHERE msg.topic_id = 0
+				AND (IFNULL(msg.modified, msg.created) > ? OR IFNULL(mupd.modified, mupd.created) > ?)
+			'.($condition ? ' AND '.$condition : '')
 
 			, $cfg['cut_length'], $cfg['cut_length'] // ограничение выборки первого поста
 			, $maxdateSQL , $maxdateSQL
