@@ -118,6 +118,19 @@ switch ($action):
 
 				break;
 				
+				// обновляет запись в ?_messages
+				case 'update':
+					
+					$upd_id = $params['id'];
+					unset($params['id']);
+					$params['modified'] = date('Y-m-d H:i:s'); // при любом обновлении пишем дату
+					$params['locked'] = null; // и убираем блокировку
+					
+					$db->query('UPDATE ?_messages SET ?a WHERE id = ?d', $params, $upd_id);
+					
+				break;
+			
+				
 				// удаляет сообщение
 				case 'delete_post':
 					

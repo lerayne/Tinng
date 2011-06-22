@@ -31,41 +31,6 @@ var DesktopMessageItem = Class ( MessageItem, {
 		addClass(this.controls, 'reveal');
 	},
 	
-	// добавляем функцию редактирования полей
-	editFields: function (){
-
-		var args = arguments;
-		var jsonArgs = [];
-		var that = this;
-
-		for (var i=0; i<args.length; i++){
-			jsonArgs[i] = {};
-			jsonArgs[i]['field'] = args[i][0];
-			jsonArgs[i]['data'] = args[i][1].innerHTML;
-			addClass(args[i][1], 'updating');
-		}
-
-		JsHttpRequest.query( 'ajax_backend.php', { // аргументы:
-
-			  action: 'update'
-			, fields: jsonArgs
-			, id: this.row['id']
-
-		}, function(result, errors) { // когда пришел ответ:
-
-			for (var j=0; j<args.length; j++){
-				args[j][1].innerHTML = result[j][jsonArgs[j]['field']];
-				that.created.innerHTML = txt['modified'] + result[j]['msg_modified'];
-				removeClass(args[j][1], 'updating');
-
-				maxPostDate = sql2stamp(result[j]['msg_modified']);
-
-				if (errors) consoleWrite('error: '+errors);
-			}
-
-		}, true /* запрещать кеширование */ );
-	},
-	
 	// добавляем функцию создания кнопки
 	addBtn: function(name, caption){
 		var btn = div('sbtn '+name, null, caption ? '<span>'+caption+'</span>' : null);
@@ -199,28 +164,61 @@ var TopicItem = Class( DesktopMessageItem, {
 		var cancelNameEdit = function(){
 			hide(that.topicsubmit_btn, that.topiccancel_btn);
 			unhide(that.topicedit_btn);
+			
 			that.topicfield.contentEditable = false;
 			removeClass(that.topicfield, 'edittopicname');
 			that.topicfield.ondblclick = editTopicName;
 			that.item.onclick = clickload;
 		}
+		
+		var submitTopicName = function(){
+			cancelNameEdit();
+
+			wait.stop();
+			alert('!');
+			wait.writeAndStart('update', {id: that.row['id'], topic_name: that.topicfield.innerHTML});
+		}
 
 		// функция инлайн-редактирования темы
 		var editTopicName = function(){
-			hide(that.topicedit_btn);
-			that.topicfield.ondblclick = null;
-			that.topicfield.contentEditable = true;
-			var text = that.topicfield.innerHTML;
-			that.topicfield.focus();
-			addClass(that.topicfield, 'edittopicname');
+			
+			JsHttpRequest.query( 'ajax_backend.php', { // аргументы:
 
-			//!! дописать отмену и расположение кнопок
-			var submitTopicName = function(){
-				cancelNameEdit();
+				action: 'check_n_lock',
+				id: that.row['id']
 
-				// AJAX-запрос и заполнения поля
-				that.editFields(['msg_topic', that.topicfield]);
-			}
+			}, function(result, errors) {
+
+				if (result['locked'] !== null) {
+
+						alert(txt['post_locked']);
+
+				} else {
+					
+					hide(that.topicedit_btn);
+			
+					that.topicfield.ondblclick = null;
+					that.topicfield.contentEditable = true;
+					var text = that.topicfield.innerHTML;
+					that.topicfield.focus();
+					addClass(that.topicfield, 'edittopicname');
+					
+					unhide(that.topicsubmit_btn, that.topiccancel_btn);
+					
+					that.topicsubmit_btn.onclick = submitTopicName;
+					that.topiccancel_btn.onclick = function() {
+						cancelNameEdit();
+						
+						var req = new JsHttpRequest();
+						req.open(null, 'ajax_backend.php', true);
+						req.send({
+							action: 'unlock_post'
+							, id: that.row['id']
+						});
+					}
+				}
+			}, true); //запр. кеш
+			
 			/*
 			document.onkeypress = function(event){
 				var key = event.keyCode || event.which;
@@ -230,10 +228,6 @@ var TopicItem = Class( DesktopMessageItem, {
 				} // on enter
 			}
 			*/
-			unhide(that.topicsubmit_btn, that.topiccancel_btn);
-
-			that.topicsubmit_btn.onclick = submitTopicName;
-			that.topiccancel_btn.onclick = cancelNameEdit;
 		}
 
 		// если имеем право переименовывать тему
@@ -274,19 +268,23 @@ var PostItem = Class( DesktopMessageItem, {
 		addClass(this.item, 'post');
 		
 		// вешаем маркер непрочитанности
+		/*
 		if (maxReadPost && maxReadPost < sql2stamp(this.row['modified'] || this.row['created']))
 			addClass(this.item, 'unread');
-
+		*/
+	   
 		// вешаем ID на контейнер сообщения для возможности прикрепления визивига
 		this.message.id = 'message_'+this.row['id'];
 
 		this.avatar	= div('avatar', null, '<img src="'+this.row['avatar_url']+'">');
 	},
 	
+	/*
 	fillData: function(){
 		PostItem.superclass.prototype.fillData.apply(this, arguments);
 	},
-	
+	*/
+   
 	attachActions: function(){
 		PostItem.superclass.prototype.attachActions.apply(this, arguments);
 		var that = this;
@@ -301,56 +299,69 @@ var PostItem = Class( DesktopMessageItem, {
 			// AJAX:
 			JsHttpRequest.query( 'ajax_backend.php', { // аргументы:
 
-				  action: 'check_n_lock'
-				, id: that.row['id']
+				action: 'check_n_lock',
+				id: that.row['id']
 
-			}, function(result, errors) {if (result['locked'] == null){ // что делаем, когда пришел ответ:
-
-				var backupMsg = that.message.innerHTML;
-
-				// создаем визивиг и элементы управления
-				var editor = veditor();
-				hide(that.infobar, that.controls);
-				editor.panelInstance(that.message.id);
-				e('@nicEdit-panel', that.item).style.paddingLeft = '47px';
-				that.message.focus();
-				var editControls = div('controls');
-
-				// программируем кнопки
-				var cancelEdit = function(){
-					remove(editControls);
-					editor.removeInstance(that.message.id);
-					editor.removePanel(that.message.id);
-					unhide(that.infobar, that.controls);
-					
-					wait.start(1);
-				}
-
-				var updateMessage = function(){
-					that.editFields(['msg_body', that.message]);
-					cancelEdit();
-				}
-
-				var cancelBtn = div('sbtn cancel', null, '<span>'+ txt['cancel'] +'</span>');
-				var sendBtn = div('sbtn save', null, '<span>'+ txt['save'] +'</span>');
+			}, function(result, errors) {
 				
-				cancelBtn.onclick = function(){
-					cancelEdit();
-					that.message.innerHTML = backupMsg;
+				if (result['locked'] !== null) {
+
+						alert(txt['post_locked']);
+
+				} else { // что делаем, когда пришел ответ:
+
+					var backupMsg = that.message.innerHTML;
+
+					// создаем визивиг и элементы управления
+					hide(that.infobar, that.controls);
+
+					var editor = veditor();
+					editor.panelInstance(that.message.id);
+					e('@nicEdit-panel', that.item).style.paddingLeft = '47px';
+					that.message.focus();
+					var editControls = div('controls');
 					
-					JsHttpRequest.query( 'ajax_backend.php', { // аргументы:
-						action: 'unlock_post'
-						, id: that.row['id']
-					}, function(){}, false );
+					var cancelBtn = div('sbtn cancel', null, '<span>'+ txt['cancel'] +'</span>');
+					var sendBtn = div('sbtn save', null, '<span>'+ txt['save'] +'</span>');
+					
+					// собираем конструктор
+					that.item.appendChild(editControls);
+					appendKids(editControls, 
+						cancelBtn, 
+						sendBtn, 
+						nuclear()
+					);
+					
+					// программируем кнопки
+					var cancelEdit = function(){
+						remove(editControls);
+						editor.removeInstance(that.message.id);
+						editor.removePanel(that.message.id);
+						unhide(that.infobar, that.controls);
+					}
+
+					var updateMessage = function(){
+						
+						wait.stop();
+						wait.writeAndStart('update', {id: that.row['id'], message: that.message.innerHTML});
+						cancelEdit();
+					}
+					
+					sendBtn.onclick = updateMessage;
+
+					cancelBtn.onclick = function(){
+						cancelEdit();
+						that.message.innerHTML = backupMsg;
+
+						var req = new JsHttpRequest();
+						req.open(null, 'ajax_backend.php', true);
+						req.send({
+							action: 'unlock_post'
+							, id: that.row['id']
+						});
+					}
 				}
-				
-				sendBtn.onclick = updateMessage;
-
-				// собираем конструктор
-				that.item.appendChild(editControls);
-				appendKids(editControls, cancelBtn, sendBtn, nuclear());
-
-			} else alert(txt['post_locked']);}, true ); // запрещать кеширование
+			}, true ); // запрещать кеширование
 		}
 		
 		// Удаление сообщения
@@ -359,9 +370,7 @@ var PostItem = Class( DesktopMessageItem, {
 			if (confirm(txt['msg_del_confirm'])){
 				wait.stop();
 
-				wait.writeAndStart( 'delete_post', {
-					id: that.row['id']
-				});
+				wait.writeAndStart( 'delete_post', { id: that.row['id'] });
 			}
 		}
 		

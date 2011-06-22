@@ -3,9 +3,9 @@
 -- http://www.phpmyadmin.net
 --
 -- Хост: localhost
--- Время создания: Июн 14 2011 г., 21:58
--- Версия сервера: 5.0.92
--- Версия PHP: 5.2.6
+-- Время создания: Июн 22 2011 г., 18:42
+-- Версия сервера: 5.1.54
+-- Версия PHP: 5.3.5-1ubuntu7.2
 
 SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
 
@@ -27,27 +27,27 @@ SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
 
 DROP TABLE IF EXISTS `jawi_messages`;
 CREATE TABLE IF NOT EXISTS `jawi_messages` (
-  `msg_id` bigint(20) unsigned NOT NULL auto_increment,
-  `msg_author` int(10) unsigned NOT NULL,
-  `msg_parent` bigint(20) unsigned default NULL,
-  `msg_topic_id` bigint(20) unsigned default NULL,
-  `msg_topic` varchar(255) default '',
-  `msg_body` text NOT NULL,
-  `msg_created` datetime NOT NULL default '0000-00-00 00:00:00',
-  `msg_modified` timestamp NULL default NULL,
-  `msg_deleted` tinyint(1) unsigned default NULL,
-  `msg_locked` tinyint(1) unsigned default NULL,
-  PRIMARY KEY  (`msg_id`),
-  KEY `msg_parent` (`msg_parent`),
-  KEY `msg_author` (`msg_author`),
-  KEY `msg_topic_id` (`msg_topic_id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=479 ;
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `author_id` int(10) unsigned NOT NULL,
+  `parent_id` bigint(20) unsigned DEFAULT NULL,
+  `topic_id` bigint(20) unsigned DEFAULT NULL,
+  `topic_name` varchar(255) DEFAULT NULL,
+  `message` text NOT NULL,
+  `created` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
+  `modified` timestamp NULL DEFAULT NULL,
+  `deleted` tinyint(1) unsigned DEFAULT NULL,
+  `locked` tinyint(1) unsigned DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `msg_parent` (`parent_id`),
+  KEY `msg_author` (`author_id`),
+  KEY `msg_topic_id` (`topic_id`)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=491 ;
 
 --
 -- Дамп данных таблицы `jawi_messages`
 --
 
-INSERT INTO `jawi_messages` (`msg_id`, `msg_author`, `msg_parent`, `msg_topic_id`, `msg_topic`, `msg_body`, `msg_created`, `msg_modified`, `msg_deleted`, `msg_locked`) VALUES
+INSERT INTO `jawi_messages` (`id`, `author_id`, `parent_id`, `topic_id`, `topic_name`, `message`, `created`, `modified`, `deleted`, `locked`) VALUES
 (48, 1, 0, 0, 'Обновления', 'Тут я буду писать все существенные обновления движка. Время от времени они будут удаляться и переезжать сюда - в заглавный пост.<br><br>1. Заработало удаление единичных сообщений. Групповое удаление скорее всего будет реализовано с полной перезагрузкой темы<br><br>2. Заработало редактирование сообщений<br><br>3. Некоторые параметры теперь запоминаются в куках:<br><div style="margin-left: 40px;">• Ширина колонок и их свернутость<br>• Состояние панели отладки<br><br></div>4. Текущая тема загружается из хеша строки запроса (то что после #). Таким образом можно давать ссылки на темы. Точно так же с постом (для формирования ссылки на него нужно кликнуть), при этом происходит прокрутка до поста.<br><br>5. Сообщение можно редактировать двойным кликом на нём<br><br>6. Реализовал поддержку граватаров и место для аватаров вообще. Аватары в \nсистеме используются размером 48*48 пикселей, но в профиле пользователя \nможно будет увидеть полный размер (100*100 скорее всего)<br><br>7. Сделал авто-обновление.<br><br>8. Теперь можно стартовать и удалять темы.<br><br>9. Сделал немного более правильным поведение формы ответа. Теперь она перед\n отправкой проверяет не появилось ли новых сообщений, не изменились ли \nсуществующие.<br><br>10. темы по умолчанию сортируются по \nдате последнего обновления, каковым считается не только написание нового\n сообщения, но и редактирование любого существущего.<br><br>11. Вывод аякс-бекенда теперь кодируется в gzip, чем уменьшает объем \nпередаваемых данных иногда на порядок. Как минимум в 5 раз - точно.<br><br>12. на небольших экранах включена экономия места за счет убирания лишних промежутков.', '2010-03-24 15:59:00', '2011-05-18 15:39:14', NULL, NULL),
 (73, 1, 0, 0, 'Книга жалоб и предубеждений :)<br>', 'Основное обсуждение работы сервиса<br>', '2010-03-26 00:16:58', '2011-05-18 15:28:26', NULL, NULL),
 (74, 1, 0, 0, 'Тест ветвления (пока приостановлен)<br>', 'Решили пока-что сделать чтоб работало по прямой<br>', '2010-03-26 00:31:52', '2011-04-01 10:28:53', NULL, NULL),
@@ -131,7 +131,7 @@ INSERT INTO `jawi_messages` (`msg_id`, `msg_author`, `msg_parent`, `msg_topic_id
 (250, 1, 76, 76, '', 'та хз. толи погода, толи заболела(((<br>', '2011-03-25 17:12:15', NULL, NULL, NULL),
 (251, 1, 76, 76, '', 'Темпаературу померяй :)<br>У нас по моему даже где-то в офисе был градусник<br>', '2011-03-25 17:12:48', NULL, NULL, NULL),
 (252, 1, 76, 76, '', 'та ладно. уже скоро домой. меня заберут на тачке<br>', '2011-03-25 17:13:24', '2011-03-25 17:14:20', 1, NULL),
-(253, 1, 76, 76, '', 'Оу. Ну, прикольно, не спорю. <br><br>Слушай, а попробуй сообщение удалить какое нибудь.<br>', '2011-03-25 17:14:00', NULL, NULL, 1),
+(253, 1, 76, 76, '', 'Оу. Ну, прикольно, не спорю. <br><br>Слушай, а попробуй сообщение удалить какое нибудь.<br>', '2011-03-25 17:14:00', NULL, NULL, NULL),
 (254, 1, 48, 48, '', 'Сделал автообновление. Осталось регистрацию/авторизацию и можно тестить<br>', '2011-03-25 17:19:42', '2011-05-18 15:33:38', 1, NULL),
 (255, 1, 73, 73, '', '1. всплывающие подсказки в меню форматирования текста<br>2. сигнал о полученном сообщении(звуковой или графический)<br>', '2011-03-25 17:20:32', '2011-05-18 15:24:59', 1, NULL),
 (256, 1, 73, 73, '', 'Спасибо :)<br><br>Еще: увеличение времени ожидания waiter-а когда вкладка неактивна, или браузер свернут.<br>', '2011-03-25 17:22:57', '2011-04-01 13:01:09', 1, NULL),
@@ -208,7 +208,7 @@ INSERT INTO `jawi_messages` (`msg_id`, `msg_author`, `msg_parent`, `msg_topic_id
 (327, 6, 74, 74, '', 'и так щас два проекта тестирую. будет третий :)<br>', '2011-04-01 12:12:10', NULL, NULL, NULL),
 (328, 1, 74, 74, '', 'В таком случае тебе на https://github.com/lerayne/UltiComm. Там есть раздел Issues - для багтрекинга, фич-реквестов и пр.<br>', '2011-04-01 12:13:32', NULL, NULL, NULL),
 (329, 6, 74, 74, '', 'оке<br>', '2011-04-01 12:15:39', NULL, NULL, NULL),
-(330, 6, 74, 74, '', 'так, чтоб далеко не ходить - надо бы при нажатии "Ответить" фокусировать курсор на поле ввода<br>', '2011-04-01 12:17:05', NULL, NULL, 6),
+(330, 6, 74, 74, '', 'так, чтоб далеко не ходить - надо бы при нажатии "Ответить" фокусировать курсор на поле ввода<br>', '2011-04-01 12:17:05', NULL, NULL, NULL),
 (331, 1, 74, 74, '', 'А, да на это не ты первый жалуешься. Сделаю, только не сейчас. Сейчас мне работать надо<br>', '2011-04-01 12:17:57', '2011-04-01 12:38:15', NULL, NULL),
 (332, 1, 76, 76, '', 'Да, такое паливо :) Кстати я таки переименую ее в консоль<br>', '2011-04-01 13:00:00', NULL, NULL, NULL),
 (333, 1, 73, 73, '', '^ Сделано<br>', '2011-04-01 13:00:33', '2011-04-01 13:02:04', 1, NULL),
@@ -275,7 +275,7 @@ INSERT INTO `jawi_messages` (`msg_id`, `msg_author`, `msg_parent`, `msg_topic_id
 (396, 1, 77, 77, '', 'Это не мир тесен, это я широк (c) Семар :)<br>Только в данном случае широк я))<br>', '2011-04-08 01:32:11', NULL, NULL, NULL),
 (397, 12, 76, 76, '', 'Кракорук, Ровшан!! Так тут все свои!!! А!!!<br>Да, я обшиблась, это флудилка, а не то, что я приняла за неё<br>', '2011-04-08 01:32:58', NULL, NULL, NULL),
 (398, 1, 76, 76, '', 'Да, флудилка это. А то - техническая тестилка.<br>', '2011-04-08 01:33:39', '2011-04-08 01:33:44', NULL, NULL);
-INSERT INTO `jawi_messages` (`msg_id`, `msg_author`, `msg_parent`, `msg_topic_id`, `msg_topic`, `msg_body`, `msg_created`, `msg_modified`, `msg_deleted`, `msg_locked`) VALUES
+INSERT INTO `jawi_messages` (`id`, `author_id`, `parent_id`, `topic_id`, `topic_name`, `message`, `created`, `modified`, `deleted`, `locked`) VALUES
 (399, 12, 73, 73, '', 'Первое.<br>Аватары.<br>Абсолютно не видно при регистрации, что там и к чему. Если можно, сделать не сбоку мелким шрифтом, а отдельным пунктом наряду с паролем и логином.<br>Дальше, где видно, что человек в сети?<br>Дальше, кнопка "ответить". Её надо искать. Понятно, что юзеры не идиоты и сами разберутся, а если не разберутся, то не нужны нам такие юзеры. Но всё же лучше, чтобы она была постоянной.<br>И это, как отправить сообщение комбинацией клавиш? Энтер и ктрл энтер не срабатывает.<br>Я чайник, моё мнение можно не принимать во внимание<br>', '2011-04-08 01:38:36', NULL, NULL, NULL),
 (400, 12, 77, 77, '', 'Или я :-Р<br>', '2011-04-08 01:39:50', NULL, NULL, NULL),
 (401, 12, 76, 76, '', 'а, понятно. а где список пользователей?<br>', '2011-04-08 01:40:36', NULL, NULL, NULL),
@@ -313,7 +313,7 @@ INSERT INTO `jawi_messages` (`msg_id`, `msg_author`, `msg_parent`, `msg_topic_id
 (433, 1, 77, 77, '', '!!!!!!!!!!!!!!!<br>', '2011-04-12 17:12:02', '2011-04-12 17:12:52', 1, NULL),
 (434, 1, 77, 77, '', 'трям<br>', '2011-04-13 17:49:12', '2011-04-13 17:54:12', 1, NULL),
 (435, 1, 77, 77, '', 'трям2', '2011-04-13 17:51:47', '2011-04-13 17:54:16', 1, NULL),
-(436, 1, 77, 77, '', 'трям<br>', '2011-04-13 17:54:33', NULL, NULL, NULL),
+(436, 1, 77, 77, '', '567 трям<br>', '2011-04-13 17:54:33', '2011-06-22 18:29:33', NULL, NULL),
 (437, 1, 77, 77, '', 'ыуффыыфвфф<br>', '2011-04-13 17:57:06', '2011-04-14 08:41:50', 1, NULL),
 (438, 1, 76, 76, '', 'вавыаыаы<br>', '2011-04-13 17:58:24', '2011-04-14 08:42:14', 1, NULL),
 (439, 1, 76, 76, '', '111111113567<br>', '2011-04-13 18:07:35', '2011-04-14 08:42:11', 1, NULL),
@@ -321,7 +321,7 @@ INSERT INTO `jawi_messages` (`msg_id`, `msg_author`, `msg_parent`, `msg_topic_id
 (441, 12, 76, 76, '', 'пустой трёп что-то не особо треплется<br>тему что-ли толкайте<br>давайте поговорим о проблеме недосыпа в информационном обществе :-Р<br>', '2011-04-14 00:44:15', NULL, NULL, NULL),
 (442, 12, 77, 77, '', 'Умку с танцев на БЖ??? Ты уверен, что он там был?<br>', '2011-04-14 00:45:05', NULL, NULL, NULL),
 (443, 12, 379, 379, '', 'как оно работает?<br>', '2011-04-14 00:45:58', NULL, NULL, NULL),
-(444, 1, 77, 77, '', 'Ну, я первый раз его увидел когда мы оттуда толпой куда-то шли.<br>', '2011-04-14 08:41:29', '2011-04-14 11:54:25', NULL, NULL),
+(444, 1, 77, 77, '', '11 Ну, я первый раз его увидел когда мы оттуда толпой куда-то шли.<br>', '2011-04-14 08:41:29', '2011-06-22 18:31:24', NULL, NULL),
 (445, 1, 76, 76, '', 'Трёп ради трёпа не есть хорошо :) Эта тема была создана для проверок движка в основном. Хочешь поговорить о чем-то - открывай тему, поговорим.<br>', '2011-04-14 08:43:07', '2011-04-14 13:07:43', NULL, NULL),
 (446, 1, 379, 379, '', 'Ну как бы непрочитанные сообщения отмечаются желтоватым фоном. Нажав на кнопку "отметить прочитанным" ты убираешь непрочитанность для текущей темы.<br>', '2011-04-14 08:49:40', '2011-04-14 13:26:19', NULL, NULL),
 (447, 1, 77, 77, '', 'Что-то пишу<br>', '2011-04-14 10:54:42', '2011-04-14 11:53:03', 1, NULL),
@@ -355,7 +355,19 @@ INSERT INTO `jawi_messages` (`msg_id`, `msg_author`, `msg_parent`, `msg_topic_id
 (475, 1, 472, 472, '', 'бздык<br>', '2011-05-19 10:58:19', NULL, NULL, NULL),
 (476, 15, 472, 472, '', 'ололо<br><br>', '2011-05-19 10:59:09', NULL, NULL, NULL),
 (477, 1, 472, 472, '', ':)<br>', '2011-05-19 10:59:24', NULL, NULL, NULL),
-(478, 15, 76, 76, '', 'testing<br>', '2011-05-19 11:22:36', NULL, NULL, NULL);
+(478, 15, 76, 76, '', 'testing<br>', '2011-05-19 11:22:36', NULL, NULL, NULL),
+(479, 1, 74, 74, NULL, 'трам<br>', '2011-06-15 01:58:18', '2011-06-16 15:57:10', 1, NULL),
+(480, 1, 74, 74, NULL, '111<br>', '2011-06-15 02:55:59', '2011-06-16 15:55:23', 1, NULL),
+(481, 1, 74, 74, NULL, 'ну и что это?<br>', '2011-06-15 02:58:18', '2011-06-16 15:52:35', 1, NULL),
+(482, 1, 74, 74, NULL, 'fdsfsf<br>', '2011-06-15 03:02:03', '2011-06-16 15:50:08', 1, NULL),
+(483, 1, 74, 74, NULL, 'дада. работаем.<br>', '2011-06-15 03:02:18', '2011-06-15 03:03:51', 1, NULL),
+(484, 1, 77, 77, NULL, 'sfsdfsfsfs<br>', '2011-06-16 16:00:40', '2011-06-16 16:00:49', 1, NULL),
+(485, 1, 76, 76, NULL, 'sfsdfsf<br>', '2011-06-16 17:17:44', NULL, NULL, NULL),
+(486, 1, 77, 77, NULL, '111111<br>', '2011-06-16 17:26:11', '2011-06-22 16:27:12', 1, NULL),
+(487, 1, 77, 77, NULL, 'dfsfs<br>', '2011-06-16 17:29:52', '2011-06-16 17:30:46', 1, NULL),
+(488, 1, 77, 77, NULL, 'dfgdfd<br>', '2011-06-16 17:32:54', '2011-06-16 17:33:00', 1, NULL),
+(489, 1, 76, 76, NULL, '111111111111<br>', '2011-06-16 18:05:47', '2011-06-16 18:05:58', 1, NULL),
+(490, 1, 76, 76, NULL, 'ывавыаываыаыаы<br>', '2011-06-16 18:06:09', '2011-06-16 18:06:15', 1, NULL);
 
 -- --------------------------------------------------------
 
@@ -365,20 +377,20 @@ INSERT INTO `jawi_messages` (`msg_id`, `msg_author`, `msg_parent`, `msg_topic_id
 
 DROP TABLE IF EXISTS `jawi_unread`;
 CREATE TABLE IF NOT EXISTS `jawi_unread` (
-  `unr_id` bigint(20) unsigned NOT NULL auto_increment,
-  `unr_user` int(10) unsigned NOT NULL,
-  `unr_topic` bigint(20) unsigned NOT NULL,
-  `unr_timestamp` timestamp NOT NULL default '0000-00-00 00:00:00',
-  PRIMARY KEY  (`unr_id`),
-  KEY `unr_topic` (`unr_topic`),
-  KEY `unr_user` (`unr_user`)
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `user` int(10) unsigned NOT NULL,
+  `topic` bigint(20) unsigned NOT NULL,
+  `timestamp` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
+  PRIMARY KEY (`id`),
+  KEY `unr_topic` (`topic`),
+  KEY `unr_user` (`user`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=57 ;
 
 --
 -- Дамп данных таблицы `jawi_unread`
 --
 
-INSERT INTO `jawi_unread` (`unr_id`, `unr_user`, `unr_topic`, `unr_timestamp`) VALUES
+INSERT INTO `jawi_unread` (`id`, `user`, `topic`, `timestamp`) VALUES
 (1, 1, 77, '2011-04-14 13:26:50'),
 (2, 1, 76, '2011-05-30 14:18:17'),
 (3, 1, 379, '2011-05-02 15:47:10'),
@@ -444,21 +456,21 @@ INSERT INTO `jawi_unread` (`unr_id`, `unr_user`, `unr_topic`, `unr_timestamp`) V
 
 DROP TABLE IF EXISTS `jawi_users`;
 CREATE TABLE IF NOT EXISTS `jawi_users` (
-  `usr_id` int(10) unsigned NOT NULL auto_increment,
-  `usr_login` varchar(16) character set latin1 collate latin1_general_ci NOT NULL,
-  `usr_email` varchar(128) character set latin1 collate latin1_general_ci NOT NULL,
-  `usr_hash` varchar(128) character set latin1 collate latin1_general_ci NOT NULL,
-  `usr_registered` datetime NOT NULL default '0000-00-00 00:00:00',
-  `usr_approved` tinyint(1) unsigned default NULL,
-  PRIMARY KEY  (`usr_id`),
-  UNIQUE KEY `usr_email` (`usr_email`)
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `login` varchar(16) CHARACTER SET latin1 COLLATE latin1_general_ci NOT NULL,
+  `email` varchar(128) CHARACTER SET latin1 COLLATE latin1_general_ci NOT NULL,
+  `hash` varchar(128) CHARACTER SET latin1 COLLATE latin1_general_ci NOT NULL,
+  `reg_date` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
+  `approved` tinyint(1) unsigned DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `usr_email` (`email`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=17 ;
 
 --
 -- Дамп данных таблицы `jawi_users`
 --
 
-INSERT INTO `jawi_users` (`usr_id`, `usr_login`, `usr_email`, `usr_hash`, `usr_registered`, `usr_approved`) VALUES
+INSERT INTO `jawi_users` (`id`, `login`, `email`, `hash`, `reg_date`, `approved`) VALUES
 (1, 'lerayne', 'lerayne@gmail.com', '062ac7c968833af0f79b2ff4a9de644e', '2010-03-12 15:48:00', 1),
 (4, 'takeda', 'kai.takeda@gmail.com', 'd8578edf8458ce06fbc5bb76a58c5ca4', '2011-04-01 03:15:36', 1),
 (6, 'Krakoruk', 'krakoruk@gmail.com', 'b224059e00fb0650bbda0c4ad7c40f3d', '2011-04-01 11:04:25', 1),
@@ -482,7 +494,7 @@ INSERT INTO `jawi_users` (`usr_id`, `usr_login`, `usr_email`, `usr_hash`, `usr_r
 DROP TABLE IF EXISTS `jawi_user_settings`;
 CREATE TABLE IF NOT EXISTS `jawi_user_settings` (
   `uset_user` int(10) unsigned NOT NULL,
-  `uset_gravatar` tinyint(1) unsigned NOT NULL default '1',
+  `uset_gravatar` tinyint(1) unsigned NOT NULL DEFAULT '1',
   KEY `user_id` (`uset_user`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
