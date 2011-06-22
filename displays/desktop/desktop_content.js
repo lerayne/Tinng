@@ -175,7 +175,6 @@ var TopicItem = Class( DesktopMessageItem, {
 			cancelNameEdit();
 
 			wait.stop();
-			alert('!');
 			wait.writeAndStart('update', {id: that.row['id'], topic_name: that.topicfield.innerHTML});
 		}
 
