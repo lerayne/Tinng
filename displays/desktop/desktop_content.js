@@ -122,6 +122,7 @@ var TopicItem = Class( DesktopMessageItem, {
 		
 		this.postsquant.innerHTML = ((this.row['postsquant']*1)+1) + txt['postsquant'];
 		this.topicfield.innerHTML = this.row['topic_name'] ? this.row['topic_name'] : '&nbsp;';
+		this.debug.innerHTML = this.row['totalmaxd'];
 	},
 	
 	
@@ -142,14 +143,14 @@ var TopicItem = Class( DesktopMessageItem, {
 		this.postsquant.innerHTML = this.lpost['postsquant'] + txt['postsquant'];
 	},*/
 	
-	
+	// отметка темы активной (текущей)
 	markActive: function(){
-		if (e('@activetopic')) removeClass(e('@activetopic'), 'activetopic');
+		if (e('@activetopic')) removeClass(e('@activetopic'), 'activetopic'); // убираем предыдущую активную
 		addClass(this.item, 'activetopic');
 		//this.item.scrollIntoView(false); // снизу
 	},
 	
-	
+	// подъем темы наверх
 	bump: function(){
 		var container = this.item.parentNode;
 		var firstTopic = e('@topic', container);

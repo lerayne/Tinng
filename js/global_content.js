@@ -63,7 +63,7 @@ var MessageItem = Class({
 			, this.topicname
 			, this.message
 			, this.lastpost
-			// , this.debug
+			//, this.debug
 			, this.controls 
 			, nuclear()
 		);

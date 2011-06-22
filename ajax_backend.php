@@ -193,6 +193,8 @@ switch ($action):
 				mlast.id AS last_id,
 				LEFT(mlast.message, ?d) AS lastpost,
 				IFNULL(mlast.modified, mlast.created) AS lastdate,
+				GREATEST(IFNULL(msg.modified, msg.created), 
+					IFNULL(IFNULL(mlast.modified, mlast.created),0)) as totalmaxd,
 				lma.login AS lastauthor,
 				(SELECT COUNT(mcount.id) FROM ?_messages mcount 
 					WHERE mcount.topic_id = msg.id AND mcount.deleted <=> NULL) AS postsquant
@@ -218,106 +220,12 @@ switch ($action):
 			, $maxdateSQL , $maxdateSQL
 		));
 		
-		// необходимо узнать нет ли обновлений среди параметров: 
-		// кол-во постов в теме, послений пост, изменение/удаление любого поста в теме. 
-		// В данный момент с этим связана трудность - приходится сильно грузить базу запросами. 
-		// Пока решаю как есть, в будущем - придумать решение
-		
-		// выбирем все неудаленные темы (в этом списке удаленные нас не интересуют)
-		$selected_topics = $db->select(
-			'SELECT id AS ARRAY_KEY, id FROM ?_messages 
-			WHERE topic_id = 0 AND deleted <=> NULL'
-			. ($condition ? ' AND '.$condition : '')
-		);
-		// для каждой темы ищем последний пост (если обновлен)
-		foreach ($selected_topics as $topic_id => $null){
-			
-			$common_query = 
-				'SELECT
-					msg.id,
-					LEFT(msg.message, ?d) AS message,
-					msg.topic_id,
-					msg.created,
-					msg.modified,
-					msg.deleted,
-					IFNULL(msg.modified, msg.created) AS maxdate,
-					usr.login AS author
-				FROM ?_messages msg, ?_users usr WHERE
-					msg.author_id = usr.id';
-			
-			// тут ошибка! выбирается последнее созданное из обновленных, даже если это не последнее 
-			// сообщение в теме! пока это отражается только тем, что при удалении любого сообщения в 
-			// теме этот запрос выбирает его, так как у него максимальный modified из всех в теме. 
-			// К счастью, следующий обработчик видит этот deleted и передает реально последнее сообщение 
-			// в теме, но а) передается избыточное сообщение, б) это может сказаться при редактировании
-			// сообщений
-			$lastpost = $db->selectRow(
-				$common_query.'
-					AND msg.topic_id = ?d
-					AND IFNULL(msg.modified, msg.created) > ?
-				ORDER BY msg.id DESC LIMIT 1'
-				, $cfg['cut_length'], $topic_id, $maxdateSQL
-			);
-			
-			// и если он удален - ищем последний актуальный
-			if ($lastpost['deleted']){
-				
-				$result['debug'][$topic_id] 
-					= 'the very last for topic '.$topic_id.' (#'.$lastpost['id'].') was deleted';
-				
-				// этот запрос ищет последнее неудаленное сообщение в теме, вне зависимости от того, 
-				// было ли оно обновлено
-				$lastpost = $db->selectRow(
-					$common_query.'
-						AND msg.topic_id = ?d
-						AND msg.deleted <=> NULL
-					ORDER BY msg.id DESC LIMIT 1'
-					, $cfg['cut_length'], $topic_id
-				);
-			}
-			
-			// если обновление последнего сообщения найдено, "пустых" обновлений не искать
-			if ($lastpost) {
-				
-				$result['lastposts'][$topic_id] = $lastpost;
-				
-			} else {
-			// но если не найдено - проверить, вдруг есть?
-				
-				$updated = $db->selectRow(
-					'SELECT 
-						msg.deleted,
-						msg.topic_id,
-						IFNULL(msg.modified, msg.created) AS maxdate
-					FROM ?_messages msg
-					WHERE msg.modified > ?
-					AND msg.topic_id = ?d
-					ORDER BY msg.modified DESC LIMIT 1'
-					, $maxdateSQL, $topic_id
-				);
-				 
-				if ($updated) $result['lastposts'][$topic_id] = $updated;
-			}
-			
-			//unset ($result['lastposts']);
-			
-			// если есть хоть какое-то обновление в данной теме - запрашиваем кол-во постов в ней
-			if ($result['lastposts'][$topic_id]) {
-				$result['lastposts'][$topic_id]['postsquant'] = $db->selectCell(
-					'SELECT COUNT(*) FROM ?_messages WHERE (topic_id = ?d OR id = ?d) AND deleted <=> NULL'
-					, $topic_id, $topic_id
-				);
-			}
-
-		}
-		
 		
 		// пока оставляем так, над сортировкой поработать!
 		switch ($sort):
 			
 			case 'updated':
-				$result['topics'] = sort_result($result['topics'], 'maxdate', $reverse);
-				//$result['lastposts'] = sort_result($result['lastposts'], 'maxdate', !$reverse);
+				$result['topics'] = sort_result($result['topics'], 'totalmaxd', $reverse);
 			break;
 
 		endswitch;
@@ -561,26 +469,8 @@ echo'
 <b>_RESULT:</b> ". print_r($GLOBALS['_RESULT'], 1)."
 </pre>";
 /*
-select jawi_messages.msg_id,
-       (select count(jawi_messagesCount.msg_id)  
-        from jawi_messages jawi_messagesCount  
-        where jawi_messagesCount.msg_topic_id = jawi_messages.msg_id 
-              and ifnull(jawi_messagesCount.msg_deleted,0) = 0 ) msgCount,
-        jawi_messagesLast.msg_id,
-        jawi_messagesLast.msg_created
-from jawi_messages left join jawi_messages jawi_messagesLast on jawi_messages.msg_id = jawi_messagesLast.msg_topic_id
-                                                            and ifnull(jawi_messagesLast.msg_deleted,0) = 0 
-                                                            and jawi_messagesLast.msg_created = (select max(jawi_messagesMax.msg_created) from jawi_messages jawi_messagesMax where jawi_messagesMax.msg_topic_id = jawi_messages.msg_id and ifnull(jawi_messagesMax.msg_deleted,0) = 0)   
-                                                           
-where jawi_messages.msg_topic_id = 0 and ifnull(jawi_messages.msg_deleted,0) = 0  
-
 
 
 if(msg_modified > msg_created, 1, 0)
-
-
-ifnull(`msg_modified`, `msg_created`) > ?
-
-
  */
 ?>
