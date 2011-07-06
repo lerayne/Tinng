@@ -705,3 +705,125 @@ function startEngine(){
 	currentTopic = adress.get('topic');
 	wait.start();
 }
+
+
+////////////////////////////////////////////////////////////////////////////////
+// long-poll реализация класса Updater - кандидат в фреймворк
+
+function Updater(parseFunc){
+	var that = this;
+	
+	this.startBlocked = false;
+	this.maxdateTS = 0;
+	
+	// сортировка по умолчанию
+	this.topicSort = 'updated';
+	this.tsReverse = true;
+	
+	var req = false;
+	var timeout = false;
+	
+	var SInd = e('@state_ind' ,'#top_bar');
+	
+	// ФУНКЦИЯ ЦИКЛИЧНОГО ОЖИДАНИЯ
+	this.start = function(forceDateTS, subAction, params){
+		consoleWrite('trying to launch query',1);
+		if (!that.startBlocked || forceDateTS){
+			
+			consoleWrite('query launched successfuly',1);
+			
+			// устанавливаем флаг, блокирующий параллельный старт еще одного запроса
+			that.startBlocked = true;
+			timeout = advClearTimeout(timeout);
+			
+			// если не нужно менять дату (только форсировать старт) то на вход функции можно подать 1
+			if (forceDateTS && forceDateTS !== 1) that.maxdateTS = forceDateTS;
+			
+			that.startIndication(); // индикация ожидания вкл
+			
+			// Отправляем запрос
+			req = new JsHttpRequest();
+			req.onreadystatechange = function() {if (req.readyState == 4) {
+				
+				// разбираем пришедший пакет и выполняем обновления
+				that.maxdateTS = parseFunc(req.responseJS);
+				
+				that.stopIndication(); // индикация ожидания откл
+				
+				that.startBlocked = false;
+				
+				timeout = setTimeout(function(){that.start()}, cfg['poll_timer']);
+				
+			}}
+			req.open(null, 'ajax_backend.php', true);
+			req.send({
+				action: 'load_updates',
+				maxdateTS: that.maxdateTS,
+				curTopic: currentTopic,
+				topicSort: that.topicSort,
+				tsReverse: that.tsReverse,
+				subAction: subAction ? subAction : null,
+				params: params ? params : null
+			});
+		}
+		consoleWrite('- - - - - - - - - - - - - - - - - - - - - - -', 1);
+	}
+	
+	this.writeAndStart = function(subAction, params){
+		
+		// внезапный финт ушами: все записи и обновления базы делаются одним запросом, обновления вносятся 
+		// тем же скриптом, перед чтением
+		that.start(1, subAction, params);
+	}
+	
+	// функция, выполняющаяся при отмене уже поданного запроса
+	this.doOnAbort = function() {
+		/* // раскомментировать при использовании long-poll
+		JsHttpRequest.query( 'ajax_light_backend.php', {
+			  action: 'stop_waiting'
+			, file: getCookie('PHPSESSID')+'-'+req._ldObj.id
+		}, function(){}, true ); */
+
+		that.stopIndication();
+	}
+	
+	this.startIndication = function(){
+		addClass(SInd, 'updating');
+	}
+	
+	this.stopIndication = function(){
+		removeClass(SInd, 'updating');
+	}
+	
+	// остановщик ожидателя poll
+	this.stop = function(){
+		
+		// что делать, если стоп произошел во время ожидания ответа
+		if (that.startBlocked && req){
+			
+			// переопределяем, иначе wait воспринимает экстренную остановку как полноценное завершение запроса
+			req.onreadystatechange = function() { that.doOnAbort(); }
+			req.abort();
+			req = 0;
+			
+			that.startBlocked = false;
+			
+			consoleWrite('STOP occured while WAITING. Query has been ABORTED');
+		
+		} else { 
+		// если стоп вызывается когда this.startBlocked == false, значит это произошло между запусками
+		// это заблокирует старт и он станет возможен только при помощи форсированного запуска с датой
+			
+			that.startBlocked = true;
+			
+			consoleWrite('STOP occured in timeout', 1);
+		}
+		
+		timeout = advClearTimeout(timeout);
+		
+		consoleWrite('- - - - - - - - - - - - - - - - - - - - - - -', 1);
+	}
+	
+	// забронируем
+	this.timeout = function(){}
+}

@@ -75,110 +75,77 @@ switch ($action):
 		
 		$maxdateSQL = $result['old_maxdate'] = jsts2sql($_REQUEST['maxdateTS']);
 		
-		// функция достающая новую макс-дату, если обновления есть
-		function get_new_maxdate() { 
-			global $db, $condition, $maxdateSQL;
-			
-			$localDateCompare = ($_REQUEST['subAction'] == 'load_topic') ? 0 : $maxdateSQL;
-			
-			return $db->selectCell (
-				'SELECT GREATEST(MAX(created), IFNULL(MAX(modified), 0))
-				FROM ?_messages WHERE IFNULL(modified, created) > ?'
-				. ($condition ? ' AND '.$condition : '') // забито под условие польз. поиска по темам
-				, $localDateCompare
-			);
+		// Записываем в базу обновления
+		$params = $_REQUEST['params'];
+
+		switch ($_REQUEST['subAction']) {
+
+			// вставляем новое сообщение (адаптировать для старта темы!)
+			case 'insert_post':
+
+				$new_row = Array(
+					'author_id' => $user->id,
+					'parent_id' => $_REQUEST['curTopic'],
+					'topic_id' => $_REQUEST['curTopic'],
+					'message' => $params['message'],
+					'created' => date('Y-m-d H:i:s')
+				);
+
+				if ($params['title']) $new_row['topic_name'] = $params['title'];
+
+				$new_id = $db->query(
+					'INSERT INTO ?_messages (?#) VALUES (?a)', array_keys($new_row), array_values($new_row)
+				);
+
+				$result['topic_prop']['scrollto'] = $new_id;
+
+			break;
+
+			// обновляет запись в ?_messages
+			case 'update':
+
+				$upd_id = $params['id'];
+				unset($params['id']);
+				$params['modified'] = date('Y-m-d H:i:s'); // при любом обновлении пишем дату
+				$params['locked'] = null; // и убираем блокировку
+
+				$db->query('UPDATE ?_messages SET ?a WHERE id = ?d', $params, $upd_id);
+
+			break;
+
+
+			// удаляет сообщение
+			case 'delete_post':
+
+				// проверка блокировки сообщения
+				$locked = $db->selectCell(
+					'SELECT locked FROM ?_messages WHERE id = ?d', $params['id']
+				);
+
+				if ($locked){
+
+					$result['error'] = 'post_locked';
+
+				} else $db->query(
+					'UPDATE ?_messages SET deleted = ?d, modified = ? WHERE id = ?d'
+					, $user->id
+					, date('Y-m-d H:i:s')
+					, $params['id']
+				);
+
+			break;
 		}
 		
-		// Если мы что-то пишем - цикл ожидания не запускается. Скорее всего обновления будут, 
-		// максимум что нужно - узнать, есть ли они
-		if ($_REQUEST['subAction']){
-			
-			$params = $_REQUEST['params'];
-			
-			switch ($_REQUEST['subAction']) {
-				
-				// вставляем новое сообщение (адаптировать для старта темы!)
-				case 'insert_post':
+		// определить, есть ли в таблице дата больше чем присланная и если есть - забить в переменную
+		$result['new_maxdate'] = $db->selectCell (
+			'SELECT GREATEST(MAX(created), IFNULL(MAX(modified), 0))
+			FROM ?_messages WHERE IFNULL(modified, created) > ?' . ($condition ? ' AND '.$condition : '')
+			, ($_REQUEST['subAction'] == 'load_topic') ? 0 : $maxdateSQL
+		);
 
-					$new_row = Array(
-						'author_id' => $user->id,
-						'parent_id' => $_REQUEST['curTopic'],
-						'topic_id' => $_REQUEST['curTopic'],
-						'message' => $params['message'],
-						'created' => date('Y-m-d H:i:s')
-					);
-
-					if ($params['title']) $new_row['topic_name'] = $params['title'];
-
-					$new_id = $db->query(
-						'INSERT INTO ?_messages (?#) VALUES (?a)', array_keys($new_row), array_values($new_row)
-					);
-
-					$result['topic_prop']['scrollto'] = $new_id;
-
-				break;
-				
-				// обновляет запись в ?_messages
-				case 'update':
-					
-					$upd_id = $params['id'];
-					unset($params['id']);
-					$params['modified'] = date('Y-m-d H:i:s'); // при любом обновлении пишем дату
-					$params['locked'] = null; // и убираем блокировку
-					
-					$db->query('UPDATE ?_messages SET ?a WHERE id = ?d', $params, $upd_id);
-					
-				break;
-			
-				
-				// удаляет сообщение
-				case 'delete_post':
-					
-					// проверка блокировки сообщения
-					$locked = $db->selectCell(
-						'SELECT locked FROM ?_messages WHERE id = ?d', $params['id']
-					);
-					
-					if ($locked){
-						
-						$result['error'] = 'post_locked';
-						
-					} else $db->query(
-						'UPDATE ?_messages SET deleted = ?d, modified = ? WHERE id = ?d'
-						, $user->id
-						, date('Y-m-d H:i:s')
-						, $params['id']
-					);
-					
-				break;
-			}
-			
-			$result['new_maxdate'] = get_new_maxdate();
-			
-		} else {
-		// иначе запускаем цикл
-			
-			$begin = now();
-			$wait_time = ini_get('max_execution_time') - $cfg['db_wait_time'] - 2;
-
-			fopen($checkfile = 'data/xhr_session/'.$sessid.'-'.$xhr_id, 'w');
-
-			// ЖДЕМ ИЗМЕНЕНИЙ
-			do { 
-				if (!file_exists($checkfile)) {/*fopen('data/xhr_session/stop', 'w');*/ die();}
-
-				$result['new_maxdate'] = get_new_maxdate();
-
-				if (!$result['new_maxdate']) sleep($cfg['db_wait_time']); // ждем если ничего не пришло
-
-			} while (!$result['new_maxdate'] && (time() - $begin) < $wait_time); // если нет ответа и не вышло время
-
-			unlink($checkfile);
-			
-		}
+		// если результатов 0 то отправляем старую макс. дату и сбрасываем case
 		
 		if (!$result['new_maxdate']){
-			// если результатов 0 то отправляем старую макс. дату и сбрасываем case
 			$result['new_maxdate'] = $result['old_maxdate'];
 			break;
 		}
@@ -206,11 +173,9 @@ switch ($action):
 				mlast.id AS last_id,
 				LEFT(mlast.message, ?d) AS lastpost,
 				IFNULL(mlast.modified, mlast.created) AS lastdate,
-				GREATEST(IFNULL(msg.modified, msg.created), 
-					IFNULL(IFNULL(mlast.modified, mlast.created),0)) as totalmaxd,
+				GREATEST(IFNULL(msg.modified, msg.created), IFNULL(IFNULL(mlast.modified, mlast.created),0)) as totalmaxd,
 				lma.login AS lastauthor,
-				(SELECT COUNT(mcount.id) FROM ?_messages mcount 
-					WHERE mcount.topic_id = msg.id AND mcount.deleted <=> NULL) AS postsquant
+				(SELECT COUNT(mcount.id) FROM ?_messages mcount WHERE mcount.topic_id = msg.id AND mcount.deleted <=> NULL) AS postsquant
 			FROM ?_messages msg
 			LEFT JOIN ?_users usr 
 				ON msg.author_id = usr.id
@@ -234,7 +199,7 @@ switch ($action):
 		));
 		
 		
-		// пока оставляем так, над сортировкой поработать!
+		// сортировка
 		switch ($sort):
 			
 			case 'updated':
@@ -327,38 +292,6 @@ switch ($action):
 	break;
 
 
-
-	// обновляем N ячеек в строке
-	case 'update':
-
-		$fields = $_REQUEST['fields'];
-
-		//!! переделать вставку одним запросом с массивами, без foreach
-
-		foreach ($fields as $key => $val):
-			$db->query(
-				'UPDATE ?_messages SET ?# = ?, msg_modified = ? WHERE msg_id = ?d'
-				, $val['field']
-				, safe_str($val['data'])
-				, date('Y-m-d H:i:s')
-				, $id
-			);
-			$result[$key] = $db->selectRow(
-				'SELECT ?#, msg_modified FROM ?_messages WHERE msg_id = ?d'
-				, $val['field']
-				, $id
-			);
-		endforeach;
-
-	break;
-
-
-	// заблокировать пост (пассивная команда) пока функция без дела сидит :)
-	case 'lock_post':
-		$db->query('UPDATE ?_messages SET locked = ?d WHERE id = ?d', $user->id, $id);
-	break;
-
-
 	// разблокировать пост (пассивная команда)
 	case 'unlock_post':
 		
@@ -411,24 +344,6 @@ switch ($action):
 		
 	break;
 
-
-	// удаляем одно сообщение
-	/*
-	case 'delete':
-
-		$db->query(
-			'UPDATE ?_messages SET msg_deleted = 1, msg_modified = ?
-			WHERE msg_id = ?d'
-			, date('Y-m-d H:i:s')
-			, $id
-		);
-
-		$result['maxdate'] = $db->selectCell(
-			'SELECT msg_modified FROM ?_messages WHERE msg_id = ?d', $id
-		);
-		
-	break;
-	*/
 
 	// помечаем сообщеие прочитанным
 	case 'mark_read':

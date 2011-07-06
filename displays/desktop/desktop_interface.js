@@ -235,7 +235,7 @@ function fillToolbars(){
 	}
 	
 	startWait.onclick = function(){
-		wait.start(1);
+		wait.start();
 	}
 	/*
 	newTopicBtn.onclick = function(){newTopic(newTopicBtn);}

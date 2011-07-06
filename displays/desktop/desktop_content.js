@@ -174,8 +174,7 @@ var TopicItem = Class( DesktopMessageItem, {
 		var submitTopicName = function(){
 			cancelNameEdit();
 
-			wait.stop();
-			wait.writeAndStart('update', {id: that.row['id'], topic_name: that.topicfield.innerHTML});
+			wait.writeNRestart('update', {id: that.row['id'], topic_name: that.topicfield.innerHTML});
 		}
 
 		// функция инлайн-редактирования темы
@@ -341,8 +340,7 @@ var PostItem = Class( DesktopMessageItem, {
 
 					var updateMessage = function(){
 						
-						wait.stop();
-						wait.writeAndStart('update', {id: that.row['id'], message: that.message.innerHTML});
+						wait.writeNRestart('update', {id: that.row['id'], message: that.message.innerHTML});
 						cancelEdit();
 					}
 					
@@ -367,9 +365,7 @@ var PostItem = Class( DesktopMessageItem, {
 		var deleteMessage = function(){
 			
 			if (confirm(txt['msg_del_confirm'])){
-				wait.stop();
-
-				wait.writeAndStart( 'delete_post', { id: that.row['id'] });
+				wait.writeNRestart( 'delete_post', {id: that.row['id']});
 			}
 		}
 		
@@ -513,36 +509,45 @@ function Updater(parseFunc){
 	this.startBlocked = false;
 	this.maxdateTS = 0;
 	
+	// сортировка по умолчанию
 	this.topicSort = 'updated';
 	this.tsReverse = true;
 	
 	var req = false;
+	var timeout = false;
 	
 	var SInd = e('@state_ind' ,'#top_bar');
 	
 	// ФУНКЦИЯ ЦИКЛИЧНОГО ОЖИДАНИЯ
 	this.start = function(forceDateTS, subAction, params){
-		if (!that.startBlocked || forceDateTS){
+		
+		consoleWrite('trying to launch query',1);
+		
+		if (!that.startBlocked){
+			
+			consoleWrite('query launched successfuly',1);
 			
 			// устанавливаем флаг, блокирующий параллельный старт еще одного запроса
 			that.startBlocked = true;
+			timeout = advClearTimeout(timeout);
 			
 			// если не нужно менять дату (только форсировать старт) то на вход функции можно подать 1
-			if (forceDateTS && forceDateTS !== 1) that.maxdateTS = forceDateTS;
+			//if (forceDateTS) that.maxdateTS = forceDateTS;
 			
-			addClass(SInd, 'updating'); // индикация ожидания вкл
+			that.startIndication(); // индикация ожидания вкл
 			
 			// Отправляем запрос
 			req = new JsHttpRequest();
 			req.onreadystatechange = function() {if (req.readyState == 4) {
-				that.startBlocked = false;
 				
 				// разбираем пришедший пакет и выполняем обновления
 				that.maxdateTS = parseFunc(req.responseJS);
 				
-				removeClass(SInd, 'updating'); // индикация ожидания откл
+				that.stopIndication(); // индикация ожидания откл
 				
-				setTimeout(function(){that.start()}, 500);
+				that.startBlocked = false;
+				
+				timeout = setTimeout(function(){that.start()}, cfg['poll_timer']);
 				
 			}}
 			req.open(null, 'ajax_backend.php', true);
@@ -556,34 +561,54 @@ function Updater(parseFunc){
 				params: params ? params : null
 			});
 		}
+		consoleWrite('- - - - - - - - - - - - - - - - - - - - - - -', 1);
 	}
 	
-	this.writeAndStart = function(subAction, params){
+	this.writeNRestart = function(subAction, params){
 		
-		// внезапный финт ушами: все записи и обновления базы делаются одним запросом с чтением
+		// обновления вносятся тем же скриптом, перед чтением
+		that.stop();
 		that.start(1, subAction, params);
 	}
 	
-	// остановщик ожидателя long-poll
+	// функция, выполняющаяся при отмене уже поданного запроса
+	this.doOnAbort = function() {
+		that.stopIndication();
+	}
+	
+	// как-то отмечаем в интерфейсе что запрос ушел
+	this.startIndication = function(){
+		addClass(SInd, 'updating');
+	}
+	
+	// как-то отмечаем в интерфейсе что запрос закончен
+	this.stopIndication = function(){
+		removeClass(SInd, 'updating');
+	}
+	
+	// остановщик ожидателя poll
 	this.stop = function(){
+		
+		// что делать, если стоп произошел во время ожидания ответа
 		if (that.startBlocked && req){
 			
 			// переопределяем, иначе wait воспринимает экстренную остановку как полноценное завершение запроса
-			req.onreadystatechange = function() {
-
-				JsHttpRequest.query( 'ajax_light_backend.php', {
-					  action: 'stop_waiting'
-					, file: getCookie('PHPSESSID')+'-'+req._ldObj.id
-				}, function(){}, true );
-				
-				removeClass(SInd, 'updating');
-			}
+			req.onreadystatechange = that.doOnAbort;
 			req.abort();
+			req = 0;
+			
 			that.startBlocked = false;
-		} else { // если стоп вызывается когда this.startBlocked == false, значит это произошло между запусками
-			// это заблокирует старт и он станет возможен только при помощи форсированного запуска с датой
-			that.startBlocked = true;
+			
+			consoleWrite('STOP occured while WAITING. Query has been ABORTED');
+		
+		} else { 
+		// если стоп вызывается когда this.startBlocked == false, значит это произошло между запусками
+			
+			consoleWrite('STOP occured in timeout', 1);
+			timeout = advClearTimeout(timeout);
 		}
+		
+		consoleWrite('- - - - - - - - - - - - - - - - - - - - - - -', 1);
 	}
 	
 	// забронируем
@@ -609,7 +634,7 @@ function parseResult(result){
 	if (result && result['error']) alert(txt['post_locked']);
 
 	// разбираем темы
-	if (result && result['topics']) { for (var i in result['topics']) { 
+	if (result && result['topics']) {for (var i in result['topics']) { 
 		entry = result['topics'][i];
 		topic = topics[entry['id']];
 
@@ -760,9 +785,7 @@ function insertTypeforms(){
 	
 	send.onclick = function(){
 		
-		wait.stop();
-		
-		wait.writeAndStart( 'insert_post' , {
+		wait.writeNRestart( 'insert_post' , {
 			message: field.innerHTML
 		});
 		

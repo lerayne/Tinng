@@ -8,6 +8,8 @@ $cfg['posts_updtimer_blurred'] = 3*60;
 $cfg['topics_updtimer_focused'] = 17;
 $cfg['topics_updtimer_blurred'] = 5*60;
 
+$cfg['poll_timer'] = 10000; // в миллисекундах
+
 // Если включено (1) - отображаются все строки консоли, если нет - только необходимые
 $cfg['console_display_all'] = 1;
 
