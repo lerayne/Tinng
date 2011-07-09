@@ -1,5 +1,4 @@
 // Глобальные переменные
-var maxPostDate, maxTopicDate, maxReadPost;
 var currentTopic = 0;
 var branches = {};
 var topics = {};
@@ -46,6 +45,13 @@ var DesktopMessageItem = Class ( MessageItem, {
 		}
 		
 		return btn;
+	},
+	
+	fillData: function() {
+		DesktopMessageItem.superclass.prototype.fillData.apply(this, arguments);
+		
+		// пометка сообщения непрочитанным
+		if (this.row['unread'] == '1') addClass(this.item, 'unread');
 	}
 });
 
@@ -135,7 +141,7 @@ var TopicItem = Class( DesktopMessageItem, {
 		// вешаем на клик событие загрузки сообщений
 		var clickload = function(){
 			
-			wait.stop();
+			//wait.stop();
 		
 			// чистим всё
 			e('@contents', '#viewport_posts').innerHTML = '';
@@ -144,7 +150,7 @@ var TopicItem = Class( DesktopMessageItem, {
 
 			// запрашиваем новую тему
 			currentTopic = that.row['id'];
-			wait.start(1, 'load_topic');
+			wait.start('load_topic');
 
 			// хеш-строка адреса
 			adress.set('topic', that.row['id']);
@@ -174,7 +180,7 @@ var TopicItem = Class( DesktopMessageItem, {
 		var submitTopicName = function(){
 			cancelNameEdit();
 
-			wait.writeNRestart('update', {id: that.row['id'], topic_name: that.topicfield.innerHTML});
+			wait.start('update', {id: that.row['id'], topic_name: that.topicfield.innerHTML});
 		}
 
 		// функция инлайн-редактирования темы
@@ -277,11 +283,14 @@ var PostItem = Class( DesktopMessageItem, {
 		this.avatar	= div('avatar', null, '<img src="'+this.row['avatar_url']+'">');
 	},
 	
-	/*
+	
 	fillData: function(){
 		PostItem.superclass.prototype.fillData.apply(this, arguments);
+		
+		if (this.row['topicstarter'] == this.row['author_id']) 
+			this.msgid.innerHTML = '&nbsp;('+txt['topicstarter']+')'+this.msgid.innerHTML;
 	},
-	*/
+	
    
 	attachActions: function(){
 		PostItem.superclass.prototype.attachActions.apply(this, arguments);
@@ -340,7 +349,7 @@ var PostItem = Class( DesktopMessageItem, {
 
 					var updateMessage = function(){
 						
-						wait.writeNRestart('update', {id: that.row['id'], message: that.message.innerHTML});
+						wait.start('update', {id: that.row['id'], message: that.message.innerHTML});
 						cancelEdit();
 					}
 					
@@ -365,7 +374,7 @@ var PostItem = Class( DesktopMessageItem, {
 		var deleteMessage = function(){
 			
 			if (confirm(txt['msg_del_confirm'])){
-				wait.writeNRestart( 'delete_post', {id: that.row['id']});
+				wait.start( 'delete_post', {id: that.row['id']});
 			}
 		}
 		
@@ -378,7 +387,7 @@ var PostItem = Class( DesktopMessageItem, {
 			plainBtn.onclick = function(){addMessage(plainBtn, 'plain');}
 		} */
 
-		if (this.row['author_id'] == userID){
+		if (this.row['author_id'] == userID || userID == '1'){
 
 			this.addBtn('editmessage').onclick = editMessage;
 			this.message.ondblclick = editMessage;
@@ -519,61 +528,41 @@ function Updater(parseFunc){
 	var SInd = e('@state_ind' ,'#top_bar');
 	
 	// ФУНКЦИЯ ЦИКЛИЧНОГО ОЖИДАНИЯ
-	this.start = function(forceDateTS, subAction, params){
+	this.start = function(subAction, params){
 		
-		consoleWrite('trying to launch query',1);
+		consoleWrite('Launching query',1);
 		
-		if (!that.startBlocked){
+		if (that.startBlocked || timeout) that.stop();
+
+		// устанавливаем флаг, блокирующий параллельный старт еще одного запроса
+		that.startBlocked = true;
+
+		that.startIndication(); // индикация ожидания вкл
+
+		// Отправляем запрос
+		req = new JsHttpRequest();
+		req.onreadystatechange = function() {if (req.readyState == 4) {
 			
-			consoleWrite('query launched successfuly',1);
-			
-			// устанавливаем флаг, блокирующий параллельный старт еще одного запроса
-			that.startBlocked = true;
-			timeout = advClearTimeout(timeout);
-			
-			// если не нужно менять дату (только форсировать старт) то на вход функции можно подать 1
-			//if (forceDateTS) that.maxdateTS = forceDateTS;
-			
-			that.startIndication(); // индикация ожидания вкл
-			
-			// Отправляем запрос
-			req = new JsHttpRequest();
-			req.onreadystatechange = function() {if (req.readyState == 4) {
-				
-				// разбираем пришедший пакет и выполняем обновления
-				that.maxdateTS = parseFunc(req.responseJS);
-				
-				that.stopIndication(); // индикация ожидания откл
-				
-				that.startBlocked = false;
-				
-				timeout = setTimeout(function(){that.start()}, cfg['poll_timer']);
-				
-			}}
-			req.open(null, 'ajax_backend.php', true);
-			req.send({
-				action: 'load_updates',
-				maxdateTS: that.maxdateTS,
-				curTopic: currentTopic,
-				topicSort: that.topicSort,
-				tsReverse: that.tsReverse,
-				subAction: subAction ? subAction : null,
-				params: params ? params : null
-			});
-		}
-		consoleWrite('- - - - - - - - - - - - - - - - - - - - - - -', 1);
-	}
-	
-	this.writeNRestart = function(subAction, params){
-		
-		// обновления вносятся тем же скриптом, перед чтением
-		that.stop();
-		that.start(1, subAction, params);
-	}
-	
-	// функция, выполняющаяся при отмене уже поданного запроса
-	this.doOnAbort = function() {
-		that.stopIndication();
+			// разбираем пришедший пакет и выполняем обновления
+			that.maxdateTS = parseFunc(req.responseJS);
+
+			that.stopIndication(); // индикация ожидания откл
+
+			that.startBlocked = false;
+
+			timeout = setTimeout(function(){that.start()}, cfg['poll_timer']);
+
+		}}
+		req.open(null, 'ajax_backend.php', true);
+		req.send({
+			action: 'load_updates',
+			maxdateTS: that.maxdateTS,
+			curTopic: currentTopic,
+			topicSort: that.topicSort,
+			tsReverse: that.tsReverse,
+			subAction: subAction ? subAction : null,
+			params: params ? params : null
+		});
 	}
 	
 	// как-то отмечаем в интерфейсе что запрос ушел
@@ -586,29 +575,27 @@ function Updater(parseFunc){
 		removeClass(SInd, 'updating');
 	}
 	
+	// функция, выполняющаяся при отмене уже поданного запроса
+	this.doOnAbort = function() {
+		that.stopIndication();
+	}
+	
 	// остановщик ожидателя poll
 	this.stop = function(){
 		
-		// что делать, если стоп произошел во время ожидания ответа
-		if (that.startBlocked && req){
-			
+		timeout = advClearTimeout(timeout);
+		
+		if (that.startBlocked) {
 			// переопределяем, иначе wait воспринимает экстренную остановку как полноценное завершение запроса
 			req.onreadystatechange = that.doOnAbort;
 			req.abort();
 			req = 0;
-			
+
 			that.startBlocked = false;
-			
+
 			consoleWrite('STOP occured while WAITING. Query has been ABORTED');
 		
-		} else { 
-		// если стоп вызывается когда this.startBlocked == false, значит это произошло между запусками
-			
-			consoleWrite('STOP occured in timeout', 1);
-			timeout = advClearTimeout(timeout);
 		}
-		
-		consoleWrite('- - - - - - - - - - - - - - - - - - - - - - -', 1);
 	}
 	
 	// забронируем
@@ -634,12 +621,13 @@ function parseResult(result){
 	if (result && result['error']) alert(txt['post_locked']);
 
 	// разбираем темы
-	if (result && result['topics']) {for (var i in result['topics']) { 
+	if (result && result['topics']) { for (var i in result['topics']) { 
 		entry = result['topics'][i];
-		topic = topics[entry['id']];
-
-		if (topic){ // если в текущем массиве загруженных тем такая уже есть
-
+		
+		// если в текущем массиве загруженных тем такая уже есть - обновляем существующую
+		if (topics[entry['id']]){
+			topic = topics[entry['id']];
+			
 			if (entry['deleted']){
 				remove(topic.item);
 				delete(topics[entry['id']]);
@@ -647,8 +635,9 @@ function parseResult(result){
 				topic.fillData(entry);
 				topic.bump();
 			}
-
-		} else if (!entry['deleted']) { // если в текущем массиве тем такой нет и пришедшая не удалена
+		
+		// если же в текущем массиве тем такой нет и пришедшая не удалена, создаем новую
+		} else if (!entry['deleted']) {
 
 			topics[entry['id']] = new TopicItem(entry);
 			topicsCont.appendChild(topics[entry['id']].item);
@@ -785,7 +774,7 @@ function insertTypeforms(){
 	
 	send.onclick = function(){
 		
-		wait.writeNRestart( 'insert_post' , {
+		wait.start( 'insert_post' , {
 			message: field.innerHTML
 		});
 		

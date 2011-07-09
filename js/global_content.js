@@ -41,6 +41,8 @@ var MessageItem = Class({
 		this.row = row;
 		
 		this.created.innerHTML	= this.row['modified'] ? txt['modified']+this.row['modified'] : this.row['created'];
+		if (this.row['modifier'] && this.row['modifier'] != this.row['author_id']) 
+			this.created.innerHTML += ' ('+this.row['modifier_name']+')';
 		this.author.innerHTML	= txt['from']+this.row['author'];
 		this.msgid.innerHTML	= '&nbsp;#'+this.row['id']+'&nbsp;';
 		this.message.innerHTML	= this.row['message'];

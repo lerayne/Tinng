@@ -31,10 +31,19 @@ $action = $_REQUEST['action'];
 $id = $_REQUEST['id'];
 
 // подготовка каждой строки
-function ready_row($row){
+function ready_row($row) {
+	
 	//if ($row['use_gravatar'] == '1')
 	$row['avatar_url'] = 'http://www.gravatar.com/avatar/' .md5(strtolower($row['author_email'])).'?s=48';
+	
 	unset($row['author_email']); // не выводим мыло во избежание спама
+	
+	// убираем из сообщений об удаленных рядах всю лишнюю инфу
+	if ($row['deleted']){
+		$cutrow['deleted'] = 1;
+		$cutrow['id'] = $row['id'];
+		$row = $cutrow;
+	}
 
 	return $row;
 }
@@ -106,7 +115,8 @@ switch ($action):
 
 				$upd_id = $params['id'];
 				unset($params['id']);
-				$params['modified'] = date('Y-m-d H:i:s'); // при любом обновлении пишем дату
+				$params['modified'] = date('Y-m-d H:i:s'); // при любом обновлении пишем дату,
+				$params['modifier'] = $user->id; // пользователя, отредактировавшего сообщение
 				$params['locked'] = null; // и убираем блокировку
 
 				$db->query('UPDATE ?_messages SET ?a WHERE id = ?d', $params, $upd_id);
@@ -126,12 +136,16 @@ switch ($action):
 
 					$result['error'] = 'post_locked';
 
-				} else $db->query(
-					'UPDATE ?_messages SET deleted = ?d, modified = ? WHERE id = ?d'
-					, $user->id
-					, date('Y-m-d H:i:s')
-					, $params['id']
-				);
+				} else {
+					
+					$upd_id = $params['id'];
+					unset($params['id']);
+					$params['deleted'] = 1;
+					$params['modifier'] = $user->id;
+					$params['modified'] = date('Y-m-d H:i:s');
+					
+					$db->query('UPDATE ?_messages SET ?a WHERE id = ?d', $params, $upd_id);
+				}
 
 			break;
 		}
@@ -175,8 +189,10 @@ switch ($action):
 				IFNULL(mlast.modified, mlast.created) AS lastdate,
 				GREATEST(IFNULL(msg.modified, msg.created), IFNULL(IFNULL(mlast.modified, mlast.created),0)) as totalmaxd,
 				lma.login AS lastauthor,
-				(SELECT COUNT(mcount.id) FROM ?_messages mcount WHERE mcount.topic_id = msg.id AND mcount.deleted <=> NULL) AS postsquant
+				(SELECT COUNT(mcount.id) FROM ?_messages mcount WHERE mcount.topic_id = msg.id AND mcount.deleted <=> NULL) AS postsquant,
+				IF(unr.timestamp < GREATEST(IFNULL(msg.modified, msg.created), IFNULL(IFNULL(mlast.modified, mlast.created),0)), 1, 0) AS unread
 			FROM ?_messages msg
+			
 			LEFT JOIN ?_users usr 
 				ON msg.author_id = usr.id
 			LEFT JOIN ?_messages mupd 
@@ -190,11 +206,16 @@ switch ($action):
 					(SELECT MAX(mmax.id) FROM ?_messages mmax WHERE mmax.topic_id = msg.id AND mmax.deleted <=> NULL)
 			LEFT JOIN ?_users lma 
 				ON lma.id = mlast.author_id
+			LEFT JOIN ?_unread unr
+				ON unr.topic = msg.id
+				AND unr.user = ?d
+				
 			WHERE msg.topic_id = 0
 				AND (IFNULL(msg.modified, msg.created) > ? OR IFNULL(mupd.modified, mupd.created) > ?)
-			'.($condition ? ' AND '.$condition : '')
+				'.($condition ? ' AND '.$condition : '')
 
 			, $cfg['cut_length'], $cfg['cut_length'] // ограничение выборки первого поста
+			, $user->id
 			, $maxdateSQL , $maxdateSQL
 		));
 		
@@ -276,13 +297,25 @@ switch ($action):
 						msg.modified,
 						msg.deleted,
 						usr.email AS author_email,
-						usr.login AS author
-					FROM ?_messages msg, ?_users usr
+						usr.login AS author,
+						IF(unr.timestamp < IFNULL(msg.modified, msg.created) && IFNULL(msg.modifier, msg.author_id) != ?d, 1, 0) AS unread,
+						modifier,
+						moder.login AS modifier_name,
+						(SELECT starter.author_id FROM ?_messages starter WHERE starter.id = msg.topic_id ) AS topicstarter
+					FROM ?_messages msg
+					
+					LEFT JOIN ?_users usr 
+						ON msg.author_id = usr.id
+					LEFT JOIN ?_unread unr
+						ON unr.topic = IF(msg.topic_id = 0, msg.id, msg.topic_id) AND unr.user = ?d
+					LEFT JOIN ?_users moder
+						ON msg.modifier = moder.id
+
 					WHERE
 						(msg.topic_id = ?d OR msg.id = ?d)
 						AND IFNULL(msg.modified, msg.created) > ?
-						AND msg.author_id = usr.id
 					ORDER BY msg.created ASC'
+					, $user->id, $user->id
 					, $topic, $topic
 					, $maxdateSQL
 				));

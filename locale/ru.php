@@ -10,6 +10,7 @@ $txt['new_topic'] = 'Новая тема';
 $txt['lastpost'] = 'Последнее:';
 
 $txt['from'] = '';
+$txt['topicstarter'] = 'автор темы';
 
 $txt['explain_addbranch'] = 'Ответить на это сообщение';
 $txt['explain_plainanswer'] = 'Ответить на это сообщение';
@@ -51,7 +52,7 @@ $txt['reg_answer'] = 'Ответ';
 $txt['reg_reg'] = 'Зарегистрироваться';
 
 $txt['btn_newtopic'] = 'Новая тема';
-$txt['btn_markread'] = 'Отметить прочитанным';
+$txt['btn_markread'] = 'Отметить тему прочитанной';
 
 $txtp['reg_login_expalin'] = 'Логин может содержать только латинские литеры, цифры и занк "_".
 	Длина логина - от 4 до 16 символов';

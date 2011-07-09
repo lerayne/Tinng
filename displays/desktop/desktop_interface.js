@@ -31,6 +31,7 @@ function resizeFrame() {
 	var offset = frameWidth() - e('#app_block').offsetWidth;
 	editCSS('#curtain', 'height:'+frameHeight()+'px;');
 	
+	/*
 	if (frameHeight() <= 600 || frameWidth() <= 1024){
 		e('#lowres_css').href = 'skins/'+cfg['skin']+'/desktop_lowres.css';
 		// !! затычка. Будет работать толль при условии, что в lowres-версии контур равен 0.
@@ -38,6 +39,7 @@ function resizeFrame() {
 	} else {
 		e('#lowres_css').href = '';
 	}
+	*/
 	
 	mainHeight = frameHeight() - offset - e('#debug_console').offsetHeight - e('#top_bar').offsetHeight;
 	editCSS('#app_area', 'height:'+mainHeight+'px;'); // главное "окно"
@@ -225,7 +227,7 @@ function fillToolbars(){
 	}
 
 	//var newTopicBtn = addButton('newtopic', postsBar);
-	//var markRead = addButton('markread', postsBar);
+	var markRead = addButton('markread', postsBar);
 	
 	var stopWait = addButton('stop', topicsBar, 'stop');
 	var startWait = addButton('start', topicsBar, 'start');
@@ -237,8 +239,8 @@ function fillToolbars(){
 	startWait.onclick = function(){
 		wait.start();
 	}
-	/*
-	newTopicBtn.onclick = function(){newTopic(newTopicBtn);}
+	
+	//newTopicBtn.onclick = function(){newTopic(newTopicBtn);}
 
 	markRead.onclick = function(){
 
@@ -254,11 +256,13 @@ function fillToolbars(){
 
 			var unreads = e('.unread', e('@contents', '#viewport_posts'), true); // с отвязкой
 			for (var i=0; i<unreads.length; i++) removeClass(unreads[i], 'unread');
+			
+			if (topics[currentTopic]) removeClass(topics[currentTopic].item, 'unread');
+			
 			removeClass(markRead, 'throbb');
 
 		}, true ); // запрещать кеширование
 	}
-	*/
 }
 
 
