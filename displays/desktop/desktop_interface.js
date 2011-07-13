@@ -226,7 +226,7 @@ function fillToolbars(){
 		return btn;
 	}
 
-	//var newTopicBtn = addButton('newtopic', postsBar);
+	var newTopicBtn = addButton('newtopic', postsBar);
 	var markRead = addButton('markread', postsBar);
 	
 	var stopWait = addButton('stop', topicsBar, 'stop');
@@ -240,7 +240,7 @@ function fillToolbars(){
 		wait.start();
 	}
 	
-	//newTopicBtn.onclick = function(){newTopic(newTopicBtn);}
+	newTopicBtn.onclick = function(){newTopic(newTopicBtn);}
 
 	markRead.onclick = function(){
 

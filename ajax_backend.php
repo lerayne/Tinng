@@ -5,7 +5,7 @@ require_once 'php/initial.php';
 
 function databaseErrorHandler($message, $info) {
     //if (!error_reporting()) return;
-    echo "SQL Error: $message<br><pre>"; print_r($info); echo "</pre>";
+    echo "SQL Error: $message<br><br><pre>"; print_r($info); echo "</pre>";
     //exit();
 }
 
@@ -110,6 +110,7 @@ switch ($action):
 
 			break;
 
+			
 			// обновляет запись в ?_messages
 			case 'update':
 
@@ -150,7 +151,7 @@ switch ($action):
 			break;
 		}
 		
-		// определить, есть ли в таблице дата больше чем присланная и если есть - забить в переменную
+		// ПОИСК ОБНОВЛЕНИЙ
 		$result['new_maxdate'] = $db->selectCell (
 			'SELECT GREATEST(MAX(created), IFNULL(MAX(modified), 0))
 			FROM ?_messages WHERE IFNULL(modified, created) > ?' . ($condition ? ' AND '.$condition : '')

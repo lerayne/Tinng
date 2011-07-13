@@ -18,6 +18,23 @@ document.onkeypress = function(event){
 }*/
 
 
+function unloadTopic() {
+	// чистим всё
+	e('@contents', '#viewport_posts').innerHTML = '';
+	branches = {};
+	messages = {};
+	currentTopic = 0;
+}
+
+function loadTopic(id) {
+	currentTopic = id;
+	wait.start('load_topic');
+
+	// хеш-строка адреса
+	adress.set('topic', id);
+	adress.del('message');
+}
+
 // расширение основного класса сообщения для десктопа
 var DesktopMessageItem = Class ( MessageItem, {
 	
@@ -96,27 +113,13 @@ var TopicItem = Class( DesktopMessageItem, {
 		this.debug.innerHTML = this.row['totalmaxd'];
 	},
 	
-	
-	// альтернативная вариация lastpost, когда он подается в отдельном массиве
-	/*
-	fillLast: function(lpost){
-		
-		this.lpost = lpost;
-		
-		if (!this.lastpost){
-			this.lastpost = div('lastpost', 'lastpost_'+this.lpost['id']);
-			insAfter(this.message, this.lastpost);
-		}
-		
-		this.lastpost.innerHTML =  txt['lastpost']+' <span class="author">'+this.lpost['author']
-				+'</span>' + ' ['+this.lpost['created']+'] ' + this.lpost['message'];
-			
-		this.postsquant.innerHTML = this.lpost['postsquant'] + txt['postsquant'];
-	},*/
+	unmarkActive: function(){
+		if (e('@activetopic')) removeClass(e('@activetopic'), 'activetopic');
+	},
 	
 	// отметка темы активной (текущей)
 	markActive: function(){
-		if (e('@activetopic')) removeClass(e('@activetopic'), 'activetopic'); // убираем предыдущую активную
+		this.unmarkActive(); // убираем предыдущую активную
 		addClass(this.item, 'activetopic');
 		//this.item.scrollIntoView(false); // снизу
 	},
@@ -140,21 +143,8 @@ var TopicItem = Class( DesktopMessageItem, {
 		
 		// вешаем на клик событие загрузки сообщений
 		var clickload = function(){
-			
-			//wait.stop();
-		
-			// чистим всё
-			e('@contents', '#viewport_posts').innerHTML = '';
-			branches = {};
-			messages = {};
-
-			// запрашиваем новую тему
-			currentTopic = that.row['id'];
-			wait.start('load_topic');
-
-			// хеш-строка адреса
-			adress.set('topic', that.row['id']);
-			adress.del('message');
+			unloadTopic();
+			loadTopic(that.row['id']);
 		}
 
 		this.item.onclick = clickload;
@@ -270,12 +260,6 @@ var PostItem = Class( DesktopMessageItem, {
 		
 		this.item.id = 'post_'+this.row['id'];
 		addClass(this.item, 'post');
-		
-		// вешаем маркер непрочитанности
-		/*
-		if (maxReadPost && maxReadPost < sql2stamp(this.row['modified'] || this.row['created']))
-			addClass(this.item, 'unread');
-		*/
 	   
 		// вешаем ID на контейнер сообщения для возможности прикрепления визивига
 		this.message.id = 'message_'+this.row['id'];
@@ -438,26 +422,19 @@ var Branch = function(contArea, topicID, parentID){
 
 
 function newTopic(btn){
-
+	
 	var backup = btn.onclick;
 	btn.onclick = null;
+	
+	topics[currentTopic].unmarkActive();
+	unloadTopic();
+	
 
-	wait.stop();
-
-	if (e('@activetopic')) removeClass(e('@activetopic'), 'activetopic');
 	e('@titlebar', '#viewport_posts').innerHTML = txt['new_topic'];
+	
+	answerForm.titleOn();
 
 	var cont = e('@contents', '#viewport_posts');
-		cont.innerHTML = '';
-	var ntBlock = div('add_message');
-	var form = newel('form', null, 'newtopic');
-	var textarea = newel('textarea', null, 'textarea_0');
-	var title = newel('input', 'topic_name');
-		title.name = 'topic';
-		title.type = 'text';
-	var answControls = div('controls');
-	var cancel = div('button', 'cancel_post', '<span>'+txt['cancel']+'</span>');
-	var send = div('button', 'send_post', '<span>'+txt['send']+'</span>');
 
 	var cancelMsg = function(){
 		btn.onclick = backup;
@@ -491,24 +468,6 @@ function newTopic(btn){
 
 		}, true ); // запрещать кеширование
 	}
-
-	cont.appendChild(ntBlock);
-		ntBlock.appendChild(form);
-			form.appendChild(title);
-			form.appendChild(textarea);
-			//form.appendChild(div('subtext w80', null, txt['how_to_send_post']));
-			form.appendChild(answControls);
-				answControls.appendChild(cancel);
-				answControls.appendChild(send);
-			form.appendChild(newel('div','clearboth'));
-			
-	var editor = veditor();
-	editor.panelInstance(textarea.id);
-	
-	cancel.onclick = cancelMsg;
-	send.onclick = sendMsg;
-
-	title.focus();
 }
 
 
@@ -621,7 +580,7 @@ function parseResult(result){
 	if (result && result['error']) alert(txt['post_locked']);
 
 	// разбираем темы
-	if (result && result['topics']) { for (var i in result['topics']) { 
+	if (result && result['topics']) {for (var i in result['topics']) { 
 		entry = result['topics'][i];
 		
 		// если в текущем массиве загруженных тем такая уже есть - обновляем существующую
@@ -722,69 +681,85 @@ function parseResult(result){
 }
 
 
-
-
-// функция добавления сообщения набросана как попало! разобраться!
-function insertTypeforms(){
-	var container = e('@typing_panel', '#viewport_posts');
+function AnswerForm(container){
+	var that = this;
 	
-	var form = newel('form', null, 'answer_here');
-	var textarea = newel('textarea', null, 'textarea_0');
-		textarea.rows = 1;
-	var controls = div('controls');
-	//var cancel = div('button', 'cancel_post', '<span>'+txt['cancel']+'</span>');
-	var send = div('button', 'send_post', '<span>'+txt['send']+'</span>');
+	this.container = container;
 	
-	form.appendChild(textarea);
+	this.form = newel('form', null, 'answer_here');
+	this.title = newel('input', 'topic_name none');
+	this.message = newel('textarea', null, 'textarea_0');
+	this.controls = div('controls');
+	this.cancel = div('button none', 'cancel_post', '<span>'+txt['cancel']+'</span>');
+	this.send = div('button', 'send_post', '<span>'+txt['send']+'</span>');
 	
-	appendKids( container
-		, form
-		, controls
+	this.message.rows = 1;
+	this.title.name = 'topic';
+	this.title.type = 'text';
+	
+	appendKids( this.form
+		, this.title
+		, this.message
+	);
+	
+	appendKids( this.container
+		, this.form
+		, this.controls
 	);
 		
-	appendKids( controls
-		//, cancel
-		, send
+	appendKids( this.controls
+		, this.cancel
+		, this.send
 		, nuclear()
 	);
 		
 	var editor = veditor();
-	editor.panelInstance(textarea.id);
-	var field = e('@nicEdit-main', form);
-	field.parentNode.className = 'nicEdit-wrapper';
-	//field.style.overflow = 'auto';
+	editor.panelInstance(this.message.id);
 	
-	setTimeout(function(){field.focus();}, 500);
+	this.field = e('@nicEdit-main', this.form);
+	this.field.parentNode.className = 'nicEdit-wrapper';
+	
+	setTimeout(function(){that.field.focus()}, 500);
 	
 	
 	var pSbar = e('@statusbar', '#viewport_posts');
-	var areaHeight = field.offsetHeight;
+	var areaHeight = this.field.offsetHeight;
 	pSbar.innerHTML = areaHeight;
 	
-	resizeContArea(e('#viewport_posts'));
+	var resize = function() {
+		resizeContArea(e('#viewport_posts'));
+	}
 	
-	field.onkeyup = function(){
-		pSbar.innerHTML = field.offsetHeight;
+	resize();
+	
+	this.field.onkeyup = function(){
+		pSbar.innerHTML = that.field.offsetHeight;
 		
-		if (areaHeight != field.offsetHeight){
-			resizeContArea(e('#viewport_posts'));
-			areaHeight = field.offsetHeight;
+		if (areaHeight != that.field.offsetHeight){
+			resize();
+			areaHeight = that.field.offsetHeight;
 		}
 	}
 	
-	send.onclick = function(){
+	this.send.onclick = function(){
 		
 		wait.start( 'insert_post' , {
-			message: field.innerHTML
+			message: that.field.innerHTML,
+			title: that.title.value
 		});
 		
-		field.innerHTML = '';
+		that.field.innerHTML = '';
+	}
+	
+	this.titleOn = function() {
+		unhide(that.title);
+		resize();
 	}
 }
 
 
 function startEngine(){
-	insertTypeforms();
+	answerForm = new AnswerForm(e('@typing_panel', '#viewport_posts'));
 	
 	wait = new Updater(parseResult);
    
