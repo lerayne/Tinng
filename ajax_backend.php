@@ -89,18 +89,20 @@ switch ($action):
 
 		switch ($_REQUEST['subAction']) {
 
+			// добавляем новую тему тут без брейка!
+			case 'add_topic':
+				
+				$new_row['topic_name'] = $params['title'];
+				$result['topic_prop']['new'] = 1;
+			
 			// вставляем новое сообщение (адаптировать для старта темы!)
 			case 'insert_post':
 
-				$new_row = Array(
-					'author_id' => $user->id,
-					'parent_id' => $_REQUEST['curTopic'],
-					'topic_id' => $_REQUEST['curTopic'],
-					'message' => $params['message'],
-					'created' => date('Y-m-d H:i:s')
-				);
-
-				if ($params['title']) $new_row['topic_name'] = $params['title'];
+				$new_row['author_id'] = $user->id;
+				$new_row['parent_id'] = $_REQUEST['curTopic'];
+				$new_row['topic_id'] = $_REQUEST['curTopic'];
+				$new_row['message'] = $params['message'];
+				$new_row['created'] = date('Y-m-d H:i:s');
 
 				$new_id = $db->query(
 					'INSERT INTO ?_messages (?#) VALUES (?a)', array_keys($new_row), array_values($new_row)
@@ -229,10 +231,11 @@ switch ($action):
 			break;
 
 		endswitch;
-
 		
 		// ЕСЛИ В ЗАПРОСЕ УКАЗАНА ТЕМА
-		if (($topic = $_REQUEST['curTopic'])){ // да, тут действительно присвоение
+		$topic = $_REQUEST['curTopic'];
+		
+		if ($topic){
 			
 			if ($_REQUEST['subAction'] == 'load_topic') {
 				$maxdateSQL = jsts2sql($_REQUEST['maxdateTS'] = '0');

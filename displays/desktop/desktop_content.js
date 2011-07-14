@@ -27,6 +27,8 @@ function unloadTopic() {
 }
 
 function loadTopic(id) {
+	
+	answerForm.titleOff();
 	currentTopic = id;
 	wait.start('load_topic');
 
@@ -423,51 +425,12 @@ var Branch = function(contArea, topicID, parentID){
 
 function newTopic(btn){
 	
-	var backup = btn.onclick;
-	btn.onclick = null;
-	
-	topics[currentTopic].unmarkActive();
+	if (topics[currentTopic]) topics[currentTopic].unmarkActive();
 	unloadTopic();
 	
-
 	e('@titlebar', '#viewport_posts').innerHTML = txt['new_topic'];
 	
 	answerForm.titleOn();
-
-	var cont = e('@contents', '#viewport_posts');
-
-	var cancelMsg = function(){
-		btn.onclick = backup;
-		remove (ntBlock);
-		branches = {};
-		fillPosts(currentTopic, e('@contents', '#viewport_posts'));
-		addClass(e('#topic_'+currentTopic), 'activetopic');
-	}
-
-	var sendMsg = function(){
-
-		var msg_text = textarea.value || e('@nicEdit-main').innerHTML;
-
-		// AJAX:
-		JsHttpRequest.query( 'ajax_backend.php', { // аргументы:
-
-			  action: 'insert_post'
-			, message: msg_text
-			, title: title.value
-			, topic: '0'
-			, parent: '0'
-
-		}, function(result, errors) { // что делаем, когда пришел ответ:
-
-			if (topics) {
-				insBefore(e('[div]', topics.cont), topics.createBlock(result));
-			} else fillTopics(); // если темы не загружены
-
-			currentTopic = result['id'];
-			cancelMsg();
-
-		}, true ); // запрещать кеширование
-	}
 }
 
 
@@ -579,6 +542,8 @@ function parseResult(result){
 	
 	if (result && result['error']) alert(txt['post_locked']);
 
+	var tProps = result['topic_prop'];
+
 	// разбираем темы
 	if (result && result['topics']) {for (var i in result['topics']) { 
 		entry = result['topics'][i];
@@ -588,8 +553,11 @@ function parseResult(result){
 			topic = topics[entry['id']];
 			
 			if (entry['deleted']){
-				remove(topic.item);
+				
+				shownRemove(topic.item);
+				if (entry['id'] == currentTopic) unloadTopic();
 				delete(topics[entry['id']]);
+				
 			} else {
 				topic.fillData(entry);
 				topic.bump();
@@ -600,28 +568,13 @@ function parseResult(result){
 
 			topics[entry['id']] = new TopicItem(entry);
 			topicsCont.appendChild(topics[entry['id']].item);
+			if (tProps['new']) loadTopic(entry['id']);
 		}	
 	}}
 
 
-	// разбираем последние посты
-	/*
-	if (result && result['lastposts']) { for (var i in result['lastposts']) { 
-		entry = result['lastposts'][i];
-		topic = topics[entry['topic_id']];
-
-		if (topic) {
-			topic.fillLast(entry);
-			topic.bump();
-		}
-	}}
-	*/
-
-
 	// разбираем сообщения
 	if (result && result['posts']){
-
-		var tProps = result['topic_prop'];
 
 		pTbar.innerHTML = tProps['name'];
 
@@ -632,8 +585,10 @@ function parseResult(result){
 			if (message){ // если в текущем массиве загруженных сообщений такое уже есть
 
 				if (entry['deleted']){
+					
 					shownRemove(message.item);
 					delete(messages[entry['id']]);
+					
 				} else message.fillData(entry);
 
 			} else if (!entry['deleted']) { // если в текущем массиве такого нет и пришедшее не удалено
@@ -743,7 +698,7 @@ function AnswerForm(container){
 	
 	this.send.onclick = function(){
 		
-		wait.start( 'insert_post' , {
+		wait.start( 'add_topic' , {
 			message: that.field.innerHTML,
 			title: that.title.value
 		});
@@ -753,6 +708,12 @@ function AnswerForm(container){
 	
 	this.titleOn = function() {
 		unhide(that.title);
+		resize();
+	}
+	
+	this.titleOff = function(){
+		that.title.value = '';
+		hide(that.title);
 		resize();
 	}
 }
