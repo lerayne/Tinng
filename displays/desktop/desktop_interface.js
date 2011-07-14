@@ -229,6 +229,7 @@ function fillToolbars(){
 	var newTopicBtn = addButton('newtopic', postsBar);
 	var markRead = addButton('markread', postsBar);
 	
+	/*
 	var stopWait = addButton('stop', topicsBar, 'stop');
 	var startWait = addButton('start', topicsBar, 'start');
 	
@@ -239,6 +240,7 @@ function fillToolbars(){
 	startWait.onclick = function(){
 		wait.start();
 	}
+	*/
 	
 	newTopicBtn.onclick = function(){newTopic(newTopicBtn);}
 
