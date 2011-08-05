@@ -151,6 +151,19 @@ switch ($action):
 				}
 
 			break;
+			
+			case 'tag_remove':
+				
+				$date = date('Y-m-d H:i:s');
+				
+				$msgupd['modified'] = date('Y-m-d H:i:s');
+				$msgupd['modifier'] = $user->id;
+				
+				$db->query('UPDATE ?_messages SET ?a WHERE id = ?d', $msgupd, $params['msg']);
+				
+				$db->query('DELETE FROM ?_tagmap WHERE message = ?d AND tag = ?d', $params['msg'], $params['tag']);
+				
+			break;
 		}
 		
 		// ПОИСК ОБНОВЛЕНИЙ
@@ -176,6 +189,7 @@ switch ($action):
 		// выбираем обновленные темы (втч удаленные)
 		$result['topics'] = make_tree($db->select(
 			'SELECT
+				msg.id AS ARRAY_KEY,
 				msg.id,
 				LEFT(msg.message, ?d) AS message,
 				msg.author_id,
@@ -223,7 +237,31 @@ switch ($action):
 		));
 		
 		
-		// сортировка
+		// выборка тегов
+		$tags = $db->select(
+			'SELECT
+				msg.id AS message,
+				tag.id,
+				tag.name,
+				tag.type
+			FROM ?_tagmap map
+			LEFT JOIN ?_messages msg 
+				ON map.message = msg.id
+			LEFT JOIN ?_tags tag
+				ON map.tag = tag.id
+			WHERE 
+				IFNULL(msg.modified, msg.created) > ?
+			'.($condition ? ' AND '.$condition : '')
+			, $maxdateSQL
+		);
+		
+		foreach ($tags as $tag) {
+			$id = $tag['message'];
+			
+			if ($result['topics'][$id])	$result['topics'][$id]['tags'][] = $tag;
+		}
+		
+		// сортировка. До сортировки массив $result['topics'] имеет индекс в виде номера темы
 		switch ($sort):
 			
 			case 'updated':
@@ -231,6 +269,7 @@ switch ($action):
 			break;
 
 		endswitch;
+		
 		
 		// ЕСЛИ В ЗАПРОСЕ УКАЗАНА ТЕМА
 		$topic = $_REQUEST['curTopic'];

@@ -342,10 +342,12 @@ td.collapsed {
 	background-image: url(images/cancel.png)
 }
 
+.btn_deltag {
+	background-image: url(images/tag_blue_delete.png)
+}
+
 .topic:hover {
-	background-color: #eeeeee;
 	cursor: pointer;
-	color:black;
 }
 
 .infobar {
@@ -647,4 +649,63 @@ td.collapsed {
 
 .redBack {
 	background-color: red;
+}
+
+.tags {
+	padding: 0 15px;
+}
+
+.tags .tag {
+	padding: 2px 7px;
+	margin: 0 0 7px 3px;
+	background: #eee;
+	color: black;
+	border-radius:4px;
+	-moz-border-radius:4px;
+	-webkit-border-radius:4px;
+}
+
+.tags .intag {
+	padding: 2px 7px;
+	border-radius:4px 4px 0 0;
+	-moz-border-radius:4px 4px 0 0;
+	-webkit-border-radius:4px 4px 0 0;
+}
+
+.tags .user {
+	background: #907eff;
+	color: white;
+}
+
+.baloon {
+	background: white;
+	color: black;
+	
+	min-width: 100px;
+	
+	border-radius:4px;
+	-moz-border-radius:4px;
+	-webkit-border-radius:4px;
+	
+	box-shadow:			0px 0px 8px #222;
+	-moz-box-shadow:	0px 0px 8px #222;
+	-webkit-box-shadow:	0px 0px 8px #222;
+}
+
+.baloon .cont {
+	margin:8px;
+}
+
+.toolbar input {
+	border: 1px solid #ccc;
+}
+
+.suggest {
+	background: white;
+	color:black;
+}
+
+.suggestion {
+	border: 1px solid #ccc;
+	padding: 3px 7px;
 }

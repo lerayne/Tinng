@@ -32,7 +32,8 @@ var MessageItem = Class({
 			created:	{ addClass: 'right' },
 			author:		{ addClass: 'left' },
 			msgid:		{ addClass: 'left' },
-			message:	[]
+			message:	[],
+			tags:		[]
 		});
 	},
 	
@@ -65,6 +66,7 @@ var MessageItem = Class({
 			, this.topicname
 			, this.message
 			, this.lastpost
+			, this.tags
 			//, this.debug
 			, this.controls 
 			, nuclear()

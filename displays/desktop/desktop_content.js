@@ -3,7 +3,64 @@ var currentTopic = 0;
 var branches = {};
 var topics = {};
 var messages = {};
+var baloon = false;
 
+function clearBaloon(){
+	if (baloon) {remove(baloon);baloon = false;}
+}
+
+function clearOverlay(){
+	clearBaloon();
+	
+	var ovls = e('.overlay', null, true);
+	
+	for (var i in ovls) hide(ovls[i]);
+}
+
+
+function Tag(entry){
+	
+	var tag = div('tag '+entry['type'], null, entry['name']);
+	//message.tags.appendChild(tag);
+	
+	tag.onclick = function(e){
+		
+		clearBaloon();
+		
+		baloon = div('baloon');
+		var intag = div('intag '+entry['type'], null, entry['name']);
+		var bal_cont = div('cont');
+		var close = div('right', null, '_');
+		
+		tag.appendChild(baloon);
+		baloon.appendChild(intag);
+		baloon.appendChild(bal_cont);
+		intag.appendChild(close);
+		
+		baloon.onclick = function(e){stopBubble(e)};
+		close.onclick = clearBaloon;
+		
+		
+		if (entry.type != 'strict'){
+			var del = div('sbtn left btn_deltag');
+			
+			del.onclick = function(){
+				clearBaloon();
+				
+				wait.start('tag_remove', {msg: entry.message, tag: entry.id});
+			}
+		}
+		
+		appendKids( bal_cont,
+			del,
+			nuclear()
+		);
+		
+		stopBubble(e);
+	}
+	
+	return tag;
+}
 
 /* вешаем кнопки клавиатуры
 document.onkeypress = function(event){
@@ -109,6 +166,10 @@ var TopicItem = Class( DesktopMessageItem, {
 		if (this.row['lastpost']) this.lastpost.innerHTML =  '<div>'+txt['lastpost']+' <span class="author">'
 			+this.row['lastauthor']+'</span>' + ' ['+this.row['lastdate']+'] ' + this.row['lastpost']+'</div>';
 		
+		if (this.row['tags']) {
+			this.tags.innerHTML = '';
+			for (var i in this.row['tags']) this.tags.appendChild(new Tag(this.row['tags'][i]));
+		}
 		
 		this.postsquant.innerHTML = ((this.row['postsquant']*1)+1) + txt['postsquant'];
 		this.topicfield.innerHTML = this.row['topic_name'] ? this.row['topic_name'] : '&nbsp;';
@@ -150,16 +211,8 @@ var TopicItem = Class( DesktopMessageItem, {
 		}
 
 		this.item.onclick = clickload;
-		
-		this.topicedit_btn.onmouseover = function(){
-			that.item.onclick = null;
-		}
 
-		this.topicedit_btn.onmouseout = function(){
-			if (!hasClass(that.topicfield, 'edittopicname')) that.item.onclick = clickload;
-		}
-
-		var cancelNameEdit = function(){
+		var cancelNameEdit = function(e){
 			hide(that.topicsubmit_btn, that.topiccancel_btn);
 			unhide(that.topicedit_btn);
 			
@@ -167,16 +220,24 @@ var TopicItem = Class( DesktopMessageItem, {
 			removeClass(that.topicfield, 'edittopicname');
 			that.topicfield.ondblclick = editTopicName;
 			that.item.onclick = clickload;
+	
+			that.topicfield.onclick = null;
+	
+			stopBubble(e);
 		}
 		
-		var submitTopicName = function(){
+		var submitTopicName = function(e){
 			cancelNameEdit();
 
 			wait.start('update', {id: that.row['id'], topic_name: that.topicfield.innerHTML});
+			
+			stopBubble(e);
 		}
 
 		// функция инлайн-редактирования темы
-		var editTopicName = function(){
+		var editTopicName = function(e){
+			
+			that.topicfield.onclick = function(e){stopBubble(e)};
 			
 			JsHttpRequest.query( 'ajax_backend.php', { // аргументы:
 
@@ -215,6 +276,8 @@ var TopicItem = Class( DesktopMessageItem, {
 				}
 			}, true); //запр. кеш
 			
+			stopBubble(e);
+			
 			/*
 			document.onkeypress = function(event){
 				var key = event.keyCode || event.which;
@@ -232,8 +295,6 @@ var TopicItem = Class( DesktopMessageItem, {
 			this.topicedit_btn.onclick = editTopicName;
 		}
 	},
-	
-	
 	
 	
 	// собираем элементы в DOM
@@ -394,7 +455,7 @@ var PostItem = Class( DesktopMessageItem, {
 });
 
 
-var Branch = function(contArea, topicID, parentID){
+function Branch (contArea, topicID, parentID){
 	if (!parentID) parentID = topicID;
 
 	// чтобы this функций не забивал this объекта
@@ -542,7 +603,7 @@ function parseResult(result){
 	
 	if (result && result['error']) alert(txt['post_locked']);
 
-	var tProps = result['topic_prop'];
+	var tProps = (result && result['topic_prop']) ? result['topic_prop'] : [];
 
 	// разбираем темы
 	if (result && result['topics']) {for (var i in result['topics']) { 
@@ -630,6 +691,19 @@ function parseResult(result){
 			}
 		}
 	}
+	
+	
+	// добавляем теги
+	if (result && result['tags']){
+		
+		for (var i in result['tags']) {
+		
+			entry = result['tags'][i];
+
+			if (topics[entry['message']]) addTag(topics[entry['message']], entry);
+		}
+	}
+
 
 	// Выдать новый TS полученный из пакета обновлений
 	return sql2stamp(result['new_maxdate']);

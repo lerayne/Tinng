@@ -28,6 +28,14 @@ var is_ie9 = is_ie && ua.indexOf('msie 9') != -1;
 
 var is_phone = ua.indexOf('iphone') != -1 || ua.indexOf('ipod') != -1;
 
+
+function stopBubble(e){
+	e = e || window.e;
+	e.stopPropagation ? e.stopPropagation() : (e.cancelBubble=true);
+}
+
+
+
 function advClearTimeout(timeout) {
 	if (timeout){
 		consoleWrite('timeout found: '+timeout+'. cleared', 1);

@@ -229,6 +229,51 @@ function fillToolbars(){
 	var newTopicBtn = addButton('newtopic', postsBar);
 	var markRead = addButton('markread', postsBar);
 	
+	var searchCont = div('search suggest_field');
+	var searchTopic = newel('input');
+	var suggest = div('suggest overlay none');
+	searchTopic.type = 'text';
+	
+	topicsBar.appendChild(searchCont);
+	searchCont.appendChild(searchTopic);
+	searchCont.appendChild(suggest);
+	
+	var timeout = false;
+	
+	var suggestRule = function(e){
+		if (searchTopic.value.length > 0){
+			
+			unhide(suggest);
+			
+			// AJAX:
+			JsHttpRequest.query( 'backend/suggest.php', { // аргументы:
+				
+				suggest: 'on_topics',
+				subject: searchTopic.value
+				
+			}, function(result, errors) { // что делаем, когда пришел ответ:
+				
+				suggest.innerHTML='';
+				for (var i in result){
+					var sstring = new RegExp('s/'+searchTopic.value+'/<b>'+searchTopic.value+'</b>/i');
+					suggest.appendChild(div('suggestion', null, result[i].name));
+				}
+				
+			}, true ); // запрещать кеширование
+			
+		} else {
+			hide(suggest);
+			timeout = advClearTimeout(timeout);
+		}
+	}
+	
+	searchTopic.onkeyup = function() {
+		timeout = advClearTimeout(timeout);
+		timeout = setTimeout(suggestRule, 300);
+	}
+	searchTopic.onfocus = suggestRule;
+	searchTopic.onclick = function(e){stopBubble(e)}
+	
 	/*
 	var stopWait = addButton('stop', topicsBar, 'stop');
 	var startWait = addButton('start', topicsBar, 'start');
@@ -305,6 +350,7 @@ function startInterface(){
 	attachActions();
 
 	fillToolbars();
+	e('[body]').onclick = clearOverlay;
 }
 
 window.onresize = resizeFrame;

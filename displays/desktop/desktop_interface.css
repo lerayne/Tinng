@@ -79,3 +79,24 @@ hr		{ border: 0 none; height: 1px; }
 .debug {
 	border-bottom:2px dotted #888888;
 }
+
+.tag {
+	float:left;
+	position: relative;
+}
+
+.baloon {
+	position: absolute;
+	z-index: 100;
+	top:0;
+	left:0;
+}
+
+.suggest_field {
+	position: relative;
+}
+
+.suggest {
+	z-index: 200;
+	position: absolute;
+}
