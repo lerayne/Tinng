@@ -80,7 +80,7 @@ hr		{ border: 0 none; height: 1px; }
 	border-bottom:2px dotted #888888;
 }
 
-.tag {
+.tags .tag {
 	float:left;
 	position: relative;
 }

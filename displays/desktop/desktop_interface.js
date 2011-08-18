@@ -255,8 +255,10 @@ function fillToolbars(){
 				
 				suggest.innerHTML='';
 				for (var i in result){
-					var sstring = new RegExp('s/'+searchTopic.value+'/<b>'+searchTopic.value+'</b>/i');
-					suggest.appendChild(div('suggestion', null, result[i].name));
+					var tag = div('tag tag_'+result[i].type, null, result[i].name);
+					var frame = div('suggestion');
+					frame.appendChild(tag);
+					suggest.appendChild(frame);
 				}
 				
 			}, true ); // запрещать кеширование
@@ -294,7 +296,7 @@ function fillToolbars(){
 		addClass(markRead, 'throbb');
 
 		// AJAX:
-		JsHttpRequest.query( 'ajax_backend.php', { // аргументы:
+		JsHttpRequest.query( 'backend/service.php', { // аргументы:
 
 			action: 'mark_read'
 			, id: currentTopic

@@ -87,7 +87,7 @@ switch ($action):
 		// Записываем в базу обновления
 		$params = $_REQUEST['params'];
 
-		switch ($_REQUEST['subAction']) {
+		switch ($_REQUEST['write']) {
 
 			// добавляем новую тему тут без брейка!
 			case 'add_topic':
@@ -170,7 +170,7 @@ switch ($action):
 		$result['new_maxdate'] = $db->selectCell (
 			'SELECT GREATEST(MAX(created), IFNULL(MAX(modified), 0))
 			FROM ?_messages WHERE IFNULL(modified, created) > ?' . ($condition ? ' AND '.$condition : '')
-			, ($_REQUEST['subAction'] == 'load_topic') ? 0 : $maxdateSQL
+			, ($_REQUEST['write'] == 'load_topic') ? 0 : $maxdateSQL
 		);
 
 		// если результатов 0 то отправляем старую макс. дату и сбрасываем case
@@ -276,7 +276,7 @@ switch ($action):
 		
 		if ($topic){
 			
-			if ($_REQUEST['subAction'] == 'load_topic') {
+			if ($_REQUEST['write'] == 'load_topic') {
 				$maxdateSQL = jsts2sql($_REQUEST['maxdateTS'] = '0');
 				$result['topic_prop']['manual'] = true;
 			}

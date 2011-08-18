@@ -16,6 +16,7 @@ switch ($suggest):
 				, strict
 			FROM ?_tags
 			WHERE name LIKE ?
+			LIMIT 10
 			', '%'.$subject.'%'
 		);
 		

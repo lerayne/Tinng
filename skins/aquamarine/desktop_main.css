@@ -655,14 +655,18 @@ td.collapsed {
 	padding: 0 15px;
 }
 
-.tags .tag {
+.tag {
 	padding: 2px 7px;
-	margin: 0 0 7px 3px;
+	margin: 2px 2px;
 	background: #eee;
 	color: black;
 	border-radius:4px;
 	-moz-border-radius:4px;
 	-webkit-border-radius:4px;
+}
+
+.tags .tag {
+	margin: 0 0 7px 3px;
 }
 
 .tags .intag {
@@ -672,7 +676,7 @@ td.collapsed {
 	-webkit-border-radius:4px 4px 0 0;
 }
 
-.tags .user {
+.tag_user {
 	background: #907eff;
 	color: white;
 }
@@ -703,9 +707,11 @@ td.collapsed {
 .suggest {
 	background: white;
 	color:black;
+	border: solid #ccc;
+	border-width: 1px 1px 0 1px;
 }
 
 .suggestion {
-	border: 1px solid #ccc;
+	border-bottom:1px solid #ccc;
 	padding: 3px 7px;
 }

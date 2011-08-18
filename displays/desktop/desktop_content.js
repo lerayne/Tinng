@@ -20,7 +20,7 @@ function clearOverlay(){
 
 function Tag(entry){
 	
-	var tag = div('tag '+entry['type'], null, entry['name']);
+	var tag = div('tag tag_'+entry['type'], null, entry['name']);
 	//message.tags.appendChild(tag);
 	
 	tag.onclick = function(e){
@@ -28,7 +28,7 @@ function Tag(entry){
 		clearBaloon();
 		
 		baloon = div('baloon');
-		var intag = div('intag '+entry['type'], null, entry['name']);
+		var intag = div('intag tag_'+entry['type'], null, entry['name']);
 		var bal_cont = div('cont');
 		var close = div('right', null, '_');
 		
@@ -239,7 +239,7 @@ var TopicItem = Class( DesktopMessageItem, {
 			
 			that.topicfield.onclick = function(e){stopBubble(e)};
 			
-			JsHttpRequest.query( 'ajax_backend.php', { // аргументы:
+			JsHttpRequest.query( 'backend/service.php', { // аргументы:
 
 				action: 'check_n_lock',
 				id: that.row['id']
@@ -267,7 +267,7 @@ var TopicItem = Class( DesktopMessageItem, {
 						cancelNameEdit();
 						
 						var req = new JsHttpRequest();
-						req.open(null, 'ajax_backend.php', true);
+						req.open(null, 'backend/service.php', true);
 						req.send({
 							action: 'unlock_post'
 							, id: that.row['id']
@@ -351,7 +351,7 @@ var PostItem = Class( DesktopMessageItem, {
 		var editMessage = function(){
 
 			// AJAX:
-			JsHttpRequest.query( 'ajax_backend.php', { // аргументы:
+			JsHttpRequest.query( 'backend/service.php', { // аргументы:
 
 				action: 'check_n_lock',
 				id: that.row['id']
@@ -407,7 +407,7 @@ var PostItem = Class( DesktopMessageItem, {
 						that.message.innerHTML = backupMsg;
 
 						var req = new JsHttpRequest();
-						req.open(null, 'ajax_backend.php', true);
+						req.open(null, 'backend/service.php', true);
 						req.send({
 							action: 'unlock_post'
 							, id: that.row['id']
@@ -511,7 +511,7 @@ function Updater(parseFunc){
 	var SInd = e('@state_ind' ,'#top_bar');
 	
 	// ФУНКЦИЯ ЦИКЛИЧНОГО ОЖИДАНИЯ
-	this.start = function(subAction, params){
+	this.start = function(write, params){
 		
 		consoleWrite('Launching query',1);
 		
@@ -536,14 +536,14 @@ function Updater(parseFunc){
 			timeout = setTimeout(function(){that.start()}, cfg['poll_timer']);
 
 		}}
-		req.open(null, 'ajax_backend.php', true);
+		req.open(null, 'backend/update.php', true);
 		req.send({
 			action: 'load_updates',
 			maxdateTS: that.maxdateTS,
 			curTopic: currentTopic,
 			topicSort: that.topicSort,
 			tsReverse: that.tsReverse,
-			subAction: subAction ? subAction : null,
+			write: write ? write : null,
 			params: params ? params : null
 		});
 	}
@@ -804,7 +804,7 @@ function startEngine(){
 
 /*
 // AJAX:
-JsHttpRequest.query( 'ajax_backend.php', { // аргументы:
+JsHttpRequest.query( 'backend/???.php', { // аргументы:
 	action: 'load_posts'
 }, function(result, errors) { // что делаем, когда пришел ответ:
 
@@ -814,7 +814,7 @@ var req = new JsHttpRequest();
 req.onreadystatechange = function() { if (req.readyState == 4) {
 
 }}
-req.open(null, 'ajax_backend.php', true);
+req.open(null, 'backend/???.php', true);
 req.send({
 	action: 'wait_post'
 });

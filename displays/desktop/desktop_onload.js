@@ -8,7 +8,7 @@ window.onbeforeunload = function(){
 	//alert('exiting program!');
 	
 	// AJAX: // закрываем сессию на сервере
-	JsHttpRequest.query( 'ajax_backend.php', {
+	JsHttpRequest.query( 'backend/service.php', {
 		
 		action: 'close_session' 
 	
