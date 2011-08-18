@@ -4,17 +4,17 @@ var MessageItem = Class({
 		
 		for (var i in collection) { var prop = collection[i];
 
-			this[i] = div(i, prop['id'], prop['content']);
+			this[i] = div(i, prop.id, prop.content);
 
-			if (prop['addClass']) this[i].className += ' '+prop['addClass'];
-			if (prop['className']) this[i].className = prop['className'];
+			if (prop.addClass) this[i].className += ' '+prop.addClass;
+			if (prop.className) this[i].className = prop.className;
 		}
 	},
 	
 	// Создание элементов (универсальных, которые есть во всех объектах)
 	createElems: function(row, contArea, topicID, branch){
 		
-		this.row = row;
+		this.row = row; // здесь не нужно, но используется в наследующих классах
 		
 		if (contArea) this.contArea = contArea;
 		if (topicID) this.topicID = topicID;
@@ -41,12 +41,16 @@ var MessageItem = Class({
 		
 		this.row = row;
 		
-		this.created.innerHTML	= this.row['modified'] ? txt['modified']+this.row['modified'] : this.row['created'];
-		if (this.row['modifier'] && this.row['modifier'] != this.row['author_id']) 
-			this.created.innerHTML += ' ('+this.row['modifier_name']+')';
-		this.author.innerHTML	= txt['from']+this.row['author'];
-		this.msgid.innerHTML	= '&nbsp;#'+this.row['id']+'&nbsp;';
-		this.message.innerHTML	= this.row['message'];
+		this.created.innerHTML	= this.row.modified ? txt.modified + this.row.modified : this.row.created;
+		
+		if (this.row.modifier && this.row.modifier != this.row.author_id) 
+			this.created.innerHTML += ' (' + this.row.modifier_name + ')';
+		
+		this.author.innerHTML	= txt.from + this.row.author;
+		
+		this.msgid.innerHTML	= '&nbsp;#' + this.row.id + '&nbsp;';
+		
+		this.message.innerHTML	= this.row.message;
 	},
 	
 	// Создание действий с объектами

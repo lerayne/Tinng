@@ -1,5 +1,5 @@
 function consoleWrite(string, skip){
-	if (skip && !cfg['console_display_all']) return;
+	if (skip && !cfg.console_display_all) return;
 	var date = new Date();
 	var cons = e('#console');
 	var time;
@@ -9,12 +9,12 @@ function consoleWrite(string, skip){
 	} else {
 
 		var t = {};
-		t['H'] = date.getHours();
-		t['M'] = date.getMinutes();
-		t['S'] = date.getSeconds();
+		t.H = date.getHours();
+		t.M = date.getMinutes();
+		t.S = date.getSeconds();
 		for (var i in t) {if (t[i]*1 < 10) t[i] = '0'+t[i];}
 
-		time = t['H'] + ':' + t['M'] + ':' + t['S'];
+		time = t.H + ':' + t.M + ':' + t.S;
 	}
 
 	cons.innerHTML = '<b>'+time+'</b> - '+string+'<br>'+cons.innerHTML;
@@ -33,7 +33,7 @@ function resizeFrame() {
 	
 	/*
 	if (frameHeight() <= 600 || frameWidth() <= 1024){
-		e('#lowres_css').href = 'skins/'+cfg['skin']+'/desktop_lowres.css';
+		e('#lowres_css').href = 'skins/'+cfg.skin+'/desktop_lowres.css';
 		// !! затычка. Будет работать толль при условии, что в lowres-версии контур равен 0.
 		offset = 0;
 	} else {
@@ -55,12 +55,12 @@ function removeCurtain(){
 
 function callOverlayPage() {
 	unhide(e('#curtain'), e('#over_curtain'));
-	wait.timeout(cfg['posts_updtimer_blurred'], cfg['topics_updtimer_blurred'], 'lock');
+	wait.timeout(cfg.posts_updtimer_blurred, cfg.topics_updtimer_blurred, 'lock');
 }
 
 function closeOverlayPage() {
 	hide(e('#curtain'), e('#over_curtain'));
-	wait.timeout(cfg['posts_updtimer_focused'], cfg['topics_updtimer_focused'], 'unlock');
+	wait.timeout(cfg.posts_updtimer_focused, cfg.topics_updtimer_focused, 'unlock');
 	deleteCookie('message');
 }
 
@@ -324,7 +324,7 @@ function attachActions(){
 
 	if (e('#regBtn')) e('#regBtn').onclick = function (){
 		callOverlayPage();
-		e('@title', '#over_curtain').innerHTML = txt['title_register'];
+		e('@title', '#over_curtain').innerHTML = txt.title_register;
 		loadTemplate('regform', e('@contents', '#over_curtain'), false);
 	}
 

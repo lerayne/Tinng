@@ -60,14 +60,14 @@ function stamp2sql(str){
 	} else {
 		var t = {};
 		var y = date.getFullYear();
-		t['m'] = date.getMonth()+1;
-		t['d'] = date.getDate();
-		t['H'] = date.getHours();
-		t['M'] = date.getMinutes();
-		t['S'] = date.getSeconds();
+		t.m = date.getMonth()+1;
+		t.d = date.getDate();
+		t.H = date.getHours();
+		t.M = date.getMinutes();
+		t.S = date.getSeconds();
 		for (var i in t) {if (t[i]*1 < 10) t[i] = '0'+t[i];}
 
-		return y + '-' + t['m'] + '-' + t['d'] + ' ' + t['H'] + ':' + t['M'] + ':' + t['S'];
+		return y + '-' + t.m + '-' + t.d + ' ' + t.H + ':' + t.M + ':' + t.S;
 	}
 }
 

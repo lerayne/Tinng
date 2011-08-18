@@ -6,7 +6,10 @@ var messages = {};
 var baloon = false;
 
 function clearBaloon(){
-	if (baloon) {remove(baloon);baloon = false;}
+	if (baloon) {
+		remove(baloon);
+		baloon = false;
+	}
 }
 
 function clearOverlay(){
@@ -20,7 +23,7 @@ function clearOverlay(){
 
 function Tag(entry){
 	
-	var tag = div('tag tag_'+entry['type'], null, entry['name']);
+	var tag = div('tag tag_'+entry.type, null, entry.name);
 	//message.tags.appendChild(tag);
 	
 	tag.onclick = function(e){
@@ -28,14 +31,14 @@ function Tag(entry){
 		clearBaloon();
 		
 		baloon = div('baloon');
-		var intag = div('intag tag_'+entry['type'], null, entry['name']);
+		var intag = div('intag tag_'+entry.type, null, entry.name);
 		var bal_cont = div('cont');
 		var close = div('right', null, '_');
 		
-		tag.appendChild(baloon);
-		baloon.appendChild(intag);
-		baloon.appendChild(bal_cont);
-		intag.appendChild(close);
+		tag.appendChild( baloon );
+		baloon.appendChild( intag );
+		baloon.appendChild( bal_cont );
+		intag.appendChild( close );
 		
 		baloon.onclick = function(e){stopBubble(e)};
 		close.onclick = clearBaloon;
@@ -127,7 +130,7 @@ var DesktopMessageItem = Class ( MessageItem, {
 		DesktopMessageItem.superclass.prototype.fillData.apply(this, arguments);
 		
 		// пометка сообщения непрочитанным
-		if (this.row['unread'] == '1') addClass(this.item, 'unread');
+		if (this.row.unread == '1') addClass(this.item, 'unread');
 	}
 });
 
@@ -140,11 +143,11 @@ var TopicItem = Class( DesktopMessageItem, {
 	createElems: function(){
 		TopicItem.superclass.prototype.createElems.apply(this, arguments);
 		
-		this.item.id = 'topic_'+this.row['id'];
+		this.item.id = 'topic_'+this.row.id;
 		addClass(this.item, 'topic');
 		
-		if (this.row['last'] && this.row['last']['message'])
-			this.lastpost = div('lastpost', 'lastpost_'+this.row['last']['id']);
+		if (this.row.last && this.row.last.message)
+			this.lastpost = div('lastpost', 'lastpost_'+this.row.last.id);
 
 		this.postsquant = div('postsquant reveal');
 
@@ -155,7 +158,7 @@ var TopicItem = Class( DesktopMessageItem, {
 		this.topicsubmit_btn = div('sbtn btn_topicsubmit right none');
 		this.topiccancel_btn = div('sbtn btn_topiccancel right none');
 		
-		this.lastpost = div('lastpost' /*, 'lastpost_'+this.row['last_id']*/);
+		this.lastpost = div('lastpost' /*, 'lastpost_'+this.row.last_id*/);
 	},
 	
 	
@@ -163,17 +166,17 @@ var TopicItem = Class( DesktopMessageItem, {
 	fillData: function(){
 		TopicItem.superclass.prototype.fillData.apply(this, arguments);
 		
-		if (this.row['lastpost']) this.lastpost.innerHTML =  '<div>'+txt['lastpost']+' <span class="author">'
-			+this.row['lastauthor']+'</span>' + ' ['+this.row['lastdate']+'] ' + this.row['lastpost']+'</div>';
+		if (this.row.lastpost) this.lastpost.innerHTML =  '<div>' + txt.lastpost + ' <span class="author">'
+			+ this.row.lastauthor + '</span>' + ' [' + this.row.lastdate + '] ' + this.row.lastpost + '</div>';
 		
-		if (this.row['tags']) {
+		if (this.row.tags) {
 			this.tags.innerHTML = '';
-			for (var i in this.row['tags']) this.tags.appendChild(new Tag(this.row['tags'][i]));
+			for (var i in this.row.tags) this.tags.appendChild(new Tag(this.row.tags[i]));
 		}
 		
-		this.postsquant.innerHTML = ((this.row['postsquant']*1)+1) + txt['postsquant'];
-		this.topicfield.innerHTML = this.row['topic_name'] ? this.row['topic_name'] : '&nbsp;';
-		this.debug.innerHTML = this.row['totalmaxd'];
+		this.postsquant.innerHTML = ((this.row.postsquant*1)+1) + txt.postsquant;
+		this.topicfield.innerHTML = this.row.topic_name ? this.row.topic_name : '&nbsp;';
+		this.debug.innerHTML = this.row.totalmaxd;
 	},
 	
 	unmarkActive: function(){
@@ -207,7 +210,7 @@ var TopicItem = Class( DesktopMessageItem, {
 		// вешаем на клик событие загрузки сообщений
 		var clickload = function(){
 			unloadTopic();
-			loadTopic(that.row['id']);
+			loadTopic(that.row.id);
 		}
 
 		this.item.onclick = clickload;
@@ -229,7 +232,7 @@ var TopicItem = Class( DesktopMessageItem, {
 		var submitTopicName = function(e){
 			cancelNameEdit();
 
-			wait.start('update', {id: that.row['id'], topic_name: that.topicfield.innerHTML});
+			wait.start('update', {id: that.row.id, topic_name: that.topicfield.innerHTML});
 			
 			stopBubble(e);
 		}
@@ -242,13 +245,13 @@ var TopicItem = Class( DesktopMessageItem, {
 			JsHttpRequest.query( 'backend/service.php', { // аргументы:
 
 				action: 'check_n_lock',
-				id: that.row['id']
+				id: that.row.id
 
 			}, function(result, errors) {
 
-				if (result['locked'] !== null) {
+				if (result.locked !== null) {
 
-						alert(txt['post_locked']);
+						alert(txt.post_locked);
 
 				} else {
 					
@@ -270,7 +273,7 @@ var TopicItem = Class( DesktopMessageItem, {
 						req.open(null, 'backend/service.php', true);
 						req.send({
 							action: 'unlock_post'
-							, id: that.row['id']
+							, id: that.row.id
 						});
 					}
 				}
@@ -290,7 +293,7 @@ var TopicItem = Class( DesktopMessageItem, {
 		}
 
 		// если имеем право переименовывать тему
-		if (this.row['author_id'] == userID) {
+		if (this.row.author_id == userID) {
 			this.topicfield.ondblclick = editTopicName;
 			this.topicedit_btn.onclick = editTopicName;
 		}
@@ -321,21 +324,21 @@ var PostItem = Class( DesktopMessageItem, {
 	createElems: function() {
 		PostItem.superclass.prototype.createElems.apply(this, arguments);
 		
-		this.item.id = 'post_'+this.row['id'];
+		this.item.id = 'post_'+this.row.id;
 		addClass(this.item, 'post');
 	   
 		// вешаем ID на контейнер сообщения для возможности прикрепления визивига
-		this.message.id = 'message_'+this.row['id'];
+		this.message.id = 'message_'+this.row.id;
 
-		this.avatar	= div('avatar', null, '<img src="'+this.row['avatar_url']+'">');
+		this.avatar	= div('avatar', null, '<img src="'+this.row.avatar_url+'">');
 	},
 	
 	
 	fillData: function(){
 		PostItem.superclass.prototype.fillData.apply(this, arguments);
 		
-		if (this.row['topicstarter'] == this.row['author_id']) 
-			this.msgid.innerHTML = '&nbsp;('+txt['topicstarter']+')'+this.msgid.innerHTML;
+		if (this.row.topicstarter == this.row.author_id) 
+			this.msgid.innerHTML = '&nbsp;('+txt.topicstarter+')'+this.msgid.innerHTML;
 	},
 	
    
@@ -344,7 +347,7 @@ var PostItem = Class( DesktopMessageItem, {
 		var that = this;
 		
 		this.item.onclick = function(){
-			adress.set('message', that.row['id']);
+			adress.set('message', that.row.id);
 		}
 		
 		// Редактирование сообщения
@@ -354,13 +357,13 @@ var PostItem = Class( DesktopMessageItem, {
 			JsHttpRequest.query( 'backend/service.php', { // аргументы:
 
 				action: 'check_n_lock',
-				id: that.row['id']
+				id: that.row.id
 
 			}, function(result, errors) {
 				
-				if (result['locked'] !== null) {
+				if (result.locked !== null) {
 
-						alert(txt['post_locked']);
+						alert(txt.post_locked);
 
 				} else { // что делаем, когда пришел ответ:
 
@@ -375,8 +378,8 @@ var PostItem = Class( DesktopMessageItem, {
 					that.message.focus();
 					var editControls = div('controls');
 					
-					var cancelBtn = div('sbtn cancel', null, '<span>'+ txt['cancel'] +'</span>');
-					var sendBtn = div('sbtn save', null, '<span>'+ txt['save'] +'</span>');
+					var cancelBtn = div('sbtn cancel', null, '<span>'+ txt.cancel +'</span>');
+					var sendBtn = div('sbtn save', null, '<span>'+ txt.save +'</span>');
 					
 					// собираем конструктор
 					that.item.appendChild(editControls);
@@ -396,7 +399,7 @@ var PostItem = Class( DesktopMessageItem, {
 
 					var updateMessage = function(){
 						
-						wait.start('update', {id: that.row['id'], message: that.message.innerHTML});
+						wait.start('update', {id: that.row.id, message: that.message.innerHTML});
 						cancelEdit();
 					}
 					
@@ -410,7 +413,7 @@ var PostItem = Class( DesktopMessageItem, {
 						req.open(null, 'backend/service.php', true);
 						req.send({
 							action: 'unlock_post'
-							, id: that.row['id']
+							, id: that.row.id
 						});
 					}
 				}
@@ -420,21 +423,21 @@ var PostItem = Class( DesktopMessageItem, {
 		// Удаление сообщения
 		var deleteMessage = function(){
 			
-			if (confirm(txt['msg_del_confirm'])){
-				wait.start( 'delete_post', {id: that.row['id']});
+			if (confirm(txt.msg_del_confirm)){
+				wait.start( 'delete_post', {id: that.row.id});
 			}
 		}
 		
 		// добавляем кнопки
-		//var branchBtn = addBtn('addbranch', txt['answer']);
+		//var branchBtn = addBtn('addbranch', txt.answer);
 		//branchBtn.onclick = function(){addMessage(branchBtn);}
 
 		/* if (userID) {
-			var plainBtn = this.addBtn('plainanswer', txt['answer']);
+			var plainBtn = this.addBtn('plainanswer', txt.answer);
 			plainBtn.onclick = function(){addMessage(plainBtn, 'plain');}
 		} */
 
-		if (this.row['author_id'] == userID || userID == '1'){
+		if (this.row.author_id == userID || userID == '1'){
 
 			this.addBtn('editmessage').onclick = editMessage;
 			this.message.ondblclick = editMessage;
@@ -469,7 +472,7 @@ function Branch (contArea, topicID, parentID){
 	this.e.appendChild(this.cont);
 	
 	this.createBlock = function(row){
-		var elem = messages[row['id']] = new PostItem(row, contArea, topicID, that);
+		var elem = messages[row.id] = new PostItem(row, contArea, topicID, that);
 		
 		return elem.item;
 	}
@@ -489,7 +492,7 @@ function newTopic(btn){
 	if (topics[currentTopic]) topics[currentTopic].unmarkActive();
 	unloadTopic();
 	
-	e('@titlebar', '#viewport_posts').innerHTML = txt['new_topic'];
+	e('@titlebar', '#viewport_posts').innerHTML = txt.new_topic;
 	
 	answerForm.titleOn();
 }
@@ -533,7 +536,7 @@ function Updater(parseFunc){
 
 			that.startBlocked = false;
 
-			timeout = setTimeout(function(){that.start()}, cfg['poll_timer']);
+			timeout = setTimeout(function(){that.start()}, cfg.poll_timer);
 
 		}}
 		req.open(null, 'backend/update.php', true);
@@ -601,23 +604,23 @@ function parseResult(result){
 	var tSbar =		 e('@statusbar' , vpTopics);
 	var tTbar =		 e('@titlebar'  , vpTopics);
 	
-	if (result && result['error']) alert(txt['post_locked']);
+	if (result && result.error) alert(txt.post_locked);
 
-	var tProps = (result && result['topic_prop']) ? result['topic_prop'] : [];
+	var tProps = (result && result.topic_prop) ? result.topic_prop : [];
 
 	// разбираем темы
-	if (result && result['topics']) {for (var i in result['topics']) { 
-		entry = result['topics'][i];
+	if (result && result.topics) {for (var i in result.topics) { 
+		entry = result.topics[i];
 		
 		// если в текущем массиве загруженных тем такая уже есть - обновляем существующую
-		if (topics[entry['id']]){
-			topic = topics[entry['id']];
+		if (topics[entry.id]){
+			topic = topics[entry.id];
 			
-			if (entry['deleted']){
+			if (entry.deleted){
 				
 				shownRemove(topic.item);
-				if (entry['id'] == currentTopic) unloadTopic();
-				delete(topics[entry['id']]);
+				if (entry.id == currentTopic) unloadTopic();
+				delete(topics[entry.id]);
 				
 			} else {
 				topic.fillData(entry);
@@ -625,39 +628,39 @@ function parseResult(result){
 			}
 		
 		// если же в текущем массиве тем такой нет и пришедшая не удалена, создаем новую
-		} else if (!entry['deleted']) {
+		} else if (!entry.deleted) {
 
-			topics[entry['id']] = new TopicItem(entry);
-			topicsCont.appendChild(topics[entry['id']].item);
-			if (tProps['new']) loadTopic(entry['id']);
+			topics[entry.id] = new TopicItem(entry);
+			topicsCont.appendChild(topics[entry.id].item);
+			if (tProps['new']) loadTopic(entry.id);
 		}	
 	}}
 
 
 	// разбираем сообщения
-	if (result && result['posts']){
+	if (result && result.posts){
 
-		pTbar.innerHTML = tProps['name'];
+		pTbar.innerHTML = tProps.name;
 
-		for (var i in result['posts']) { 
-			entry = result['posts'][i];
-			message = messages[entry['id']];
+		for (var i in result.posts) { 
+			entry = result.posts[i];
+			message = messages[entry.id];
 
 			if (message){ // если в текущем массиве загруженных сообщений такое уже есть
 
-				if (entry['deleted']){
+				if (entry.deleted){
 					
 					shownRemove(message.item);
-					delete(messages[entry['id']]);
+					delete(messages[entry.id]);
 					
 				} else message.fillData(entry);
 
-			} else if (!entry['deleted']) { // если в текущем массиве такого нет и пришедшее не удалено
+			} else if (!entry.deleted) { // если в текущем массиве такого нет и пришедшее не удалено
 
 				// !! не учитывается ветвление!
 				// один из вариантов решения - хранить в базе в поле msg_parent id самого 
 				// сообщения, если сообщение заглавное в ветке (т.е. если раньше там было 0)
-				// тогда var parent = entry['parent']
+				// тогда var parent = entry.parent
 				var parent = currentTopic;
 
 				// если такой ветки еще нет - создаем 
@@ -666,18 +669,18 @@ function parseResult(result){
 				// добавляем новое сообщение к существующей (или новосозданной) ветке
 				branches[parent].appendBlock(entry);
 
-				var lastvisible = messages[entry['id']];
+				var lastvisible = messages[entry.id];
 			}
 		}
 		
-		if (tProps['scrollto']) messages[tProps['scrollto']].item.scrollIntoView(false);
+		if (tProps.scrollto) messages[tProps.scrollto].item.scrollIntoView(false);
 
 		// наличие id означает что тема загружается полностью
-		if (tProps['id']) {
-			topics[tProps['id']].markActive(); // делаем тему в столбце тем активной
+		if (tProps.id) {
+			topics[tProps.id].markActive(); // делаем тему в столбце тем активной
 
 			// если тема загружается не вручную кликом по ней - промотать до неё в списке
-			if (!tProps['manual']) topics[tProps['id']].item.scrollIntoView(false);
+			if (!tProps.manual) topics[tProps.id].item.scrollIntoView(false);
 
 			// управляем автопрокруткой
 			var refPost = adress.get('message');
@@ -685,7 +688,7 @@ function parseResult(result){
 
 				messages[refPost].item.scrollIntoView(false);
 
-			} else if (tProps['date_read'] != 'firstRead') {
+			} else if (tProps.date_read != 'firstRead') {
 				// !! тут будет прокрутка до первого непрочитанного поста
 				lastvisible.item.scrollIntoView(false);
 			}
@@ -694,19 +697,19 @@ function parseResult(result){
 	
 	
 	// добавляем теги
-	if (result && result['tags']){
+	if (result && result.tags){
 		
-		for (var i in result['tags']) {
+		for (var i in result.tags) {
 		
-			entry = result['tags'][i];
+			entry = result.tags[i];
 
-			if (topics[entry['message']]) addTag(topics[entry['message']], entry);
+			if (topics[entry.message]) addTag(topics[entry.message], entry);
 		}
 	}
 
 
 	// Выдать новый TS полученный из пакета обновлений
-	return sql2stamp(result['new_maxdate']);
+	return sql2stamp(result.new_maxdate);
 }
 
 
@@ -719,8 +722,8 @@ function AnswerForm(container){
 	this.title = newel('input', 'topic_name none');
 	this.message = newel('textarea', null, 'textarea_0');
 	this.controls = div('controls');
-	this.cancel = div('button none', 'cancel_post', '<span>'+txt['cancel']+'</span>');
-	this.send = div('button', 'send_post', '<span>'+txt['send']+'</span>');
+	this.cancel = div('button none', 'cancel_post', '<span>'+txt.cancel+'</span>');
+	this.send = div('button', 'send_post', '<span>'+txt.send+'</span>');
 	
 	this.message.rows = 1;
 	this.title.name = 'topic';
