@@ -1,5 +1,5 @@
 <?php
-require_once 'initial.php';
+require_once 'backend_initial.php';
 
 $result['xhr'] = $xhr_id;
 //$result['sessid'] = $sessid;
