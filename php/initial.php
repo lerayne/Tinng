@@ -1,11 +1,11 @@
 <?php
 /* Подключаемый файл, который входит как в бекенд для XHR, так и в осовной php-скрипт */
 
-require_once 'config.php';
-require_once 'locale/ru.php';
-require_once 'php/spikes.php';
-require_once 'php/classes.php';
-require_once 'libraries/DbSimple/Generic.php';
+require_once $rootdir.'config.php';
+require_once $rootdir.'locale/ru.php';
+require_once $rootdir.'php/spikes.php';
+require_once $rootdir.'php/classes.php';
+require_once $rootdir.'libraries/DbSimple/Generic.php';
 
 $db = DbSimple_Generic::connect($safecfg['db']);
 $db->query('SET NAMES "utf8"');
