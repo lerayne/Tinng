@@ -47,7 +47,7 @@ function Branch (contArea, topicID, parentID) {
 	if (!parentID) parentID = topicID;
 
 	// чтобы this функций не забивал this объекта
-	var branch = this;
+	var that = this;
 
 	// указание на элемент, в который вставляется новый контейнер
 	this.e = contArea;
@@ -141,7 +141,8 @@ function Branch (contArea, topicID, parentID) {
 			}
 			
 			container.onclick = clickload;
-
+			
+			// последнее сообщение
 			if (row['last']['message']){
 				var lastpost = newel('div', 'lastpost', 'lastpost_'+row['last']['id']);
 				lastpost.innerHTML = txt['lastpost']+' <span class="author">'+row['last']['author']+'</span>';
@@ -149,6 +150,7 @@ function Branch (contArea, topicID, parentID) {
 				lastpost.innerHTML += row['last']['message'];
 			}
 
+			// количество сообщений
 			var postcount = newel('div', 'postcount reveal', null, row['postcount'] + txt['postcount']);
 			
 			// создаем элемент "тема"
@@ -440,9 +442,9 @@ function Branch (contArea, topicID, parentID) {
 								if (plain){
 
 									removeClass(prevElem(answerBlock), 'lastblock');
-									newBlock = branch.createBlock(result);
+									newBlock = that.createBlock(result);
 
-									var div = e('.post', branch.cont);
+									var div = e('.post', that.cont);
 									div = div[div.length-1];
 
 									insAfter(div, newBlock); // вставляем новый блок
@@ -453,7 +455,7 @@ function Branch (contArea, topicID, parentID) {
 								} else {
 
 									unhide(collEx);
-									var newBranch = new Branch(branch.cont, topicID, msgParent);
+									var newBranch = new Branch(that.cont, topicID, msgParent);
 									newBranch.cont.style.borderLeft = '30px solid #cccccc';
 									insAfter(container, newBranch.cont);
 									newBranch.appendBlock(result);
@@ -531,8 +533,8 @@ function Branch (contArea, topicID, parentID) {
 	}
 
 	this.appendBlock = function(row){
-		var block = branch.createBlock(row);
-		branch.cont.appendChild(block);
+		var block = that.createBlock(row);
+		that.cont.appendChild(block);
 		addClass(block, 'lastblock');
 		if (prevElem(block)) removeClass(prevElem(block), 'lastblock');
 		return block;

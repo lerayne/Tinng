@@ -297,8 +297,7 @@ td.collapsed {
 	min-width:300px;
 }
 
-/* область содержимого */
-
+/* Дополнительные классы nicEdit */
 .nicEdit-panelContain{
 	border: 0px solid #cccccc;
 }
@@ -308,19 +307,24 @@ td.collapsed {
 	line-height: 150%;
 }
 
-.topic, .post {
-	border-bottom: 1px solid #aaaaaa;
-	color:#555555;
-	background-color: white;
-}
-
+/* область содержимого */
 .post {
+	border-bottom: 1px solid #aaaaaa;
 	color:black;
+	background: white;
 }
 
 .topic {
 	border-right:8px solid #aaaaaa;
-	border-bottom-width: 5px;
+	border-bottom: 8px solid #aaaaaa;
+	color:#555555;
+	background: white;
+}
+
+.topic:hover {
+	background-color: #eeeeee;
+	cursor: pointer;
+	color:black;
 }
 
 .topicname {
@@ -340,12 +344,6 @@ td.collapsed {
 }
 .btn_topiccancel {
 	background-image: url(images/cancel.png)
-}
-
-.topic:hover {
-	background-color: #eeeeee;
-	cursor: pointer;
-	color:black;
 }
 
 .infobar {
