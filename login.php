@@ -31,11 +31,9 @@ switch ($_GET['action']):
 
 		$raw = $db->selectRow(
 			'SELECT
-				usr_id AS id,
-				usr_login AS login,
-				usr_email AS email
+				id, login, email
 			FROM ?_users
-			WHERE usr_hash = ? AND usr_approved = 1 AND (usr_login = ? OR usr_email = ?)'
+			WHERE hash = ? AND approved = 1 AND (login = ? OR email = ?)'
 			, md5($_POST['pass'])
 			, $_POST['login']
 			, $_POST['login']
@@ -73,7 +71,7 @@ switch ($_GET['action']):
 		if ($_POST['quiz'] != trim($quiz[$_POST['number']*1]['answer'])) $message = 14;
 
 		$raw = $db->selectRow(
-			'SELECT * FROM ?_users WHERE usr_login = ? OR usr_email = ?'
+			'SELECT * FROM ?_users WHERE login = ? OR email = ?'
 			, $_POST['login']
 			, $_POST['email']
 		);
@@ -82,10 +80,10 @@ switch ($_GET['action']):
 		if (!$message):
 
 			$new_row = Array(
-				'usr_login' => $_POST['login'],
-				'usr_hash' => md5($_POST['pass1']),
-				'usr_email' => $_POST['email'],
-				'usr_registered' => date('Y-m-d H:i:s')
+				'login' => $_POST['login'],
+				'hash' => md5($_POST['pass1']),
+				'email' => $_POST['email'],
+				'reg_date' => date('Y-m-d H:i:s')
 			);
 
 			$unum = $db->query(
@@ -107,24 +105,24 @@ switch ($_GET['action']):
 	case 'approve':
 
 		$user = $db->selectRow(
-			'SELECT * FROM ?_users WHERE usr_id = ?d AND usr_approved <=> NULL', $_GET['u']
+			'SELECT * FROM ?_users WHERE id = ?d AND approved <=> NULL', $_GET['u']
 		);
 
 		
-		if ($_GET['token'] != md5($user['usr_login'].'zerso'.$user['usr_hash'].'b0t'.$user['usr_email'])) $message = 17;
+		if ($_GET['token'] != md5($user['login'].'zerso'.$user['hash'].'b0t'.$user['email'])) $message = 17;
 		if (!$user) $message = 16;
 
 		if (!$message):
 
-			$db->query('UPDATE ?_users SET usr_approved = 1 WHERE usr_id = ?', $user['usr_id']);
+			$db->query('UPDATE ?_users SET approved = 1 WHERE id = ?', $user['id']);
 
-			$db->query('INSERT INTO ?_user_settings (uset_user) VALUES (?d)', $user['usr_id']);
+			$db->query('INSERT INTO ?_user_settings (uset_user) VALUES (?d)', $user['id']);
 
-			setcookie('pass', $user['usr_hash']);
-			setcookie('login', $user['usr_login']);
-			setcookie('user', $user['usr_id']);
+			setcookie('pass', $user['hash']);
+			setcookie('login', $user['login']);
+			setcookie('user', $user['id']);
 
-			mail($user['usr_email'], $txtp['reg_welcome_subject'], $user['usr_login'].$txtp['reg_welcome_message']);
+			mail($user['email'], $txtp['reg_welcome_subject'], $user['login'].$txtp['reg_welcome_message']);
 
 			$message = 21;
 

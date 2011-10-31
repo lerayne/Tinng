@@ -72,7 +72,7 @@ hr {
 
 #top_bar #user_panel {
 	float: right;
-	padding: 5px 10px 0 10px;
+	padding: 5px 0 0 10px;
 	padding-bottom:0;
 }
 
@@ -149,7 +149,7 @@ td.collapsed {
 	height:18px;
 	color:white;
 	font-weight:bold;
-	padding:4px 6px 0 22px;
+	padding:4px 6px 0 14px;
 }
 
 .global_column .toolbar {
@@ -346,6 +346,17 @@ td.collapsed {
 	background-image: url(images/cancel.png)
 }
 
+<<<<<<< HEAD
+=======
+.btn_deltag {
+	background-image: url(images/tag_blue_delete.png)
+}
+
+.topic:hover {
+	cursor: pointer;
+}
+
+>>>>>>> aa628b4c5ec624c80e3c8a33ffef8e84c3ae5842
 .infobar {
 	padding: 0 20px 0 20px;
 	position: relative;
@@ -370,7 +381,7 @@ td.collapsed {
 	margin-top: 5px;
 }
 
-.infobar .postcount {
+.infobar .postsquant {
 	float: left;
 	margin-top: 5px;
 }
@@ -398,7 +409,7 @@ td.collapsed {
 	color: #656565;
 }
 
-.topic .lastpost {
+.topic .lastpost div {
 	line-height: 150%;
 	padding-top:5px;
 	margin:0 20px;
@@ -472,7 +483,7 @@ td.collapsed {
 	border-bottom:1px solid #cccccc;
 }
 
-.add_message .nicEdit-panelContain {
+.add_message .nicEdit-panelContain, #answer_here .nicEdit-panelContain {
 	border-bottom-width: 1px;
 }
 
@@ -512,7 +523,7 @@ td.collapsed {
 	margin-left: 0;
 }
 
-#newtopic .topic_name {
+#answer_here .topic_name {
 	width:100%;
 	border: 1px solid #cccccc;
 	margin: 4px 0;
@@ -594,6 +605,12 @@ td.collapsed {
 	cursor:pointer;
 }
 
+.state_ind {
+	width:32px;
+	height:32px;
+	background: url(images/close.png) center no-repeat;
+}
+
 .updating {
 	color:#bbbbbb;
 	background: url(images/throbber-lit.gif) center no-repeat;
@@ -603,8 +620,105 @@ td.collapsed {
 	background: url(images/throbber-big.gif) center no-repeat;
 	height: 50px;
 }
-
+/*
 .global_column .titlebar		{ background-image: url(images/ready.png); }
 .global_column .tbar_waiting	{ background-image: url(images/waiting.png); }
 .global_column .tbar_updating	{ background-image: url(images/updating.png); }
 .global_column .tbar_throbber	{ background-image: url(images/throbber-white.gif); }
+*/
+
+#viewport_posts .typing_panel {
+	min-height:30px;
+	background: #eeeeee;
+	border-top:1px solid #cccccc;
+	padding:5px 10px;
+}
+
+#viewport_posts .typing_panel .controls {
+	display:table-cell;
+	padding:0 8px;
+	vertical-align: bottom;
+}
+
+#viewport_posts .typing_panel .controls .button{
+	margin: 0;
+}
+
+#answer_here {
+	display:table-cell;
+	width:100%;
+
+}
+
+#answer_here textarea {
+	width: 100%;
+}
+
+.redBack {
+	background-color: red;
+}
+
+.tags {
+	padding: 0 15px;
+}
+
+.tag {
+	padding: 2px 7px;
+	margin: 2px 2px;
+	background: #eee;
+	color: black;
+	border-radius:4px;
+	-moz-border-radius:4px;
+	-webkit-border-radius:4px;
+}
+
+.tags .tag {
+	margin: 0 0 7px 3px;
+}
+
+.tags .intag {
+	padding: 2px 7px;
+	border-radius:4px 4px 0 0;
+	-moz-border-radius:4px 4px 0 0;
+	-webkit-border-radius:4px 4px 0 0;
+}
+
+.tag_user {
+	background: #907eff;
+	color: white;
+}
+
+.baloon {
+	background: white;
+	color: black;
+	
+	min-width: 100px;
+	
+	border-radius:4px;
+	-moz-border-radius:4px;
+	-webkit-border-radius:4px;
+	
+	box-shadow:			0px 0px 8px #222;
+	-moz-box-shadow:	0px 0px 8px #222;
+	-webkit-box-shadow:	0px 0px 8px #222;
+}
+
+.baloon .cont {
+	margin:8px;
+}
+
+.toolbar input {
+	border: 1px solid #ccc;
+}
+
+.suggest {
+	background: white;
+	color:black;
+	border: solid #ccc;
+	border-width: 1px 1px 0 1px;
+}
+
+.suggestion {
+	border-bottom:1px solid #ccc;
+	padding: 3px 7px;
+}

@@ -1,12 +1,7 @@
 <?php
 
-// время между запросами на обновление темы (в секундах)
-$cfg['posts_updtimer_focused'] = 10;
-$cfg['posts_updtimer_blurred'] = 3*60;
-
-// время между запросами на обновление списка тем (в секундах)
-$cfg['topics_updtimer_focused'] = 30;
-$cfg['topics_updtimer_blurred'] = 5*60;
+$cfg['poll_timer'] = 10000; // промежуток между запросами short-poll (в миллисекундах)
+$cfg['poll_timer_blurred'] = 3*60000; // то же самое для неактивного окна (в проекте)
 
 // Если включено (1) - отображаются все строки консоли, если нет - только необходимые
 $cfg['console_display_all'] = 1;
@@ -25,4 +20,7 @@ $safecfg['db'] = 'mysql://nvcg_main:maedanaena84@localhost/nvcg_topictalk';
 
 // префикс базы даных
 $safecfg['db_prefix'] = 'jawi'; // знак "_" вставляется автоматически, указывать его здесь не нужно
+
+// когда установлен (1) - JS (а в будущем и CSS) компилируются в малое количество файлов и обфусцируются
+$safecfg['production'] = 0;
 ?>

@@ -29,6 +29,21 @@ var is_ie9 = is_ie && ua.indexOf('msie 9') != -1;
 var is_phone = ua.indexOf('iphone') != -1 || ua.indexOf('ipod') != -1;
 
 
+function stopBubble(e){
+	e = e || window.e;
+	e.stopPropagation ? e.stopPropagation() : (e.cancelBubble=true);
+}
+
+
+
+function advClearTimeout(timeout) {
+	if (timeout){
+		consoleWrite('timeout found: '+timeout+'. cleared', 1);
+		clearTimeout(timeout);
+		return false;
+	}
+}
+
 function sql2stamp(str){
 	if (!str) return false;
 	var str1 = str.split(' ');
@@ -45,14 +60,14 @@ function stamp2sql(str){
 	} else {
 		var t = {};
 		var y = date.getFullYear();
-		t['m'] = date.getMonth()+1;
-		t['d'] = date.getDate();
-		t['H'] = date.getHours();
-		t['M'] = date.getMinutes();
-		t['S'] = date.getSeconds();
+		t.m = date.getMonth()+1;
+		t.d = date.getDate();
+		t.H = date.getHours();
+		t.M = date.getMinutes();
+		t.S = date.getSeconds();
 		for (var i in t) {if (t[i]*1 < 10) t[i] = '0'+t[i];}
 
-		return y + '-' + t['m'] + '-' + t['d'] + ' ' + t['H'] + ':' + t['M'] + ':' + t['S'];
+		return y + '-' + t.m + '-' + t.d + ' ' + t.H + ':' + t.M + ':' + t.S;
 	}
 }
 
@@ -65,7 +80,6 @@ function getTimeDiff(date){
 	if (ms*1 < 100) ms = '0'+ms;
 	return diff.getSeconds()+'.'+ms;
 }
-
 
 // ФУНКЦИИ ГЛОБАЛЬНЫХ ОБЪЕКТОВ
 
@@ -109,48 +123,23 @@ function rtrim(s) {return s.replace(/\s+$/, '');}
 
 // ОБЕРТКИ DOM (чтение):
 
-// возвращает массив только видимых элементов указанного класса
+// возвращает массив только видимых элементов указанной коллекции
 // !! не используется
-function gclvis(className, refElem){
-	var elems = e('.'+className, refElem);
+function visibleItems(elems){
 	var vis = [];
-	for (var i=0, j=0; i<elems.length; i++) if (elems[i].offsetHeight > 0){
-		vis[j] = elems[i];
-		j++;
-	}
+	for (var i=0, j=0; i<elems.length; i++) if (elems[i].offsetHeight > 0) vis[j++] = elems[i];
 	return vis;
 }
 
 // выдает одно из изменений (например, суммарную высоту) всех интерфейсных элементов,
 // имеющих определенный класс внутри document, или заданного элемента
-function classDimen(dim, className, elem) {
+function classDimen(dim, elems) {
 	var ret = 0;
-	var kids = e('.'+className, elem ? elem : null);
-	for (var i=0; i<kids.length; i++){
+	for (var i=0; i<elems.length; i++){
 		if (dim == 'h'){
-			ret += kids[i].offsetHeight;
+			ret += elems[i].offsetHeight;
 		} else if (dim == 'w'){
-			ret += kids[i].offsetWidth;
-		}
-	}
-	return ret;
-}
-
-// возвращает массив дочерних узлов (по ID), являющихся элементами,
-// причем тег и класс можно указать
-function childElems(refNode, certainTag, certainClass){
-	var ret = [];
-	var j = 0;
-	var ns = refNode.childNodes;
-	var myclass = new RegExp('\\b'+certainClass+'\\b');
-	for (var i=0; i<ns.length; i++){
-		if (
-			ns[i].nodeType == 1
-			&& (ns[i].nodeName == certainTag || !certainTag)
-			&& (myclass.test(ns[i].className) || !certainClass)
-		){
-			ret[j] = ns[i];
-			j++;
+			ret += elems[i].offsetWidth;
 		}
 	}
 	return ret;
@@ -182,6 +171,14 @@ function newel (tag, className, id, content){
 	return elem;
 }
 
+function div(className, id, content){
+	return newel ('div', className, id, content)
+}
+
+function nuclear(){
+	return newel ('div', 'clearboth')
+}
+
 // обертка вставки нового элемента перед текущим
 function insBefore (refNode, newNode){
 	refNode.parentNode.insertBefore(newNode, refNode);
@@ -200,7 +197,12 @@ function insAfter (refNode, newNode){
 
 // удаление элемента
 function remove(elem){
-	elem.parentNode.removeChild(elem);
+	elem.parentNode.removeChild(elem)
+}
+
+function shownRemove(elem){
+	addClass(elem, 'redBack');
+	setTimeout(function() { remove(elem) }, 500);
 }
 
 // полное уничтожение объекта с освобождением памяти
@@ -219,18 +221,20 @@ function destroy(elem){
 	elem = null;
 }
 
-// Добавляет к элементу указанному в первом аргументе дочерние элементы всех остальных аргументов
+// Добавляет к элементу указанному в первом аргументе дочерние элементы из всех остальных аргументов
 function appendKids(){
-	var args = appendKids.arguments;
-	var parent = args[0];
-
-	for (var i=1; i<args.length; i++){
-		if (args[i] && args[i].nodeType == 1) parent.appendChild(args[i]);
+	var parent = arguments[0];
+	for (var i=1; i<arguments.length; i++){
+		if (arguments[i] && arguments[i].nodeType == 1) parent.appendChild(arguments[i]);
 	}
-
 	return parent;
 }
 
+function appKids(){
+	for (var i=0; i<arguments.length; i++){
+		if (arguments[i] && arguments[i].nodeType == 1) this.appendChild(arguments[i]);
+	}
+}
 
 
 // ФУНКЦИИ CSS:
@@ -248,15 +252,18 @@ function compStyle(el) {
 
 // добавление класса к элементу
 function addClass (elem, className) {
-	elem.className += ((elem.className.length == 0) ? '' : ' ')+className;
+	if (!hasClass(elem, className)) 
+		elem.className += ((elem.className.length == 0) ? '' : ' ')+className;
 }
 
 // изьятие класса из элемента
 function removeClass (elem, className) {
 	// !! Сделать убирание классов через регекспы (второстепенное)
-	elem.className = elem.className.replace(' '+className, '');
-	elem.className = elem.className.replace(className, '');
-	if (elem.className.length == 0) elem.removeAttribute('class');
+	if (hasClass(elem, className)){
+		elem.className = elem.className.replace(' '+className, '');
+		elem.className = elem.className.replace(className, '');
+		if (elem.className.length == 0) elem.removeAttribute('class');
+	}
 }
 
 // обертки скрытия и отмены скрытия
@@ -276,17 +283,17 @@ function unhide() {
 
 // добавление правила к листу стилей
 function addRule(sheet, selector, attributes, index){
-	if (sheet.addRule) sheet.addRule(selector, attributes, index);
-	if (sheet.insertRule) sheet.insertRule(selector+'{'+attributes+'}', index);
+	if (sheet.addRule) { sheet.addRule(selector, attributes, index); }
+	else if (sheet.insertRule) sheet.insertRule(selector+'{'+attributes+'}', index);
 }
 
 // удаление правила из листа по номеру
 function deleteRule(sheet, index){
-	if (sheet.deleteRule) sheet.deleteRule(index);
-	if (sheet.removeRule) sheet.removeRule(index);
+	if (sheet.deleteRule) { sheet.deleteRule(index); }
+	else if (sheet.removeRule) sheet.removeRule(index);
 }
 
-// возвращает коллекцию правил листа (кроссбраузерность)
+// возвращает коллекцию правил листа (кроссбраузерно)
 function rulesColl(sheet) {return sheet.cssRules ? sheet.cssRules : sheet.rules;}
 
 // добавляет динамический лист стилей (использование данной функции по body onload

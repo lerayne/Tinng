@@ -1,3 +1,67 @@
+// создает новый экземпляр визивига с указанными параметрами
+// !! форматирование шрифтов невозможно из-за неправильной работы выпадающих списков
+function veditor(){
+	var editor = new nicEditor({
+		buttonList:[
+			'bold','italic','underline','strikethrough',
+			'left','center','right','justify',
+			'indent','outdent',
+			//'forecolor',
+			'ol','ul',
+			'subscript','superscript',
+			//'link','unlink','image',
+			'hr',
+			//'fontFormat',
+			'removeformat'
+			//,'xhtml'
+		],
+		xhtml:true,
+		externalCSS: 'interface/nicedit.css',
+		iconsPath : 'lib_modified/nicEditorIcons.gif'
+	});
+	return editor;
+}
+
+
+function extend(Parent, Child) {
+	var F = function() { }
+	F.prototype = Parent.prototype;
+	Child.prototype = new F();
+	Child.prototype.constructor = Child;
+	Child.superclass = Parent.prototype;
+}
+
+// Конструтор классов, спасибо Riim (javascript.ru)
+var Class = (function() {
+
+	var extend = Object.extend = function(self, obj) {
+		if (self == null) self = {};
+		for (var key in obj) self[key] = obj[key];
+		return self;
+	}
+
+	return function(parent, declaration) {
+		
+		var Klass = function() {
+			this.initialize.apply(this, arguments);
+		}
+		
+		if (typeof parent == 'function') {
+			function F(){}
+			F.prototype = parent.prototype;
+			Klass.prototype = new F();
+		} else {
+			if (parent != null) declaration = parent;
+			parent = Object;
+		}
+
+		extend(Klass.prototype, declaration).initialize || (Klass.prototype.initialize = Function.blank);
+		Klass.superclass = parent;
+		Klass.prototype.superclass = parent.prototype;
+		return Klass.prototype.constructor = Klass;
+	};
+
+})();
 
 function utf8_encode ( str_data ) {	// Encodes an ISO-8859-1 string to UTF-8
 	//
@@ -200,5 +264,3 @@ function md5 ( str ) {	// Calculate the md5 hash of a string
 
 	return temp.toLowerCase();
 }
-
-

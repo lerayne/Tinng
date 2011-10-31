@@ -4,4 +4,3 @@ window.onload = function(){
 	removeCurtain();
 }
 
-

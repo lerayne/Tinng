@@ -1,5 +1,5 @@
 function consoleWrite(string, skip){
-	if (skip && !cfg['console_display_all']) return;
+	if (skip && !cfg.console_display_all) return;
 	var date = new Date();
 	var cons = e('#console');
 	var time;
@@ -9,19 +9,19 @@ function consoleWrite(string, skip){
 	} else {
 
 		var t = {};
-		t['H'] = date.getHours();
-		t['M'] = date.getMinutes();
-		t['S'] = date.getSeconds();
-		for (var i in t) { if (t[i]*1 < 10) t[i] = '0'+t[i]; }
+		t.H = date.getHours();
+		t.M = date.getMinutes();
+		t.S = date.getSeconds();
+		for (var i in t) {if (t[i]*1 < 10) t[i] = '0'+t[i];}
 
-		time = t['H'] + ':' + t['M'] + ':' + t['S'];
+		time = t.H + ':' + t.M + ':' + t.S;
 	}
 
 	cons.innerHTML = '<b>'+time+'</b> - '+string+'<br>'+cons.innerHTML;
 }
 
 function resizeContArea(column){
-	var chromeH = classDimen('h', 'chrome', column);
+	var chromeH = classDimen('h', e('.chrome', column));
 	editCSS('#'+column.id+' .contents', 'height:'+(mainHeight - chromeH)+'px');
 	editCSS('#'+column.id+' .collapser', 'height:'+(mainHeight - chromeH)+'px');
 }
@@ -31,13 +31,15 @@ function resizeFrame() {
 	var offset = frameWidth() - e('#app_block').offsetWidth;
 	editCSS('#curtain', 'height:'+frameHeight()+'px;');
 	
+	/*
 	if (frameHeight() <= 600 || frameWidth() <= 1024){
-		e('#lowres_css').href = 'skins/'+cfg['skin']+'/desktop_lowres.css';
+		e('#lowres_css').href = 'skins/'+cfg.skin+'/desktop_lowres.css';
 		// !! затычка. Будет работать толль при условии, что в lowres-версии контур равен 0.
 		offset = 0;
 	} else {
 		e('#lowres_css').href = '';
 	}
+	*/
 	
 	mainHeight = frameHeight() - offset - e('#debug_console').offsetHeight - e('#top_bar').offsetHeight;
 	editCSS('#app_area', 'height:'+mainHeight+'px;'); // главное "окно"
@@ -53,12 +55,12 @@ function removeCurtain(){
 
 function callOverlayPage() {
 	unhide(e('#curtain'), e('#over_curtain'));
-	wait.timeout(cfg['posts_updtimer_blurred'], cfg['topics_updtimer_blurred'], 'lock');
+	wait.timeout(cfg.posts_updtimer_blurred, cfg.topics_updtimer_blurred, 'lock');
 }
 
 function closeOverlayPage() {
 	hide(e('#curtain'), e('#over_curtain'));
-	wait.timeout(cfg['posts_updtimer_focused'], cfg['topics_updtimer_focused'], 'unlock');
+	wait.timeout(cfg.posts_updtimer_focused, cfg.topics_updtimer_focused, 'unlock');
 	deleteCookie('message');
 }
 
@@ -67,8 +69,8 @@ function closeOverlayPage() {
 // !! Возможно - унести в пхп (второстепенное)
 function insertResizers(){
 	var cols = e('<td>', '#app_block_tr', true); // true - с отвязкой
-
-	for (var i=0; i<cols.length; i++) { var col = cols[i];
+	
+	for (var i=0; i<cols.length; i++) {var col = cols[i];
 		
 		if (i == cols.length-1) return; // если последняя колонка
 
@@ -91,8 +93,8 @@ function resizeColumn(event){
 
 	// цена процента, вычисляющаяся из ширины рабочей области
 	var precCost = (e('#app_block').offsetWidth
-		//- classDimen('w', 'vport_resizer', e('#app_block_tr'))
-		//- classDimen('w', 'collapsed', e('#app_block_tr'))
+		//- classDimen('w', e('.vport_resizer', '#app_block_tr'))
+		//- classDimen('w', e('.collapsed', '#app_block_tr'))
 		)/100;
 
 	var colL = prevElem(this); // что ресайзить будем
@@ -203,7 +205,7 @@ function loadTemplate(name, container, cache){
 	addClass(container, 'throbber');
 
 	// AJAX:
-	JsHttpRequest.query( 'displays/desktop/ajax_template.php', { // аргументы:
+	JsHttpRequest.query( 'displays/desktop/desktop_ajax_template.php', { // аргументы:
 		template: name
 	}, function(result, html) { // что делаем, когда пришел ответ:
 		removeClass(container, 'throbber');
@@ -217,16 +219,76 @@ function fillToolbars(){
 	var topicsBar = e('@toolbar', '#viewport_topics');
 	var postsBar = e('@toolbar', '#viewport_posts');
 
-	var addButton = function(name, bar){
+	var addButton = function(name, bar, title){
 		var btn = newel('div', 'left sbtn '+name);
 		bar.appendChild(btn);
-		btn.innerHTML = '<span>'+txt['btn_'+name]+'</span>';
+		btn.innerHTML = title ? title : '<span>'+txt['btn_'+name]+'</span>';
 		return btn;
 	}
 
 	var newTopicBtn = addButton('newtopic', postsBar);
 	var markRead = addButton('markread', postsBar);
-
+	
+	var searchCont = div('search suggest_field');
+	var searchTopic = newel('input');
+	var suggest = div('suggest overlay none');
+	searchTopic.type = 'text';
+	
+	topicsBar.appendChild(searchCont);
+	searchCont.appendChild(searchTopic);
+	searchCont.appendChild(suggest);
+	
+	var timeout = false;
+	
+	var suggestRule = function(e){
+		if (searchTopic.value.length > 0){
+			
+			unhide(suggest);
+			
+			// AJAX:
+			JsHttpRequest.query( 'backend/suggest.php', { // аргументы:
+				
+				suggest: 'on_topics',
+				subject: searchTopic.value
+				
+			}, function(result, errors) { // что делаем, когда пришел ответ:
+				
+				suggest.innerHTML='';
+				for (var i in result){
+					var tag = div('tag tag_'+result[i].type, null, result[i].name);
+					var frame = div('suggestion');
+					frame.appendChild(tag);
+					suggest.appendChild(frame);
+				}
+				
+			}, true ); // запрещать кеширование
+			
+		} else {
+			hide(suggest);
+			timeout = advClearTimeout(timeout);
+		}
+	}
+	
+	searchTopic.onkeyup = function() {
+		timeout = advClearTimeout(timeout);
+		timeout = setTimeout(suggestRule, 300);
+	}
+	searchTopic.onfocus = suggestRule;
+	searchTopic.onclick = function(e){stopBubble(e)}
+	
+	/*
+	var stopWait = addButton('stop', topicsBar, 'stop');
+	var startWait = addButton('start', topicsBar, 'start');
+	
+	stopWait.onclick = function(){
+		wait.stop();
+	}
+	
+	startWait.onclick = function(){
+		wait.start();
+	}
+	*/
+	
 	newTopicBtn.onclick = function(){newTopic(newTopicBtn);}
 
 	markRead.onclick = function(){
@@ -234,7 +296,7 @@ function fillToolbars(){
 		addClass(markRead, 'throbb');
 
 		// AJAX:
-		JsHttpRequest.query( 'ajax_backend.php', { // аргументы:
+		JsHttpRequest.query( 'backend/service.php', { // аргументы:
 
 			action: 'mark_read'
 			, id: currentTopic
@@ -243,6 +305,9 @@ function fillToolbars(){
 
 			var unreads = e('.unread', e('@contents', '#viewport_posts'), true); // с отвязкой
 			for (var i=0; i<unreads.length; i++) removeClass(unreads[i], 'unread');
+			
+			if (topics[currentTopic]) removeClass(topics[currentTopic].item, 'unread');
+			
 			removeClass(markRead, 'throbb');
 
 		}, true ); // запрещать кеширование
@@ -259,7 +324,7 @@ function attachActions(){
 
 	if (e('#regBtn')) e('#regBtn').onclick = function (){
 		callOverlayPage();
-		e('@title', '#over_curtain').innerHTML = txt['title_register'];
+		e('@title', '#over_curtain').innerHTML = txt.title_register;
 		loadTemplate('regform', e('@contents', '#over_curtain'), false);
 	}
 
@@ -287,6 +352,7 @@ function startInterface(){
 	attachActions();
 
 	fillToolbars();
+	e('[body]').onclick = clearOverlay;
 }
 
 window.onresize = resizeFrame;

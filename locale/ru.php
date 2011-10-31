@@ -5,11 +5,12 @@ $txt['header_posts'] = 'Сообщения';
 $txt['of_the_topic'] = 'темы';
 $txt['topic'] = 'Тема';
 $txt['modified'] = 'изменено ';
-$txt['postcount'] = ' сообщ.';
+$txt['postsquant'] = ' сообщ.';
 $txt['new_topic'] = 'Новая тема';
 $txt['lastpost'] = 'Последнее:';
 
 $txt['from'] = '';
+$txt['topicstarter'] = 'автор темы';
 
 $txt['explain_addbranch'] = 'Ответить на это сообщение';
 $txt['explain_plainanswer'] = 'Ответить на это сообщение';
@@ -30,7 +31,7 @@ $txt['no_topic_name'] = '<span class="subtext">Без названия</span>';
 
 $txt['msg_del_confirm'] = 'Это сообщение будет удалено. Продолжить?';
 $txt['topic_del_confirm'] = 'Тема и все сообщения в ней будут удалены. Продолжить?';
-$txt['post_locked'] = "Это сообщение заблокировано. \\nСкорее всего - вданный момент его кто-то редактирует";
+$txt['post_locked'] = "Это сообщение заблокировано. \\nСкорее всего - в данный момент его кто-то редактирует\\n";
 
 $txt['login_name'] = 'Логин или email:';
 $txt['login_pass'] = 'Пароль:';
@@ -51,7 +52,7 @@ $txt['reg_answer'] = 'Ответ';
 $txt['reg_reg'] = 'Зарегистрироваться';
 
 $txt['btn_newtopic'] = 'Новая тема';
-$txt['btn_markread'] = 'Отметить прочитанным';
+$txt['btn_markread'] = 'Отметить тему прочитанной';
 
 $txtp['reg_login_expalin'] = 'Логин может содержать только латинские литеры, цифры и занк "_".
 	Длина логина - от 4 до 16 символов';

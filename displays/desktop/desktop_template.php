@@ -16,8 +16,7 @@ $message = $_COOKIE['message'];
 		<?
 		// стили
 		incl_css(
-			  $device_path.'/interface.css'
-			, $device_path.'/content.css'
+			  $device_path.'interface.css'
 			, 'skins/'.$cfg['skin'].'/desktop_main.css'
 		);
 		?>
@@ -25,24 +24,22 @@ $message = $_COOKIE['message'];
 		<link rel="stylesheet" id="lowres_css" type="text/css" href="">
 		
 		<?
-		// универсальные библиотеки
-		incl_scripts(
-			  'libraries/JsHttpRequest.js'
-			, 'lib_modified/nicEdit.js'
-			, 'libraries/webtoolkit.js'
-			, 'js/spikes.js'
-			, 'js/object_spikes.js'
-		);
+		
 		
 		// импорт переменных из PHP
 		require_once 'php/js_vars_import.php';
 		
-		//	 скрипты самого сервиса
 		incl_scripts(
-			  $device_path.'/interface.js'
-			, $device_path.'/content.js'
-			, $device_path.'/focusing.js'
-			, $device_path.'/onload.js'
+			 'libraries/JsHttpRequest.js'
+			, 'lib_modified/nicEdit.js' 
+			, 'libraries/webtoolkit.js'
+			, 'js/spikes.js'
+			, 'js/object_spikes.js'
+			, 'js/global_content.js'
+			, $device_path.'interface.js'
+			, $device_path.'content.js'
+			//, $device_path.'focusing.js'
+			, $device_path.'onload.js'
 		);
 		?>
 
@@ -69,9 +66,10 @@ $message = $_COOKIE['message'];
 
 		<!-- верхняя панель -->
 		<div id="top_bar">
-			<div id="logo">UltiComm alpha 0.2</div>
+			<div id="logo">UltiComm 0.3 alpha</div>
 			<div class="left"></div>
-			<div id="user_panel"><? require $device_path.'/template_login.php'; ?></div>
+			<div class="right state_ind"></div>
+			<div id="user_panel"><? require $device_path.'template_login.php'; ?></div>
 			<div class="right">
 				<div class="button" id="debug_toggle"><span>Консоль</span></div>
 			</div>
@@ -95,6 +93,7 @@ $message = $_COOKIE['message'];
 							<div>
 								<div class="contents"></div>
 							</div>
+							<div class="chrome typing_panel"></div>
 							<div class="chrome statusbar"></div>
 						</div>
 					</td>
