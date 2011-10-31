@@ -12,8 +12,8 @@ function ex ($log){
 register_shutdown_function("ex", $log);
 */
 
-$write = $_REQUEST['write'];
-$id = $_REQUEST['id'];
+$write = $_REQUEST['write']; // указывает что именно пишем, если не false
+$id = $_REQUEST['id']; // универсальный указатель номера записи
 
 // подготовка каждой строки
 function ready_row($row) {
@@ -47,12 +47,12 @@ function make_tree($raw) {
 }
 
 
-function sort_result($array, $field, $reverse){
+function sort_by_field($array, $field, $reverse){
 
 	$afs = Array(); // array for sort
 	$out = Array();
 	
-	// сортировка двумерного массива по полю field. Работает даже с неуникальными ключами
+	// сортировка двумерного массива по указанному полю field. Работает даже с неуникальными ключами
 	// внимание! возвращает нумерованный массив, а не хеш-таблицу!
 	foreach ($array as $key => $val) $afs[$val[$field].$key] = $val;
 	ksort($afs);
@@ -248,7 +248,7 @@ foreach ($tags as $tag) {
 switch ($sort):
 
 	case 'updated':
-		$result['topics'] = sort_result($result['topics'], 'totalmaxd', $reverse);
+		$result['topics'] = sort_by_field($result['topics'], 'totalmaxd', $reverse);
 	break;
 
 endswitch;
