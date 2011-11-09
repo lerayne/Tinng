@@ -82,4 +82,34 @@ function incl_css(){
 $rex['email'] = '/^[\_]*([a-z0-9]+(\.|\_*)?)+@([a-z][a-z0-9\-]+(\.|\-*\.))+[a-z]{2,6}$/';
 $rex['login'] = '/^[a-zA-Z0-9_]{4,16}$/';
 $rex['pass'] = '/^[a-zA-Z0-9_]{6,32}$/';
+
+Class Everything {
+	
+	var $uagent, $path, $getstr, $get;
+	
+	
+	
+	// конструктор
+	function __construct(){
+		$this->uagent = $_SERVER['HTTP_USER_AGENT'];
+		list($this->path, $this->getstr) = explode('?', $GLOBALS['_ENV']['REQUEST_URI']);
+		$this->get = $_GET;
+	}
+	
+	
+	
+	// установка локали
+	function set_locale($str) {
+		
+		// локаль - всегда в нижнем регистре
+		$str = strtolower($str);
+		
+		// исправляем возможные ошибки
+		if ($str == 'utf8') $str = 'utf-8';
+		
+		header ('Content-type:text/html;charset='.$str.';');
+	}
+}
+
+$e = new Everything();
 ?>

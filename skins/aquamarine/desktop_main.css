@@ -297,7 +297,8 @@ td.collapsed {
 	min-width:300px;
 }
 
-/* Дополнительные классы nicEdit */
+/* область содержимого */
+
 .nicEdit-panelContain{
 	border: 0px solid #cccccc;
 }
@@ -307,24 +308,19 @@ td.collapsed {
 	line-height: 150%;
 }
 
-/* область содержимого */
-.post {
+.topic, .post {
 	border-bottom: 1px solid #aaaaaa;
+	color:#555555;
+	background-color: white;
+}
+
+.post {
 	color:black;
-	background: white;
 }
 
 .topic {
 	border-right:8px solid #aaaaaa;
-	border-bottom: 8px solid #aaaaaa;
-	color:#555555;
-	background: white;
-}
-
-.topic:hover {
-	background-color: #eeeeee;
-	cursor: pointer;
-	color:black;
+	border-bottom-width: 5px;
 }
 
 .topicname {
@@ -346,8 +342,6 @@ td.collapsed {
 	background-image: url(images/cancel.png)
 }
 
-<<<<<<< HEAD
-=======
 .btn_deltag {
 	background-image: url(images/tag_blue_delete.png)
 }
@@ -356,7 +350,6 @@ td.collapsed {
 	cursor: pointer;
 }
 
->>>>>>> aa628b4c5ec624c80e3c8a33ffef8e84c3ae5842
 .infobar {
 	padding: 0 20px 0 20px;
 	position: relative;
@@ -684,7 +677,7 @@ td.collapsed {
 }
 
 .tag_user {
-	background: #907eff;
+	background: #6b83d1;
 	color: white;
 }
 
