@@ -201,7 +201,7 @@ function remove(elem){
 }
 
 function shownRemove(elem){
-	addClass(elem, 'redBack');
+	$(elem).addClass('transp');
 	setTimeout(function() { remove(elem) }, 500);
 }
 

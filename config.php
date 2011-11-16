@@ -16,7 +16,7 @@ $cfg['skin'] = 'aquamarine';
 // пользователем, поэтому для более секретных переменных используется другой массив - $safecfg
 
 // адрес базы данных
-$safecfg['db'] = 'mysql://lopar740_nvcg:maedanaena@localhost/lopar740_nvcg';
+$safecfg['db'] = 'mysql://nvcg:maedanaena884@localhost/nvcg_uc';
 
 // префикс базы даных
 $safecfg['db_prefix'] = 'jawi'; // знак "_" вставляется автоматически, указывать его здесь не нужно

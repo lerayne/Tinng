@@ -31,7 +31,8 @@ $message = $_COOKIE['message'];
 		
 		incl_scripts(
 			 'libraries/JsHttpRequest.js'
-			, 'lib_modified/nicEdit.js' 
+			, 'lib_modified/nicEdit.js'
+			, 'libraries/jquery-1.7.min.js'
 			, 'libraries/webtoolkit.js'
 			, 'js/spikes.js'
 			, 'js/object_spikes.js'
