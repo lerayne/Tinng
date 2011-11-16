@@ -18,7 +18,8 @@ $raw_user = $db->selectRow(
 	'SELECT * FROM ?_users WHERE
 		hash = ?
 		AND login = ?
-		AND approved = 1'
+		AND approved = 1
+	'
 	, $_COOKIE['pass']
 	, $_COOKIE['login']
 );

@@ -85,7 +85,7 @@ $rex['pass'] = '/^[a-zA-Z0-9_]{6,32}$/';
 
 Class Everything {
 	
-	var $uagent, $path, $getstr, $get;
+	var $uagent, $path, $getstr, $get, $locale;
 	
 	
 	
@@ -106,6 +106,8 @@ Class Everything {
 		
 		// исправляем возможные ошибки
 		if ($str == 'utf8') $str = 'utf-8';
+		
+		$this->locale = $str;
 		
 		header ('Content-type:text/html;charset='.$str.';');
 	}

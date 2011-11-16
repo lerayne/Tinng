@@ -1,5 +1,8 @@
 <?php
 
+// ИНИЦИАЛИЗАЦИЯ
+////////////////
+
 // подключение универсального инициализатора (база в нем же)
 $rootdir = './';
 require_once 'php/initial.php';
@@ -7,14 +10,21 @@ require_once 'php/initial.php';
 // установка локали
 $e->set_locale('utf-8');
 
-// начало работы с интерфейсом
-$columns = array(/*'menu',*/ 'topics', 'posts');
+
+// ПОСТРОЕНИЕ ИНТЕРФЕЙСА
+////////////////////////
+
+$columns = array (
+	#'menu', 
+	'topics',
+	'posts'
+);
 
 // установка режима работы в зависимости от устройства
 $display_mode = 'desktop';
 
 if (
-	strpos($e->uagent, 'Android')  
+	   strpos($e->uagent, 'Android')  
 	|| strpos($e->uagent, 'Mobile Safari')  
 	|| $e->get['mode'] == 'iphone'
 )
@@ -23,8 +33,10 @@ if (
 $device_path = 'displays/'.$display_mode.'/'.$display_mode.'_';
 
 //работа с сессией
-session_start();
+# session_start();
 
-// подключение шаблона
+// ПОДКЛЮЧЕНИЕ ШАБЛОНА
+//////////////////////
+
 require_once $device_path.'template.php';
 ?>
