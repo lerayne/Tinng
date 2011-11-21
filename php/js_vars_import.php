@@ -5,9 +5,10 @@ var txt = {};
 var cfg = {};
 <?php
 
-foreach ($txt as $key => $val) echo "txt['".$key."'] = '".$val."';";
+foreach ($txt as $key => $val) echo "txt['".$key."'] = '".$val."';\n";
+echo "\n";
 foreach ($cfg as $key => $val) echo "cfg['".$key."'] = ".
-	(is_int($val) || is_float($val) ? $val.";" : "'".$val."';");
+	(is_int($val) || is_float($val) ? $val.";\n" : "'".$val."';\n");
 
 ?>
 

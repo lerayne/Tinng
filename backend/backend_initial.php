@@ -13,7 +13,9 @@ function databaseErrorHandler($message, $info) {
 list($xhr_id, $xhr_method) = split('-', $_GET['JsHttpRequest']);
 $sessid = $_GET['PHPSESSID'];
 
-require_once '../libraries/JsHttpRequest.php';
+require_once '../libraries/JsHttpRequest.php'; // либа для аякса
+
 ob_start('ob_gzhandler'); // выводим результат в gzip
-$req =& new JsHttpRequest("utf-8");
+
+$req =& new JsHttpRequest($e->locale); //"utf-8"
 ?>
