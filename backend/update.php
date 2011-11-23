@@ -69,7 +69,7 @@ $params = $_REQUEST['params'];
 
 switch ($write) {
 
-	// добавляем новую тему тут без брейка!
+	// добавляем новую тему (тут без брейка!)
 	case 'add_topic':
 
 		$new_row['topic_name'] = $params['title'];
@@ -162,6 +162,7 @@ if (!$result['new_maxdate']){
 	$GLOBALS['_RESULT'] = $result;
 	exit();
 }
+// иначе:
 
 
 // ЧИТАЕМ ИЗМЕНЕИЯ

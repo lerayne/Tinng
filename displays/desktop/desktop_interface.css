@@ -69,15 +69,11 @@ hr		{ border: 0 none; height: 1px; }
 /* дебаг и консоль */
 #debug_console { height:140px; }
 
-#debug_console #debug_stash, #debug_console #console {
+#debug_console div {
 	border:2px solid red;
 	padding:8px;
 	height:120px;
 	overflow:auto;
-}
-
-.debug {
-	border-bottom:2px dotted #888888;
 }
 
 .tags .tag {

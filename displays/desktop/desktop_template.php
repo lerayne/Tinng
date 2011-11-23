@@ -72,7 +72,7 @@ $message = $_COOKIE['message'];
 			<div class="right state_ind"></div>
 			<div id="user_panel"><? require $device_path.'template_login.php'; ?></div>
 			<div class="right">
-				<div class="button" id="debug_toggle"><span>Консоль</span></div>
+				<div class="button" id="debug_toggle"><span>Тех.Инфо</span></div>
 			</div>
 			<div class="clearboth"></div>
 		</div>
@@ -87,7 +87,7 @@ $message = $_COOKIE['message'];
 
 					<td class="global_column shadow resizeable" id="viewport_<?= $val ?>">
 						<div class="column_inner">
-							<div class="caption chrome">
+							<div class="chrome caption">
 								<div class="titlebar"><?= $txt['header_'.$val] ?></div>
 								<div class="toolbar"></div>
 							</div>
@@ -110,17 +110,13 @@ $message = $_COOKIE['message'];
 		<div id="debug_console" class="none">
 			<table width="100%" cellpadding="0" cellspacing="0" border="0">
 			<tr>
-				<td width="50%" valign="top">
-					<div id="console" class="debug"></div>
-				</td><td valign="top">
-					<div id="debug_stash">
-						<div id="debug0" class="debug"></div>
-						<div id="debug" class="debug"></div>
-						<div id="debug2" class="debug"></div>
-					</div>
-				</td>
+				<td valign="top"><div id='debug0'></div></td>
+				<td valign="top"><div id='debug1'></div></td>
+				<td valign="top"><div id='debug2'></div></td>
 			</tr>
 			</table>
 		</div>
+		
+		s
 	</body>
 </html>

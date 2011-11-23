@@ -1,11 +1,11 @@
+// пишет в консоль
 function consoleWrite(string, skip){
 	if (skip && !cfg.console_display_all) return;
+	
 	var date = new Date();
-	var cons = e('#console');
-	var time;
 
 	if (date.toLocaleFormat) {
-		time = date.toLocaleFormat('%H:%M:%S');
+		var time = date.toLocaleFormat('%H:%M:%S');
 	} else {
 
 		var t = {};
@@ -14,21 +14,25 @@ function consoleWrite(string, skip){
 		t.S = date.getSeconds();
 		for (var i in t) {if (t[i]*1 < 10) t[i] = '0'+t[i];}
 
-		time = t.H + ':' + t.M + ':' + t.S;
+		var time = t.H + ':' + t.M + ':' + t.S;
 	}
 
-	cons.innerHTML = '<b>'+time+'</b> - '+string+'<br>'+cons.innerHTML;
+	console.info(time+' - '+string);
 }
 
-function resizeContArea(column){
-	var chromeH = classDimen('h', e('.chrome', column));
-	editCSS('#'+column.id+' .contents', 'height:'+(mainHeight - chromeH)+'px');
-	editCSS('#'+column.id+' .collapser', 'height:'+(mainHeight - chromeH)+'px');
+// изменяет высоту области содержимого конкретной колонки
+function resizeContArea(which_column){
+	var chromeH = classDimen('h', e('.chrome', which_column));
+	editCSS('#'+which_column.id+' .contents', 'height:'+(mainHeight - chromeH)+'px');
+	editCSS('#'+which_column.id+' .collapser', 'height:'+(mainHeight - chromeH)+'px');
 }
 
-// Изменяет высоту элементов, которые должны иметь фиксированную высоту в пикселях
+// Изменяет высоту всех необходимых элементов, в зависимости от высоты рабочей области браузера
 function resizeFrame() {
+	// тут при помощи ширины вычисляется отступ от края страницы до app_area, который используется и 
+	// в вычислении высоты. Подразумевается, что отступ по высоте и ширине одинаков.
 	var offset = frameWidth() - e('#app_block').offsetWidth;
+	
 	editCSS('#curtain', 'height:'+frameHeight()+'px;');
 	
 	/*
@@ -43,6 +47,8 @@ function resizeFrame() {
 	
 	mainHeight = frameHeight() - offset - e('#debug_console').offsetHeight - e('#top_bar').offsetHeight;
 	editCSS('#app_area', 'height:'+mainHeight+'px;'); // главное "окно"
+	
+	console.info('IFACE: app area height = ' + mainHeight + 'px');
 
 	var cols = e('.global_column');
 	for (var i=0; i<cols.length; i++) resizeContArea(cols[i]);
