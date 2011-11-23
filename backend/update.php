@@ -271,13 +271,13 @@ if ($topic){
 		, $topic
 	);
 
-	if ($topic_name === null){
 	// если тема удалена (если удалена, name === null, если пустой заголовок - name === "")
+	if ($topic_name === null){
 
 		$result['topic_prop']['deleted'] = true; // по этому флагу отслеживаем онлайн-удаление темы 
 
-	} else {
 	// если тема не удалена
+	} else {
 
 		if ($_REQUEST['maxdateTS'] == '0') { // если загружаем новую тему
 
@@ -302,7 +302,7 @@ if ($topic){
 				$db->query('INSERT INTO ?_unread (?#) VALUES (?a)'
 					, array_keys($values), array_values($values) );
 
-				$date_read = 'firstRead'; // клиент должен знать!
+				$date_read = 'firstRead'; // клиентская часть должна знать!
 			}
 
 			$result['topic_prop']['date_read'] = $date_read; // вывести в клиент
