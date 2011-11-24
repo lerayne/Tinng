@@ -18,23 +18,27 @@ $id = $_REQUEST['id']; // универсальный указатель номе
 // подготовка каждой строки
 function ready_row($row) {
 	
-	//if ($row['use_gravatar'] == '1')
-	$row['avatar_url'] = 'http://www.gravatar.com/avatar/' .md5(strtolower($row['author_email'])).'?s=48';
-	
-	unset($row['author_email']); // не выводим мыло во избежание спама
-	
 	// убираем из сообщений об удаленных рядах всю лишнюю инфу
 	if ($row['deleted']){
+	
 		$cutrow['deleted'] = 1;
 		$cutrow['id'] = $row['id'];
+		unset($row);
 		$row = $cutrow;
+	
+	} else {
+		
+		//if ($row['use_gravatar'] == '1')
+		$row['avatar_url'] = 'http://www.gravatar.com/avatar/'. md5(strtolower($row['author_email'])) .'?s=48';
+	
+		unset($row['author_email']); // не выводим мыло в аякс-переписке
 	}
 
 	return $row;
 }
 
 
-// создание дерева (!! пока не работает)
+// создание дерева (заглушка !! пока не работает)
 function make_tree($raw) {
 	foreach ($raw as $key => $val):
 		$raw[$key] = ready_row($val);

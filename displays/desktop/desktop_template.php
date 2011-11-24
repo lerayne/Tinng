@@ -117,6 +117,6 @@ $message = $_COOKIE['message'];
 			</table>
 		</div>
 		
-		s
+		
 	</body>
 </html>

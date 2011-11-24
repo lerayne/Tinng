@@ -1,7 +1,7 @@
 window.onload = function(){
 	startInterface();
 	startEngine();
-	removeCurtain();
+	revealInterface();
 }
 
 window.onbeforeunload = function(){
@@ -14,6 +14,6 @@ window.onbeforeunload = function(){
 	
 	}, function(){}, false );
 	
-	wait.stop();
+	rotor.stop();
 	
 }

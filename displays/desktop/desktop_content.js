@@ -50,7 +50,7 @@ function Tag(entry){
 			del.onclick = function(){
 				clearBaloon();
 				
-				wait.start('tag_remove', {msg: entry.message, tag: entry.id});
+				rotor.start('tag_remove', {msg: entry.message, tag: entry.id});
 			}
 		}
 		
@@ -90,7 +90,7 @@ function loadTopic(id) {
 	
 	answerForm.titleOff();
 	currentTopic = id;
-	wait.start('load_topic');
+	rotor.start('load_topic');
 
 	// хеш-строка адреса
 	adress.set('topic', id);
@@ -232,7 +232,7 @@ var TopicItem = Class( DesktopMessageItem, {
 		var submitTopicName = function(e){
 			cancelNameEdit();
 
-			wait.start('update', {id: that.row.id, topic_name: that.topicfield.innerHTML});
+			rotor.start('update', {id: that.row.id, topic_name: that.topicfield.innerHTML});
 			
 			stopBubble(e);
 		}
@@ -399,7 +399,7 @@ var PostItem = Class( DesktopMessageItem, {
 
 					var updateMessage = function(){
 						
-						wait.start('update', {id: that.row.id, message: that.message.innerHTML});
+						rotor.start('update', {id: that.row.id, message: that.message.innerHTML});
 						cancelEdit();
 					}
 					
@@ -424,7 +424,7 @@ var PostItem = Class( DesktopMessageItem, {
 		var deleteMessage = function(){
 			
 			if (confirm(txt.msg_del_confirm)){
-				wait.start( 'delete_post', {id: that.row.id});
+				rotor.start( 'delete_post', {id: that.row.id});
 			}
 		}
 		
@@ -498,7 +498,7 @@ function newTopic(btn){
 }
 
 
-function Updater(parseFunc){
+function Rotor(parseFunc){
 	var that = this;
 	
 	this.startBlocked = false;
@@ -541,7 +541,6 @@ function Updater(parseFunc){
 		}}
 		req.open(null, 'backend/update.php', true);
 		req.send({
-			action: 'load_updates',
 			maxdateTS: that.maxdateTS,
 			curTopic: currentTopic,
 			topicSort: that.topicSort,
@@ -572,7 +571,7 @@ function Updater(parseFunc){
 		timeout = advClearTimeout(timeout);
 		
 		if (that.startBlocked) {
-			// переопределяем, иначе wait воспринимает экстренную остановку как полноценное завершение запроса
+			// переопределяем, иначе rotor воспринимает экстренную остановку как полноценное завершение запроса
 			req.onreadystatechange = that.doOnAbort;
 			req.abort();
 			req = 0;
@@ -775,7 +774,7 @@ function AnswerForm(container){
 	
 	this.send.onclick = function(){
 		
-		wait.start( 'add_topic' , {
+		rotor.start( 'add_topic' , {
 			message: that.field.innerHTML,
 			title: that.title.value
 		});
@@ -799,10 +798,10 @@ function AnswerForm(container){
 function startEngine(){
 	answerForm = new AnswerForm(e('@typing_panel', '#viewport_posts'));
 	
-	wait = new Updater(parseResult);
+	rotor = new Rotor(parseResult);
    
 	currentTopic = adress.get('topic');
-	wait.start();
+	rotor.start();
 }
 
 /*

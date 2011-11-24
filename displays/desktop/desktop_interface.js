@@ -3,9 +3,10 @@ function consoleWrite(string, skip){
 	if (skip && !cfg.console_display_all) return;
 	
 	var date = new Date();
+	var time;
 
 	if (date.toLocaleFormat) {
-		var time = date.toLocaleFormat('%H:%M:%S');
+		time = date.toLocaleFormat('%H:%M:%S');
 	} else {
 
 		var t = {};
@@ -14,7 +15,7 @@ function consoleWrite(string, skip){
 		t.S = date.getSeconds();
 		for (var i in t) {if (t[i]*1 < 10) t[i] = '0'+t[i];}
 
-		var time = t.H + ':' + t.M + ':' + t.S;
+		time = t.H + ':' + t.M + ':' + t.S;
 	}
 
 	console.info(time+' - '+string);
@@ -35,7 +36,7 @@ function resizeFrame() {
 	
 	editCSS('#curtain', 'height:'+frameHeight()+'px;');
 	
-	/*
+	
 	if (frameHeight() <= 600 || frameWidth() <= 1024){
 		e('#lowres_css').href = 'skins/'+cfg.skin+'/desktop_lowres.css';
 		// !! затычка. Будет работать толль при условии, что в lowres-версии контур равен 0.
@@ -43,7 +44,7 @@ function resizeFrame() {
 	} else {
 		e('#lowres_css').href = '';
 	}
-	*/
+	
 	
 	mainHeight = frameHeight() - offset - e('#debug_console').offsetHeight - e('#top_bar').offsetHeight;
 	editCSS('#app_area', 'height:'+mainHeight+'px;'); // главное "окно"
@@ -54,19 +55,19 @@ function resizeFrame() {
 	for (var i=0; i<cols.length; i++) resizeContArea(cols[i]);
 }
 
-function removeCurtain(){
+function revealInterface(){
 	removeClass(e('#app_area'), 'invis');
 }
 
 
 function callOverlayPage() {
 	unhide(e('#curtain'), e('#over_curtain'));
-	wait.timeout(cfg.posts_updtimer_blurred, cfg.topics_updtimer_blurred, 'lock');
+	rotor.timeout(cfg.posts_updtimer_blurred, cfg.topics_updtimer_blurred, 'lock');
 }
 
 function closeOverlayPage() {
 	hide(e('#curtain'), e('#over_curtain'));
-	wait.timeout(cfg.posts_updtimer_focused, cfg.topics_updtimer_focused, 'unlock');
+	rotor.timeout(cfg.posts_updtimer_focused, cfg.topics_updtimer_focused, 'unlock');
 	deleteCookie('message');
 }
 
@@ -95,6 +96,7 @@ function insertResizers(){
 	}
 }
 
+// 
 function resizeColumn(event){
 
 	// цена процента, вычисляющаяся из ширины рабочей области
@@ -203,6 +205,7 @@ function debugToggle(id){
 	}
 }
 
+// функция загрузки части шаблона
 function loadTemplate(name, container, cache){
 
 	cache = !cache;
@@ -246,7 +249,7 @@ function fillToolbars(){
 	
 	var timeout = false;
 	
-	var suggestRule = function(e){
+	var suggestRule = function(event){
 		if (searchTopic.value.length > 0){
 			
 			unhide(suggest);
@@ -287,11 +290,11 @@ function fillToolbars(){
 	var startWait = addButton('start', topicsBar, 'start');
 	
 	stopWait.onclick = function(){
-		wait.stop();
+		rotor.stop();
 	}
 	
 	startWait.onclick = function(){
-		wait.start();
+		rotor.start();
 	}
 	*/
 	
