@@ -88,7 +88,7 @@ function unloadTopic() {
 
 function loadTopic(id) {
 	
-	answerForm.titleOff();
+	answerForm.topicModeOff();
 	currentTopic = id;
 	rotor.start('load_topic');
 
@@ -458,6 +458,7 @@ var PostItem = Class( DesktopMessageItem, {
 });
 
 
+// Обертка для создания веток. Если откажемся от ветвления - будет не нужна.
 function Branch (contArea, topicID, parentID){
 	if (!parentID) parentID = topicID;
 
@@ -494,7 +495,7 @@ function newTopic(btn){
 	
 	e('@titlebar', '#viewport_posts').innerHTML = txt.new_topic;
 	
-	answerForm.titleOn();
+	answerForm.topicModeOn();
 }
 
 
@@ -772,9 +773,11 @@ function AnswerForm(container){
 		}
 	}
 	
+	var mode = 'add_message';
+	
 	this.send.onclick = function(){
 		
-		rotor.start( 'add_topic' , {
+		rotor.start( mode , {
 			message: that.field.innerHTML,
 			title: that.title.value
 		});
@@ -782,21 +785,27 @@ function AnswerForm(container){
 		that.field.innerHTML = '';
 	}
 	
-	this.titleOn = function() {
+	this.topicModeOn = function() {
 		unhide(that.title);
+		mode = 'add_topic';
 		resize();
 	}
 	
-	this.titleOff = function(){
+	this.topicModeOff = function(){
 		that.title.value = '';
 		hide(that.title);
+		mode = 'add_message';
 		resize();
 	}
 }
 
 
 function startEngine(){
-	answerForm = new AnswerForm(e('@typing_panel', '#viewport_posts'));
+	if (userID) {
+		answerForm = new AnswerForm(e('@typing_panel', '#viewport_posts'));
+	} else {
+		e('@typing_panel', '#viewport_posts').innerHTML = txt.not_authd_to_post;
+	}
 	
 	rotor = new Rotor(parseResult);
    

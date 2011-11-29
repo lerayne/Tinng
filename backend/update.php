@@ -4,7 +4,7 @@ require_once 'backend_initial.php';
 $result['xhr'] = $xhr_id;
 //$result['sessid'] = $sessid;
 
-/*
+/* // Запись в лог
 $log = fopen('ajax_log.txt', 'w+');
 function ex ($log){
 	fwrite($log, 'process terminated '.connection_status()."\n");
@@ -12,8 +12,9 @@ function ex ($log){
 register_shutdown_function("ex", $log);
 */
 
-$write = $_REQUEST['write']; // указывает что именно пишем, если не false
-$id = $_REQUEST['id']; // универсальный указатель номера записи
+////////////////////////////////
+// Функции для этой части движка
+////////////////////////////////
 
 // подготовка каждой строки
 function ready_row($row) {
@@ -26,7 +27,7 @@ function ready_row($row) {
 		unset($row);
 		$row = $cutrow;
 	
-	} else {
+	} else { // Если работаем не с отчетом об удалении 
 		
 		//if ($row['use_gravatar'] == '1')
 		$row['avatar_url'] = 'http://www.gravatar.com/avatar/'. md5(strtolower($row['author_email'])) .'?s=48';
@@ -38,7 +39,7 @@ function ready_row($row) {
 }
 
 
-// создание дерева (заглушка !! пока не работает)
+// создание дерева (внимание !! целесообразность ветвления - под вопросом)
 function make_tree($raw) {
 	foreach ($raw as $key => $val):
 		$raw[$key] = ready_row($val);
@@ -50,14 +51,13 @@ function make_tree($raw) {
 	return $raw;
 }
 
-
+// сортировка двумерного массива по указанному полю field. Работает даже с неуникальными ключами
+// внимание! возвращает нумерованный массив, а не хеш-таблицу!
 function sort_by_field($array, $field, $reverse){
 
 	$afs = Array(); // array for sort
 	$out = Array();
 	
-	// сортировка двумерного массива по указанному полю field. Работает даже с неуникальными ключами
-	// внимание! возвращает нумерованный массив, а не хеш-таблицу!
 	foreach ($array as $key => $val) $afs[$val[$field].$key] = $val;
 	ksort($afs);
 	if ($reverse) $afs = array_reverse($afs);
@@ -66,21 +66,31 @@ function sort_by_field($array, $field, $reverse){
 }
 
 
+/////////////////////////////////
+// Импорт и подготовка переменных
+/////////////////////////////////
+
+$id = $_REQUEST['id']; // универсальный указатель номера записи
 $maxdateSQL = $result['old_maxdate'] = jsts2sql($_REQUEST['maxdateTS']);
+$write = $_REQUEST['write']; // указывает что именно пишем, если не false
+$params = $_REQUEST['params']; // прочие передаваемые данные (например новые данные для записи)
 
+
+///////////////////////////////
 // Записываем в базу обновления
-$params = $_REQUEST['params'];
+///////////////////////////////  
 
-switch ($write) {
+switch ($write):
 
-	// добавляем новую тему (тут без брейка!)
+	// добавляем новую тему
+	// НА ДАННЫЙ МОМЕНТ добваление поста всегда расценивается как добваление темы! Разобраться!
 	case 'add_topic':
 
 		$new_row['topic_name'] = $params['title'];
 		$result['topic_prop']['new'] = 1;
 
 	// вставляем новое сообщение (адаптировать для старта темы!)
-	case 'insert_post':
+	case 'add_message':
 
 		$new_row['author_id'] = $user->id;
 		$new_row['parent_id'] = $_REQUEST['curTopic'];
@@ -149,10 +159,14 @@ switch ($write) {
 		$db->query('DELETE FROM ?_tagmap WHERE message = ?d AND tag = ?d', $params['msg'], $params['tag']);
 
 	break;
-}
+
+endswitch;
 
 
-// ПОИСК ОБНОВЛЕНИЙ
+////////////////////////
+// Ищем любые обновления
+////////////////////////
+
 $result['new_maxdate'] = $db->selectCell (
 	'SELECT GREATEST(MAX(created), IFNULL(MAX(modified), 0))
 	FROM ?_messages WHERE IFNULL(modified, created) > ?' . ($condition ? ' AND '.$condition : '')
@@ -169,8 +183,11 @@ if (!$result['new_maxdate']){
 // иначе:
 
 
-// ЧИТАЕМ ИЗМЕНЕИЯ
+////////////////////////////////
+// Получаем изменения списка тем
+////////////////////////////////
 
+// Импорт переменных
 $sort = $_REQUEST['topicSort'] ? $_REQUEST['topicSort'] : 'updated';
 $reverse = $_REQUEST['tsReverse'];
 
@@ -259,7 +276,10 @@ switch ($sort):
 endswitch;
 
 
-// ЕСЛИ В ЗАПРОСЕ УКАЗАНА ТЕМА
+//////////////////////////////////
+// Получаем изменения текущей темы
+//////////////////////////////////
+
 $topic = $_REQUEST['curTopic'];
 
 if ($topic){

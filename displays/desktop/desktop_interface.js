@@ -235,8 +235,38 @@ function fillToolbars(){
 		return btn;
 	}
 
-	var newTopicBtn = addButton('newtopic', postsBar);
-	var markRead = addButton('markread', postsBar);
+	if (userID) {
+		
+		var newTopicBtn = addButton('newtopic', postsBar);
+		var markRead = addButton('markread', postsBar);
+		
+		newTopicBtn.onclick = function(){newTopic(newTopicBtn);}
+
+		markRead.onclick = function(){
+
+			addClass(markRead, 'throbb');
+
+			// AJAX:
+			JsHttpRequest.query( 'backend/service.php', { // аргументы:
+
+				action: 'mark_read'
+				, id: currentTopic
+
+			}, function(result, errors) { // что делаем, когда пришел ответ:
+
+				var unreads = e('.unread', e('@contents', '#viewport_posts'), true); // с отвязкой
+				for (var i=0; i<unreads.length; i++) removeClass(unreads[i], 'unread');
+
+				if (topics[currentTopic]) removeClass(topics[currentTopic].item, 'unread');
+
+				removeClass(markRead, 'throbb');
+
+			}, true ); // запрещать кеширование
+		}
+		
+	}
+
+	
 	
 	var searchCont = div('search suggest_field');
 	var searchTopic = newel('input');
@@ -298,29 +328,6 @@ function fillToolbars(){
 	}
 	*/
 	
-	newTopicBtn.onclick = function(){newTopic(newTopicBtn);}
-
-	markRead.onclick = function(){
-
-		addClass(markRead, 'throbb');
-
-		// AJAX:
-		JsHttpRequest.query( 'backend/service.php', { // аргументы:
-
-			action: 'mark_read'
-			, id: currentTopic
-
-		}, function(result, errors) { // что делаем, когда пришел ответ:
-
-			var unreads = e('.unread', e('@contents', '#viewport_posts'), true); // с отвязкой
-			for (var i=0; i<unreads.length; i++) removeClass(unreads[i], 'unread');
-			
-			if (topics[currentTopic]) removeClass(topics[currentTopic].item, 'unread');
-			
-			removeClass(markRead, 'throbb');
-
-		}, true ); // запрещать кеширование
-	}
 }
 
 
@@ -366,7 +373,7 @@ function startInterface(){
 
 window.onresize = resizeFrame;
 
-/*
+/* // где-то нашел функцию добавления транзишна. изучить.
 function test(id) {
 	var theOne = e('#'+id);
 	theOne.style.visibility = "visible";
