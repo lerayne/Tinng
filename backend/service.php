@@ -6,7 +6,7 @@ $id = $_REQUEST['id'];
 
 switch ($action):
 
-	// разблокировать пост (пассивная команда)
+	// разблокировать пост (ничего не возвращает)
 	case 'unlock_post':
 		
 		$db->query('UPDATE ?_messages SET locked = NULL WHERE id = ?d', $id);
@@ -38,7 +38,7 @@ switch ($action):
 
 	break;
 
-
+	// Теперь проверка и блокирование проходят в один заход
 	case 'check_n_lock':
 		
 		$result['locked'] = $db->selectCell(
@@ -51,7 +51,7 @@ switch ($action):
 	break;
 	
 	
-	
+	// Пока не используется
 	case 'close_session':
 	
 		//$db->query('UPDATE ?_messages SET msg_locked = NULL WHERE msg_locked = ?d', $user->id);
@@ -63,13 +63,15 @@ switch ($action):
 	case 'mark_read':
 
 		$now = date('Y-m-d H:i:s');
-
+		
+		// Выясняем, отмечал ли когда-либо пользователь эту тему прочитанной
 		$exist = $db->selectRow(
 			'SELECT * FROM ?_unread WHERE user = ?d AND topic = ?d'
 			, $user->id
 			, $id
 		);
-
+		
+		// Если да - обновляем запись в базе
 		if ($exist):
 			$db->query(
 				'UPDATE ?_unread SET timestamp = ? WHERE user = ?d AND topic = ?d'
@@ -77,6 +79,7 @@ switch ($action):
 				, $user->id
 				, $id
 			);
+		// Если нет - забиваем новую запись
 		else:
 
 			$values = Array(
@@ -89,6 +92,7 @@ switch ($action):
 
 		endif;
 		
+		// возвращаем клиенту дату отметки темы прочитанной
 		$result = $now;
 
 	break;

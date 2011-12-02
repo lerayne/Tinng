@@ -1,5 +1,6 @@
 <script type="text/javascript" language="JavaScript">
 <!--
+// Убогая заглушка авторизации на клиенте
 userID = <?= $user ? $user->id : 'null'?>;
 var txt = {};
 var cfg = {};
