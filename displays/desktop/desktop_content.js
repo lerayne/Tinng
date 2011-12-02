@@ -20,6 +20,22 @@ function clearOverlay(){
 	for (var i in ovls) hide(ovls[i]);
 }
 
+function notify (title, body, iconURL){
+	
+	if (!iconURL) iconURL = $('link#favicon').href;
+	
+	var newBubble = function(){
+		var bubble = window.webkitNotifications.createNotification(iconURL, title, body);
+		bubble.show();
+	}
+	
+	if (window.webkitNotifications.checkPermission() == 0) {
+		newBubble();
+	} else { 
+		window.webkitNotifications.requestPermission(newBubble);
+	}
+}
+
 
 function Tag(entry){
 	
@@ -632,7 +648,9 @@ function parseResult(result){
 			topics[entry.id] = new TopicItem(entry);
 			topicsCont.appendChild(topics[entry.id].item);
 			if (tProps['new']) loadTopic(entry.id);
-		}	
+		}
+		
+		if (1 == 1) notify('New Topic: '+entry.topic_name, entry.message);
 	}}
 
 
