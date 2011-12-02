@@ -717,95 +717,106 @@ function parseResult(result){
 
 
 function AnswerForm(container){
-	var that = this;
-	
-	this.container = container;
-	
-	this.form = newel('form', null, 'answer_here');
-	this.title = newel('input', 'topic_name none');
-	this.message = newel('textarea', null, 'textarea_0');
-	this.controls = div('controls');
-	this.cancel = div('button none', 'cancel_post', '<span>'+txt.cancel+'</span>');
-	this.send = div('button', 'send_post', '<span>'+txt.send+'</span>');
-	
-	this.message.rows = 1;
-	this.title.name = 'topic';
-	this.title.type = 'text';
-	
-	appendKids( this.form
-		, this.title
-		, this.message
-	);
-	
-	appendKids( this.container
-		, this.form
-		, this.controls
-	);
+	if (userID){
 		
-	appendKids( this.controls
-		, this.cancel
-		, this.send
-		, nuclear()
-	);
-		
-	var editor = veditor();
-	editor.panelInstance(this.message.id);
+		var that = this;
 	
-	this.field = e('@nicEdit-main', this.form);
-	this.field.parentNode.className = 'nicEdit-wrapper';
-	
-	setTimeout(function(){that.field.focus()}, 500);
-	
-	
-	var pSbar = e('@statusbar', '#viewport_posts');
-	var areaHeight = this.field.offsetHeight;
-	pSbar.innerHTML = areaHeight;
-	
-	var resize = function() {
-		resizeContArea(e('#viewport_posts'));
-	}
-	
-	resize();
-	
-	this.field.onkeyup = function(){
-		pSbar.innerHTML = that.field.offsetHeight;
-		
-		if (areaHeight != that.field.offsetHeight){
-			resize();
-			areaHeight = that.field.offsetHeight;
+		this.container = container;
+
+		this.form = newel('form', null, 'answer_here');
+		this.title = newel('input', 'topic_name none');
+		this.message = newel('textarea', null, 'textarea_0');
+		this.controls = div('controls');
+		this.cancel = div('button none', 'cancel_post', '<span>'+txt.cancel+'</span>');
+		this.send = div('button', 'send_post', '<span>'+txt.send+'</span>');
+
+		this.message.rows = 1;
+		this.title.name = 'topic';
+		this.title.type = 'text';
+
+		appendKids( this.form
+			, this.title
+			, this.message
+		);
+
+		appendKids( this.container
+			, this.form
+			, this.controls
+		);
+
+		appendKids( this.controls
+			, this.cancel
+			, this.send
+			, nuclear()
+		);
+
+		var editor = veditor();
+		editor.panelInstance(this.message.id);
+
+		this.field = e('@nicEdit-main', this.form);
+		this.field.parentNode.className = 'nicEdit-wrapper';
+
+		setTimeout(function(){that.field.focus()}, 500);
+
+
+		var pSbar = e('@statusbar', '#viewport_posts');
+		var areaHeight = this.field.offsetHeight;
+		pSbar.innerHTML = areaHeight;
+
+		var resize = function() {
+			resizeContArea(e('#viewport_posts'));
 		}
-	}
-	
-	var mode = 'add_message';
-	
-	this.send.onclick = function(){
-		
-		rotor.start( mode , {
-			message: that.field.innerHTML,
-			title: that.title.value
-		});
-		
-		that.field.innerHTML = '';
-	}
-	
-	this.topicModeOn = function() {
-		unhide(that.title);
-		mode = 'add_topic';
+
 		resize();
-	}
-	
-	this.topicModeOff = function(){
-		that.title.value = '';
-		hide(that.title);
-		mode = 'add_message';
-		resize();
+
+		this.field.onkeyup = function(){
+			pSbar.innerHTML = that.field.offsetHeight;
+
+			if (areaHeight != that.field.offsetHeight){
+				resize();
+				areaHeight = that.field.offsetHeight;
+			}
+		}
+
+		var mode = 'add_message';
+
+		this.send.onclick = function(){
+
+			rotor.start( mode , {
+				message: that.field.innerHTML,
+				title: that.title.value
+			});
+
+			that.field.innerHTML = '';
+		}
+
+		this.topicModeOn = function() {
+			unhide(that.title);
+			mode = 'add_topic';
+			resize();
+		}
+
+		this.topicModeOff = function(){
+			that.title.value = '';
+			hide(that.title);
+			mode = 'add_message';
+			resize();
+		}
+		
+	} else { // если юзер не залогинен
+		this.topicModeOn = function() {return false;}
+		this.topicModeOff = function() {return false;}
+		container.innerHTML = txt.not_authd_to_post;
 	}
 }
 
 
 function startEngine(){
+	
+	answerForm = new AnswerForm(e('@typing_panel', '#viewport_posts'));
+	
 	if (userID) {
-		answerForm = new AnswerForm(e('@typing_panel', '#viewport_posts'));
+		
 	} else {
 		e('@typing_panel', '#viewport_posts').innerHTML = txt.not_authd_to_post;
 	}

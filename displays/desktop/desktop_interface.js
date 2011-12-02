@@ -1,3 +1,25 @@
+var siteBlurred;
+
+function onSiteBlur(){
+	if (!siteBlurred){
+		
+		siteBlurred = 1;
+		consoleWrite('IFACE: site blurred');
+		e('#logo').style.color = "grey";
+		
+	}
+}
+
+function onSiteFocus(){
+	if (siteBlurred){
+		
+		siteBlurred = 0;
+		consoleWrite('IFACE: site focused');
+		e('#logo').style.color = "black";
+		
+	}
+}
+
 // пишет в консоль
 function consoleWrite(string, skip){
 	if (skip && !cfg.console_display_all) return;
@@ -23,20 +45,27 @@ function consoleWrite(string, skip){
 
 // Нотификатор (пока только для вебкита)
 function notify (title, body, iconURL){
-	
-	//if (iconURL == undefined) iconURL = $('link[rel="shortcut icon"]').attr('href');
-	if (iconURL == undefined) iconURL = e('#favicon').href;
-	
-	var newBubble = function(){
-		var bubble = window.webkitNotifications.createNotification(iconURL, title, body+iconURL);
-		bubble.show();
+	if (window.webkitNotifications){
+		
+		//if (iconURL == undefined) iconURL = $('link[rel="shortcut icon"]').attr('href');
+		if (iconURL == undefined) iconURL = e('#favicon').href;
+
+		var newBubble = function(){
+			var bubble = window.webkitNotifications.createNotification(iconURL, title, body);
+			bubble.show();
+		}
+
+		if (window.webkitNotifications.checkPermission() == 0) {
+			newBubble();
+		} else { 
+			window.webkitNotifications.requestPermission(newBubble);
+		}
+		
 	}
-	
-	if (window.webkitNotifications.checkPermission() == 0) {
-		newBubble();
-	} else { 
-		window.webkitNotifications.requestPermission(newBubble);
-	}
+}
+
+function ifblur_notify(title, body, iconURL){
+	if (siteBlurred) notify (title, body, iconURL);
 }
 
 
@@ -68,7 +97,7 @@ function resizeFrame() {
 	mainHeight = frameHeight() - offset - e('#debug_console').offsetHeight - e('#top_bar').offsetHeight;
 	editCSS('#app_area', 'height:'+mainHeight+'px;'); // главное "окно"
 	
-	console.info('IFACE: app area height = ' + mainHeight + 'px');
+	//consoleWrite('IFACE: app area height = ' + mainHeight + 'px');
 
 	var cols = e('.global_column');
 	for (var i=0; i<cols.length; i++) resizeContArea(cols[i]);
@@ -396,6 +425,9 @@ function startInterface(){
 }
 
 window.onresize = resizeFrame;
+
+window.onblur = onSiteBlur;
+window.onfocus = onSiteFocus;
 
 /* // где-то нашел функцию добавления транзишна. изучить.
 function test(id) {
