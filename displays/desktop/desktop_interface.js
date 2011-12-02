@@ -21,6 +21,25 @@ function consoleWrite(string, skip){
 	console.info(time+' - '+string);
 }
 
+// Нотификатор (пока только для вебкита)
+function notify (title, body, iconURL){
+	
+	//if (iconURL == undefined) iconURL = $('link[rel="shortcut icon"]').attr('href');
+	if (iconURL == undefined) iconURL = e('#favicon').href;
+	
+	var newBubble = function(){
+		var bubble = window.webkitNotifications.createNotification(iconURL, title, body+iconURL);
+		bubble.show();
+	}
+	
+	if (window.webkitNotifications.checkPermission() == 0) {
+		newBubble();
+	} else { 
+		window.webkitNotifications.requestPermission(newBubble);
+	}
+}
+
+
 // изменяет высоту области содержимого конкретной колонки
 function resizeContArea(which_column){
 	var chromeH = classDimen('h', e('.chrome', which_column));
@@ -231,7 +250,7 @@ function fillToolbars(){
 	var addButton = function(name, bar, title){
 		var btn = newel('div', 'left sbtn '+name);
 		bar.appendChild(btn);
-		btn.innerHTML = title ? title : '<span>'+txt['btn_'+name]+'</span>';
+		btn.innerHTML = title ? title : '<span>'+(txt['btn_'+name] ? txt['btn_'+name] : name)+'</span>';
 		return btn;
 	}
 
@@ -239,6 +258,11 @@ function fillToolbars(){
 		
 		var newTopicBtn = addButton('newtopic', postsBar);
 		var markRead = addButton('markread', postsBar);
+		var notifyTest = addButton('notifyTest', postsBar);
+		
+		notifyTest.onclick = function(){
+			notify('New Topic', 'entry.message');
+		}
 		
 		newTopicBtn.onclick = function(){newTopic(newTopicBtn);}
 
