@@ -93,7 +93,7 @@ switch ($action):
 	case 'add_post':
 
 		$new_row['author_id'] = $user->id;
-		$new_row['parent_id'] = $_REQUEST['curTopic'];
+		$new_row['parent_id'] = $params['parent'] ? $params['parent'] : $_REQUEST['curTopic'];
 		$new_row['topic_id'] = $_REQUEST['curTopic'];
 		$new_row['message'] = $params['message'];
 		$new_row['created'] = date('Y-m-d H:i:s');

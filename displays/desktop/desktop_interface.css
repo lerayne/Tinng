@@ -1,6 +1,8 @@
 /* общие теги */
 body	{ padding:0; margin:0; }
 hr		{ border: 0 none; height: 1px; }
+a		{cursor:pointer;}
+a:hover {text-decoration: underline;}
 
 /* черная занавеска и окно на ней */
 #curtain		{ z-index:800; }

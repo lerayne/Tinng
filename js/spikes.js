@@ -42,6 +42,7 @@ function advClearTimeout(timeout) {
 		clearTimeout(timeout);
 		return false;
 	}
+	return false;
 }
 
 function sql2stamp(str){

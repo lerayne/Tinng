@@ -32,9 +32,12 @@ var MessageItem = Class({
 			created:	{ addClass: 'right' },
 			author:		{ addClass: 'left' },
 			msgid:		{ addClass: 'left' },
+			parent:		[],
 			message:	[],
 			tags:		[]
 		});
+		
+		this.parent_link = newel('a');
 	},
 	
 	fillData: function(row){
@@ -51,6 +54,9 @@ var MessageItem = Class({
 		this.msgid.innerHTML	= '&nbsp;#' + this.row.id + '&nbsp;';
 		
 		this.message.innerHTML	= this.row.message;
+		
+		//if (this.row.parent_id != this.row.topic_id) 
+		//	this.parent.innerHTML = 'parent: '+this.row.parent_id;
 	},
 	
 	// Создание действий с объектами
@@ -79,6 +85,7 @@ var MessageItem = Class({
 		appendKids ( this.infobar
 			, this.avatar
 			, this.created
+			, this.parent
 			, this.author
 			, this.msgid
 			, this.postsquant

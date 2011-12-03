@@ -402,6 +402,14 @@ td.collapsed {
 	margin-top: 5px;
 }
 
+.infobar .parent {
+	float:right;
+	margin-top: 5px;
+	margin-right: 10px;
+	color: #555;
+	font-size: 11px;
+}
+
 .avatar {
 	float:left;
 	position: absolute;
@@ -743,4 +751,16 @@ td.collapsed {
 .suggestion {
 	border-bottom:1px solid #ccc;
 	padding: 3px 7px;
+}
+
+.typing_panel .advice {
+	height:30px;
+	overflow:hidden;
+	font-size:11px;
+	color: #999999;
+	border-bottom: 1px dotted #bbb;
+}
+
+.typing_panel .advice span {
+	color: #555555;
 }

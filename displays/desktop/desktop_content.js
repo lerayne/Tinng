@@ -87,6 +87,7 @@ function unloadTopic() {
 	messages = {};
 	currentTopic = 0;
 	postsPageLimit = 1;
+	postSelect(false);
 }
 
 function loadTopic(id) {
@@ -109,9 +110,13 @@ function postSelect(id){
 		removeClass(current, 'selected');
 	}
 	
+	if (selectedPost && answerForm.field.innerHTML == selectedPost.row.author+', ') 
+		answerForm.field.innerHTML = '<br>';
+	
 	// передача строго false в качестве параметра просто снимает старое выделение, но не назначает новое
 	if (id === false) {
 		selectedPost = false;
+		answerForm.hideAdvice();
 		return; 
 	}
 	
@@ -119,9 +124,12 @@ function postSelect(id){
 	if (newone) {
 		console.warn(id);
 		addClass(newone, 'selected');
-		selectedPost = id;
+		selectedPost = messages[id];
+		answerForm.showAdvice(id);
+		if (answerForm.field.innerHTML == '<br>') answerForm.field.innerHTML = selectedPost.row.author+', ';
 	} else {
 		selectedPost = false; // на случай, если передан несуществующий новый id
+		answerForm.hideAdvice();
 	}
 	return;
 }
@@ -360,6 +368,11 @@ var PostItem = Class( DesktopMessageItem, {
 		this.message.id = 'message_'+this.row.id;
 
 		this.avatar	= div('avatar', null, '<img src="'+this.row.avatar_url+'">');
+		
+		if (this.row.parent_id != this.row.topic_id){
+			this.parent_link.innerHTML = txt.show_parent;
+			this.parent.appendChild(this.parent_link);
+		}
 	},
 	
 	
@@ -380,8 +393,14 @@ var PostItem = Class( DesktopMessageItem, {
 			postSelect(that.row.id);
 		}
 		
+		this.parent_link.onclick = function(evt) {
+			messages[that.row.parent_id].item.scrollIntoView(true);
+			postSelect(that.row.parent_id);
+			stopBubble(evt);
+		}
+		
 		// Редактирование сообщения
-		var editMessage = function(){
+		var editMessage = function(evt){
 
 			// AJAX:
 			JsHttpRequest.query( 'backend/service.php', { // аргументы:
@@ -420,22 +439,26 @@ var PostItem = Class( DesktopMessageItem, {
 					);
 					
 					// программируем кнопки
-					var cancelEdit = function(){
+					var cancelEdit = function(evt){
 						remove(editControls);
 						editor.removeInstance(that.message.id);
 						editor.removePanel(that.message.id);
 						unhide(that.infobar, that.controls);
+						
+						stopBubble(evt);
 					}
 
-					var updateMessage = function(){
+					var updateMessage = function(evt){
 						
 						rotor.start('update_message', {id: that.row.id, message: that.message.innerHTML});
 						cancelEdit();
+						
+						stopBubble(evt);
 					}
 					
 					sendBtn.onclick = updateMessage;
 
-					cancelBtn.onclick = function(){
+					cancelBtn.onclick = function(evt){
 						cancelEdit();
 						that.message.innerHTML = backupMsg;
 
@@ -445,17 +468,23 @@ var PostItem = Class( DesktopMessageItem, {
 							action: 'unlock_message'
 							, id: that.row.id
 						});
+						
+						stopBubble(evt);
 					}
 				}
 			}, true ); // запрещать кеширование
+			
+			stopBubble(evt);
 		}
 		
 		// Удаление сообщения
-		var deleteMessage = function(){
+		var deleteMessage = function(evt){
 			
 			if (confirm(txt.msg_del_confirm)){
 				rotor.start( 'delete_message', {id: that.row.id});
 			}
+			
+			stopBubble(evt);
 		}
 		
 		// добавляем кнопки
@@ -760,6 +789,10 @@ function AnswerForm(container){
 		this.container = container;
 
 		this.form = newel('form', null, 'answer_here');
+		this.advice = div('advice none');
+		this.advice_text = div();
+		this.unselect = div('sbtn right', null, '<span>'+txt.cancel_selection+'</span>');
+		this.scrollto = div('sbtn right', null, '<span>'+txt.scroll_to_selected+'</span>');
 		this.title = newel('input', 'topic_name none');
 		this.message = newel('textarea', null, 'textarea_0');
 		this.controls = div('controls');
@@ -776,6 +809,7 @@ function AnswerForm(container){
 		);
 
 		appendKids( this.container
+			, this.advice
 			, this.form
 			, this.controls
 		);
@@ -784,6 +818,12 @@ function AnswerForm(container){
 			, this.cancel
 			, this.send
 			, nuclear()
+		);
+			
+		appendKids( this.advice
+			, this.unselect
+			, this.scrollto
+			, this.advice_text
 		);
 
 		var editor = veditor();
@@ -820,10 +860,19 @@ function AnswerForm(container){
 
 			rotor.start( action , {
 				message: that.field.innerHTML,
-				title: that.title.value
+				title: that.title.value,
+				parent: selectedPost ? selectedPost.row.id : null
 			});
 
 			that.field.innerHTML = '';
+		}
+		
+		this.scrollto.onclick = function() {
+			if (selectedPost) selectedPost.item.scrollIntoView(false);
+		}
+		
+		this.unselect.onclick = function() {
+			postSelect(false);
 		}
 
 		this.topicModeOn = function() {
@@ -839,9 +888,27 @@ function AnswerForm(container){
 			resize();
 		}
 		
+		this.showAdvice = function(id){
+			unhide(that.advice);
+			
+			var link = messages[id].row;
+			
+			that.advice_text.innerHTML = txt.will_reply_to + 
+				'<span><b>'+link.author+':</b> '+link.message+'</span>';
+
+			resize();
+		}
+		
+		this.hideAdvice = function() {
+			hide(that.advice);
+			resize();
+		}
+		
 	} else { // если юзер не залогинен
-		this.topicModeOn = function() {return false;}
-		this.topicModeOff = function() {return false;}
+		this.topicModeOn = function(){return;}
+		this.topicModeOff = function(){return;}
+		this.showAdvice = function(){return;}
+		this.hideAdvice = function(){return;}
 		container.innerHTML = txt.not_authd_to_post;
 	}
 }

@@ -88,7 +88,7 @@ function resizeFrame() {
 	
 	editCSS('#curtain', 'height:'+frameHeight()+'px;');
 	
-	
+	/*
 	if (frameHeight() <= 600 || frameWidth() <= 1024){
 		e('#lowres_css').href = 'skins/'+cfg.skin+'/desktop_lowres.css';
 		// !! затычка. Будет работать толль при условии, что в lowres-версии контур равен 0.
@@ -96,6 +96,7 @@ function resizeFrame() {
 	} else {
 		e('#lowres_css').href = '';
 	}
+	*/
 	
 	
 	mainHeight = frameHeight() - offset - e('#debug_console').offsetHeight - e('#top_bar').offsetHeight;
@@ -291,10 +292,19 @@ function fillToolbars(){
 		
 		var newTopicBtn = addButton('newtopic', postsBar);
 		var markRead = addButton('markread', postsBar);
-		var notifyTest = addButton('notifyTest', postsBar);
 		
-		notifyTest.onclick = function(){
-			notify('New Topic', 'entry.message');
+		var stopTimer = addButton('Stop', postsBar);
+		var startTimer = addButton('Start', postsBar);
+
+		stopTimer.onclick = function() { rotor.stop() ;}
+		startTimer.onclick = function() { rotor.start() ;}
+		
+		if (window.webkitNotifications){
+			var notifyTest = addButton('notifyTest', postsBar);
+
+			notifyTest.onclick = function(){
+				notify('New Topic', 'entry.message');
+			}
 		}
 		
 		newTopicBtn.onclick = function(){newTopic(newTopicBtn);}
@@ -371,19 +381,6 @@ function fillToolbars(){
 	}
 	searchTopic.onfocus = suggestRule;
 	searchTopic.onclick = function(e){stopBubble(e)}
-	
-	/*
-	var stopWait = addButton('stop', topicsBar, 'stop');
-	var startWait = addButton('start', topicsBar, 'start');
-	
-	stopWait.onclick = function(){
-		rotor.stop();
-	}
-	
-	startWait.onclick = function(){
-		rotor.start();
-	}
-	*/
 	
 }
 
