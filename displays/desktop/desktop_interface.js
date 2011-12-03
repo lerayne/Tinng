@@ -4,9 +4,11 @@ function onSiteBlur(){
 	if (!siteBlurred){
 		
 		siteBlurred = 1;
-		consoleWrite('IFACE: site blurred');
+		
+		consoleWrite('IFACE: Entire tab/window has lost focus');
 		e('#logo').style.color = "grey";
 		
+		rotor.timeout(cfg.poll_timer_blurred);
 	}
 }
 
@@ -14,9 +16,11 @@ function onSiteFocus(){
 	if (siteBlurred){
 		
 		siteBlurred = 0;
-		consoleWrite('IFACE: site focused');
+		
+		consoleWrite('IFACE: Entire tab/window has aquired focus');
 		e('#logo').style.color = "black";
 		
+		rotor.timeout(cfg.poll_timer);
 	}
 }
 

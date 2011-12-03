@@ -502,6 +502,7 @@ function newTopic(btn){
 function Rotor(parseFunc){
 	var that = this;
 	
+	this.timer = siteBlurred ? cfg.poll_timer_blurred : cfg.poll_timer;
 	this.startBlocked = false;
 	this.maxdateTS = 0;
 	
@@ -512,13 +513,14 @@ function Rotor(parseFunc){
 	var req = false;
 	var timeout = false;
 	
-	var SInd = e('@state_ind' ,'#top_bar');
+	var stateIndicator = e('@state_ind' ,'#top_bar');
 	
 	// ФУНКЦИЯ ЦИКЛИЧНОГО ОЖИДАНИЯ
 	this.start = function(write, params){
 		
-		consoleWrite('Launching query',1);
+		consoleWrite('Launching query with timeout '+that.timer, 1);
 		
+		// Если есть признаки существования (некорректной остановки) предыдущего таймера - останавливаем
 		if (that.startBlocked || timeout) that.stop();
 
 		// устанавливаем флаг, блокирующий параллельный старт еще одного запроса
@@ -537,7 +539,7 @@ function Rotor(parseFunc){
 
 			that.startBlocked = false;
 
-			timeout = setTimeout(function(){that.start()}, cfg.poll_timer);
+			timeout = setTimeout(function(){that.start()}, that.timer);
 
 		}}
 		req.open(null, 'backend/update.php', true);
@@ -553,12 +555,12 @@ function Rotor(parseFunc){
 	
 	// как-то отмечаем в интерфейсе что запрос ушел
 	this.startIndication = function(){
-		addClass(SInd, 'updating');
+		addClass(stateIndicator, 'updating');
 	}
 	
 	// как-то отмечаем в интерфейсе что запрос закончен
 	this.stopIndication = function(){
-		removeClass(SInd, 'updating');
+		removeClass(stateIndicator, 'updating');
 	}
 	
 	// функция, выполняющаяся при отмене уже поданного запроса
@@ -572,7 +574,7 @@ function Rotor(parseFunc){
 		timeout = advClearTimeout(timeout);
 		
 		if (that.startBlocked) {
-			// переопределяем, иначе rotor воспринимает экстренную остановку как полноценное завершение запроса
+			// переопределяем orsc, иначе rotor воспринимает экстренную остановку как полноценное завершение запроса
 			req.onreadystatechange = that.doOnAbort;
 			req.abort();
 			req = 0;
@@ -585,7 +587,10 @@ function Rotor(parseFunc){
 	}
 	
 	// забронируем
-	this.timeout = function(){}
+	this.timeout = function(msec){
+		that.timer = msec;
+		that.start();
+	}
 }
 
 
