@@ -7,7 +7,7 @@ $id = $_REQUEST['id'];
 switch ($action):
 
 	// разблокировать пост (ничего не возвращает)
-	case 'unlock_post':
+	case 'unlock_message':
 		
 		$db->query('UPDATE ?_messages SET locked = NULL WHERE id = ?d', $id);
 		

@@ -72,7 +72,7 @@ function sort_by_field($array, $field, $reverse){
 
 $id = $_REQUEST['id']; // универсальный указатель номера записи
 $maxdateSQL = $result['old_maxdate'] = jsts2sql($_REQUEST['maxdateTS']);
-$write = $_REQUEST['write']; // указывает что именно пишем, если не false
+$action = $_REQUEST['action']; // указывает что именно пишем, если не false
 $params = $_REQUEST['params']; // прочие передаваемые данные (например новые данные для записи)
 
 
@@ -80,17 +80,17 @@ $params = $_REQUEST['params']; // прочие передаваемые данн
 // Записываем в базу обновления
 ///////////////////////////////  
 
-switch ($write):
+// $action можт и не указывать на запись чего-либо в базу. Этот switch перебирает только записывающие действия
+switch ($action):
 
-	// добавляем новую тему
-	// НА ДАННЫЙ МОМЕНТ добваление поста всегда расценивается как добваление темы! Разобраться!
+	// добавляем новую тему (тут нет брейка, так и надо)
 	case 'add_topic':
 
 		$new_row['topic_name'] = $params['title'];
 		$result['topic_prop']['new'] = 1;
 
 	// вставляем новое сообщение (адаптировать для старта темы!)
-	case 'add_message':
+	case 'add_post':
 
 		$new_row['author_id'] = $user->id;
 		$new_row['parent_id'] = $_REQUEST['curTopic'];
@@ -108,7 +108,7 @@ switch ($write):
 
 
 	// обновляет запись в ?_messages
-	case 'update':
+	case 'update_message':
 
 		$upd_id = $params['id'];
 		unset($params['id']);
@@ -122,7 +122,7 @@ switch ($write):
 
 
 	// удаляем сообщение
-	case 'delete_post':
+	case 'delete_message':
 
 		// проверка блокировки сообщения
 		$locked = $db->selectCell(
@@ -170,7 +170,7 @@ endswitch;
 $result['new_maxdate'] = $db->selectCell (
 	'SELECT GREATEST(MAX(created), IFNULL(MAX(modified), 0))
 	FROM ?_messages WHERE IFNULL(modified, created) > ?' . ($condition ? ' AND '.$condition : '')
-	, ($write == 'load_topic') ? 0 : $maxdateSQL
+	, ($action == 'load_pages') ? 0 : $maxdateSQL
 );
 
 
@@ -284,8 +284,8 @@ $topic = $_REQUEST['curTopic'];
 
 if ($topic){
 
-	if ($write == 'load_topic') {
-		$maxdateSQL = jsts2sql($_REQUEST['maxdateTS'] = '0');
+	if ($action == 'load_pages') {
+		$maxdateSQL = jsts2sql('0');
 		$result['topic_prop']['manual'] = true;
 	}
 
@@ -303,7 +303,7 @@ if ($topic){
 	// если тема не удалена
 	} else {
 
-		if ($_REQUEST['maxdateTS'] == '0') { // если загружаем новую тему
+		if ($_REQUEST['maxdateTS'] == '0' || $action == 'load_pages') { // если загружаем новую тему
 
 			// выводим номер темы для подсветки ее в колонке тем
 			$result['topic_prop']['id'] = $topic;

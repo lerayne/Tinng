@@ -1,5 +1,6 @@
 // Глобальные переменные
 var currentTopic = 0;
+var postsPageLimit = 1;
 var branches = {};
 var topics = {};
 var messages = {};
@@ -84,16 +85,18 @@ function unloadTopic() {
 	branches = {};
 	messages = {};
 	currentTopic = 0;
+	postsPageLimit = 1;
 }
 
 function loadTopic(id) {
 	
 	answerForm.topicModeOff();
 	currentTopic = id;
-	rotor.start('load_topic');
+	rotor.start('load_pages');
 
 	// хеш-строка адреса
 	adress.set('topic', id);
+	adress.set('plimit', postsPageLimit);
 	adress.del('message');
 }
 
@@ -232,7 +235,7 @@ var TopicItem = Class( DesktopMessageItem, {
 		var submitTopicName = function(e){
 			cancelNameEdit();
 
-			rotor.start('update', {id: that.row.id, topic_name: that.topicfield.innerHTML});
+			rotor.start('update_message', {id: that.row.id, topic_name: that.topicfield.innerHTML});
 			
 			stopBubble(e);
 		}
@@ -272,7 +275,7 @@ var TopicItem = Class( DesktopMessageItem, {
 						var req = new JsHttpRequest();
 						req.open(null, 'backend/service.php', true);
 						req.send({
-							action: 'unlock_post'
+							action: 'unlock_message'
 							, id: that.row.id
 						});
 					}
@@ -399,7 +402,7 @@ var PostItem = Class( DesktopMessageItem, {
 
 					var updateMessage = function(){
 						
-						rotor.start('update', {id: that.row.id, message: that.message.innerHTML});
+						rotor.start('update_message', {id: that.row.id, message: that.message.innerHTML});
 						cancelEdit();
 					}
 					
@@ -412,7 +415,7 @@ var PostItem = Class( DesktopMessageItem, {
 						var req = new JsHttpRequest();
 						req.open(null, 'backend/service.php', true);
 						req.send({
-							action: 'unlock_post'
+							action: 'unlock_message'
 							, id: that.row.id
 						});
 					}
@@ -424,7 +427,7 @@ var PostItem = Class( DesktopMessageItem, {
 		var deleteMessage = function(){
 			
 			if (confirm(txt.msg_del_confirm)){
-				rotor.start( 'delete_post', {id: that.row.id});
+				rotor.start( 'delete_message', {id: that.row.id});
 			}
 		}
 		
@@ -502,29 +505,27 @@ function newTopic(btn){
 function Rotor(parseFunc){
 	var that = this;
 	
-	this.timer = siteBlurred ? cfg.poll_timer_blurred : cfg.poll_timer;
-	this.startBlocked = false;
-	this.maxdateTS = 0;
+	var req, timeout, startBlocked;
 	
+	this.timer = siteBlurred ? cfg.poll_timer_blurred : cfg.poll_timer;
+	this.maxdateTS = 0;
+
 	// сортировка по умолчанию
 	this.topicSort = 'updated';
 	this.tsReverse = true;
 	
-	var req = false;
-	var timeout = false;
-	
 	var stateIndicator = e('@state_ind' ,'#top_bar');
 	
 	// ФУНКЦИЯ ЦИКЛИЧНОГО ОЖИДАНИЯ
-	this.start = function(write, params){
+	this.start = function(action, params){
 		
 		consoleWrite('Launching query with timeout '+that.timer, 1);
 		
 		// Если есть признаки существования (некорректной остановки) предыдущего таймера - останавливаем
-		if (that.startBlocked || timeout) that.stop();
+		if (startBlocked || timeout) that.stop();
 
 		// устанавливаем флаг, блокирующий параллельный старт еще одного запроса
-		that.startBlocked = true;
+		startBlocked = true;
 
 		that.startIndication(); // индикация ожидания вкл
 
@@ -537,7 +538,7 @@ function Rotor(parseFunc){
 
 			that.stopIndication(); // индикация ожидания откл
 
-			that.startBlocked = false;
+			startBlocked = false;
 
 			timeout = setTimeout(function(){that.start()}, that.timer);
 
@@ -546,9 +547,10 @@ function Rotor(parseFunc){
 		req.send({
 			maxdateTS: that.maxdateTS,
 			curTopic: currentTopic,
+			plimit: postsPageLimit,
 			topicSort: that.topicSort,
 			tsReverse: that.tsReverse,
-			write: write ? write : null,
+			action: action ? action : null,
 			params: params ? params : null
 		});
 	}
@@ -573,20 +575,20 @@ function Rotor(parseFunc){
 		
 		timeout = advClearTimeout(timeout);
 		
-		if (that.startBlocked) {
+		if (startBlocked) {
 			// переопределяем orsc, иначе rotor воспринимает экстренную остановку как полноценное завершение запроса
 			req.onreadystatechange = that.doOnAbort;
 			req.abort();
 			req = 0;
 
-			that.startBlocked = false;
+			startBlocked = false;
 
 			consoleWrite('STOP occured while WAITING. Query has been ABORTED');
 		
 		}
 	}
 	
-	// забронируем
+	// изменение времени ожидания
 	this.timeout = function(msec){
 		that.timer = msec;
 		that.start();
@@ -783,11 +785,11 @@ function AnswerForm(container){
 			}
 		}
 
-		var mode = 'add_message';
+		var action = 'add_post';
 
 		this.send.onclick = function(){
 
-			rotor.start( mode , {
+			rotor.start( action , {
 				message: that.field.innerHTML,
 				title: that.title.value
 			});
@@ -797,14 +799,14 @@ function AnswerForm(container){
 
 		this.topicModeOn = function() {
 			unhide(that.title);
-			mode = 'add_topic';
+			action = 'add_topic';
 			resize();
 		}
 
 		this.topicModeOff = function(){
 			that.title.value = '';
 			hide(that.title);
-			mode = 'add_message';
+			action = 'add_post';
 			resize();
 		}
 		
@@ -820,16 +822,11 @@ function startEngine(){
 	
 	answerForm = new AnswerForm(e('@typing_panel', '#viewport_posts'));
 	
-	if (userID) {
-		
-	} else {
-		e('@typing_panel', '#viewport_posts').innerHTML = txt.not_authd_to_post;
-	}
-	
 	rotor = new Rotor(parseResult);
    
 	currentTopic = adress.get('topic');
-	rotor.start();
+	postsPageLimit = adress.get('plimit');
+	rotor.start('initial_load');
 }
 
 /*
