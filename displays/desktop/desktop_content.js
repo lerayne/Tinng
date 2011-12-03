@@ -1,6 +1,7 @@
 // Глобальные переменные
 var currentTopic = 0;
 var postsPageLimit = 1;
+var selectedPost;
 var branches = {};
 var topics = {};
 var messages = {};
@@ -98,6 +99,31 @@ function loadTopic(id) {
 	adress.set('topic', id);
 	adress.set('plimit', postsPageLimit);
 	adress.del('message');
+}
+
+function postSelect(id){
+	var current = e('@selected', '#viewport_posts');
+	if (current){
+		// если мы клацнули по уже выделенному посту - ничего не делаем, выходим из функции
+		if (current.id == 'post_'+id) return;
+		removeClass(current, 'selected');
+	}
+	
+	// передача строго false в качестве параметра просто снимает старое выделение, но не назначает новое
+	if (id === false) {
+		selectedPost = false;
+		return; 
+	}
+	
+	var newone = e('#post_'+id, '#viewport_posts');
+	if (newone) {
+		console.warn(id);
+		addClass(newone, 'selected');
+		selectedPost = id;
+	} else {
+		selectedPost = false; // на случай, если передан несуществующий новый id
+	}
+	return;
 }
 
 // расширение основного класса сообщения для десктопа
@@ -351,6 +377,7 @@ var PostItem = Class( DesktopMessageItem, {
 		
 		this.item.onclick = function(){
 			adress.set('message', that.row.id);
+			postSelect(that.row.id);
 		}
 		
 		// Редактирование сообщения
@@ -662,6 +689,7 @@ function parseResult(result){
 					
 					shownRemove(message.item);
 					delete(messages[entry.id]);
+					postSelect(false);
 					
 				} else message.fillData(entry);
 
@@ -697,6 +725,7 @@ function parseResult(result){
 			if (messages[refPost]){
 
 				messages[refPost].item.scrollIntoView(false);
+				postSelect(refPost);
 
 			} else if (tProps.date_read != 'firstRead') {
 				// !! тут будет прокрутка до первого непрочитанного поста

@@ -303,7 +303,7 @@ if ($topic){
 	// если тема не удалена
 	} else {
 
-		if ($_REQUEST['maxdateTS'] == '0' || $action == 'load_pages') { // если загружаем новую тему
+		if ($action == 'initial_load' || $action == 'load_pages') { // если загружаем новую тему
 
 			// выводим номер темы для подсветки ее в колонке тем
 			$result['topic_prop']['id'] = $topic;

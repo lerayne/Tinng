@@ -86,7 +86,7 @@ hr {
 /* вьюпорт */
 .global_column {
 	color:black;
-	background:#ddd;
+	background:white;
 
 	border-radius:6px;
 	-moz-border-radius:6px;
@@ -309,10 +309,8 @@ td.collapsed {
 }
 
 .topic, .post {
-	border-bottom: 1px solid #aaaaaa;
 	color:#555555;
 	background-color: white;
-	
 	-webkit-transition:	background-color 0.5s ease-in-out, opacity 0.5s ease-in-out, color 0.5s ease-in-out;
 	-moz-transition:	background-color 0.5s ease-in-out, opacity 0.5s ease-in-out, color 0.5s ease-in-out;
 	-o-transition:		background-color 0.5s ease-in-out, opacity 0.5s ease-in-out, color 0.5s ease-in-out;
@@ -322,12 +320,24 @@ td.collapsed {
 
 .post {
 	color:black;
+	border:3px solid white;
+	
+	border-radius:3px;
+	-moz-border-radius:3px;
+	-webkit-border-radius:3px;
+}
 
+.post .before_cell {
+	border-top: 1px solid #ccc;
+}
+
+.contents .selected {
+	border-color: orange;
 }
 
 .topic {
 	border-right:8px solid #aaaaaa;
-	border-bottom-width: 5px;
+	border-bottom: 5px solid #aaaaaa;
 }
 
 .topicname {
