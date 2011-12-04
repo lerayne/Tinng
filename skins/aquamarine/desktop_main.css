@@ -295,6 +295,7 @@ td.collapsed {
 
 #viewport_posts {
 	min-width:300px;
+	background-color: #bbb;
 }
 
 /* область содержимого */
@@ -321,18 +322,11 @@ td.collapsed {
 .post {
 	color:black;
 	border:3px solid white;
+	margin-top: 2px;
 	
 	border-radius:3px;
 	-moz-border-radius:3px;
 	-webkit-border-radius:3px;
-}
-
-.post .before_cell {
-	border-top: 1px solid #ccc;
-}
-
-.contents .selected {
-	border-color: orange;
 }
 
 .topic {
@@ -460,6 +454,10 @@ td.collapsed {
 
 .unread {
 	background-color: #fff7d6;
+}
+
+#viewport_posts .unread {
+	border-color: #fff7d6;
 }
 
 .activetopic, .activetopic:hover {
@@ -763,4 +761,8 @@ td.collapsed {
 
 .typing_panel .advice span {
 	color: #555555;
+}
+
+#viewport_posts .selected {
+	border-color: coral;
 }
