@@ -546,9 +546,7 @@ function Branch (contArea, topicID, parentID){
 	this.e.appendChild(more);
 
 	// создание контейнера для новой ветки
-	this.cont = document.createElement('div');
-	this.cont.id = 'branch_'+parentID;
-		//div(null, 'branch_'+parentID);
+	this.cont = div('branch', 'branch_'+parentID);
 	this.e.appendChild(this.cont);
 	
 	var createBlock = function(row){
@@ -563,26 +561,14 @@ function Branch (contArea, topicID, parentID){
 		
 		var id = parseInt(row.id);
 		
-		var children = that.cont.childNodes;
+		var checked = that.cont.firstChild;
 		
-		var text = 'Children: ';
-		for (var n in children) {
-			//if(children[n].nodeType == 1) 
-				text+= getID(children[n])+'|'+children[n]+', ';
-		}
-		consoleWrite(text);
-		
-		for (var i in messages){
-			
-			//consoleWrite('DEBUG: ('+id+' < '+parseInt(i)+') = '+(id < parseInt(i)));
-			
-			if (id < parseInt(i)) {
-				insBefore(messages[i].item, block);
-				
+		if (checked) do {
+			if (id < getID(checked)){
+				insBefore(checked, block);
 				return block;
 			}
-			break;
-		}		
+		} while	((checked = checked.nextSibling));
 		
 		that.cont.appendChild(block);
 		//addClass(block, 'lastblock');
@@ -645,7 +631,7 @@ function Rotor(parseFunc){
 		req.onreadystatechange = function() {if (req.readyState == 4) {
 			
 			// разбираем пришедший пакет и выполняем обновления
-			that.maxdateTS = parseFunc(req.responseJS);
+			that.maxdateTS = parseFunc(req.responseJS, action);
 
 			that.stopIndication(); // индикация ожидания откл
 
@@ -708,7 +694,7 @@ function Rotor(parseFunc){
 
 
 // РАЗБОР ПАКЕТА И ВЫПОЛНЕНИЕ ОБНОВЛЕНИЙ
-function parseResult(result){
+function parseResult(result, actionUsed){
 	
 	var entry, topic, message;
 
@@ -760,6 +746,11 @@ function parseResult(result){
 	if (result && result.posts){
 
 		pTbar.innerHTML = tProps.name;
+		
+		if (actionUsed == 'next_page') {
+			var rememberTop = e('@branch').firstChild;
+			var more_height = e('@show_more').offsetHeight;
+		}
 
 		for (var i in result.posts) { 
 			entry = result.posts[i];
@@ -793,7 +784,14 @@ function parseResult(result){
 			}
 		}
 		
+		if (tProps.show_all) hide(e('@show_more'));
+		
 		if (tProps.scrollto) messages[tProps.scrollto].item.scrollIntoView(false);
+		
+		if (rememberTop) {
+			rememberTop.scrollIntoView(true);
+			postsCont.scrollTop = postsCont.scrollTop-more_height-2;
+		}
 
 		// наличие id означает что тема загружается полностью
 		if (tProps.id) {
@@ -816,8 +814,6 @@ function parseResult(result){
 				lastvisible.item.scrollIntoView(false);
 			}
 		}
-		
-		if (tProps.show_all) hide(e('@show_more'));
 		
 		if (tProps.pglimit_date) pglimit_date = tProps.pglimit_date;
 	}
