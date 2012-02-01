@@ -64,7 +64,6 @@ function notify (title, body, iconURL){
 		} else { 
 			window.webkitNotifications.requestPermission(newBubble);
 		}
-		
 	}
 }
 
@@ -382,6 +381,9 @@ function fillToolbars(){
 	searchTopic.onfocus = suggestRule;
 	searchTopic.onclick = function(e){stopBubble(e)}
 	
+	var testButton = addButton('test', postsBar);
+	
+	testButton.onclick = grandTest;
 }
 
 

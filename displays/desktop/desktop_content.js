@@ -1,11 +1,20 @@
 // Глобальные переменные
 var currentTopic = 0;
 var postsPageLimit = 1;
+var pglimit_date = 0;
 var selectedPost;
-var branches = {};
-var topics = {};
-var messages = {};
+var branches = [];
+var topics = [];
+var messages = [];
 var baloon = false;
+
+function grandTest() {
+	consoleWrite('Limit Date = '+pglimit_date);
+}
+
+function getID(elem){
+	return (elem.nodeType == 1) ? parseInt(elem.id.split('_')[1]) : null;
+}
 
 function clearBaloon(){
 	if (baloon) {
@@ -87,6 +96,7 @@ function unloadTopic() {
 	messages = {};
 	currentTopic = 0;
 	postsPageLimit = 1;
+	pglimit_date = 0;
 	postSelect(false);
 }
 
@@ -117,6 +127,7 @@ function postSelect(id){
 	if (id === false) {
 		selectedPost = false;
 		answerForm.hideAdvice();
+		adress.del('message');
 		return; 
 	}
 	
@@ -521,29 +532,73 @@ var PostItem = Class( DesktopMessageItem, {
 function Branch (contArea, topicID, parentID){
 	if (!parentID) parentID = topicID;
 
-	// чтобы this функций не забивал this объекта
 	var that = this;
 
 	// указание на элемент, в который вставляется новый контейнер
 	this.e = contArea;
+	
+	var more = div('show_more');
+	var more_link = newel('a', null, null, txt.show_more);
+	var show_all_link = newel('a', null, null, txt.show_all);
+	
+	more.appendChild(more_link);
+	more.appendChild(show_all_link);
+	this.e.appendChild(more);
 
 	// создание контейнера для новой ветки
-	this.cont = div(null, 'branch_'+parentID);
+	this.cont = document.createElement('div');
+	this.cont.id = 'branch_'+parentID;
+		//div(null, 'branch_'+parentID);
 	this.e.appendChild(this.cont);
 	
-	this.createBlock = function(row){
+	var createBlock = function(row){
 		var elem = messages[row.id] = new PostItem(row, contArea, topicID, that);
 		
 		return elem.item;
 	}
 	
 	this.appendBlock = function(row){
-		var block = that.createBlock(row);
+		
+		var block = createBlock(row);
+		
+		var id = parseInt(row.id);
+		
+		var children = that.cont.childNodes;
+		
+		var text = 'Children: ';
+		for (var n in children) {
+			//if(children[n].nodeType == 1) 
+				text+= getID(children[n])+'|'+children[n]+', ';
+		}
+		consoleWrite(text);
+		
+		for (var i in messages){
+			
+			//consoleWrite('DEBUG: ('+id+' < '+parseInt(i)+') = '+(id < parseInt(i)));
+			
+			if (id < parseInt(i)) {
+				insBefore(messages[i].item, block);
+				
+				return block;
+			}
+			break;
+		}		
+		
 		that.cont.appendChild(block);
 		//addClass(block, 'lastblock');
 		//if (prevElem(block)) removeClass(prevElem(block), 'lastblock');
 		return block;
 	}
+	
+	var load_more = function(p){
+		postsPageLimit = p;
+		adress.set('plimit', postsPageLimit);
+		rotor.start('next_page', {old_limit: sql2stamp(pglimit_date)});
+	}
+	
+	more_link.onclick = function() {load_more(parseInt(postsPageLimit)+1);}
+	
+	show_all_link.onclick = function() {load_more(0);}
 }
 
 
@@ -577,7 +632,7 @@ function Rotor(parseFunc){
 		
 		consoleWrite('Launching query with timeout '+that.timer, 1);
 		
-		// Если есть признаки существования (некорректной остановки) предыдущего таймера - останавливаем
+		// Если есть признаки существования (или некорректной остановки) предыдущего таймера - останавливаем
 		if (startBlocked || timeout) that.stop();
 
 		// устанавливаем флаг, блокирующий параллельный старт еще одного запроса
@@ -696,10 +751,8 @@ function parseResult(result){
 			topics[entry.id] = new TopicItem(entry);
 			topicsCont.appendChild(topics[entry.id].item);
 			if (tProps['new']) loadTopic(entry.id);
+			ifblur_notify('New Topic: '+entry.topic_name, entry.message);
 		}
-		
-		
-		//if (1 == 1) notify('New Topic: '+entry.topic_name, entry.message);
 	}}
 
 
@@ -750,17 +803,23 @@ function parseResult(result){
 			if (!tProps.manual) topics[tProps.id].item.scrollIntoView(false);
 
 			// управляем автопрокруткой
+			// Если целевой пост задан в адресе и загружен в теме - проматываем до него
 			var refPost = adress.get('message');
 			if (messages[refPost]){
 
-				messages[refPost].item.scrollIntoView(false);
+				messages[refPost].item.scrollIntoView(true);
 				postSelect(refPost);
 
 			} else if (tProps.date_read != 'firstRead') {
 				// !! тут будет прокрутка до первого непрочитанного поста
+				// Сейчас - прокрутка просто до последнего сообщения в теме, если юзер уже читал эту тему
 				lastvisible.item.scrollIntoView(false);
 			}
 		}
+		
+		if (tProps.show_all) hide(e('@show_more'));
+		
+		if (tProps.pglimit_date) pglimit_date = tProps.pglimit_date;
 	}
 	
 	
@@ -774,7 +833,6 @@ function parseResult(result){
 			if (topics[entry.message]) addTag(topics[entry.message], entry);
 		}
 	}
-
 
 	// Выдать новый TS полученный из пакета обновлений
 	return sql2stamp(result.new_maxdate);
@@ -833,6 +891,7 @@ function AnswerForm(container){
 		this.field.parentNode.className = 'nicEdit-wrapper';
 
 		setTimeout(function(){that.field.focus()}, 500);
+
 
 
 		var pSbar = e('@statusbar', '#viewport_posts');
@@ -921,8 +980,10 @@ function startEngine(){
 	rotor = new Rotor(parseResult);
    
 	currentTopic = adress.get('topic');
-	postsPageLimit = adress.get('plimit');
-	rotor.start('initial_load');
+	var loadPlimit = adress.get('plimit');
+	postsPageLimit = loadPlimit ? loadPlimit : postsPageLimit;
+	consoleWrite('postsPageLimit = '+postsPageLimit);
+	rotor.start('load_pages');
 }
 
 /*

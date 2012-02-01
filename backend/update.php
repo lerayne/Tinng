@@ -24,6 +24,8 @@ function ready_row($row) {
 	
 		$cutrow['deleted'] = 1;
 		$cutrow['id'] = $row['id'];
+		$cutrow['author'] = $row['author'];
+		$cutrow['created'] = $row['created'];
 		unset($row);
 		$row = $cutrow;
 	
@@ -71,9 +73,13 @@ function sort_by_field($array, $field, $reverse){
 /////////////////////////////////
 
 $id = $_REQUEST['id']; // универсальный указатель номера записи
-$maxdateSQL = $result['old_maxdate'] = jsts2sql($_REQUEST['maxdateTS']);
+$maxdateSQL = jsts2sql($_REQUEST['maxdateTS']);
 $action = $_REQUEST['action']; // указывает что именно пишем, если не false
 $params = $_REQUEST['params']; // прочие передаваемые данные (например новые данные для записи)
+$topic = $_REQUEST['curTopic'];
+
+
+$result['old_maxdate'] = $maxdateSQL;
 
 
 ///////////////////////////////
@@ -170,11 +176,11 @@ endswitch;
 $result['new_maxdate'] = $db->selectCell (
 	'SELECT GREATEST(MAX(created), IFNULL(MAX(modified), 0))
 	FROM ?_messages WHERE IFNULL(modified, created) > ?' . ($condition ? ' AND '.$condition : '')
-	, ($action == 'load_pages') ? 0 : $maxdateSQL
+	, ($action == 'load_pages' || $action == 'next_page') ? 0 : $maxdateSQL
 );
 
 
-// если результатов 0 то отправляем старую макс. дату и сбрасываем case
+// если результатов 0 то отправляем старую макс. дату и прекращаем работу скрипта
 if (!$result['new_maxdate']){
 	$result['new_maxdate'] = $result['old_maxdate'];
 	$GLOBALS['_RESULT'] = $result;
@@ -280,14 +286,8 @@ endswitch;
 // Получаем изменения текущей темы
 //////////////////////////////////
 
-$topic = $_REQUEST['curTopic'];
-
+// ОПТИМИЗИРОВАТЬ КОЛ_ВО ЗАПРОСОВ
 if ($topic){
-
-	if ($action == 'load_pages') {
-		$maxdateSQL = jsts2sql('0');
-		$result['topic_prop']['manual'] = true;
-	}
 
 	// проверяем, существует ли тема (не удалена ли) и читаем ее заголовок
 	$topic_name = $db->selectCell(
@@ -302,8 +302,49 @@ if ($topic){
 
 	// если тема не удалена
 	} else {
+		
+		$result['topic_prop']['name'] = $topic_name; // вывод в клиент имени
+		
+		// Если сразу не указано грузить все
+		if ($_REQUEST['plimit']) {
 
-		if ($action == 'initial_load' || $action == 'load_pages') { // если загружаем новую тему
+		// Узнаем, сколько же сказано грузить
+			$plimit = $_REQUEST['plimit']*$cfg['posts_per_page'];
+
+			// Выясняем, сколько вообще сообщений в теме
+			$result['topic_prop']['postcount'] = $postcount = $db->selectCell(
+				'SELECT COUNT(id) FROM ?_messages WHERE (topic_id = ?d OR id = ?d) AND deleted <=> NULL',
+				$topic, $topic
+			);
+
+			// если сообщений меньше, чем предел для загрузки - сообщаем, что это последняя страница
+			if ($postcount <= $plimit) $show_all = 1;
+
+			// Определение самого раннего сообщения, с которого нужно грузить страницу. На данный момент 
+			// работает не включительно. Чтобы работало включительно - от формулы отнять 1, в запросе внизу 
+			// вместо > поставить >=. Кроме того, этот список строится без учета удаленных сообщений. Так надо.
+			if (!$show_all) $pglimit_dateSQL = $db->selectCell('
+				SELECT created AS message FROM ?_messages
+				WHERE (topic_id = ?d OR id = ?d)
+					AND deleted <=> NULL
+				ORDER BY created DESC 
+				LIMIT 1 OFFSET ?d',
+				$topic, $topic, $plimit
+			);
+		}
+		
+		// Вместо else предыдущего IF так как работает и при срабатывании его внутренних условий
+		if (!$plimit || $show_all) {
+			$result['topic_prop']['show_all'] = 1;
+			$pglimit_dateSQL = jsts2sql('0');
+		}
+
+		$result['topic_prop']['pglimit_date'] = $pglimit_dateSQL;
+
+		if ($action == 'load_pages') { // если загружаем новую тему
+				
+			$maxdateSQL = $pglimit_dateSQL;
+			$result['topic_prop']['manual'] = true; // указываем что тема грузилась вручную (пока только для прокрутки)
 
 			// выводим номер темы для подсветки ее в колонке тем
 			$result['topic_prop']['id'] = $topic;
@@ -331,9 +372,16 @@ if ($topic){
 
 			$result['topic_prop']['date_read'] = $date_read; // вывести в клиент
 		}
-
-
-		$result['topic_prop']['name'] = $topic_name; // вывод в клиент имени
+		
+		// Что делаем, если сказано загрузить только следующую страницу
+		if ($action == 'next_page') {
+			
+			if (!$plimit) {
+				//$params['old_limit'];
+			} else {
+				
+			}
+		}
 
 		// выбираем ВСЕ сообщения с более новой датой (даже удаленные)
 		$result['posts'] = make_tree($db->select(
@@ -347,10 +395,10 @@ if ($topic){
 				msg.created,
 				msg.modified,
 				msg.deleted,
+				msg.modifier,
 				usr.email AS author_email,
 				usr.login AS author,
 				IF(unr.timestamp < IFNULL(msg.modified, msg.created) && IFNULL(msg.modifier, msg.author_id) != ?d, 1, 0) AS unread,
-				modifier,
 				moder.login AS modifier_name,
 				(SELECT starter.author_id FROM ?_messages starter WHERE starter.id = msg.topic_id ) AS topicstarter
 			FROM ?_messages msg
@@ -363,12 +411,17 @@ if ($topic){
 				ON msg.modifier = moder.id
 
 			WHERE
-				(msg.topic_id = ?d OR msg.id = ?d)
-				AND IFNULL(msg.modified, msg.created) > ?
+				(msg.topic_id = ?d OR msg.id = ?d) AND 
+				((IFNULL(msg.modified, msg.created) > ? AND msg.created > ?)'
+				.($action == 'next_page' ? ' OR (msg.created <= ? AND msg.created > ?)' : '').')
 			ORDER BY msg.created ASC'
+			
 			, $user->id, $user->id
 			, $topic, $topic
 			, $maxdateSQL
+			, $pglimit_dateSQL
+			, jsts2sql($params['old_limit'])
+			, $pglimit_dateSQL
 		));
 	}
 }

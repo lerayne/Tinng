@@ -766,3 +766,12 @@ td.collapsed {
 #viewport_posts .selected {
 	border-color: coral;
 }
+
+.show_more {
+	padding:6px 15px;
+	text-align: center;
+}
+
+.show_more a {
+	margin-right:10px;
+}

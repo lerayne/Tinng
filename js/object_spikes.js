@@ -44,6 +44,8 @@ function LocHash(){
 		var pair;
 		for (var i in pairs){
 			pair = pairs[i].split(':');
+			
+			// Если строка varName не равна названию параметра - присоединяем этот параметр к новой строке
 			if (varName != pair[0]){
 				newhash[i] = pair[0]+':'+pair[1];
 			}

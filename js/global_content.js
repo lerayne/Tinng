@@ -38,6 +38,7 @@ var MessageItem = Class({
 		});
 		
 		this.parent_link = newel('a');
+		//this.item.title = row.id;
 	},
 	
 	fillData: function(row){

@@ -203,7 +203,7 @@ function remove(elem){
 
 function shownRemove(elem){
 	$(elem).addClass('transp');
-	setTimeout(function() { remove(elem) }, 500);
+	setTimeout(function() {remove(elem)}, 500);
 }
 
 // полное уничтожение объекта с освобождением памяти
@@ -284,13 +284,13 @@ function unhide() {
 
 // добавление правила к листу стилей
 function addRule(sheet, selector, attributes, index){
-	if (sheet.addRule) { sheet.addRule(selector, attributes, index); }
+	if (sheet.addRule) {sheet.addRule(selector, attributes, index);}
 	else if (sheet.insertRule) sheet.insertRule(selector+'{'+attributes+'}', index);
 }
 
 // удаление правила из листа по номеру
 function deleteRule(sheet, index){
-	if (sheet.deleteRule) { sheet.deleteRule(index); }
+	if (sheet.deleteRule) {sheet.deleteRule(index);}
 	else if (sheet.removeRule) sheet.removeRule(index);
 }
 
@@ -566,3 +566,15 @@ function f(refa){
 	}
 }
 
+function sortHashe(obj){
+	var out = {}, afs = [], n = 0, text='sortHashe: ';
+	
+	for (var i in obj) afs[n++] = i;
+	afs = afs.sort();
+	for (n = 0; n < afs.length; n++) {
+		text += afs[n]+', ';
+		out[afs[n]] = obj[afs[n]];
+	}
+	consoleWrite(text);
+	return out;
+}
