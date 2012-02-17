@@ -73,7 +73,10 @@ function sort_by_field($array, $field, $reverse){
 /////////////////////////////////
 
 $id = $_REQUEST['id']; // универсальный указатель номера записи
+
 $maxdateSQL = jsts2sql($_REQUEST['maxdateTS']);
+$old_pglimdateTS = $_REQUEST['pglimdateTS'];
+
 $action = $_REQUEST['action']; // указывает что именно пишем, если не false
 $params = $_REQUEST['params']; // прочие передаваемые данные (например новые данные для записи)
 $topic = $_REQUEST['curTopic'];
@@ -303,26 +306,25 @@ if ($topic){
 	// если тема не удалена
 	} else {
 		
-		$result['topic_prop']['name'] = $topic_name; // вывод в клиент имени
+		// Выясняем, сколько вообще сообщений в теме
+		$result['topic_prop']['postcount'] = $postcount = $db->selectCell(
+			'SELECT COUNT(id) FROM ?_messages WHERE (topic_id = ?d OR id = ?d) AND deleted <=> NULL',
+			$topic, $topic
+		);
+		
+		// забиваем в эту переменную значение по умолчанию
+		$pglimit_dateSQL = jsts2sql($old_pglimdateTS || 0);
 		
 		// Если сразу не указано грузить все
-		if ($_REQUEST['plimit']) {
+		if (($action == 'load_pages' || $action == 'next_page') && $_REQUEST['plimit']) {
 
 		// Узнаем, сколько же сказано грузить
 			$plimit = $_REQUEST['plimit']*$cfg['posts_per_page'];
 
-			// Выясняем, сколько вообще сообщений в теме
-			$result['topic_prop']['postcount'] = $postcount = $db->selectCell(
-				'SELECT COUNT(id) FROM ?_messages WHERE (topic_id = ?d OR id = ?d) AND deleted <=> NULL',
-				$topic, $topic
-			);
-
 			// если сообщений меньше, чем предел для загрузки - сообщаем, что это последняя страница
 			if ($postcount <= $plimit) $show_all = 1;
 
-			// Определение самого раннего сообщения, с которого нужно грузить страницу. На данный момент 
-			// работает не включительно. Чтобы работало включительно - от формулы отнять 1, в запросе внизу 
-			// вместо > поставить >=. Кроме того, этот список строится без учета удаленных сообщений. Так надо.
+			// Определение самого раннего сообщения, с которого нужно грузить страницу (исключительно)
 			if (!$show_all) $pglimit_dateSQL = $db->selectCell('
 				SELECT created AS message FROM ?_messages
 				WHERE (topic_id = ?d OR id = ?d)
@@ -331,10 +333,30 @@ if ($topic){
 				LIMIT 1 OFFSET ?d',
 				$topic, $topic, $plimit
 			);
+			
+			// Если сообщение переданное по ссылке - за пределами текущих страниц
+			if ($params['directMsg']) {
+				$direct_dateSQL = $db->select('
+					SELECT
+						t.created,
+						t.id,
+						IF(t.created <= ?, t.created, ?) AS newdate
+					FROM ?_messages AS t
+					WHERE t.id <= ?d AND (t.topic_id = ?d OR t.id = ?d)
+					ORDER BY t.id desc
+					LIMIT 2
+					',$pglimit_dateSQL 
+					, $pglimit_dateSQL
+					, $params['directMsg']
+					, $topic
+					, $topic
+				);
+			
+				$pglimit_dateSQL = $direct_dateSQL[1]['newdate'];
+			}
 		}
 		
-		// Вместо else предыдущего IF так как работает и при срабатывании его внутренних условий
-		if (!$plimit || $show_all) {
+		if (!$_REQUEST['plimit'] || $show_all) {
 			$result['topic_prop']['show_all'] = 1;
 			$pglimit_dateSQL = jsts2sql('0');
 		}
@@ -374,6 +396,7 @@ if ($topic){
 		}
 		
 		// Что делаем, если сказано загрузить только следующую страницу
+		/*
 		if ($action == 'next_page') {
 			
 			if (!$plimit) {
@@ -382,6 +405,7 @@ if ($topic){
 				
 			}
 		}
+		*/
 
 		// выбираем ВСЕ сообщения с более новой датой (даже удаленные)
 		$result['posts'] = make_tree($db->select(
@@ -420,9 +444,11 @@ if ($topic){
 			, $topic, $topic
 			, $maxdateSQL
 			, $pglimit_dateSQL
-			, jsts2sql($params['old_limit'])
+			, jsts2sql($old_pglimdateTS)
 			, $pglimit_dateSQL
 		));
+		
+		$result['topic_prop']['name'] = $topic_name; // вывод в клиент имени
 	}
 }
 

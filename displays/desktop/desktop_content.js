@@ -117,30 +117,38 @@ function postSelect(id){
 	if (current){
 		// если мы клацнули по уже выделенному посту - ничего не делаем, выходим из функции
 		if (current.id == 'post_'+id) return;
+		// иначе снимаем выделение с текущего и идем дальше
 		removeClass(current, 'selected');
 	}
 	
-	if (selectedPost && answerForm.field.innerHTML == selectedPost.row.author+', ') 
-		answerForm.field.innerHTML = '<br>';
+	/*if (selectedPost && answerForm.field.innerHTML == selectedPost.row.author+', ') 
+		answerForm.field.innerHTML = '<br>';*/
 	
 	// передача строго false в качестве параметра просто снимает старое выделение, но не назначает новое
 	if (id === false) {
 		selectedPost = false;
-		answerForm.hideAdvice();
+		//answerForm.hideAdvice();
 		adress.del('message');
 		return; 
 	}
 	
 	var newone = e('#post_'+id, '#viewport_posts');
+
+	if (!newone) {
+		//adress.set('plimit', postsPageLimit++);
+		rotor.start('next_page', {directMsg: id});
+		newone = e('#post_'+id, '#viewport_posts');
+	}
+	
 	if (newone) {
-		console.warn(id);
+		//console.warn(id);
 		addClass(newone, 'selected');
 		selectedPost = messages[id];
-		answerForm.showAdvice(id);
-		if (answerForm.field.innerHTML == '<br>') answerForm.field.innerHTML = selectedPost.row.author+', ';
+		//answerForm.showAdvice(id);
+		//if (answerForm.field.innerHTML == '<br>') answerForm.field.innerHTML = selectedPost.row.author+', ';
 	} else {
 		selectedPost = false; // на случай, если передан несуществующий новый id
-		answerForm.hideAdvice();
+		//answerForm.hideAdvice();
 	}
 	return;
 }
@@ -579,7 +587,7 @@ function Branch (contArea, topicID, parentID){
 	var load_more = function(p){
 		postsPageLimit = p;
 		adress.set('plimit', postsPageLimit);
-		rotor.start('next_page', {old_limit: sql2stamp(pglimit_date)});
+		rotor.start('next_page');
 	}
 	
 	more_link.onclick = function() {load_more(parseInt(postsPageLimit)+1);}
@@ -642,12 +650,13 @@ function Rotor(parseFunc){
 		}}
 		req.open(null, 'backend/update.php', true);
 		req.send({
+			action: action ? action : null,
 			maxdateTS: that.maxdateTS,
+			pglimdateTS: pglimit_date,
 			curTopic: currentTopic,
-			plimit: postsPageLimit,
+			plimit: postsPageLimit, 
 			topicSort: that.topicSort,
 			tsReverse: that.tsReverse,
-			action: action ? action : null,
 			params: params ? params : null
 		});
 	}
@@ -803,9 +812,11 @@ function parseResult(result, actionUsed){
 			// управляем автопрокруткой
 			// Если целевой пост задан в адресе и загружен в теме - проматываем до него
 			var refPost = adress.get('message');
+			//alert(refPost) ;
 			if (messages[refPost]){
 
 				messages[refPost].item.scrollIntoView(true);
+				
 				postSelect(refPost);
 
 			} else if (tProps.date_read != 'firstRead') {
@@ -815,7 +826,7 @@ function parseResult(result, actionUsed){
 			}
 		}
 		
-		if (tProps.pglimit_date) pglimit_date = tProps.pglimit_date;
+		if (tProps.pglimit_date) pglimit_date = sql2stamp(tProps.pglimit_date);
 	}
 	
 	
@@ -915,8 +926,8 @@ function AnswerForm(container){
 
 			rotor.start( action , {
 				message: that.field.innerHTML,
-				title: that.title.value,
-				parent: selectedPost ? selectedPost.row.id : null
+				title: that.title.value
+				//, parent: selectedPost ? selectedPost.row.id : null
 			});
 
 			that.field.innerHTML = '';
@@ -976,10 +987,14 @@ function startEngine(){
 	rotor = new Rotor(parseResult);
    
 	currentTopic = adress.get('topic');
-	var loadPlimit = adress.get('plimit');
-	postsPageLimit = loadPlimit ? loadPlimit : postsPageLimit;
-	consoleWrite('postsPageLimit = '+postsPageLimit);
-	rotor.start('load_pages');
+	postsPageLimit = adress.get('plimit') || postsPageLimit;
+	
+	var linkMsg, obj={};
+	if ((linkMsg = adress.get('message'))){
+		obj.directMsg = linkMsg;
+	}
+	
+	rotor.start('load_pages', obj);
 }
 
 /*
