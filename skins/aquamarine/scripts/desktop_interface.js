@@ -73,35 +73,42 @@ function ifblur_notify(title, body, iconURL){
 
 
 // изменяет высоту области содержимого конкретной колонки
-function resizeContArea(column){
-	
-	column.style.height = mainHeight+'px';
-	
-	//var chromeH = classDimen('h', e('.chrome', which_column));
-	//editCSS('#'+which_column.id+' .contents', 'height:'+(mainHeight - chromeH)+'px');
-	//editCSS('#'+which_column.id+' .collapser', 'height:'+(mainHeight - chromeH)+'px');
+function resizeContArea(which_column){
+	var chromeH = classDimen('h', e('.chrome', which_column));
+	editCSS('#'+which_column.id+' .contents', 'height:'+(mainHeight - chromeH)+'px');
+	editCSS('#'+which_column.id+' .collapser', 'height:'+(mainHeight - chromeH)+'px');
 }
 
 // Изменяет высоту всех необходимых элементов, в зависимости от высоты рабочей области браузера
 function resizeFrame() {
 	// тут при помощи ширины вычисляется отступ от края страницы до app_area, который используется и 
 	// в вычислении высоты. Подразумевается, что отступ по высоте и ширине одинаков.
-	//var offset = frameWidth() - e('#app_block').offsetWidth;
+	var offset = frameWidth() - e('#app_block').offsetWidth;
 	
-	//editCSS('#curtain', 'height:'+frameHeight()+'px;');
+	editCSS('#curtain', 'height:'+frameHeight()+'px;');
 	
-	mainHeight = frameHeight(); //- offset - e('#debug_console').offsetHeight - e('#top_bar').offsetHeight;
-	resizeContArea(e('#viewport_topics'));
-	//editCSS('#app_area', 'height:'+mainHeight+'px;'); // главное "окно"
+	/*
+	if (frameHeight() <= 600 || frameWidth() <= 1024){
+		e('#lowres_css').href = 'skins/'+cfg.skin+'/desktop_lowres.css';
+		// !! затычка. Будет работать толль при условии, что в lowres-версии контур равен 0.
+		offset = 0;
+	} else {
+		e('#lowres_css').href = '';
+	}
+	*/
+	
+	
+	mainHeight = frameHeight() - offset - e('#debug_console').offsetHeight - e('#top_bar').offsetHeight;
+	editCSS('#app_area', 'height:'+mainHeight+'px;'); // главное "окно"
 	
 	//consoleWrite('IFACE: app area height = ' + mainHeight + 'px');
 
-	//var cols = e('.global_column');
-	//for (var i=0; i<cols.length; i++) resizeContArea(cols[i]);
+	var cols = e('.global_column');
+	for (var i=0; i<cols.length; i++) resizeContArea(cols[i]);
 }
 
 function revealInterface(){
-	//removeClass(e('#app_area'), 'invis');
+	removeClass(e('#app_area'), 'invis');
 }
 
 
@@ -288,8 +295,8 @@ function fillToolbars(){
 		var stopTimer = addButton('Stop', postsBar);
 		var startTimer = addButton('Start', postsBar);
 
-		stopTimer.onclick = function() { rotor.stop() ;}
-		startTimer.onclick = function() { rotor.start() ;}
+		stopTimer.onclick = function() {rotor.stop() ;}
+		startTimer.onclick = function() {rotor.start() ;}
 		
 		if (window.webkitNotifications){
 			var notifyTest = addButton('notifyTest', postsBar);
@@ -377,6 +384,8 @@ function fillToolbars(){
 	var testButton = addButton('test', postsBar);
 	
 	testButton.onclick = grandTest;
+	
+	postsBar.appendChild(nuclear());
 }
 
 
@@ -411,16 +420,17 @@ function attachActions(){
 // функция для использования в общей onload-функции
 function startInterface(){
 	addDynamicCSS();
-	//insertResizers();
+	insertResizers();
 	resizeFrame();
 
-	//attachActions();
+	attachActions();
 
-	//fillToolbars();
+	fillToolbars();
 	e('[body]').onclick = clearOverlay;
 }
 
 window.onresize = resizeFrame;
+
 window.onblur = onSiteBlur;
 window.onfocus = onSiteFocus;
 

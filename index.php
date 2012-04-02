@@ -35,5 +35,5 @@ $device_path = 'displays/'.$display_mode.'/'.$display_mode.'_';
 // ПОДКЛЮЧЕНИЕ ШАБЛОНА
 //////////////////////
 
-require_once $device_path.'template.php';
+require_once $device_path.'template_handler.php';
 ?>

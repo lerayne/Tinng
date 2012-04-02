@@ -1,5 +1,5 @@
 /* общие теги */
-body	{ padding:0; margin:0; }
+body	{ padding:0; margin:0; font:13px Arial,serif;}
 hr		{ border: 0 none; height: 1px; }
 a		{cursor:pointer;}
 a:hover {text-decoration: underline;}
@@ -97,4 +97,58 @@ a:hover {text-decoration: underline;}
 .suggest {
 	z-index: 200;
 	position: absolute;
+}
+
+/* basic desidn */
+#top_bar {
+	background: #eee;
+}
+
+.button {
+	border:1px dashed black;
+	background-color: #eee;
+	padding: 2px 4px;
+	margin: 3px;
+	cursor: pointer;
+}
+
+.button:hover {
+	background-color: #ccc;
+}
+
+.button:active {
+	background-color: #aaa;
+}
+
+.caption {
+	background-color: #aaa;
+}
+
+.post, .topic {
+	border:1px solid white;
+	border-bottom:1px solid #ccc;
+}
+
+.topicname {
+	font-weight: bold;
+}
+
+.tag {
+	background: #777;
+	color:white;
+	margin: 2px;
+	padding: 1px 3px;
+}
+
+.infobar {
+	color:#777;
+}
+
+.selected {
+	border:1px solid red;
+}
+
+.author {
+	color:black;
+	font-weight: bold;
 }

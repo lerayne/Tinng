@@ -15,6 +15,38 @@ function jsts2sql($str){
 	return date('Y-m-d H:i:s', jsts2phpts($str));
 }
 
+function incl_css(){
+	$arr = func_get_args();
+	foreach ($arr as $val):
+		echo '<link rel="stylesheet" type="text/css" href="'.$val.'?N">'."\n";
+	endforeach;
+}
+
+function import_js_vars(){
+	
+	global $txt, $cfg, $user;
+	
+	// импорт переменных из PHP
+	echo '
+		<script type="text/javascript" language="JavaScript">
+		
+		// Убогая заглушка авторизации на клиенте
+		userID = '. ($user ? $user->id : 'null') .'
+		
+		var txt = {};
+		var cfg = {};	
+	';
+
+	foreach ($txt as $key => $val) echo "txt['".$key."'] = '".$val."';\n";
+	echo "\n";
+	foreach ($cfg as $key => $val) echo "cfg['".$key."'] = ".
+		(is_int($val) || is_float($val) ? $val.";\n" : "'".$val."';\n");
+	
+	echo '
+		</script>
+	';
+}
+
 function incl_scripts(){
 	$arr = func_get_args();
 	
@@ -60,23 +92,8 @@ function incl_scripts(){
 	}	
 }
 
-function incl_scripts_l(){
-	$arr = func_get_args();
-	
-	foreach ($arr as $val):
-		echo '<script type="text/javascript" language="JavaScript" src="'.$val.'"></script>'."\n";
-	endforeach;
-}
-
 function now($format = false){
 	return ($format == 'sql') ? date('Y-m-d H:i:s') : time();
-}
-
-function incl_css(){
-	$arr = func_get_args();
-	foreach ($arr as $val):
-		echo '<link rel="stylesheet" type="text/css" href="'.$val.'?N">'."\n";
-	endforeach;
 }
 
 $rex['email'] = '/^[\_]*([a-z0-9]+(\.|\_*)?)+@([a-z][a-z0-9\-]+(\.|\-*\.))+[a-z]{2,6}$/';
