@@ -6,8 +6,11 @@ require_once '../php/initial.php';
 
 function databaseErrorHandler($message, $info) {
     //if (!error_reporting()) return;
-    echo "SQL Error: $message<br><br><pre>"; print_r($info); echo "</pre>";
-    //exit();
+	//ob_start();
+	echo "SQL Error: $message<br><br><pre>"; print_r($info); echo "</pre>";
+	//$result['exceptions'][] = ob_get_contents();
+	//ob_end_clean();
+	exit();
 }
 
 list($xhr_id, $xhr_method) = split('-', $_GET['JsHttpRequest']);
