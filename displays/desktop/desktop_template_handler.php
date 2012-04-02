@@ -21,10 +21,8 @@ function template_head(){
 		'skins/'.$cfg['skin'].'/styles/desktop_design.css'
 	);
 
-	echo '
-		<link rel="stylesheet" id="lowres_css" type="text/css" href="">
-		<script type="text/javascript" language="JavaScript" src="libraries/jquery-1.7.2.min.js"></script>
-	';
+	echo '<link rel="stylesheet" id="lowres_css" type="text/css" href="">';
+	//echo '<script type="text/javascript" language="JavaScript" src="libraries/jquery-1.7.2.min.js"></script>';
 
 	import_js_vars();
 	
