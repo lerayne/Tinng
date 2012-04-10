@@ -29,7 +29,7 @@
 
 		<!-- верхняя панель -->
 		<div id="top_bar">
-			<div id="logo">UltiComm 0.3 alpha</div>
+			<div id="logo"><a href="/"><img src="skins/<?= $cfg['skin'] ?>/images/stock/logo_tiny.png "></a> 0.3 alpha</div>
 			<div class="left"></div>
 			<div class="right state_ind"></div>
 			<div id="user_panel"><? require $device_path.'template_login.php'; ?></div>

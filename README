@@ -2,17 +2,16 @@
 
 == EN ==
 
-UltiComm (Ultimate Communication) also shortened to UC (pronounced as You-See) is an ambitious
+Tinng is an ambitious
 project of an online communications engine with a goal to kick out the obsolete forums technologies
 which still tend to reload the page every now-and-then and act like a page in the interface meaning.
 
-As an opposite to forums, UC will be a real web-app that doing the same task (discussions on
+As an opposite to forums, Tinng will be a real web-app that doing the same task (discussions on
 specific topics) and perhaps a little more.
 
 == RU ==
 
-UltiComm (Ultimate Communication, также UC, произносящееся как You See) - рабочее название нового
-веб-приложения для общения в интернете, ключевыми особенностями которого должны стать:
+Tinng - новое веб-приложение для общения в интернете, ключевыми особенностями которого должны стать:
 
 * Организация интерфейса, свойственная десктопным приложениям.
 * Автоматическое обновление без лишних действий со стороны пользователя.
@@ -20,7 +19,7 @@ UltiComm (Ultimate Communication, также UC, произносящееся к
 * Система тегов, заменяющая жесткую иерархию разделов, усовершенствованная с целью придания тегам и
   тегированным сообщениям большей упорядоченности.
 
-Ключевой особенностью UC должен стать его интерфейс, легкий в обращения и являющийся полноценным 
+Ключевой особенностью Tinng должен стать его интерфейс, легкий в обращения и являющийся полноценным 
 веб-приложением. В то же время, мы не будем отягощать программу излишними украшениями и громоздкими 
 библиотеками, чтобы избежать подтормаживаний настолько, насколько это возможно.
 
