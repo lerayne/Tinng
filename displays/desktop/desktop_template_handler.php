@@ -22,7 +22,7 @@ function template_head(){
 	);
 
 	echo '<link rel="stylesheet" id="lowres_css" type="text/css" href="">';
-	//echo '<script type="text/javascript" language="JavaScript" src="libraries/jquery-1.7.2.min.js"></script>';
+	echo '<script type="text/javascript" language="JavaScript" src="libraries/jquery-1.7.2.min.js"></script>';
 
 	import_js_vars();
 	

@@ -1,0 +1,58 @@
+body {
+	background-color: #eee;
+	margin:0;
+	padding:0;
+	overflow-y: scroll;
+}
+
+#tinng-main {
+	position:relative;
+}
+
+#tinng-main #curtain {
+	background-color:black;
+	opacity:0.5;
+}
+
+#tinng-main #dialogue {
+	width: 50%;
+	height: 70%;
+	min-width: 500px;
+	max-width: 800px;
+	min-height: 400px;
+	z-index: 810;
+}
+
+#tinng-units-area {
+	max-width: 1190px;
+	background-color: white;
+	margin:0 auto;
+	height:100%;
+	border:solid #ccc;
+	border-width: 0 1px;
+}
+
+#tinng-main-header {
+	height:28px;
+	background-color: #ccc;
+}
+
+#tinng-units-area .unit {
+	float:left;
+	height:100%;
+}
+
+#tinng-units-area .scroll-area {
+	overflow-y:auto;
+	height:100%;
+}
+
+#tinng-main .unit header {
+	min-height: 28px;
+	background-color: #bbb;
+	border-right:1px solid #ccc;
+}
+
+#tinng-main .unit.posts header {
+	border:none;
+}

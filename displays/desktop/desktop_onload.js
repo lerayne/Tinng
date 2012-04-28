@@ -1,7 +1,10 @@
 window.onload = function(){
+	new InterfaceStarter();
+/*
 	startInterface();
 	startEngine();
 	revealInterface();
+*/
 }
 
 window.onbeforeunload = function(){
