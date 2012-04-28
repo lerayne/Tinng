@@ -13,7 +13,7 @@ $cfg['console_display_all'] = 1;
 $cfg['cut_length'] = 256;
 
 // скин
-$cfg['skin'] = 'aquamarine';
+$cfg['skin'] = 'clarity';
 
 // сколько сообщений темы загружать за 1 раз
 $cfg['posts_per_page'] = 10; 

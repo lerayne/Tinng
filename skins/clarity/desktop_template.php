@@ -17,11 +17,13 @@
 			</div>
 			
 			<header id="tinng-main-header">
-				
+				<a class='logo' href='/'><img src="<?= path('/images/stock/logo_tiny.png') ?>"></a>
+				<div class='right'><? require $device_path.'template_login.php'; ?></div>
+				<div class='clearfix'></div>
 			</header>
-			
-			<div id="tinng-units-area">
 
+			<div id="tinng-units-area">
+			<!-- сюда пишутся юниты -->
 			</div>
 			
 			<footer id="tinng-main-footer">

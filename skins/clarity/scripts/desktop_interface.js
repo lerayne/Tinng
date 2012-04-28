@@ -50,12 +50,12 @@ UserInterface.prototype = {
 		var t = this.tinng;
 
 		var mainH = this.sizes.mainH = this.window.document.documentElement.clientHeight
-			- this.$mainHeader.height()
-			- this.$mainFooter.height();
+			- this.$mainHeader[0].offsetHeight
+			- this.$mainFooter[0].offsetHeight
 
 		for (var i in t.units){
 			var unit = t.units[i];
-			unit.$content.height( mainH - unit.$header.height() - unit.$footer.height() );
+			unit.$content.height( mainH - unit.$header[0].offsetHeight - unit.$footer[0].offsetHeight );
 		}
 
 		//this.t.units.each(this.resizeUnits);

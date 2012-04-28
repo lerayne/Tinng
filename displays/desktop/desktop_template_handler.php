@@ -6,6 +6,11 @@ function template_title(){
 	echo 'Tinng alpha';
 }
 
+function path($file){
+	global $cfg;
+	return (file_exists('/skins/'.$cfg['skin'].$file)) ? '/skins/'.$cfg['skin'].$file : $file;
+}
+
 function template_head(){
 	
 	global $device_path, $display_mode, $cfg, $user;

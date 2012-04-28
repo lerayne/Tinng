@@ -33,8 +33,14 @@ body {
 }
 
 #tinng-main-header {
-	height:28px;
-	background-color: #ccc;
+	height:36px;
+	background-color: #f9f9f9;
+	border-bottom: 1px solid #ccc;
+}
+
+#tinng-main-header .logo {
+	display: inline-block;
+	margin: 2px;
 }
 
 #tinng-units-area .unit {
@@ -49,8 +55,8 @@ body {
 
 #tinng-main .unit header {
 	min-height: 28px;
-	background-color: #bbb;
-	border-right:1px solid #ccc;
+	background-color: #ccc;
+	border-right:1px solid #ddd;
 }
 
 #tinng-main .unit.posts header {
