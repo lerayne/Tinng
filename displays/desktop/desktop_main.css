@@ -1,14 +1,28 @@
 /* общие теги */
-body	{ padding:0; margin:0; font:13px Arial,serif;}
+body	{ padding:0; margin:0; font:13px Tahoma, Arial, serif;}
 hr		{ border: 0 none; height: 1px; }
 a		{cursor:pointer;}
 a:hover {text-decoration: underline;}
 
-/* черная занавеска и окно на ней */
+#tinng-templates { display: none; }
+
+/* черная занавеска и окно на ней (старый вариант) */
 #curtain		{ z-index:800; }
 #over_curtain	{ z-index:810; }
 #over_curtain .window	{ margin: auto; }
 #curtain, #over_curtain	{ position:absolute; width:100%; }
+
+/* черная занавеска и окно на ней (новый вариант) */
+#dialogue-wrapper { z-index:800; height:100%; width: 100%; position: absolute; display:none;}
+#curtain { height:100%;}
+#dialogue {
+	position: absolute;
+	margin: auto;
+	top:0; right:0; bottom:0; left:0;
+	z-index:810;
+	background-color: white;
+	overflow: auto;
+}
 
 /* основное окно программы */
 #app_area	{ overflow: hidden; }
@@ -36,7 +50,7 @@ a:hover {text-decoration: underline;}
 .right		{ float:right; }
 .none		{ display: none; }
 .invis		{ visibility: hidden; }
-.clearboth	{ clear:both; }
+.clearboth, .clearfix	{ clear:both; }
 
 .reveal, .reveal2, .reveal3 { visibility: hidden; }
 .revealer:hover .reveal, .revealer2:hover .reveal2, .revealer3:hover .reveal3 { visibility: visible; }

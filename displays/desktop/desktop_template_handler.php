@@ -3,7 +3,7 @@
 $message = $_COOKIE['message'];
 
 function template_title(){
-	echo 'UC alpha';
+	echo 'Tinng alpha';
 }
 
 function template_head(){

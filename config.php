@@ -13,7 +13,7 @@ $cfg['console_display_all'] = 1;
 $cfg['cut_length'] = 256;
 
 // скин
-$cfg['skin'] = 'aquamarine'; 
+$cfg['skin'] = 'aquamarine';
 
 // сколько сообщений темы загружать за 1 раз
 $cfg['posts_per_page'] = 10; 
@@ -22,10 +22,10 @@ $cfg['posts_per_page'] = 10;
 // пользователем, поэтому для более секретных переменных используется другой массив - $safecfg
 
 // адрес базы данных
-$safecfg['db'] = 'mysql://nvcg:maedanaena884@localhost/nvcg_uc';
+$safecfg['db'] = 'mysql://tinng_main:maedanaena884@localhost/tinng';
 
 // префикс базы даных
-$safecfg['db_prefix'] = 'jawi'; // знак "_" вставляется автоматически, указывать его здесь не нужно
+$safecfg['db_prefix'] = 'tinng'; // знак "_" вставляется автоматически, указывать его здесь не нужно
 
 // когда установлен (1) - все файлs JS (а в будущем и CSS) компилируются в малое 
 // количество файлов и обфусцируются
