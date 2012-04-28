@@ -1,5 +1,6 @@
 window.onload = function(){
 	new InterfaceStarter();
+	new ContentStarter();
 	/*
 	startInterface();
 	startEngine();
@@ -7,7 +8,7 @@ window.onload = function(){
 	*/
 }
 
-window.onbeforeunload = function(){
+/*window.onbeforeunload = function(){
 	//alert('exiting program!');
 	
 	// AJAX: // закрываем сессию на сервере
@@ -19,4 +20,4 @@ window.onbeforeunload = function(){
 	
 	rotor.stop();
 	
-}
+}*/

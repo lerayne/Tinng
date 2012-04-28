@@ -39,7 +39,7 @@ function template_head(){
 		'js/object_spikes.js',
 		'js/global_content.js',
 		'skins/'.$cfg['skin'].'/scripts/'.$display_mode.'_interface.js',
-		$device_path.'content.js',
+		$device_path.'content_jq.js',
 		//$device_path.'focusing.js',
 		$device_path.'onload.js'
 	);

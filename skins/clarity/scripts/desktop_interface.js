@@ -1,25 +1,50 @@
 // Главный объект который передается во все прототипы для избежания замыканий
 var tinng = {
-
-	// базовые простые функции
-	funcs: {
-		setterError: function(){
-			throw('trying to overwrite final property');
-		}
-	},
+	cfg: cfg,
+	txt: txt,
+	state: {},
 
 	// здесь пока будут данные
-	data: {
-		units: [
-			{name: 'topics', css: {width: '40%'}},
-			{name: 'posts', css: {width: '60%'}}
+	data:{
+		units:[
+			{name:'topics', css:{width:'40%'}},
+			{name:'posts', css:{width:'60%'}}
 		]
+	},
+
+	// базовые простые функции
+	funcs:{
+		setterError:
+		function () {
+			throw('trying to overwrite final property');
+		},
+
+		log:
+		function (text) {
+			if (!tinng.cfg['production']) {
+				var date = new Date(), time;
+
+				if (date.toLocaleFormat) {
+					time = date.toLocaleFormat('%H:%M:%S');
+				} else {
+					var t = {};
+					t.H = date.getHours();
+					t.M = date.getMinutes();
+					t.S = date.getSeconds();
+					for (var i in t) {
+						if (t[i] * 1 < 10) t[i] = '0' + t[i];
+					}
+					time = t.H + ':' + t.M + ':' + t.S;
+				}
+				console.log(time+' - '+text);
+			}
+		}
 	}
 };
 
 
 // класс занимающийся интерфейсом
-UserInterface = function(targetWindow){
+UserInterface = function (targetWindow) {
 
 	// ссылки на важные эелементы
 	this.window = targetWindow;
@@ -32,30 +57,30 @@ UserInterface = function(targetWindow){
 	//this.$units = this.$unitsArea.find('.unit');
 
 	// коллекция размеров
-    this.sizes = {};
+	this.sizes = {};
 
 	// проксирование методов
 	//this.resizeUnits = $.proxy(this, 'resizeUnits');
 	this.winResize = $.proxy(this, 'winResize');
-	
+
 	//$(this.window).resize(this.px.winResize).resize();
 };
 
 UserInterface.prototype = {
 
-	tinng: tinng,
+	tinng:tinng,
 
 	// изменяет высоту окна
-	winResize: function(){
+	winResize:function () {
 		var t = this.tinng;
 
 		var mainH = this.sizes.mainH = this.window.document.documentElement.clientHeight
 			- this.$mainHeader[0].offsetHeight
 			- this.$mainFooter[0].offsetHeight
 
-		for (var i in t.units){
+		for (var i in t.units) {
 			var unit = t.units[i];
-			unit.$content.height( mainH - unit.$header[0].offsetHeight - unit.$footer[0].offsetHeight );
+			unit.$content.height(mainH - unit.$header[0].offsetHeight - unit.$footer[0].offsetHeight);
 		}
 
 		//this.t.units.each(this.resizeUnits);
@@ -63,16 +88,16 @@ UserInterface.prototype = {
 
 	// проходит по Юнитам и ресайзит их
 	/*resizeUnits: function(index, $unit){
-		var $scrollArea = $unit.$content;
-		var unitHeaderH = $unit.find('header').height();
-		var unitFooterH = $unit.find('footer').height();
-		$scrollArea.height(this.dims.mainH - unitHeaderH - unitFooterH);
-	}*/
+	 var $scrollArea = $unit.$content;
+	 var unitHeaderH = $unit.find('header').height();
+	 var unitFooterH = $unit.find('footer').height();
+	 $scrollArea.height(this.dims.mainH - unitHeaderH - unitFooterH);
+	 }*/
 };
 
 
 // Движок кусков HTML, из копий которых собирается страница
-ChunksEngine = function(){
+ChunksEngine = function () {
 
 	// сюда будут складываться ноды шаблонов
 	this.collection = {};
@@ -89,20 +114,20 @@ ChunksEngine = function(){
 ChunksEngine.prototype = {
 
 	// заполняет коллекцию
-	populate: function(index, value){
+	populate:function (index, value) {
 		var $chunk = $(value);
 		this.collection[$chunk.attr('data-chunk-name')] = $chunk;
 	},
 
 	// желательно использовать этот клонирующий геттер
-	get: function(name){
+	get:function (name) {
 		return this.collection[name] ? this.collection[name].clone() : false;
 	}
 }
 
 
 // класс объекта Юнита
-Unit = function(map){
+Unit = function (map) {
 	var t = this.tinng;
 
 	var $body = this.$body = t.chunks.get('unit');
@@ -117,12 +142,11 @@ Unit = function(map){
 }
 
 Unit.prototype = {
-	tinng: tinng
+	tinng:tinng
 }
 
 
-
-InterfaceStarter = function(){
+InterfaceStarter = function () {
 	var t = this.tinng;
 
 	t.ui = new this.UserInterface(window);
@@ -138,13 +162,13 @@ InterfaceStarter = function(){
 }
 
 InterfaceStarter.prototype = {
-	tinng : tinng,
-	Unit: Unit,
-	UserInterface: UserInterface,
-	ChunksEngine: ChunksEngine,
+	tinng:tinng,
+	Unit:Unit,
+	UserInterface:UserInterface,
+	ChunksEngine:ChunksEngine,
 
 
-	placeUnits: function(array){
+	placeUnits:function (array) {
 		var t = this.tinng;
 
 		for (var key in array) {
