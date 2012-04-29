@@ -113,10 +113,23 @@ Rotor.prototype = {
 	}
 }
 
+
+
 tinng.funcs.parser = function(result, action, t){
 
 }
 
+
+
+TopicNode = function(){
+	var t = this.tinng;
+
+	var $body = this.$body = t.chunks.get('topic');
+}
+
+TopicNode.prototype = {
+	tinng: tinng
+}
 
 
 // ЗАПУСК КОНТЕЙНЕРА
