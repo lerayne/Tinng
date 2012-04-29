@@ -18,7 +18,10 @@
 			
 			<header id="tinng-main-header">
 				<a class='logo' href='/'><img src="<?= path('/images/stock/logo_tiny.png') ?>"></a>
-				<div class='right'><? require $device_path.'template_login.php'; ?></div>
+				<div class='right state-ind'></div>
+				<div class='right'>
+					<? require $device_path.'template_login.php'; ?>
+				</div>
 				<div class='clearfix'></div>
 			</header>
 

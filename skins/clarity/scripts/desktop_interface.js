@@ -1,8 +1,37 @@
+funcs = {
+	setterError:function () {
+		throw('trying to overwrite final property');
+	},
+
+	log:function (text) {
+		if (!tinng.cfg['production']) {
+			var date = new Date(), time;
+
+			if (date.toLocaleFormat) {
+				time = date.toLocaleFormat('%H:%M:%S');
+			} else {
+				var t = {};
+				t.H = date.getHours();
+				t.M = date.getMinutes();
+				t.S = date.getSeconds();
+				for (var i in t) {
+					if (t[i] * 1 < 10) t[i] = '0' + t[i];
+				}
+				time = t.H + ':' + t.M + ':' + t.S;
+			}
+			console.info(time + ' - ' + text);
+		}
+	},
+
+	advClearTimeout:advClearTimeout
+}
+
+
 // Главный объект который передается во все прототипы для избежания замыканий
-var tinng = {
-	cfg: cfg,
-	txt: txt,
-	state: {},
+tinng = {
+	cfg:cfg,
+	txt:txt,
+	state:{},
 
 	// здесь пока будут данные
 	data:{
@@ -12,35 +41,20 @@ var tinng = {
 		]
 	},
 
+	sync: {
+		action: '',
+		maxdateTS: 0,
+		curTopic: 0,
+		plimit: 1,
+		pglimitdateTS: 0,
+		topicSort: 'updated',
+		tsReverse: true,
+		params: {}
+	},
+
 	// базовые простые функции
-	funcs:{
-		setterError:
-		function () {
-			throw('trying to overwrite final property');
-		},
-
-		log:
-		function (text) {
-			if (!tinng.cfg['production']) {
-				var date = new Date(), time;
-
-				if (date.toLocaleFormat) {
-					time = date.toLocaleFormat('%H:%M:%S');
-				} else {
-					var t = {};
-					t.H = date.getHours();
-					t.M = date.getMinutes();
-					t.S = date.getSeconds();
-					for (var i in t) {
-						if (t[i] * 1 < 10) t[i] = '0' + t[i];
-					}
-					time = t.H + ':' + t.M + ':' + t.S;
-				}
-				console.log(time+' - '+text);
-			}
-		}
-	}
-};
+	funcs: funcs
+}
 
 
 // класс занимающийся интерфейсом

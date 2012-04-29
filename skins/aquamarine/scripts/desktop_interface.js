@@ -25,7 +25,7 @@ function onSiteFocus(){
 }
 
 // пишет в консоль
-function consoleWrite(string, skip){
+function consoleWrite(string, skip) {
 	if (skip && !cfg.console_display_all) return;
 	
 	var date = new Date();

@@ -62,3 +62,17 @@ body {
 #tinng-main .unit.posts header {
 	border:none;
 }
+
+#tinng-main .state-ind {
+	height:17px;
+	width: 16px;
+	margin:9px 5px;
+}
+
+#tinng-main .state-ind.updating {
+	background-image: url('/images/throbber.gif');
+}
+
+#tinng-main #loginForm {
+	margin-top:5px;
+}

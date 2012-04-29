@@ -38,7 +38,7 @@ function stopBubble(e){
 
 function advClearTimeout(timeout) {
 	if (timeout){
-		consoleWrite('timeout found: '+timeout+'. cleared', 1);
+		tinng.funcs.log('timeout found: '+timeout+'. cleared', 1);
 		clearTimeout(timeout);
 		return false;
 	}
