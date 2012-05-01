@@ -3,13 +3,15 @@ tinng = {
 	cfg: cfg, // конфигурация
 	txt: txt, // текстовые переменные
 	state: {}, // записи о состоянии программы
+	units: {}, // отсеки (колонки) интерфейса
+	topics: {}, // отображаемые темы
 	funcs: funcs, // базовые простые функции
 
 	// здесь пока будут данные
 	data:{
 		units:[
 			{name:'topics', css:{width:'40%'}},
-			{name:'messages', css:{width:'60%'}}
+			{name:'posts', css:{width:'60%'}}
 		]
 	},
 
@@ -23,9 +25,7 @@ tinng = {
 		topicSort: 'updated',
 		tsReverse: true,
 		params: {}
-	},
-
-	topics: {}
+	}
 }
 
 
@@ -76,13 +76,13 @@ UserInterface.prototype = {
 		editor.on('keyup', this.editorResize);
 		editor.on('keydown', this.editorResize);
 
-		t.units.messages.$scrollArea.append(editor);
+		t.units.posts.$scrollArea.append(editor);
 	},
 
 	editorResize: function(e){
-		var mes = this.tinng.units.messages;
-		this.editor.width(mes.$content.width());
-		mes.$content.css('margin-bottom', this.editor[0].offsetHeight);
+		var posts = this.tinng.units.posts;
+		this.editor.width(posts.$content.width());
+		posts.$content.css('margin-bottom', this.editor[0].offsetHeight);
 	}
 };
 
@@ -142,7 +142,7 @@ InterfaceStarter = function () {
 
 	t.ui.$window.resize(t.ui.winResize).resize();
 
-	t.units.messages.$content.append($('<div style="height:1000px">'))
+	t.units.posts.$content.append($('<div style="height:1000px">'))
 };
 
 InterfaceStarter.prototype = {

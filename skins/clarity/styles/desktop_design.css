@@ -6,6 +6,7 @@ body {
 	overflow-y: hidden;
 	font-family: Tahoma, Arial, serif;
 	font-size: 13px;
+	color:#333;
 }
 
 #tinng-main {
@@ -42,8 +43,8 @@ body {
 	background-color: white;
 	margin:0 auto;
 	height:100%;
-	border:solid #ccc;
-	border-width: 0 1px;
+	/*border:solid #ccc;*/
+	/*border-width: 0 1px;*/
 }
 
 #tinng-units-area .unit {
@@ -58,11 +59,23 @@ body {
 
 #tinng-main .unit header {
 	min-height: 28px;
-	background-color: #ccc;
-	border-right:1px solid #ddd;
+	background-color: #bbb;
+	border-right:1px solid #c5c5c5;
+	position: relative;
 }
 
-#tinng-main .unit.messages header {
+#tinng-main .unit header:after {
+	content: '';
+	width: 100%;
+	height: 3px;
+	background-color: black;
+	position: absolute;
+	bottom: -3px;
+	opacity: 0.2;
+	z-index: 10;
+}
+
+#tinng-main .unit.posts header {
 	border:none;
 }
 
@@ -85,7 +98,7 @@ body {
 #tinng-main .topic {
 	padding: 10px;
 	border:none;
-	border-bottom:1px solid #ddd;
+	border-bottom:4px solid #ddd;
 	cursor:pointer;
 }
 
@@ -117,6 +130,8 @@ body {
 	border-top:1px solid #ddd;
 	margin-top: 5px;
 	padding-top: 5px;
+	height: 2.5em;
+	overflow-y: hidden;
 }
 
 
@@ -132,5 +147,11 @@ body {
 	border:1px solid #ccc;
 	padding:4px;
 	margin-bottom:4px;
+}
+
+/* tags */
+.tag {
+	margin:7px 4px 0 0;
+	border-radius: 2px;
 }
 
