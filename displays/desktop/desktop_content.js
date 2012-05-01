@@ -831,7 +831,7 @@ function parseResult(result, actionUsed){
 	
 	
 	// добавляем теги
-	if (result && result.tags){
+	/*if (result && result.tags){
 		
 		for (var i in result.tags) {
 		
@@ -839,7 +839,7 @@ function parseResult(result, actionUsed){
 
 			if (topics[entry.message]) addTag(topics[entry.message], entry);
 		}
-	}
+	}*/
 
 	// Выдать новый TS полученный из пакета обновлений
 	return sql2stamp(result.new_maxdate);

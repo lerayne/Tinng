@@ -87,7 +87,7 @@ class DbSimple_Postgresql extends DbSimple_Generic_Database
         return $blobFields;
     }
 
-    // TODO: Real PostgreSQL escape
+    // TO DO: Real PostgreSQL escape
     function _performGetPlaceholderIgnoreRe()
     {
         return '
@@ -127,7 +127,7 @@ class DbSimple_Postgresql extends DbSimple_Generic_Database
 
             // Perform total calculation.
             case 'GET_TOTAL':
-                // TODO: GROUP BY ... -> COUNT(DISTINCT ...)
+                // TO DO: GROUP BY ... -> COUNT(DISTINCT ...)
                 $re = '/^
                     (?> -- [^\r\n]* | \s+)*
                     (\s* SELECT \s+)                                             #1     

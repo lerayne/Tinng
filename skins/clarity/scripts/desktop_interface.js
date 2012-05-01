@@ -91,7 +91,7 @@ ChunksEngine.prototype = {
 
 	// желательно использовать этот клонирующий геттер
 	get: function (name) {
-		return this.collection[name] ? this.collection[name].clone() : false;
+		return this.collection[name] ? this.collection[name].clone() : $('<div class="'+name+'"></div>');
 	}
 }
 

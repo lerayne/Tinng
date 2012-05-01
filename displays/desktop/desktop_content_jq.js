@@ -11,7 +11,7 @@ tinng.state.blurred = false; //TODO отслеживать активность 
 
 
 // ОСНОВНОЙ ДВИЖОК ОБНОВЛЕНИЯ
-Rotor = function(backendURL, syncCollection, parseCallback ){
+Rotor = function (backendURL, syncCollection, parseCallback) {
 	var t = this.tinng;
 
 	this.backendURL = backendURL;
@@ -36,10 +36,10 @@ Rotor = function(backendURL, syncCollection, parseCallback ){
 }
 
 Rotor.prototype = {
-	tinng: tinng,
+	tinng:tinng,
 
 	// главная функция ротора
-	start: function(action, params){
+	start:function (action, params) {
 		var t = this.tinng;
 
 		// параметры, которые должны не сохраняться, а задаваться каждый раз из аргументов
@@ -57,11 +57,11 @@ Rotor.prototype = {
 		this.request.open(null, this.backendURL, true);
 		this.request.send(this.syncCollection);
 
-		t.funcs.log('Launching query with timeout '+this.waitTime);
+		t.funcs.log('Launching query with timeout ' + this.waitTime);
 	},
 
 	// Останавливает ротор
-	stop: function() {
+	stop:function () {
 		var t = this.tinng;
 
 		this.timeout = t.funcs.advClearTimeout(this.timeout);
@@ -77,7 +77,7 @@ Rotor.prototype = {
 	},
 
 	// Выполняется при удачном возвращении запроса
-	onResponse: function(){
+	onResponse:function () {
 		var t = this.tinng;
 
 		if (this.request.readyState == 4) {
@@ -92,30 +92,29 @@ Rotor.prototype = {
 	},
 
 	// Выполняется при принудительном сбросе запроса
-	onAbort: function(){
+	onAbort:function () {
 		this.stopIndication();
 	},
 
 	// изменение времени ожидания
-	changeTimeout: function(msec){
+	changeTimeout:function (msec) {
 		this.waitTime = msec;
 		this.start();
 	},
 
 	// как-то отмечаем в интерфейсе что запрос ушел
-	startIndication: function(){
+	startIndication:function () {
 		this.$stateIndicator.addClass('updating');
 	},
 
 	// как-то отмечаем в интерфейсе что запрос закончен
-	stopIndication: function(){
+	stopIndication:function () {
 		this.$stateIndicator.removeClass('updating');
 	}
 }
 
 
-
-tinng.funcs.parser = function(result, actionUsed, t){
+tinng.funcs.parser = function (result, actionUsed, t) {
 
 	if (result && result.error) alert(t.txt.post_locked);
 
@@ -129,10 +128,10 @@ tinng.funcs.parser = function(result, actionUsed, t){
 			entry = result.topics[i];
 
 			// если в текущем массиве загруженных тем такая уже есть - обновляем существующую
-			if (t.topics[entry.id]){
+			if (t.topics[entry.id]) {
 				topic = t.topics[entry.id];
 
-				if (entry.deleted){
+				if (entry.deleted) {
 
 					shownRemove(topic.item); //todo: вывести в метод объекта темы
 					if (entry.id == t.sync.curTopic) t.funcs.unloadTopic();
@@ -158,12 +157,24 @@ tinng.funcs.parser = function(result, actionUsed, t){
 }
 
 
+Tag = function (data) {
+	var t = this.tinng;
 
-TopicNode = function(data){
+	this.$body = t.chunks.get('tag');
+	this.$body.text(data.name);
+}
+
+Tag.prototype = {
+	tinng:tinng
+}
+
+
+TopicNode = function (data) {
 	var t = this.tinng;
 
 	var $body = this.$body = t.chunks.get('topic');
 
+	// поля для заполнения
 	var cells = [
 		'created',
 		'author',
@@ -176,52 +187,75 @@ TopicNode = function(data){
 		'controls'
 	];
 
+	// заполняем
 	this.cells = {};
-	for (var i in cells) this.cells['$'+cells[i]] = $body.find('[data-cell="'+cells[i]+'"]');
+	for (var i in cells) this.cells['$' + cells[i]] = $body.find('[data-cell="' + cells[i] + '"]');
 
 	// заполняем неизменные данные, присваеваемые единожды
-	$body.attr('id', 'topic_'+data.id);
-	this.cells.$message.addClass('message_'+data.id);
+	$body.attr('id', 'topic_' + data.id);
+	this.cells.$message.addClass('message_' + data.id);
 	this.cells.$id.text(data.id);
 
 	this.fill(data); // при создании - сразу заполняем
 }
 
 TopicNode.prototype = {
-	tinng: tinng,
+	tinng:tinng,
+	Tag:Tag,
 
-	fill: function(data){
+	// заполнить данными
+	fill:function (data) {
 		var t = this.tinng;
 
-		this.cells.$message.html	(data.message);
-		this.cells.$topicname.html	(data.topic_name);
-		this.cells.$created.text	(data.modified ? t.txt.modified + data.modified : data.created);
-		this.cells.$author.text		(data.author);
-		this.cells.$postsquant.text	(data.postsquant + t.txt.msgs);
+		// общие поля
+		this.cells.$message.html
+			(data.message);
+		this.cells.$topicname.html
+			(data.topic_name);
+		this.cells.$created.text
+			(data.modified ? t.txt.modified + data.modified : data.created);
+		this.cells.$author.text
+			(data.author);
+		this.cells.$postsquant.text
+			(data.postsquant + t.txt.msgs);
 
-		if (data.last_id){
+		// последнее сообщение
+		if (data.last_id) {
 			this.cells.$lastmessage.html(
-				'<div>'+t.txt.lastpost + '<b>' + data.lastauthor + '</b> ('+ data.lastdate + ') '+ data.lastpost+'</div>'
+				'<div>' + t.txt.lastpost + '<b>' + data.lastauthor + '</b> (' + data.lastdate + ') ' + data.lastpost + '</div>'
 			);
 		}
+
+		// вбиваем теги
+		//todo: сейчас теги при каждом филле обнуляются и вбиваются заново. непорядок
+		if (data.tags) {
+			this.cells.$tags.text('');
+			for (var i in data.tags) {
+				this.cells.$tags.append(new this.Tag(data.tags[i]).$body);
+			}
+		}
 	},
-	
-	bump: function(){
+
+	// изменить положение в списке при обновлении
+	bump:function () {
 		var t = this.tinng;
 
-		if (t.sync.topicSort == 'updated' && t.sync.tsReverse == true){
-			this.$body.remove();
-			t.units.topics.$content.prepend(this.$body);
+		// если сортировка по последнему обновлению
+		if (t.sync.topicSort == 'updated') {
+			if (t.sync.tsReverse == true) {
+				this.$body.remove();
+				t.units.topics.$content.prepend(this.$body);
+			}
 		}
 	}
 }
 
 
 // ЗАПУСК КОНТЕЙНЕРА
-ContentStarter = function(){
+ContentStarter = function () {
 	var t = this.tinng;
 
-	t.rotor = new this.Rotor (
+	t.rotor = new this.Rotor(
 		'/backend/update.php',
 		t.sync,
 		t.funcs.parser
@@ -230,6 +264,6 @@ ContentStarter = function(){
 }
 
 ContentStarter.prototype = {
-	tinng: tinng,
-	Rotor: Rotor
+	tinng:tinng,
+	Rotor:Rotor
 }
