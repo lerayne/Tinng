@@ -201,7 +201,7 @@ TopicNode.prototype = {
 
 		if (data.last_id){
 			this.cells.$lastmessage.html(
-				t.txt.lastpost + '<b>' + data.lastauthor + '</b> ('+ data.lastdate + ') '+ data.lastpost
+				'<div>'+t.txt.lastpost + '<b>' + data.lastauthor + '</b> ('+ data.lastdate + ') '+ data.lastpost+'</div>'
 			);
 		}
 	},

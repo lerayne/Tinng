@@ -68,7 +68,7 @@
 					<div data-cell="message" class="message">
 						<!-- основное сообщение -->
 					</div>
-					<div data-cell="lastmessage" class="lastpost"></div>
+					<div data-cell="lastmessage" class="lastmessage"></div>
 					<div data-cell="tags" class="tags"></div>
 					<div data-cell="controls" class="controls reveal"></div>
 					<div class="clearboth"></div>

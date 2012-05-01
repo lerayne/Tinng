@@ -1,5 +1,5 @@
 /* общие теги */
-body	{ padding:0; margin:0; font:13px Tahoma, Arial, serif;}
+body	{ padding:0; margin:0;}
 hr		{ border: 0 none; height: 1px; }
 a		{cursor:pointer;}
 a:hover {text-decoration: underline;}

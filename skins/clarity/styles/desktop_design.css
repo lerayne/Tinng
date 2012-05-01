@@ -3,6 +3,8 @@ body {
 	margin:0;
 	padding:0;
 	overflow-y: scroll;
+	font-family: Tahoma, Arial, serif;
+	font-size: 13px;
 }
 
 #tinng-main {
@@ -23,15 +25,6 @@ body {
 	z-index: 810;
 }
 
-#tinng-units-area {
-	max-width: 1190px;
-	background-color: white;
-	margin:0 auto;
-	height:100%;
-	border:solid #ccc;
-	border-width: 0 1px;
-}
-
 #tinng-main-header {
 	height:36px;
 	background-color: #f9f9f9;
@@ -41,6 +34,15 @@ body {
 #tinng-main-header .logo {
 	display: inline-block;
 	margin: 2px;
+}
+
+#tinng-units-area {
+	max-width: 1190px;
+	background-color: white;
+	margin:0 auto;
+	height:100%;
+	border:solid #ccc;
+	border-width: 0 1px;
 }
 
 #tinng-units-area .unit {
@@ -75,4 +77,43 @@ body {
 
 #tinng-main #loginForm {
 	margin-top:5px;
+}
+
+
+
+#tinng-main .topic {
+	padding: 10px;
+	border:none;
+	border-bottom:1px solid #ddd;
+	cursor:pointer;
+}
+
+#tinng-main .topic .message {
+	height: 2.5em;
+	overflow-y: hidden;
+}
+
+#tinng-main .topic .created {
+	 font-size: 11px;
+}
+
+#tinng-main .topic .author {
+	margin-right:5px;
+}
+
+#tinng-main .topic .msgid {
+	margin-right:5px;
+	color:#ccc;
+}
+
+#tinng-main .topic .topicname {
+	margin: 5px 0;
+	font-size:15px;
+	color:#777;
+}
+
+#tinng-main .topic .lastmessage > div {
+	border-top:1px solid #ddd;
+	margin-top: 5px;
+	padding-top: 5px;
 }
