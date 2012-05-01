@@ -120,8 +120,9 @@ a:hover {text-decoration: underline;}
 	border:1px dashed black;
 	background-color: #eee;
 	padding: 2px 4px;
-	margin: 3px;
+	/*margin: 3px;*/
 	cursor: pointer;
+	display: inline-block;
 }
 
 .button:hover {
@@ -163,4 +164,13 @@ a:hover {text-decoration: underline;}
 .author {
 	color:black;
 	font-weight: bold;
+}
+
+.unit .scroll-area {
+	overflow-y: scroll;
+}
+
+#tinng-main .editor {
+	position: fixed;
+	bottom:0;
 }

@@ -9,7 +9,6 @@
 tinng.state.blurred = false; //TODO отслеживать активность окна
 
 
-
 // ОСНОВНОЙ ДВИЖОК ОБНОВЛЕНИЯ
 Rotor = function (backendURL, syncCollection, parseCallback) {
 	var t = this.tinng;
@@ -112,8 +111,11 @@ Rotor.prototype = {
 		this.$stateIndicator.removeClass('updating');
 	}
 }
+// end of Rotor
 
 
+
+// ФУНКЦИЯ РАЗБОРА ДАННЫХ ОБ ИЗМЕНЕНИИ
 tinng.funcs.parser = function (result, actionUsed, t) {
 
 	if (result && result.error) alert(t.txt.post_locked);
@@ -155,8 +157,11 @@ tinng.funcs.parser = function (result, actionUsed, t) {
 
 	return t.funcs.sql2stamp(result.new_maxdate);
 }
+// end of parser
 
 
+
+// КЛАСС ТЕГА
 Tag = function (data) {
 	var t = this.tinng;
 
@@ -167,8 +172,11 @@ Tag = function (data) {
 Tag.prototype = {
 	tinng:tinng
 }
+// end of Tag
 
 
+
+// КЛАСС ЭЛЕМЕНТА СПИСКА ТЕМ
 TopicNode = function (data) {
 	var t = this.tinng;
 
@@ -239,16 +247,20 @@ TopicNode.prototype = {
 	// изменить положение в списке при обновлении
 	bump:function () {
 		var t = this.tinng;
+		var content = t.units.topics.$content;
 
-		// если сортировка по последнему обновлению
-		if (t.sync.topicSort == 'updated') {
-			if (t.sync.tsReverse == true) {
+		switch (t.sync.topicSort) {
+
+			// сортировка по последнему обновлению
+			case 'updated':
 				this.$body.remove();
-				t.units.topics.$content.prepend(this.$body);
-			}
+				if (t.sync.tsReverse) { content.prepend(this.$body)} else content.append(this.$body);
+			break;
 		}
 	}
 }
+// end of TopicNode
+
 
 
 // ЗАПУСК КОНТЕЙНЕРА

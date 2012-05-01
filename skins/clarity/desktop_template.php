@@ -42,7 +42,9 @@
 
 			<div data-chunk-name="unit" class="unit">
 				<header></header>
-				<div class="scroll-area"></div>
+				<div class="scroll-area">
+					<div class="content"></div>
+				</div>
 				<footer></footer>
 			</div>
 
@@ -101,6 +103,14 @@
 					<div class="clearboth"></div>
 				</div>
 				<div class="after_cell"></div>
+			</div>
+
+			<div data-chunk-name="editor" class="editor">
+				<div class="editor-inner">
+					<div contenteditable="true" class="textarea"></div>
+
+					<div class="submit button"><?= $txt['send'] ?></div>
+				</div>
 			</div>
 
 		</div>

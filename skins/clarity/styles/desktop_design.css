@@ -1,8 +1,9 @@
 body {
-	background-color: #eee;
+	background-color: #ddd;
 	margin:0;
 	padding:0;
-	overflow-y: scroll;
+	/*overflow-y: scroll;*/
+	overflow-y: hidden;
 	font-family: Tahoma, Arial, serif;
 	font-size: 13px;
 }
@@ -37,7 +38,7 @@ body {
 }
 
 #tinng-units-area {
-	max-width: 1190px;
+	max-width: 1210px;
 	background-color: white;
 	margin:0 auto;
 	height:100%;
@@ -51,8 +52,8 @@ body {
 }
 
 #tinng-units-area .scroll-area {
-	overflow-y:auto;
 	height:100%;
+	position: relative;
 }
 
 #tinng-main .unit header {
@@ -61,7 +62,7 @@ body {
 	border-right:1px solid #ddd;
 }
 
-#tinng-main .unit.posts header {
+#tinng-main .unit.messages header {
 	border:none;
 }
 
@@ -80,7 +81,7 @@ body {
 }
 
 
-
+/* topic */
 #tinng-main .topic {
 	padding: 10px;
 	border:none;
@@ -117,3 +118,19 @@ body {
 	margin-top: 5px;
 	padding-top: 5px;
 }
+
+
+/* editor */
+#tinng-main .editor-inner {
+	padding:4px;
+	background: #eee;
+	border-top:1px solid #ddd;
+}
+
+#tinng-main .textarea {
+	background: white;
+	border:1px solid #ccc;
+	padding:4px;
+	margin-bottom:4px;
+}
+

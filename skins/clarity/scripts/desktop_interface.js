@@ -9,7 +9,7 @@ tinng = {
 	data:{
 		units:[
 			{name:'topics', css:{width:'40%'}},
-			{name:'posts', css:{width:'60%'}}
+			{name:'messages', css:{width:'60%'}}
 		]
 	},
 
@@ -46,6 +46,7 @@ UserInterface = function (targetWindow) {
 
 	// проксирование методов
 	this.winResize = $.proxy(this, 'winResize');
+	this.editorResize = $.proxy(this, 'editorResize');
 };
 
 UserInterface.prototype = {
@@ -62,23 +63,34 @@ UserInterface.prototype = {
 
 		for (var i in t.units) {
 			var unit = t.units[i];
-			unit.$content.height(mainH - unit.$header[0].offsetHeight - unit.$footer[0].offsetHeight);
+			unit.$scrollArea.height(mainH - unit.$header[0].offsetHeight - unit.$footer[0].offsetHeight);
 		}
+
+		this.editorResize();
+	},
+
+	placeEditor: function(){
+		var t = this.tinng;
+
+		var editor = this.editor = t.chunks.get('editor');
+		editor.on('keyup', this.editorResize);
+		editor.on('keydown', this.editorResize);
+
+		t.units.messages.$scrollArea.append(editor);
+	},
+
+	editorResize: function(e){
+		var mes = this.tinng.units.messages;
+		this.editor.width(mes.$content.width());
+		mes.$content.css('margin-bottom', this.editor[0].offsetHeight);
 	}
 };
 
 
 // Движок кусков HTML, из копий которых собирается страница
 ChunksEngine = function () {
-
-	// сюда будут складываться ноды шаблонов
 	this.collection = {};
-
-	// выборка нод шаблонов
 	$('#tinng-chunks').find('*[data-chunk-name]').each( $.proxy(this, 'populate') );
-
-	// отдельно вбиваем шаблон clearfix
-	this.collection['clearfix'] = $('<div class="clearboth"></div>');
 }
 
 ChunksEngine.prototype = {
@@ -101,7 +113,8 @@ Unit = function (map) {
 	var t = this.tinng;
 
 	var $body = this.$body = t.chunks.get('unit');
-	this.$content = $body.find('.scroll-area');
+	this.$scrollArea = $body.find('.scroll-area');
+	this.$content = $body.find('.content');
 	this.$header = $body.find('header');
 	this.$footer = $body.find('footer');
 
@@ -125,11 +138,11 @@ InterfaceStarter = function () {
 	t.units = {};
 
 	this.placeUnits(t.data['units']);
+	t.ui.placeEditor();
 
 	t.ui.$window.resize(t.ui.winResize).resize();
 
-	//t.units.topics.$content.append($('<div style="height:1000px;">'));
-	//t.units.posts.$content.append($('<div style="height:1000px;">'));
+	t.units.messages.$content.append($('<div style="height:1000px">'))
 };
 
 InterfaceStarter.prototype = {
