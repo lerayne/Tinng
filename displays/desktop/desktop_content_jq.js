@@ -10,7 +10,7 @@ tinng.state.blurred = false; //TODO отслеживать активность 
 
 
 
-// ОСНОВНОЙ ОБЪЕКТ ОБНОВЛЕНИЯ
+// ОСНОВНОЙ ДВИЖОК ОБНОВЛЕНИЯ
 Rotor = function(backendURL, syncCollection, parseCallback ){
 	var t = this.tinng;
 
@@ -115,20 +115,105 @@ Rotor.prototype = {
 
 
 
-tinng.funcs.parser = function(result, action, t){
+tinng.funcs.parser = function(result, actionUsed, t){
 
+	if (result && result.error) alert(t.txt.post_locked);
+
+	var tProps = (result && result.topic_prop) ? result.topic_prop : [];
+
+	var entry, topic;
+
+	// разбираем темы
+	if (result && result.topics) {
+		for (var i in result.topics) {
+			entry = result.topics[i];
+
+			// если в текущем массиве загруженных тем такая уже есть - обновляем существующую
+			if (t.topics[entry.id]){
+				topic = t.topics[entry.id];
+
+				if (entry.deleted){
+
+					shownRemove(topic.item); //todo: вывести в метод объекта темы
+					if (entry.id == t.sync.curTopic) t.funcs.unloadTopic();
+					delete(t.topics[entry.id]);
+
+				} else {
+					topic.fill(entry);
+					topic.bump();
+				}
+
+				// если же в текущем массиве тем такой нет и пришедшая не удалена, создаем новую
+			} else if (!entry.deleted) {
+
+				t.topics[entry.id] = new TopicNode(entry); //todo: тут пока замыкание
+				t.units.topics.$content.append(t.topics[entry.id].$body);
+				if (tProps['new']) loadTopic(entry.id);
+				//ifblur_notify('New Topic: '+entry.topic_name, entry.message);
+			}
+		}
+	}
+
+	return t.funcs.sql2stamp(result.new_maxdate);
 }
 
 
 
-TopicNode = function(){
+TopicNode = function(data){
 	var t = this.tinng;
 
 	var $body = this.$body = t.chunks.get('topic');
+
+	var cells = [
+		'created',
+		'author',
+		'id',
+		'postsquant',
+		'topicname',
+		'message',
+		'lastmessage',
+		'tags',
+		'controls'
+	];
+
+	this.cells = {};
+	for (var i in cells) this.cells['$'+cells[i]] = $body.find('[data-cell="'+cells[i]+'"]');
+
+	// заполняем неизменные данные, присваеваемые единожды
+	$body.attr('id', 'topic_'+data.id);
+	this.cells.$message.addClass('message_'+data.id);
+	this.cells.$id.text(data.id);
+
+	this.fill(data); // при создании - сразу заполняем
 }
 
 TopicNode.prototype = {
-	tinng: tinng
+	tinng: tinng,
+
+	fill: function(data){
+		var t = this.tinng;
+
+		this.cells.$message.html	(data.message);
+		this.cells.$topicname.html	(data.topic_name);
+		this.cells.$created.text	(data.modified ? t.txt.modified + data.modified : data.created);
+		this.cells.$author.text		(data.author);
+		this.cells.$postsquant.text	(data.postsquant + t.txt.msgs);
+
+		if (data.last_id){
+			this.cells.$lastmessage.html(
+				t.txt.lastpost + '<b>' + data.lastauthor + '</b> ('+ data.lastdate + ') '+ data.lastpost
+			);
+		}
+	},
+	
+	bump: function(){
+		var t = this.tinng;
+
+		if (t.sync.topicSort == 'updated' && t.sync.tsReverse == true){
+			this.$body.remove();
+			t.units.topics.$content.prepend(this.$body);
+		}
+	}
 }
 
 
@@ -139,7 +224,7 @@ ContentStarter = function(){
 	t.rotor = new this.Rotor (
 		'/backend/update.php',
 		t.sync,
-		function(){return 14357033555060} //TODO сделать функцию парсера
+		t.funcs.parser
 	);
 	t.rotor.start('load_pages');
 }

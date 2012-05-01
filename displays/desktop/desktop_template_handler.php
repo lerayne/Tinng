@@ -36,6 +36,7 @@ function template_head(){
 		'lib_modified/nicEdit.js',
 		'libraries/webtoolkit.js',
 		'js/spikes.js',
+		'js/funcs.js',
 		'js/object_spikes.js',
 		'js/global_content.js',
 		'skins/'.$cfg['skin'].'/scripts/'.$display_mode.'_interface.js',

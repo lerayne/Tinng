@@ -4,8 +4,6 @@ hr		{ border: 0 none; height: 1px; }
 a		{cursor:pointer;}
 a:hover {text-decoration: underline;}
 
-#tinng-templates { display: none; }
-
 /* черная занавеска и окно на ней (старый вариант) */
 #curtain		{ z-index:800; }
 #over_curtain	{ z-index:810; }

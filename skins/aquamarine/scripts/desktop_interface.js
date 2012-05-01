@@ -25,6 +25,7 @@ function onSiteFocus(){
 }
 
 // пишет в консоль
+//todo - эта уже скопирована
 function consoleWrite(string, skip) {
 	if (skip && !cfg.console_display_all) return;
 	
