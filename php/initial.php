@@ -2,7 +2,7 @@
 /* Подключаемый файл, который входит как в бекенд для XHR, так и в осовной php-скрипт */
 
 require_once $rootdir.'config.php'; //конфигурационный файл
-require_once $rootdir.'locale/ru.php'; // строки локализации
+require_once $rootdir.'locale/ru.php'; // языковые файлы
 require_once $rootdir.'php/spikes.php'; // типа фреймворк)
 require_once $rootdir.'php/classes.php'; // типа классы)
 require_once $rootdir.'libraries/DbSimple/Generic.php'; // либа для работы с базой

@@ -1,6 +1,16 @@
 window.onload = function(){
-	new InterfaceStarter();
-	new ContentStarter();
+	var t = tinng;
+
+	t.chunks = new t.protos.ChunksEngine('tinng-chunks', 'data-chunk-name');
+	t.ui = new t.protos.UserInterface(window);
+
+	t.rotor = new t.protos.Rotor(
+		'/backend/update.php',
+		t.sync,
+		t.funcs.parser
+	);
+
+	t.rotor.start('load_pages');
 	/*
 	startInterface();
 	startEngine();

@@ -12,7 +12,7 @@ require_once 'php/initial.php';
 ////////////////////////
 
 $columns = array (
-	#'menu', 
+	#'menu',
 	'topics',
 	'posts'
 );

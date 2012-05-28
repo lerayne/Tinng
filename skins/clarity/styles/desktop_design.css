@@ -43,13 +43,12 @@ body {
 	background-color: white;
 	margin:0 auto;
 	height:100%;
-	/*border:solid #ccc;*/
-	/*border-width: 0 1px;*/
 }
 
 #tinng-units-area .unit {
 	float:left;
 	height:100%;
+	position: relative;
 }
 
 #tinng-units-area .scroll-area {
@@ -64,21 +63,38 @@ body {
 	position: relative;
 }
 
-#tinng-main .unit header:after {
+#tinng-main #loginForm {
+	margin-top:5px;
+}
+
+/* Декоративные псевдо-тени */
+#tinng-main .unit header::after, #tinng-main .topics footer::after, #tinng-main .editor::after {
 	content: '';
 	width: 100%;
 	height: 3px;
 	background-color: black;
 	position: absolute;
-	bottom: -3px;
 	opacity: 0.2;
 	z-index: 10;
+}
+
+#tinng-main .unit header::after {
+	bottom: -3px;
+}
+
+#tinng-main .topics footer::after {
+	bottom: 0;
+}
+
+#tinng-main .editor::after {
+	top: -3px;
 }
 
 #tinng-main .unit.posts header {
 	border:none;
 }
 
+/* Индикатор активности */
 #tinng-main .state-ind {
 	height:17px;
 	width: 16px;
@@ -87,10 +103,6 @@ body {
 
 #tinng-main .state-ind.updating {
 	background-image: url('/images/throbber.gif');
-}
-
-#tinng-main #loginForm {
-	margin-top:5px;
 }
 
 

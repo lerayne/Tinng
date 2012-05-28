@@ -6,11 +6,8 @@
  * To change this template use File | Settings | File Templates.
  */
 
-tinng.state.blurred = false; //TODO отслеживать активность окна
-
-
 // ОСНОВНОЙ ДВИЖОК ОБНОВЛЕНИЯ
-Rotor = function (backendURL, syncCollection, parseCallback) {
+tinng.protos.Rotor = function (backendURL, syncCollection, parseCallback) {
 	var t = this.tinng;
 
 	this.backendURL = backendURL;
@@ -28,13 +25,9 @@ Rotor = function (backendURL, syncCollection, parseCallback) {
 	this.stop = $.proxy(this, 'stop');
 	this.onResponse = $.proxy(this, 'onResponse');
 	this.onAbort = $.proxy(this, 'onAbort');
-
-	// сортировка по умолчанию
-	this.topicSort = 'updated';
-	this.tsReverse = true;
 }
 
-Rotor.prototype = {
+tinng.protos.Rotor.prototype = {
 	tinng:tinng,
 
 	// главная функция ротора
@@ -147,7 +140,7 @@ tinng.funcs.parser = function (result, actionUsed, t) {
 				// если же в текущем массиве тем такой нет и пришедшая не удалена, создаем новую
 			} else if (!entry.deleted) {
 
-				t.topics[entry.id] = new TopicNode(entry); //todo: тут пока замыкание
+				t.topics[entry.id] = new t.protos.TopicNode(entry); //todo: тут пока замыкание
 				t.units.topics.$content.append(t.topics[entry.id].$body);
 				if (tProps['new']) loadTopic(entry.id);
 				//ifblur_notify('New Topic: '+entry.topic_name, entry.message);
@@ -162,14 +155,14 @@ tinng.funcs.parser = function (result, actionUsed, t) {
 
 
 // КЛАСС ТЕГА
-Tag = function (data) {
+tinng.protos.Tag = function (data) {
 	var t = this.tinng;
 
 	this.$body = t.chunks.get('tag');
 	this.$body.text(data.name);
 }
 
-Tag.prototype = {
+tinng.protos.Tag.prototype = {
 	tinng:tinng
 }
 // end of Tag
@@ -177,10 +170,16 @@ Tag.prototype = {
 
 
 // КЛАСС ЭЛЕМЕНТА СПИСКА ТЕМ
-TopicNode = function (data) {
+tinng.protos.TopicNode = function (data) {
 	var t = this.tinng;
 
+	// проксирование функций
+	this.loadTopic = $.proxy(this, 'loadTopic');
+
 	var $body = this.$body = t.chunks.get('topic');
+
+	// создаем поля объекта на основе данных
+	this.id = data.id;
 
 	// поля для заполнения
 	var cells = [
@@ -204,28 +203,25 @@ TopicNode = function (data) {
 	this.cells.$message.addClass('message_' + data.id);
 	this.cells.$id.text(data.id);
 
+	// вешаем обработчики событий
+	$body.on('click', this.loadTopic);
+
 	this.fill(data); // при создании - сразу заполняем
 }
 
-TopicNode.prototype = {
+tinng.protos.TopicNode.prototype = {
 	tinng:tinng,
-	Tag:Tag,
 
 	// заполнить данными
 	fill:function (data) {
 		var t = this.tinng;
 
 		// общие поля
-		this.cells.$message.html
-			(data.message);
-		this.cells.$topicname.html
-			(data.topic_name);
-		this.cells.$created.text
-			(data.modified ? t.txt.modified + data.modified : data.created);
-		this.cells.$author.text
-			(data.author);
-		this.cells.$postsquant.text
-			(data.postsquant + t.txt.msgs);
+		this.cells.$message.html(data.message);
+		this.cells.$topicname.html(data.topic_name);
+		this.cells.$created.text(data.modified ? t.txt.modified + data.modified : data.created);
+		this.cells.$author.text(data.author);
+		this.cells.$postsquant.text(data.postsquant + t.txt.msgs);
 
 		// последнее сообщение
 		if (data.last_id) {
@@ -239,43 +235,51 @@ TopicNode.prototype = {
 		if (data.tags) {
 			this.cells.$tags.text('');
 			for (var i in data.tags) {
-				this.cells.$tags.append(new this.Tag(data.tags[i]).$body);
+				this.cells.$tags.append(new t.protos.Tag(data.tags[i]).$body);
 			}
 		}
+
+		this.data = data;
 	},
 
 	// изменить положение в списке при обновлении
 	bump:function () {
 		var t = this.tinng;
-		var content = t.units.topics.$content;
+		var $content = t.units.topics.$content;
 
 		switch (t.sync.topicSort) {
 
 			// сортировка по последнему обновлению
 			case 'updated':
 				this.$body.remove();
-				if (t.sync.tsReverse) { content.prepend(this.$body)} else content.append(this.$body);
-			break;
+				if (t.sync.tsReverse) {
+					$content.prepend(this.$body)
+				} else $content.append(this.$body);
+				break;
 		}
+	},
+
+	loadTopic:function () {
+		var t = this.tinng;
+
+		t.funcs.unloadTopic();
+
+		t.sync.curTopic = this.id;
+		t.rotor.start('load_pages');
+
+		//todo работа с хешем адреса
 	}
 }
 // end of TopicNode
 
-
-
-// ЗАПУСК КОНТЕЙНЕРА
-ContentStarter = function () {
+tinng.funcs.unloadTopic = function () {
 	var t = this.tinng;
 
-	t.rotor = new this.Rotor(
-		'/backend/update.php',
-		t.sync,
-		t.funcs.parser
-	);
-	t.rotor.start('load_pages');
-}
+	t.units.posts.$content.html(''); //todo проверить полное удаление из памяти
+	t.posts = {};
+	t.sync.curTopic = 0;
+	t.sync.pglimitdateTS = 0;
+	t.sync.plimit = 1;
 
-ContentStarter.prototype = {
-	tinng:tinng,
-	Rotor:Rotor
+	//todo deselect post if selected
 }

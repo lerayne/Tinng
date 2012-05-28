@@ -1,36 +1,68 @@
-// Главный объект который передается во все прототипы для избежания замыканий
-tinng = {
-	cfg: cfg, // конфигурация
-	txt: txt, // текстовые переменные
-	state: {}, // записи о состоянии программы
-	units: {}, // отсеки (колонки) интерфейса
-	topics: {}, // отображаемые темы
-	funcs: funcs, // базовые простые функции
+// Движок кусков HTML, из копий которых собирается страница
+tinng.protos.ChunksEngine = function (containerId, attr) {
+	this.collection = {};
+	this.attr = attr;
+	$('#' + containerId + ' [' + attr + ']').each($.proxy(this, 'populate'));
+}
 
-	// здесь пока будут данные
-	data:{
-		units:[
-			{name:'topics', css:{width:'40%'}},
-			{name:'posts', css:{width:'60%'}}
-		]
+tinng.protos.ChunksEngine.prototype = {
+
+	// заполняет коллекцию
+	populate:function (index, value) {
+		var $chunk = $(value);
+		this.collection[$chunk.attr(this.attr)] = $chunk;
 	},
 
-	// переменные, передаваемые на сервер
-	sync: {
-		action: '',
-		maxdateTS: 0,
-		curTopic: 0,
-		plimit: 1,
-		pglimitdateTS: 0,
-		topicSort: 'updated',
-		tsReverse: true,
-		params: {}
+	// желательно использовать этот клонирующий геттер
+	get:function (name) {
+		return this.collection[name] ? this.collection[name].clone() : $('<div class="' + name + '"></div>');
 	}
 }
 
 
+
+// класс объекта Юнита
+tinng.protos.Unit = function (map) {
+
+	/// СБОР ///
+
+	var t = this.tinng;
+
+	var $body = this.$body = t.chunks.get('unit');
+	this.$scrollArea = $body.find('.scroll-area');
+	this.$content = $body.find('.content');
+	this.$header = $body.find('header');
+	this.$footer = $body.find('footer');
+
+	/// ОБРАБОТКА ///
+
+	$body.addClass(map.name);
+	$body.css(map.css);
+}
+
+tinng.protos.Unit.prototype = {
+	tinng:tinng
+}
+
+
+
+// Редактор сообщений
+tinng.protos.Editor = function () {
+	var $body = this.$body = this.tinng.chunks.get('editor');
+}
+
+tinng.protos.Editor.prototype = {
+	tinng:tinng
+}
+
+
+
 // класс занимающийся интерфейсом
-UserInterface = function (targetWindow) {
+tinng.protos.UserInterface = function (targetWindow) {
+
+	/// СБОР ///
+
+	var t = this.tinng;
 
 	// ссылки на важные эелементы
 	this.window = targetWindow;
@@ -47,10 +79,28 @@ UserInterface = function (targetWindow) {
 	// проксирование методов
 	this.winResize = $.proxy(this, 'winResize');
 	this.editorResize = $.proxy(this, 'editorResize');
+
+	/// ОБРАБОТКА ///
+
+	// размещение юнитов
+	for (var key in t.data.units) {
+		var val = t.data.units[key];
+		var $unit = t.units[val.name] = new t.protos.Unit(val);
+		this.$unitsArea.append($unit.$body);
+	}
+	this.$unitsArea.append(t.chunks.get('clearfix'));
+	//t.units.posts.$content.append($('<div style="height:1000px">'));
+
+	// размещение редактора
+	var editor = this.editor = new t.protos.Editor();
+	editor.$body.on('keyup', this.editorResize);
+	t.units.posts.$scrollArea.append(editor.$body);
+
+	// вешаем событие на ресайз окна
+	this.$window.resize(this.winResize).resize();
 };
 
-UserInterface.prototype = {
-
+tinng.protos.UserInterface.prototype = {
 	tinng:tinng,
 
 	// изменяет высоту окна
@@ -58,108 +108,22 @@ UserInterface.prototype = {
 		var t = this.tinng;
 
 		var mainH = this.sizes.mainH = this.window.document.documentElement.clientHeight
-			- this.$mainHeader[0].offsetHeight
-			- this.$mainFooter[0].offsetHeight
+			- this.$mainHeader.offsetHeight()
+			- this.$mainFooter.offsetHeight()
+			;
 
 		for (var i in t.units) {
 			var unit = t.units[i];
-			unit.$scrollArea.height(mainH - unit.$header[0].offsetHeight - unit.$footer[0].offsetHeight);
+			unit.$scrollArea.height(mainH - unit.$header.offsetHeight() - unit.$footer.offsetHeight());
 		}
 
 		this.editorResize();
 	},
 
-	placeEditor: function(){
-		var t = this.tinng;
-
-		var editor = this.editor = t.chunks.get('editor');
-		editor.on('keyup', this.editorResize);
-		editor.on('keydown', this.editorResize);
-
-		t.units.posts.$scrollArea.append(editor);
-	},
-
-	editorResize: function(e){
+	// Подгоняет внешний вид редактора под окно
+	editorResize:function () {
 		var posts = this.tinng.units.posts;
-		this.editor.width(posts.$content.width());
-		posts.$content.css('margin-bottom', this.editor[0].offsetHeight);
-	}
-};
-
-
-// Движок кусков HTML, из копий которых собирается страница
-ChunksEngine = function () {
-	this.collection = {};
-	$('#tinng-chunks').find('*[data-chunk-name]').each( $.proxy(this, 'populate') );
-}
-
-ChunksEngine.prototype = {
-
-	// заполняет коллекцию
-	populate: function (index, value) {
-		var $chunk = $(value);
-		this.collection[$chunk.attr('data-chunk-name')] = $chunk;
-	},
-
-	// желательно использовать этот клонирующий геттер
-	get: function (name) {
-		return this.collection[name] ? this.collection[name].clone() : $('<div class="'+name+'"></div>');
-	}
-}
-
-
-// класс объекта Юнита
-Unit = function (map) {
-	var t = this.tinng;
-
-	var $body = this.$body = t.chunks.get('unit');
-	this.$scrollArea = $body.find('.scroll-area');
-	this.$content = $body.find('.content');
-	this.$header = $body.find('header');
-	this.$footer = $body.find('footer');
-
-	$body.addClass(map.name);
-	$body.css(map.css);
-
-	t.ui.$unitsArea.append($body);
-}
-
-Unit.prototype = {
-	tinng:tinng
-}
-
-
-
-InterfaceStarter = function () {
-	var t = this.tinng;
-
-	t.ui = new this.UserInterface(window);
-	t.chunks = new this.ChunksEngine();
-	t.units = {};
-
-	this.placeUnits(t.data['units']);
-	t.ui.placeEditor();
-
-	t.ui.$window.resize(t.ui.winResize).resize();
-
-	t.units.posts.$content.append($('<div style="height:1000px">'))
-};
-
-InterfaceStarter.prototype = {
-	tinng:tinng,
-	Unit:Unit,
-	UserInterface:UserInterface,
-	ChunksEngine:ChunksEngine,
-
-
-	placeUnits:function (array) {
-		var t = this.tinng;
-
-		for (var key in array) {
-			var val = array[key];
-			t.units[val.name] = new this.Unit(val);
-		}
-
-		t.ui.$unitsArea.append(t.chunks.get('clearfix'));
+		this.editor.$body.width(posts.$content.width());
+		posts.$content.css('margin-bottom', this.editor.$body.offsetHeight());
 	}
 };

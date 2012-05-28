@@ -50,7 +50,6 @@
 
 
 			<div data-chunk-name="topic" class="letter topic revealer">
-				<div class="before_cell"></div>
 				<div class="data_cell">
 					<div class="infobar">
 						<div data-cell="created" class="created right reveal"></div>
@@ -75,12 +74,10 @@
 					<div data-cell="controls" class="controls reveal"></div>
 					<div class="clearboth"></div>
 				</div>
-				<div class="after_cell"></div>
 			</div>
 
 
 			<div data-chunk-name="message" class="letter message revealer">
-				<div class="before_cell"></div>
 				<div class="data_cell">
 					<div class="infobar">
 						<div class="avatar"><img></div>
@@ -102,7 +99,6 @@
 					</div>
 					<div class="clearboth"></div>
 				</div>
-				<div class="after_cell"></div>
 			</div>
 
 			<div data-chunk-name="editor" class="editor">
