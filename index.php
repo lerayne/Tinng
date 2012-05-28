@@ -7,7 +7,6 @@
 $rootdir = './';
 require_once 'php/initial.php';
 
-
 // ПОСТРОЕНИЕ ИНТЕРФЕЙСА
 ////////////////////////
 
@@ -35,5 +34,6 @@ $device_path = 'displays/'.$display_mode.'/'.$display_mode.'_';
 // ПОДКЛЮЧЕНИЕ ШАБЛОНА
 //////////////////////
 
-require_once $device_path.'template_handler.php';
+require_once $device_path.'template_handler_jq.php';
+//require_once $device_path.'template_handler.php';
 ?>

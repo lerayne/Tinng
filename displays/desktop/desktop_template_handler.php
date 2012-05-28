@@ -1,4 +1,5 @@
 <?php
+$cfg['skin'] = 'aquamarine';
 
 $message = $_COOKIE['message'];
 
@@ -33,14 +34,14 @@ function template_head(){
 	
 	incl_scripts(
 		'libraries/JsHttpRequest.js',
-		//'lib_modified/nicEdit.js',
-		//'libraries/webtoolkit.js',
-		//'js/spikes.js',
-		'js/funcs.js',
-		//'js/object_spikes.js',
-		//'js/global_content.js',
+		'lib_modified/nicEdit.js',
+		'libraries/webtoolkit.js',
+		'js/spikes.js',
+//		'js/funcs.js',
+		'js/object_spikes.js',
+		'js/global_content.js',
 		'skins/'.$cfg['skin'].'/scripts/'.$display_mode.'_interface.js',
-		$device_path.'content_jq.js',
+		$device_path.'content.js',
 		//$device_path.'focusing.js',
 		$device_path.'onload.js'
 	);
