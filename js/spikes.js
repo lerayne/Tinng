@@ -35,7 +35,7 @@ function stopBubble(e){
 }
 
 
-//todo - эта уже скопирована
+//эта уже скопирована
 function advClearTimeout(timeout) {
 	if (timeout){
 		consoleWrite('timeout found: '+timeout+'. cleared', 1);

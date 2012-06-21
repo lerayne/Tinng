@@ -1,6 +1,7 @@
-window.onload = function(){
-	var t = tinng;
+tinng.funcs.onWindowLoad = function(){
+	var t = this.tinng;
 
+	// создание машин, использующих селекторы
 	t.chunks = new t.protos.ChunksEngine('tinng-chunks', 'data-chunk-name');
 	t.ui = new t.protos.UserInterface(window);
 
@@ -10,13 +11,17 @@ window.onload = function(){
 		t.funcs.parser
 	);
 
+	// загрузка данных из хеша
+	t.sync.curTopic = parseInt(t.address.get('topic'));
+	t.sync.plimit = parseInt(t.address.get('plimit')) || t.sync.plimit;
+
+	// запуск соединения с сервером
 	t.rotor.start('load_pages');
-	/*
-	startInterface();
-	startEngine();
-	revealInterface();
-	*/
 }
+
+tinng.funcs.onWindowLoad.prototype.tinng = tinng;
+
+$(window).on('load', tinng.funcs.onWindowLoad)
 
 /*window.onbeforeunload = function(){
 	//alert('exiting program!');

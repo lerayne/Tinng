@@ -366,7 +366,7 @@ if ($topic){
 		if ($action == 'load_pages') { // если загружаем новую тему
 				
 			$maxdateSQL = $pglimit_dateSQL;
-			$result['topic_prop']['manual'] = true; // указываем что тема грузилась вручную (пока только для прокрутки)
+			$result['topic_prop']['manual'] = true; // указываем что тема грузилась вручную (пока только для прокрутки) todo - не работает
 
 			// выводим номер темы для подсветки ее в колонке тем
 			$result['topic_prop']['id'] = $topic;

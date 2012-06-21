@@ -1,57 +1,56 @@
 /* набор универсальных функций с попыткой использовать ООП */
 
-function LocHash(){
-	this.hash = location.hash;
+Address = function (delimSign, eqSign) {
 
-	var loadHash = function(){
-		return location.hash.replace('#','').split(';');
-	}
+	this.vars = {};
+	this.delimSign = delimSign;
+	this.eqSign = eqSign;
 
-	this.set = function(varName, value){
-		
-		var newhash = [];
-		var set;
+	this.load();
 
-		if (location.hash.indexOf(':') != -1){
-			var pairs = loadHash();
-			var pair;
-			for (var i in pairs){
-				pair = pairs[i].split(':');
-				if (varName == pair[0]){
-					pair[1] = value;
-					set = true;
-				}
-				newhash[i] = pair[0]+':'+pair[1];
-			}
+}
+
+Address.prototype = {
+
+	load:function () {
+		var pairs = this.loadParams(), pair, varName, value;
+
+		if (pairs.length) for (var i in pairs) {
+			pair = pairs[i].split(this.eqSign);
+			varName = pair[0];
+			value = pair[1];
+			if (varName !== '') this.vars[varName] = value;
 		}
-		if (!set) newhash[newhash.length] = varName+':'+value;
-		location.hash = newhash.join(';');
-	}
+	},
 
-	this.get = function(varName){
-		var pairs = loadHash();
-		var pair;
-		for (var i in pairs){
-			pair = pairs[i].split(':');
-			if (varName == pair[0]) return pair[1];
-		}
-		return false;
-	}
+	write: function (args) {
 
-	this.del = function(varName){
-		var pairs = loadHash();
-		var newhash = [];
-		var pair;
-		for (var i in pairs){
-			pair = pairs[i].split(':');
-			
-			// Если строка varName не равна названию параметра - присоединяем этот параметр к новой строке
-			if (varName != pair[0]){
-				newhash[i] = pair[0]+':'+pair[1];
-			}
-		}
-		location.hash = newhash.join(';');
+		if (args && args.length == 1 && typeof args[0] == 'object') for (var key in args[0]) this.vars[key] = args[0][key];
+		if (args && args.length == 2 && typeof args[0] == 'string') this.vars[args[0]] = args[1];
+
+		var newHash = [];
+		for (var key in this.vars) newHash.push(key + this.eqSign + this.vars[key]);
+		location.hash = newHash.join(this.delimSign);
+	},
+
+	loadParams:function () {
+		if (location.hash.length > 2 && location.hash.indexOf(this.eqSign) != -1) {
+			return location.hash.replace('#', '').split(this.delimSign);
+		} else return [];
+	},
+
+	set:function () {
+		this.write(arguments);
+	},
+
+	get:function (varName) {
+		return (this.vars[varName]) ? this.vars[varName] : false;
+	},
+
+	del:function (varName) {
+		delete(this.vars[varName]);
+		this.write();
 	}
 }
 
-adress = new LocHash;
+adress = new Address(';', ':');

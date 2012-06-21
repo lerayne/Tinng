@@ -2,8 +2,8 @@ body {
 	background-color: #ddd;
 	margin:0;
 	padding:0;
-	/*overflow-y: scroll;*/
-	overflow-y: hidden;
+	overflow-y: scroll;
+	/*overflow-y: hidden;*/
 	font-family: Tahoma, Arial, serif;
 	font-size: 13px;
 	color:#333;
@@ -13,12 +13,12 @@ body {
 	position:relative;
 }
 
-#tinng-main #curtain {
+#curtain {
 	background-color:black;
 	opacity:0.5;
 }
 
-#tinng-main #dialogue {
+#dialogue {
 	width: 50%;
 	height: 70%;
 	min-width: 500px;
@@ -56,19 +56,19 @@ body {
 	position: relative;
 }
 
-#tinng-main .unit header {
+.unit header {
 	min-height: 28px;
 	background-color: #bbb;
-	border-right:1px solid #c5c5c5;
+	border-right:1px solid #c8c8c8;
 	position: relative;
 }
 
-#tinng-main #loginForm {
+#loginForm {
 	margin-top:5px;
 }
 
 /* Декоративные псевдо-тени */
-#tinng-main .unit header::after, #tinng-main .topics footer::after, #tinng-main .editor::after {
+.unit header::after, .topics footer::after, .editor::after {
 	content: '';
 	width: 100%;
 	height: 3px;
@@ -78,67 +78,90 @@ body {
 	z-index: 10;
 }
 
-#tinng-main .unit header::after {
+.unit header::after {
 	bottom: -3px;
 }
 
-#tinng-main .topics footer::after {
+.topics footer::after {
 	bottom: 0;
 }
 
-#tinng-main .editor::after {
+.editor::after {
 	top: -3px;
 }
 
-#tinng-main .unit.posts header {
+.unit.posts header {
 	border:none;
 }
 
+.content {
+	padding-top:3px;
+}
+
 /* Индикатор активности */
-#tinng-main .state-ind {
+.state-ind {
 	height:17px;
 	width: 16px;
 	margin:9px 5px;
 }
 
-#tinng-main .state-ind.updating {
+.state-ind.updating {
 	background-image: url('/images/throbber.gif');
 }
 
 
-/* topic */
-#tinng-main .topic {
+
+
+/* topics & posts (global) */
+.content {
+	background-color: #ddd;
+}
+
+.content .node {
 	padding: 10px;
-	border:none;
-	border-bottom:4px solid #ddd;
-	cursor:pointer;
+	border:2px solid transparent;
+	margin-bottom:4px;
+	background-color: white;
+	position: relative;
 }
 
-#tinng-main .topic .message {
-	height: 2.5em;
-	overflow-y: hidden;
-}
-
-#tinng-main .topic .created {
-	 font-size: 11px;
-}
-
-#tinng-main .topic .author {
-	margin-right:5px;
-}
-
-#tinng-main .topic .msgid {
+.content .msgid {
 	margin-right:5px;
 	color:#ccc;
 }
 
-#tinng-main .topic .topicname {
+.content .author {
+	margin-right:5px;
+}
+
+/* topic */
+.content .topic {
+	cursor:pointer;
+}
+
+.content .topic.active {
+	background-color: #EAFFE8;
+	border-color:#EAFFE8;
+}
+
+.content .topic .message {
+	height: 2.5em;
+	overflow-y: hidden;
+}
+
+.content .topic .created {
+	 font-size: 11px;
+}
+
+
+
+.content .topic .topicname {
 	margin: 5px 0;
 	font-size:15px;
 	color:#777;
 }
 
-#tinng-main .topic .lastmessage > div {
+.content .topic .lastmessage > div {
 	border-top:1px solid #ddd;
 	margin-top: 5px;
 	padding-top: 5px;
@@ -146,15 +169,36 @@ body {
 	overflow-y: hidden;
 }
 
+/* post */
+.content .post {
+	padding-left:58px;
+}
+
+.content .post .avatar {
+	position:absolute;
+	top:0;
+	left:0;
+}
+
+.content .post .infobar {
+	border-bottom:1px solid #ddd;
+	margin-bottom: 6px;
+	padding-bottom: 3px;
+}
+
+.content .post.selected {
+	border-color:#9acd32;
+}
+
 
 /* editor */
-#tinng-main .editor-inner {
+.editor-inner {
 	padding:4px;
 	background: #eee;
 	border-top:1px solid #ddd;
 }
 
-#tinng-main .textarea {
+.textarea {
 	background: white;
 	border:1px solid #ccc;
 	padding:4px;
@@ -167,3 +211,27 @@ body {
 	border-radius: 2px;
 }
 
+/**/
+.panel {
+	padding:2px;
+}
+
+.posts .panel .topicname {
+	font-size:110%;
+	/*color:white;
+	font-weight: bold;*/
+	margin:3px 8px;
+	float:left;
+}
+
+.posts .showmore {
+	height:20px;
+	text-align: center;
+	padding-top:7px;
+	background-color: #ddd;
+	display:none;
+}
+
+.posts .showmore a {
+	margin: 0 5px;
+}

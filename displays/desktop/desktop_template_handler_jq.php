@@ -16,7 +16,7 @@ function template_head(){
 	global $device_path, $display_mode, $cfg, $user;
 	
 	echo '
-		<link id="favicon" rel="shortcut icon" type="image/png" href="skins/'.$cfg['skin'].'/images/favicon.png">
+		<link id="favicon" rel="shortcut icon" type="image/png" href="'. path('/images/favicon.png') .'">
 		<!--[if lt IE 9]> <![endif]-->
 	';
 	

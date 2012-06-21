@@ -21,29 +21,169 @@ tinng.protos.ChunksEngine.prototype = {
 
 
 
-// класс объекта Юнита
-tinng.protos.Unit = function (map) {
+tinng.protos.ui.Field = function(data){
+	this.$body = $('<div/>');
 
-	/// СБОР ///
+	if (data.label) this.label = data.label;
 
+	if (data.id) this.$body.attr('id', data.id);
+	if (data.cell) this.$body.attr('data-cell', data.cell);
+	if (data.cssClass) this.$body.addClass(data.cssClass)
+}
+
+tinng.protos.ui.Panel = function(dataArray) {
 	var t = this.tinng;
+
+	this.$body = $('<div/>');
+	this.$body.addClass('panel')
+	this.links = {};
+
+	for (var i = 0; i < dataArray.length; i++) {
+		var data = dataArray[i];
+
+		if (typeof t.protos.ui[data.type] == 'function'){
+			var control = new t.protos.ui[data.type](data);
+			this.$body.append(control.$body);
+			if (control.label) this.links[control.label] = control;
+		}
+	}
+
+	this.$body.append(t.chunks.get('clearfix'));
+}
+
+tinng.protos.ui.Panel.prototype = {
+	tinng:tinng
+}
+
+
+// класс объекта Юнита
+tinng.protos.Unit = function (data) {
+	var t = this.tinng;
+
+	/* СБОР */
+
+	this.data = data;
+
+	this.contentLoaded = 0;
 
 	var $body = this.$body = t.chunks.get('unit');
 	this.$scrollArea = $body.find('.scroll-area');
+	this.$contentWrap = $body.find('.content-wrap');
 	this.$content = $body.find('.content');
 	this.$header = $body.find('header');
 	this.$footer = $body.find('footer');
 
-	/// ОБРАБОТКА ///
+	this.onScroll = $.proxy(this, 'onScroll');
 
-	$body.addClass(map.name);
-	$body.css(map.css);
+	if (data.name == 'posts'){
+		this.onPostsScroll = $.proxy(this, 'onPostsScroll');
+		this.showNext = $.proxy(this, 'showNext');
+		this.showAll = $.proxy(this, 'showAll');
+	}
+
+	/* ОБРАБОТКА */
+
+	$body.addClass(data.name);
+	$body.css(data.css);
+
+	if (data.header){
+		var $headerPanel = new t.protos.ui.Panel(data.header);
+		this.$header.append($headerPanel.$body);
+		this.header = $headerPanel.links;
+	}
+
+	this.$scrollArea.on('scroll', this.onScroll);
+
+	if (data.name == 'posts'){
+		this.$scrollArea.on('scroll', this.onPostsScroll);
+
+		this.$showMore = $('<div class="showmore"/>');
+		this.$contentWrap.prepend(this.$showMore);
+
+		var showNext = $('<a>'+t.txt.show_more+'</a>');
+		var showAll = $('<a>'+t.txt.show_all+'</a>');
+
+		showNext.click(this.showNext);
+		showAll.click(this.showAll);
+
+		this.$showMore.append(showNext, showAll);
+	}
+
+	this.$scrollArea.scroll();
 }
 
 tinng.protos.Unit.prototype = {
-	tinng:tinng
-}
+	tinng:tinng,
 
+	setHeight:function (int) {
+		var height = int - this.$header.offsetHeight() - this.$footer.offsetHeight();
+		this.scrollAreaH = height;
+		this.$scrollArea.height(height);
+	},
+
+	addNode:function (node) {
+		var t = this.tinng;
+
+		if (this.data.name == 'posts'){
+
+			var posts = this.$content.children();
+
+			if (posts.size()) for (var i=0; i < posts.length; i++) {
+				var $post = $(posts[i]);
+				if (node.id < parseInt($post.attr('data-number'))) {
+					node.$body.insertBefore($post);
+					return;
+				}
+			}
+		}
+
+		this.$content.append(node.$body);
+	},
+
+	addNodeOnTop:function (node) {
+		this.$content.prepend(node.$body);
+	},
+
+	scrollToTop:function () {
+		this.$contentWrap[0].scrollIntoView(true);
+	},
+
+	scrollToBottom:function () {
+		this.$contentWrap[0].scrollIntoView(false);
+	},
+
+	onScroll:function () {
+		this.scrolledBy = this.$scrollArea.scrollTop();
+
+		this.atBottom = this.scrollAreaH + this.scrolledBy - this.$contentWrap.offsetHeight() == 0;
+		this.atTop = this.scrolledBy == 0;
+	},
+
+	onPostsScroll:function () {
+		var t = this.tinng;
+
+		if (this.contentLoaded) {
+			if (this.atTop) {
+//				t.funcs.loadMore(t.sync.plimit+1);
+//				console.log('top reached');
+			}
+
+			if (this.atBottom) {
+//				console.log('bottom reached')
+			}
+		}
+	},
+
+	showNext:function(){
+		var t = this.tinng;
+		t.funcs.loadMore(t.sync.plimit+1);
+	},
+
+	showAll:function(){
+		var t = this.tinng;
+		t.funcs.loadMore(0);
+	}
+}
 
 
 // Редактор сообщений
@@ -54,6 +194,8 @@ tinng.protos.Editor = function () {
 tinng.protos.Editor.prototype = {
 	tinng:tinng
 }
+
+
 
 
 
@@ -112,10 +254,7 @@ tinng.protos.UserInterface.prototype = {
 			- this.$mainFooter.offsetHeight()
 			;
 
-		for (var i in t.units) {
-			var unit = t.units[i];
-			unit.$scrollArea.height(mainH - unit.$header.offsetHeight() - unit.$footer.offsetHeight());
-		}
+		for (var key in t.units) t.units[key].setHeight(mainH);
 
 		this.editorResize();
 	},
@@ -124,6 +263,14 @@ tinng.protos.UserInterface.prototype = {
 	editorResize:function () {
 		var posts = this.tinng.units.posts;
 		this.editor.$body.width(posts.$content.width());
-		posts.$content.css('margin-bottom', this.editor.$body.offsetHeight());
+
+		var atBottom = posts.atBottom;
+		posts.$contentWrap.css('padding-bottom', this.editor.$body.offsetHeight());
+		if (atBottom) posts.scrollToBottom();
+		/*
+		 возможно в будущем для еще большей плавности стоит изменять целую пачку стилей с тем чтобы у поля ввода позиция
+		 не всегда была fixed. Для этого придется повесить событие OnScroll и отследивать степень прокрутки. Возможно - тогда
+		 не придется и плясать с нижним паддингом и враппер получится убрать
+		 */
 	}
 };

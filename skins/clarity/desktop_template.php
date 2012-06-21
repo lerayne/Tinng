@@ -9,7 +9,7 @@
 
 	</head>
 	
-	<body>
+	<body <? if (!$safecfg['production']) echo 'class="test"'?>>
 
 		<div id="tinng-main">
 
@@ -37,19 +37,26 @@
 		
 		</div>
 
+
+
+
+
+
 		<!-- шаблоны, обрабатываемые скриптом (скрыты) -->
 		<div id="tinng-chunks" class="none">
 
 			<div data-chunk-name="unit" class="unit">
 				<header></header>
 				<div class="scroll-area">
-					<div class="content"></div>
+					<div class="content-wrap">
+						<div class="content"></div>
+					</div>
 				</div>
 				<footer></footer>
 			</div>
 
 
-			<div data-chunk-name="topic" class="letter topic revealer">
+			<div data-chunk-name="topic" class="node topic revealer">
 				<div class="data_cell">
 					<div class="infobar">
 						<div data-cell="created" class="created right reveal"></div>
@@ -77,17 +84,17 @@
 			</div>
 
 
-			<div data-chunk-name="message" class="letter message revealer">
+			<div data-chunk-name="post" class="node post revealer">
 				<div class="data_cell">
 					<div class="infobar">
-						<div class="avatar"><img></div>
-						<div class="created right reveal"></div>
-						<div class="parent"></div>
-						<div class="author left"></div>
-						<div class="msgid left"></div>
+						<div class="avatar"><img data-cell="avatar"></div>
+						<div data-cell="created" class="created right reveal"></div>
+						<div data-cell="parent" class="parent"></div>
+						<div data-cell="author" class="author left"></div>
+						<div data-cell="id" class="msgid left"></div>
 						<div class="clearboth"></div>
 					</div>
-					<div class="message">
+					<div data-cell="message" class="message">
 						<!-- основное сообщение -->
 					</div>
 					<div class="tags"></div>
