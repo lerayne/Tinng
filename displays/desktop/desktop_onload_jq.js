@@ -13,7 +13,10 @@ tinng.funcs.onWindowLoad = function(){
 
 	// загрузка данных из хеша
 	t.sync.curTopic = parseInt(t.address.get('topic'));
-	t.sync.plimit = parseInt(t.address.get('plimit')) || t.sync.plimit;
+
+	// такая конструкция нужна для того, чтобы 0 воспринимался как значение
+	var loadedLimit = t.address.get('plimit');
+	t.sync.plimit = (loadedLimit === false) ? t.sync.plimit : parseInt(loadedLimit);
 
 	// запуск соединения с сервером
 	t.rotor.start('load_pages');

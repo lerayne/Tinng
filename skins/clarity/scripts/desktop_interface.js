@@ -189,10 +189,27 @@ tinng.protos.Unit.prototype = {
 // Редактор сообщений
 tinng.protos.Editor = function () {
 	var $body = this.$body = this.tinng.chunks.get('editor');
+
+	this.$submit = $body.find('.submit.button');
+	this.$messageBody = $body.find('.textarea');
+	this.$messageTitle = $body.find('.title');
+
+	this.submitNew = $.proxy(this, 'submitNew');
+
+	this.$submit.click(this.submitNew);
 }
 
 tinng.protos.Editor.prototype = {
-	tinng:tinng
+	tinng:tinng,
+
+	submitNew:function(){
+		var t = this.tinng;
+
+		t.rotor.start('add_post', {
+			message:this.$messageBody.html(),
+			title:this.$messageTitle.val()
+		});
+	}
 }
 
 

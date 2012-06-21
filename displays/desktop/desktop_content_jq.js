@@ -168,6 +168,7 @@ tinng.funcs.parser = function (result, actionUsed) {
 		if (actionUsed == 'next_page') {
 			var rememberTop = t.units.posts.$content.children()[0];
 			var more_height = t.units.posts.$showMore.offsetHeight();
+			console.log('moreH='+more_height);
 		}
 
 		for (var i in result.posts) {
@@ -179,29 +180,23 @@ tinng.funcs.parser = function (result, actionUsed) {
 				if (entry.deleted) {
 
 					post.remove();
-					delete(post); //todo - проверить, удаляется ли сам элемент массива
-					t.funcs.postSelect(false);
 
 				} else post.fill(entry);
 
 			} else if (!entry.deleted) { // если в текущем массиве такого нет и пришедшее не удалено
 
-				var parent = t.sync.curTopic;
-
 				post = t.posts[entry.id] = new t.protos.PostNode(entry);
 				t.units.posts.addNode(post);
-
-				var lastvisible = post;
 			}
 		}
 
-		//if (tProps.show_all) hide(e('@show_more')); //todo - это для догрузки
-
 		if (tProps.scrollto) t.posts[tProps.scrollto].show(false);
+
 		if (actionUsed == 'next_page') {
 			rememberTop.scrollIntoView(true);
+			console.log(t.units.posts.$scrollArea.scrollTop())
 			t.units.posts.$scrollArea.scrollTop(t.units.posts.$scrollArea.scrollTop() - more_height - 3);
-		}
+		} // todo - неправильно прокручивается, если до догрузки все сообщения помещались и прокрутка не появлялась
 
 		// наличие id означает что тема загружается в первый раз, а не догружается.
 		// todo - исправить фиговое опредление!
@@ -218,19 +213,22 @@ tinng.funcs.parser = function (result, actionUsed) {
 
 			if (t.posts[refPost]) {
 
-				t.posts[refPost].show(false); // todo - фигово работает промотка с выравниванием по низу - эдитор закрывает
-				t.posts[refPost].select()
+				t.posts[refPost].select();
+				t.posts[refPost].show(false);
 
 			} else if (tProps.date_read != 'firstRead') {
-				// todo !! тут будет прокрутка до первого непрочитанного поста. Сейчас - прокрутка просто до последнего сообщения в теме, если юзер уже читал эту тему
-				lastvisible.show(true);
+				// todo !! тут будет прокрутка до первого непрочитанного поста.
+				// Сейчас - прокрутка просто до последнего сообщения в теме, если юзер уже читал эту тему
+				t.units.posts.scrollToBottom();
 			}
 		}
 
 		if (tProps.pglimit_date) t.sync.pglimdateTS = t.funcs.sql2stamp(tProps.pglimit_date);
 
 		// todo разобраться почему работает только через анонимную функцию
-		setTimeout(function(){this.tinng.units.posts.contentLoaded = 1}, 0);
+		setTimeout(function () {
+			this.tinng.units.posts.contentLoaded = 1
+		});
 //		t.units.posts.setContentLoaded();
 	}
 
@@ -325,7 +323,7 @@ tinng.protos.Node = new Class({
 	},
 
 	show:function (start) {
-		this.$body[0].scrollIntoView(start)
+		this.$body[0].scrollIntoView(start);
 	}
 });
 
@@ -411,7 +409,7 @@ tinng.protos.TopicNode = new Class(tinng.protos.Node, {
 		t.sync.curTopic = this.id;
 		t.rotor.start('load_pages');
 
-		t.address.set({topic: this.id, plimit:t.sync.plimit});
+		t.address.set({topic:this.id, plimit:t.sync.plimit});
 	},
 
 	markActive:function () {
@@ -419,7 +417,7 @@ tinng.protos.TopicNode = new Class(tinng.protos.Node, {
 		this.$body.addClass('active');
 	},
 
-	unmarkActive:function(){
+	unmarkActive:function () {
 		this.tinng.funcs.topicUnmarkActive();
 	}
 });
@@ -476,6 +474,30 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 		if (full) {
 			delete(this.tinng.state.selectedPost);
 			this.tinng.address.del('post');
+		}
+	},
+
+	remove:function () {
+		this.deselect();
+		this.$body.remove();
+		delete(this.tinng.posts[this.id]); //todo - проверить, удаляется ли сам элемент массива
+	},
+
+	show:function (start) {
+		var t = this.tinng;
+
+		this.tinng.protos
+			.Node.prototype
+			.show.apply(this, arguments);
+
+		var thisLast = this.$body.next().size() == 0;
+
+		if (start == false) {
+			var $postsU = t.units.posts;
+			if (!thisLast)
+				$postsU.$scrollArea.scrollTop($postsU.$scrollArea.scrollTop() + parseInt($postsU.$contentWrap.css('padding-bottom')));
+			else
+				$postsU.scrollToBottom();
 		}
 	}
 })

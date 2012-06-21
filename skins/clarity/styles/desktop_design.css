@@ -235,3 +235,7 @@ body {
 .posts .showmore a {
 	margin: 0 5px;
 }
+
+.editor .title {
+	display:none;
+}
