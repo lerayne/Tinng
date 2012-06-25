@@ -58,7 +58,7 @@
 
 			<div data-chunk-name="topic" class="node topic revealer">
 				<div class="data_cell">
-					<div class="infobar">
+					<div data-cell="infobar" class="infobar">
 						<div data-cell="created" class="created right reveal"></div>
 						<div data-cell="parent" class="parent"></div>
 						<div data-cell="author" class="author left"></div>
@@ -86,7 +86,7 @@
 
 			<div data-chunk-name="post" class="node post revealer">
 				<div class="data_cell">
-					<div class="infobar">
+					<div data-cell="infobar" class="infobar">
 						<div class="avatar"><img data-cell="avatar"></div>
 						<div data-cell="created" class="created right reveal"></div>
 						<div data-cell="parent" class="parent"></div>
@@ -98,12 +98,7 @@
 						<!-- основное сообщение -->
 					</div>
 					<div class="tags"></div>
-					<div class="controls reveal">
-						<div class="sbtn editmessage"></div>
-						<div class="sbtn deletemessage"></div>
-						<div class="explain subtext"></div>
-						<div class="clearboth"></div>
-					</div>
+					<div data-cell="controls" class="controls reveal"></div>
 					<div class="clearboth"></div>
 				</div>
 			</div>

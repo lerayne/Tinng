@@ -125,6 +125,10 @@ a:hover {text-decoration: underline;}
 	display: inline-block;
 }
 
+.button.left {margin-right:8px;}
+.button.right {margin-left:8px;}
+
+
 .button:hover {
 	background-color: #ccc;
 }

@@ -28,15 +28,36 @@ tinng.protos.ui.Field = function(data){
 
 	if (data.id) this.$body.attr('id', data.id);
 	if (data.cell) this.$body.attr('data-cell', data.cell);
-	if (data.cssClass) this.$body.addClass(data.cssClass)
+	if (data.cssClass) this.$body.addClass(data.cssClass);
+	if (data.css) this.$body.css(data.css);
+}
+
+tinng.protos.ui.Button = function(data){
+	this.$body = $('<div/>');
+
+	if (data.label) this.label = data.label;
+
+	this.$body.addClass('button');
+
+	if (data.id) this.$body.attr('id', data.id);
+	if (data.cell) this.$body.attr('data-cell', data.cell);
+	if (data.cssClass) this.$body.addClass(data.cssClass);
+	if (data.css) this.$body.css(data.css);
+
+	if (data.text) this.$body.html(data.text);
+}
+
+tinng.protos.ui.Button.prototype = {
+	on:function(action, callback){
+		this.$body.on(action, callback);
+	}
 }
 
 tinng.protos.ui.Panel = function(dataArray) {
 	var t = this.tinng;
 
 	this.$body = $('<div/>');
-	this.$body.addClass('panel')
-	this.links = {};
+	this.$body.addClass('panel');
 
 	for (var i = 0; i < dataArray.length; i++) {
 		var data = dataArray[i];
@@ -44,7 +65,7 @@ tinng.protos.ui.Panel = function(dataArray) {
 		if (typeof t.protos.ui[data.type] == 'function'){
 			var control = new t.protos.ui[data.type](data);
 			this.$body.append(control.$body);
-			if (control.label) this.links[control.label] = control;
+			if (control.label) this[control.label] = control;
 		}
 	}
 
@@ -87,9 +108,9 @@ tinng.protos.Unit = function (data) {
 	$body.css(data.css);
 
 	if (data.header){
-		var $headerPanel = new t.protos.ui.Panel(data.header);
-		this.$header.append($headerPanel.$body);
-		this.header = $headerPanel.links;
+		var headerPanel = new t.protos.ui.Panel(data.header);
+		this.$header.append(headerPanel.$body);
+		this.header = headerPanel;
 	}
 
 	this.$scrollArea.on('scroll', this.onScroll);

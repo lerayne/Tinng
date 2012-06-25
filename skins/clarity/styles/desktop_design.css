@@ -118,11 +118,14 @@ body {
 }
 
 .content .node {
-	padding: 10px;
 	border:2px solid transparent;
 	margin-bottom:4px;
 	background-color: white;
 	position: relative;
+}
+
+.content .data_cell {
+	margin:10px;
 }
 
 .content .msgid {
@@ -170,8 +173,8 @@ body {
 }
 
 /* post */
-.content .post {
-	padding-left:58px;
+.content .post .data_cell {
+	margin-left:58px;
 }
 
 .content .post .avatar {
@@ -188,6 +191,15 @@ body {
 
 .content .post.selected {
 	border-color:#9acd32;
+}
+
+.content .post .message {
+	border:1px dotted transparent;
+	padding:3px;
+}
+
+.content .post .message[contenteditable="true"] {
+	border-color: #aaa;
 }
 
 

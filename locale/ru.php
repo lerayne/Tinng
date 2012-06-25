@@ -13,6 +13,10 @@ $txt['msgs'] = ' сообщ.';
 $txt['from'] = '';
 $txt['topicstarter'] = 'автор темы';
 
+$txt['edit'] = 'Правка';
+$txt['delete'] = 'Удалить';
+$txt['unblock'] = 'Разблокировать';
+
 $txt['explain_addbranch'] = 'Ответить на это сообщение';
 $txt['explain_plainanswer'] = 'Ответить на это сообщение';
 $txt['explain_editmessage'] = 'Редактировать сообщение';

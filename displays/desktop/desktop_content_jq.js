@@ -168,7 +168,7 @@ tinng.funcs.parser = function (result, actionUsed) {
 		if (actionUsed == 'next_page') {
 			var rememberTop = t.units.posts.$content.children()[0];
 			var more_height = t.units.posts.$showMore.offsetHeight();
-			console.log('moreH='+more_height);
+			console.log('moreH=' + more_height);
 		}
 
 		for (var i in result.posts) {
@@ -281,6 +281,7 @@ tinng.protos.Node = new Class({
 		// заполняем коллекцию cells на основе названий полей
 		var cells = [
 
+			'infobar',
 			'created',
 			'author',
 			'id',
@@ -426,17 +427,63 @@ tinng.protos.TopicNode = new Class(tinng.protos.Node, {
 tinng.protos.PostNode = Class(tinng.protos.Node, {
 
 	construct:function (data) {
+		var t = this.tinng;
 
 		this.tinng.protos
 			.Node.prototype
 			.construct.call(this, data, 'post',
 			[
-				'avatar'
+				'avatar',
+				'controls'
 			]
 		);
 
-		this.onClick = $.proxy(this, 'onClick');
-		this.$body.click(this.onClick);
+		this.select = $.proxy(this, 'select');
+		this.kill = $.proxy(this, 'kill');
+
+		this.$body.click(this.select);
+		//this.cells.$message.on('click', this.select);
+
+		var authorized = (this.data.author_id == t.state.userID || t.state.userID == '1'); // todo - сделать нормальную авторизацию
+
+		/* Панель действий */
+
+		this.mainPanel = new t.protos.ui.Panel([
+			{type:'Button', label:'delete', cssClass:'right', text:t.txt.delete},
+			{type:'Button', label:'edit', cssClass:'right', text:t.txt.edit},
+			{type:'Button', label:'unlock', cssClass:'right', text:t.txt.unblock}
+		]);
+
+		this.mainPanel.unlock.$body.hide();
+		if (authorized) this.cells.$controls.append(this.mainPanel.$body);
+
+		this.edit = $.proxy(this, 'edit');
+		this.onEditReturn = $.proxy(this, 'onEditReturn');
+		this.delete = $.proxy(this, 'delete');
+		this.unlock = $.proxy(this, 'unlock');
+
+		this.mainPanel.edit.on('click', this.edit);
+		//this.cells.$message.on('dblclick', this.edit);
+		//this.mainPanel.edit.on('click', t.funcs.stopProp);
+		this.mainPanel.delete.on('click', this.delete);
+		//this.mainPanel.delete.on('click', t.funcs.stopProp);
+		this.mainPanel.unlock.on('click', this.unlock);
+
+		/* панель редактирования */
+
+		this.editorPanel = new t.protos.ui.Panel([
+			{type:'Button', cssClass:'right', label:'cancel', text:t.txt.cancel},
+			{type:'Button', cssClass:'right', label:'save', text:t.txt.save}
+		]);
+
+		this.editorPanel.$body.hide();
+		if (authorized) this.cells.$controls.append(this.editorPanel.$body);
+
+		this.save = $.proxy(this, 'save');
+		this.cancelEdit = $.proxy(this, 'cancelEdit');
+
+		this.editorPanel.save.on('click', this.save);
+		this.editorPanel.cancel.on('click', this.cancelEdit);
 	},
 
 	fill:function (data) {
@@ -445,10 +492,6 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 			.fill.apply(this, arguments);
 
 		this.cells.$avatar.attr('src', data.avatar_url);
-	},
-
-	onClick:function () {
-		this.select();
 	},
 
 	select:function () {
@@ -465,6 +508,8 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 		} else if (selected.id == this.id) {
 			this.deselect('full');
 		}
+
+		return false;
 	},
 
 	deselect:function (full) {
@@ -479,6 +524,12 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 
 	remove:function () {
 		this.deselect();
+		this.$body.height(this.$body.height());
+		this.$body.css({overflow:'hidden'});
+		this.$body.animate({opacity:0, height:0}, 400, this.kill);
+	},
+
+	kill:function(){
 		this.$body.remove();
 		delete(this.tinng.posts[this.id]); //todo - проверить, удаляется ли сам элемент массива
 	},
@@ -499,8 +550,88 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 			else
 				$postsU.scrollToBottom();
 		}
+	},
+
+	edit:function () {
+		var t = this.tinng;
+
+		JsHttpRequest.query('backend/service.php', { // аргументы:
+			action:'check_n_lock',
+			id:this.id
+		}, this.onEditReturn, true);
+
+		return false; // preventDefault + stopPropagation
+	},
+
+	onEditReturn:function (result, errors) {
+		var t = this.tinng;
+
+		if (result.locked !== null) {
+
+			alert(t.txt.post_locked);
+			this.mainPanel.unlock.$body.show();
+
+		} else {
+
+			this.messageBackup = this.cells.$message.html();
+
+			this.mainPanel.$body.hide();
+			this.editorPanel.$body.show();
+
+			this.cells.$message.attr('contenteditable', true);
+			this.cells.$message.focus();
+		}
+	},
+
+	exitEditMode:function(){
+		this.editorPanel.$body.hide();
+		this.mainPanel.$body.show();
+		this.cells.$message.removeAttr('contenteditable');
+	},
+
+	cancelEdit:function(){
+
+		this.exitEditMode();
+
+		this.unlock();
+		this.cells.$message.html(this.messageBackup);
+		this.messageBackup = '';
+
+		return false; // preventDefault + stopPropagation
+	},
+
+	save:function(){
+
+		this.tinng.rotor.start('update_message', {
+			id:this.id,
+			message:this.cells.$message.html()
+		});
+		this.exitEditMode();
+
+		return false; // preventDefault + stopPropagation
+	},
+
+	delete:function () {
+		var t = this.tinng;
+
+		if (confirm(t.txt.msg_del_confirm)) {
+			t.rotor.start('delete_message', {id:this.id});
+		}
+
+		return false; // preventDefault + stopPropagation
+	},
+
+	unlock:function(){
+		JsHttpRequest.query('backend/service.php', { // аргументы:
+			action:'unlock_message',
+			id:this.id
+		}, function(){}, true);
+
+		this.mainPanel.unlock.$body.hide();
+
+		return false; // preventDefault + stopPropagation
 	}
-})
+});
 /* end of TopicNode */
 
 

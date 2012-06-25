@@ -6,14 +6,6 @@ $id = $_REQUEST['id'];
 
 switch ($action):
 
-	// разблокировать пост (ничего не возвращает)
-	case 'unlock_message':
-		
-		$db->query('UPDATE ?_messages SET locked = NULL WHERE id = ?d', $id);
-		
-	break;
-
-
 	// пока функция без дела сидит :)
 	case 'check':
 
@@ -48,6 +40,13 @@ switch ($action):
 		if (!$result['locked'])
 			$db->query('UPDATE ?_messages SET locked = ?d WHERE id = ?d', $user->id, $id);
 		
+	break;
+
+	// разблокировать пост (ничего не возвращает)
+	case 'unlock_message':
+
+		$db->query('UPDATE ?_messages SET locked = NULL WHERE id = ?d', $id);
+
 	break;
 	
 	

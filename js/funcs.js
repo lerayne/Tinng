@@ -61,6 +61,7 @@ tinng.sync = {
 }
 
 tinng.state.blurred = false; //TODO отслеживать активность окна
+tinng.state.userID = userID;
 
 
 Funcs = function () {
@@ -116,6 +117,12 @@ Funcs.prototype = {
 		var dates = str1[0].split('-');
 		var times = str1[1].split(':');
 		return new Date(dates[0], dates[1] - 1, dates[2], times[0], times[1], times[2]).getTime();
+	},
+
+	stopProp:function(e){
+		e.stopPropagation();
+//		var e = e || window.event;
+//		e.stopPropagation ? e.stopPropagation() : (e.cancelBubble=true);
 	},
 
 	loadMore:function(pageLimit){
