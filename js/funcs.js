@@ -39,10 +39,17 @@ tinng = {
 // Данные
 tinng.data = {
 	units:[
-		{name:'topics', css:{width:'40%'}},
+		{name:'topics', css:{width:'40%'},
+			header:[
+				{type:'Button', label:'newTopic', cssClass:'right', icon:'doc_plus.png', text:tinng.txt.new_topic}
+			]
+		},
 		{name:'posts', css:{width:'60%'},
 			header:[
-				{type:'Field', label:'topicName', cssClass:'topicname'}
+				{type:'Button', label:'topicRename', cssClass:'right reveal3', icon:'pencil.png', tip:tinng.txt.rename_topic},
+				{type:'Field', label:'topicName', cssClass:'left topicname'},
+				{type:'Button', label:'cancel', cssClass:'right', css:{display:'none'}, icon:'cancel.png', tip:tinng.txt.cancel},
+				{type:'Button', label:'save', cssClass:'right', css:{display:'none'}, icon:'round_checkmark.png', tip:tinng.txt.save}
 			]
 		}
 	]

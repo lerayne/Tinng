@@ -66,13 +66,7 @@
 						<div data-cell="postsquant" class="postsquant reveal"></div>
 						<div class="clearboth"></div>
 					</div>
-					<div class="topicname editabletopic revealer2">
-						<div data-cell="topicname" class="left"></div>
-						<div class="sbtn btn_topicedit right reveal2"></div>
-						<div class="sbtn btn_topiccancel right none"></div>
-						<div class="sbtn btn_topicsubmit right none"></div>
-						<div class="clearboth"></div>
-					</div>
+					<div data-cell="topicname" class="topicname"></div>
 					<div data-cell="message" class="message">
 						<!-- основное сообщение -->
 					</div>

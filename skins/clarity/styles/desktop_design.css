@@ -160,8 +160,8 @@ body {
 
 .content .topic .topicname {
 	margin: 5px 0;
-	font-size:15px;
-	color:#777;
+	font-size:14px;
+	color:#007bb7;
 }
 
 .content .topic .lastmessage > div {
@@ -189,6 +189,11 @@ body {
 	padding-bottom: 3px;
 }
 
+.content .post .controls {
+	margin-bottom:-5px;
+	margin-right:-5px;
+}
+
 .content .post.selected {
 	border-color:#9acd32;
 }
@@ -202,6 +207,31 @@ body {
 	border-color: #aaa;
 }
 
+.posts .panel .topicname {
+	font-size:110%;
+	/*color:white;
+	font-weight: bold;*/
+	padding:2px;
+	border:1px dotted transparent;
+	float:left;
+}
+
+.posts .panel .topicname[contenteditable="true"] {
+	background-color: white;
+	border-color: #aaa;
+}
+
+.posts .showmore {
+	height:20px;
+	text-align: center;
+	padding-top:7px;
+	background-color: #ddd;
+	display:none;
+}
+
+.posts .showmore a {
+	margin: 0 5px;
+}
 
 /* editor */
 .editor-inner {
@@ -223,29 +253,106 @@ body {
 	border-radius: 2px;
 }
 
-/**/
+
+/* панель и кнопки */
+
 .panel {
 	padding:2px;
 }
 
-.posts .panel .topicname {
-	font-size:110%;
-	/*color:white;
-	font-weight: bold;*/
-	margin:3px 8px;
-	float:left;
+.button {
+	background-color: transparent;
+	border:1px solid transparent;
+	border-radius: 2px;
+	font-size:90%;
+	padding:3px 5px;
+	opacity:0.6;
+	background: 2px 2px no-repeat;
+	height:14px;
+	color:black;
+	position: relative;
 }
 
-.posts .showmore {
-	height:20px;
-	text-align: center;
-	padding-top:7px;
-	background-color: #ddd;
-	display:none;
+.button span {
+	margin-left:4px;
 }
 
-.posts .showmore a {
-	margin: 0 5px;
+.button .tip {
+	position: absolute;
+	opacity: 0.9;
+	z-index: 1000;
+}
+
+.button.left .tip {left:0;}
+.button.right .tip {right:0;}
+.button.left .tip .tail {background-position: left bottom}
+.button.right .tip .tail {background-position: right bottom}
+
+.button .tip .body {
+	background: black;
+	color:white;
+	font-weight: bold;
+	font-size:90%;
+	white-space: nowrap;
+	padding:3px 6px;
+	border-radius: 2px;
+}
+
+.button .tip .tail {
+	height:5px;
+	background: url('../images/tip-tail.gif') no-repeat center bottom;
+}
+
+.button.with-icon {
+	padding-left:16px;
+}
+
+.button:hover {
+	border-color: #ccc;
+	background-color: transparent;
+	opacity:0.85;
+}
+
+.button:active {
+	border-color: #ccc;
+	background-color: #eee;
+	opacity:1;
+}
+
+.button.submit, .button.submit:active {
+	opacity:1;
+	color:white;
+	font-weight: bold;
+	border-color: #004162;
+	background-image: -webkit-linear-gradient(top, #007bb7, #006299);
+	background-color: #006299;
+	background-position: top left;
+	text-shadow:1px 1px #004162;
+}
+
+.button.submit:hover {
+	background-image: -webkit-linear-gradient(top, #018bd3, #007bb7);
+	background-color: #007bb7;
+	border-color: #006299;
+}
+
+.unit header .button {
+	opacity: 0.75;
+	margin:1px;
+}
+
+.unit header .button:hover {
+	opacity:1;
+	border-color:#999;
+}
+
+.unit header .button .tip {
+	opacity:0.7;
+}
+
+.unit header .button:active {
+	opacity:0.75;
+	background-color: #ccc;
 }
 
 .editor .title {

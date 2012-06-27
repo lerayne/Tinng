@@ -47,7 +47,7 @@ a:hover {text-decoration: underline;}
 .left		{ float:left; }
 .right		{ float:right; }
 .none		{ display: none; }
-.invis		{ visibility: hidden; }
+.invis, .invisible		{ visibility: hidden; }
 .clearboth, .clearfix	{ clear:both; }
 
 .reveal, .reveal2, .reveal3 { visibility: hidden; }
@@ -125,8 +125,8 @@ a:hover {text-decoration: underline;}
 	display: inline-block;
 }
 
-.button.left {margin-right:8px;}
-.button.right {margin-left:8px;}
+.button.left {margin-right:4px;}
+.button.right {margin-left:4px;}
 
 
 .button:hover {

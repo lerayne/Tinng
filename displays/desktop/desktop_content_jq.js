@@ -168,7 +168,7 @@ tinng.funcs.parser = function (result, actionUsed) {
 		if (actionUsed == 'next_page') {
 			var rememberTop = t.units.posts.$content.children()[0];
 			var more_height = t.units.posts.$showMore.offsetHeight();
-			console.log('moreH=' + more_height);
+//			console.log('moreH=' + more_height);
 		}
 
 		for (var i in result.posts) {
@@ -194,14 +194,14 @@ tinng.funcs.parser = function (result, actionUsed) {
 
 		if (actionUsed == 'next_page') {
 			rememberTop.scrollIntoView(true);
-			console.log(t.units.posts.$scrollArea.scrollTop())
+//			console.log(t.units.posts.$scrollArea.scrollTop())
 			t.units.posts.$scrollArea.scrollTop(t.units.posts.$scrollArea.scrollTop() - more_height - 3);
 		} // todo - неправильно прокручивается, если до догрузки все сообщения помещались и прокрутка не появлялась
 
 		// наличие id означает что тема загружается в первый раз, а не догружается.
 		// todo - исправить фиговое опредление!
 		if (tProps.id) {
-			t.topics[tProps.id].markActive(); // делаем тему в столбце тем активной
+			t.topics[tProps.id].select(); // делаем тему в столбце тем активной
 
 			// если тема загружается не вручную кликом по ней - промотать до неё в списке
 			// todo - это не работает (и в продакшне тоже) - испортилось после введения пейджинга
@@ -225,10 +225,13 @@ tinng.funcs.parser = function (result, actionUsed) {
 
 		if (tProps.pglimit_date) t.sync.pglimdateTS = t.funcs.sql2stamp(tProps.pglimit_date);
 
+		t.ui.winResize(); // потому что от размера названия темы может разнести хедер
+
 		// todo разобраться почему работает только через анонимную функцию
 		setTimeout(function () {
 			this.tinng.units.posts.contentLoaded = 1
 		});
+
 //		t.units.posts.setContentLoaded();
 	}
 
@@ -312,17 +315,6 @@ tinng.protos.Node = new Class({
 		this.cells.$author.text(data.author);
 	},
 
-	remove:function (speed) {
-
-		if (speed) {
-			//todo: дописать анимацию
-//		$(elem).addClass('transp');
-//		setTimeout(function() {remove(elem)}, 500);
-		}
-
-		this.$body.remove();
-	},
-
 	show:function (start) {
 		this.$body[0].scrollIntoView(start);
 	}
@@ -388,7 +380,7 @@ tinng.protos.TopicNode = new Class(tinng.protos.Node, {
 
 			// сортировка по последнему обновлению
 			case 'updated':
-				this.remove(0);
+				this.detach();
 
 				if (t.sync.tsReverse) {
 					topics.addNodeOnTop(this)
@@ -405,7 +397,7 @@ tinng.protos.TopicNode = new Class(tinng.protos.Node, {
 		var t = this.tinng;
 
 		t.funcs.unloadTopic();
-		this.markActive(); // делаем тему в столбце тем активной
+		this.select(); // делаем тему в столбце тем активной
 
 		t.sync.curTopic = this.id;
 		t.rotor.start('load_pages');
@@ -413,13 +405,30 @@ tinng.protos.TopicNode = new Class(tinng.protos.Node, {
 		t.address.set({topic:this.id, plimit:t.sync.plimit});
 	},
 
-	markActive:function () {
-		this.unmarkActive();
+	select:function () {
+		this.deselect();
 		this.$body.addClass('active');
 	},
 
-	unmarkActive:function () {
-		this.tinng.funcs.topicUnmarkActive();
+	deselect:function () {
+		this.tinng.funcs.topicDeselect();
+	},
+
+	// демонстрирует удаление ноды в интерфейсе и вызывает окончательное удаление
+	remove:function () {
+		this.deselect();
+		this.$body.css({overflow:'hidden'});
+		this.$body.animate({opacity:0, height:0}, 400, this.kill);
+	},
+
+	// окончательно удаляет ноду
+	kill:function () {
+		this.$body.remove();
+		delete(this.tinng.topics[this.id]); //todo - проверить, удаляется ли сам элемент массива
+	},
+
+	detach:function () {
+		this.$body.remove();
 	}
 });
 
@@ -444,21 +453,22 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 		this.$body.click(this.select);
 		//this.cells.$message.on('click', this.select);
 
-		var authorized = (this.data.author_id == t.state.userID || t.state.userID == '1'); // todo - сделать нормальную авторизацию
+		var author = this.data.author_id == t.state.userID; // todo - сделать нормальную авторизацию
+		var admin = t.state.userID == '1';
 
 		/* Панель действий */
 
 		this.mainPanel = new t.protos.ui.Panel([
-			{type:'Button', label:'delete', cssClass:'right', text:t.txt.delete},
-			{type:'Button', label:'edit', cssClass:'right', text:t.txt.edit},
-			{type:'Button', label:'unlock', cssClass:'right', text:t.txt.unblock}
+			{type:'Button', label:'delete', cssClass:'right', icon:'doc_delete.png', tip:t.txt.delete},
+			{type:'Button', label:'edit', cssClass:'right', icon:'doc_edit.png', tip:t.txt.edit},
+			{type:'Button', label:'unlock', cssClass:'right', icon:'padlock_open.png', text:t.txt.unblock}
 		]);
 
 		this.mainPanel.unlock.$body.hide();
-		if (authorized) this.cells.$controls.append(this.mainPanel.$body);
+		if (author || admin) this.cells.$controls.append(this.mainPanel.$body);
 
 		this.edit = $.proxy(this, 'edit');
-		this.onEditReturn = $.proxy(this, 'onEditReturn');
+		this.enterEditMode = $.proxy(this, 'enterEditMode');
 		this.delete = $.proxy(this, 'delete');
 		this.unlock = $.proxy(this, 'unlock');
 
@@ -472,12 +482,12 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 		/* панель редактирования */
 
 		this.editorPanel = new t.protos.ui.Panel([
-			{type:'Button', cssClass:'right', label:'cancel', text:t.txt.cancel},
-			{type:'Button', cssClass:'right', label:'save', text:t.txt.save}
+			{type:'Button', label:'cancel', cssClass:'right', icon:'cancel.png', text:t.txt.cancel},
+			{type:'Button', label:'save', cssClass:'right', icon:'round_checkmark.png', text:t.txt.save}
 		]);
 
 		this.editorPanel.$body.hide();
-		if (authorized) this.cells.$controls.append(this.editorPanel.$body);
+		if (author || admin) this.cells.$controls.append(this.editorPanel.$body);
 
 		this.save = $.proxy(this, 'save');
 		this.cancelEdit = $.proxy(this, 'cancelEdit');
@@ -486,6 +496,7 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 		this.editorPanel.cancel.on('click', this.cancelEdit);
 	},
 
+	// заполнить сообщение данными
 	fill:function (data) {
 		this.tinng.protos
 			.Node.prototype
@@ -494,6 +505,7 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 		this.cells.$avatar.attr('src', data.avatar_url);
 	},
 
+	// пометить сообщение выделенным
 	select:function () {
 		var t = this.tinng;
 
@@ -512,28 +524,31 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 		return false;
 	},
 
+	// отменяет выделение
 	deselect:function (full) {
 		this.$body.removeClass('selected');
 
-		// если после этого сразу будет новое выделение
+		// если после этого сразу не будет новое выделение
 		if (full) {
 			delete(this.tinng.state.selectedPost);
 			this.tinng.address.del('post');
 		}
 	},
 
+	// демонстрирует удаление ноды в интерфейсе и вызывает окончательное удаление
 	remove:function () {
 		this.deselect();
-		this.$body.height(this.$body.height());
 		this.$body.css({overflow:'hidden'});
 		this.$body.animate({opacity:0, height:0}, 400, this.kill);
 	},
 
-	kill:function(){
+	// окончательно удаляет ноду
+	kill:function () {
 		this.$body.remove();
 		delete(this.tinng.posts[this.id]); //todo - проверить, удаляется ли сам элемент массива
 	},
 
+	// прокручивает список до данного сообщения
 	show:function (start) {
 		var t = this.tinng;
 
@@ -552,24 +567,30 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 		}
 	},
 
+	// начинает редактирование с проверки блокировки
 	edit:function () {
-		var t = this.tinng;
 
 		JsHttpRequest.query('backend/service.php', { // аргументы:
 			action:'check_n_lock',
 			id:this.id
-		}, this.onEditReturn, true);
+		}, this.enterEditMode, true);
 
 		return false; // preventDefault + stopPropagation
 	},
 
-	onEditReturn:function (result, errors) {
+	// демонстрирует блокировку, или входит в режим редактирования
+	enterEditMode:function (result, errors) {
 		var t = this.tinng;
 
 		if (result.locked !== null) {
 
-			alert(t.txt.post_locked);
-			this.mainPanel.unlock.$body.show();
+			if (t.state.userID == '1') {
+				if (confirm(t.txt.post_locked + '\n' + t.txt.post_locked_admin)) {
+					this.unlock()
+				} else {
+					this.mainPanel.unlock.$body.show();
+				}
+			} else alert(t.txt.post_locked);
 
 		} else {
 
@@ -583,13 +604,8 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 		}
 	},
 
-	exitEditMode:function(){
-		this.editorPanel.$body.hide();
-		this.mainPanel.$body.show();
-		this.cells.$message.removeAttr('contenteditable');
-	},
-
-	cancelEdit:function(){
+	// срабатывает при отмене редактирования
+	cancelEdit:function () {
 
 		this.exitEditMode();
 
@@ -600,7 +616,15 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 		return false; // preventDefault + stopPropagation
 	},
 
-	save:function(){
+	// выходит из режима редактирования
+	exitEditMode:function () {
+		this.editorPanel.$body.hide();
+		this.mainPanel.$body.show();
+		this.cells.$message.removeAttr('contenteditable');
+	},
+
+	// срабатывает при нажатии кнопки "сохранить" в режиме редактирования
+	save:function () {
 
 		this.tinng.rotor.start('update_message', {
 			id:this.id,
@@ -611,6 +635,7 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 		return false; // preventDefault + stopPropagation
 	},
 
+	// срабатывает при нажатии кнопки "удалить" в режиме редактировая
 	delete:function () {
 		var t = this.tinng;
 
@@ -621,11 +646,13 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 		return false; // preventDefault + stopPropagation
 	},
 
-	unlock:function(){
+	// принудительная запрос разблокировки. Без подтверждения
+	unlock:function () {
 		JsHttpRequest.query('backend/service.php', { // аргументы:
 			action:'unlock_message',
 			id:this.id
-		}, function(){}, true);
+		}, function () {
+		}, true);
 
 		this.mainPanel.unlock.$body.hide();
 
@@ -650,50 +677,6 @@ tinng.funcs.unloadTopic = function () {
 }
 
 
-tinng.funcs.topicUnmarkActive = function () {
+tinng.funcs.topicDeselect = function () {
 	$('.topics .active').removeClass('active');
-}
-
-
-//todo - переписать под тинг
-tinng.funcs.postSelect = function (id) {
-	var current = e('@selected', '#viewport_posts');
-	if (current) {
-		// если мы клацнули по уже выделенному посту - ничего не делаем, выходим из функции
-		if (current.id == 'post_' + id) return;
-		// иначе снимаем выделение с текущего и идем дальше
-		removeClass(current, 'selected');
-	}
-
-	/*if (selectedPost && answerForm.field.innerHTML == selectedPost.row.author+', ')
-	 answerForm.field.innerHTML = '<br>';*/
-
-	// передача строго false в качестве параметра просто снимает старое выделение, но не назначает новое
-	if (id === false) {
-		selectedPost = false;
-		//answerForm.hideAdvice();
-		t.address.del('post');
-		return;
-	}
-
-	var newone = e('#post_' + id, '#viewport_posts');
-
-	if (!newone) {
-		//adress.set('plimit', postsPageLimit++);
-		rotor.start('next_page', {directMsg:id});
-		newone = e('#post_' + id, '#viewport_posts');
-	}
-
-	if (newone) {
-		//console.warn(id);
-		addClass(newone, 'selected');
-		selectedPost = messages[id];
-		//answerForm.showAdvice(id);
-		//if (answerForm.field.innerHTML == '<br>') answerForm.field.innerHTML = selectedPost.row.author+', ';
-	} else {
-		selectedPost = false; // на случай, если передан несуществующий новый id
-		//answerForm.hideAdvice();
-	}
-
-	return;
 }

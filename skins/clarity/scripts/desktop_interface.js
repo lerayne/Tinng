@@ -20,8 +20,7 @@ tinng.protos.ChunksEngine.prototype = {
 }
 
 
-
-tinng.protos.ui.Field = function(data){
+tinng.protos.ui.Field = function (data) {
 	this.$body = $('<div/>');
 
 	if (data.label) this.label = data.label;
@@ -32,7 +31,7 @@ tinng.protos.ui.Field = function(data){
 	if (data.css) this.$body.css(data.css);
 }
 
-tinng.protos.ui.Button = function(data){
+tinng.protos.ui.Button = function (data) {
 	this.$body = $('<div/>');
 
 	if (data.label) this.label = data.label;
@@ -44,25 +43,74 @@ tinng.protos.ui.Button = function(data){
 	if (data.cssClass) this.$body.addClass(data.cssClass);
 	if (data.css) this.$body.css(data.css);
 
-	if (data.text) this.$body.html(data.text);
-}
+	if (data.text) this.$body.html('<span>' + data.text + '</span>');
 
-tinng.protos.ui.Button.prototype = {
-	on:function(action, callback){
-		this.$body.on(action, callback);
+	if (data.icon) {
+		this.$body.css('background-image', 'url("skins/clarity/images/icons/' + data.icon + '")');
+		this.$body.addClass('with-icon');
+	}
+
+	if (data.tip) {
+		this.$tip = $('<div class="tip"><div class="body">' + data.tip + '</div><div class="tail"></div></div>').hide().appendTo(this.$body);
+
+		this.waitTip = $.proxy(this, 'waitTip');
+		this.showTip = $.proxy(this, 'showTip');
+		this.hideTip = $.proxy(this, 'hideTip');
+
+		this.$body.on('mouseover', this.waitTip);
+		this.$body.on('mouseout', this.hideTip);
+		this.$body.on('click', this.hideTip);
 	}
 }
 
-tinng.protos.ui.Panel = function(dataArray) {
+tinng.protos.ui.Button.prototype = {
+	on:function (action, callback) {
+		this.$body.on(action, callback);
+	},
+
+	show:function () {
+		this.$body.show();
+	},
+
+	hide:function () {
+		this.$body.hide();
+	},
+
+	waitTip:function () {
+		this.timeout = setTimeout(this.showTip, 800);
+
+		return false;
+	},
+
+	showTip:function () {
+		var targetOpacity = this.$tip.css('opacity');
+		//var leftOffset = (this.$body.offsetWidth() / 2) - (this.$tip.width() / 2);
+		this.$tip.css({
+			opacity:0,
+			bottom:10//,
+		//	left:leftOffset
+		}).show();
+		this.$tip.animate({opacity:targetOpacity, bottom:20}, 150);
+	},
+
+	hideTip:function (e) {
+		if (this.timeout) clearTimeout(this.timeout);
+		this.$tip.hide();
+
+		return false;
+	}
+}
+
+tinng.protos.ui.Panel = function (dataArray) {
 	var t = this.tinng;
 
 	this.$body = $('<div/>');
-	this.$body.addClass('panel');
+	this.$body.addClass('panel revealer3');
 
 	for (var i = 0; i < dataArray.length; i++) {
 		var data = dataArray[i];
 
-		if (typeof t.protos.ui[data.type] == 'function'){
+		if (typeof t.protos.ui[data.type] == 'function') {
 			var control = new t.protos.ui[data.type](data);
 			this.$body.append(control.$body);
 			if (control.label) this[control.label] = control;
@@ -78,63 +126,46 @@ tinng.protos.ui.Panel.prototype = {
 
 
 // класс объекта Юнита
-tinng.protos.Unit = function (data) {
-	var t = this.tinng;
 
-	/* СБОР */
-
-	this.data = data;
-
-	this.contentLoaded = 0;
-
-	var $body = this.$body = t.chunks.get('unit');
-	this.$scrollArea = $body.find('.scroll-area');
-	this.$contentWrap = $body.find('.content-wrap');
-	this.$content = $body.find('.content');
-	this.$header = $body.find('header');
-	this.$footer = $body.find('footer');
-
-	this.onScroll = $.proxy(this, 'onScroll');
-
-	if (data.name == 'posts'){
-		this.onPostsScroll = $.proxy(this, 'onPostsScroll');
-		this.showNext = $.proxy(this, 'showNext');
-		this.showAll = $.proxy(this, 'showAll');
-	}
-
-	/* ОБРАБОТКА */
-
-	$body.addClass(data.name);
-	$body.css(data.css);
-
-	if (data.header){
-		var headerPanel = new t.protos.ui.Panel(data.header);
-		this.$header.append(headerPanel.$body);
-		this.header = headerPanel;
-	}
-
-	this.$scrollArea.on('scroll', this.onScroll);
-
-	if (data.name == 'posts'){
-		this.$scrollArea.on('scroll', this.onPostsScroll);
-
-		this.$showMore = $('<div class="showmore"/>');
-		this.$contentWrap.prepend(this.$showMore);
-
-		var showNext = $('<a>'+t.txt.show_more+'</a>');
-		var showAll = $('<a>'+t.txt.show_all+'</a>');
-
-		showNext.click(this.showNext);
-		showAll.click(this.showAll);
-
-		this.$showMore.append(showNext, showAll);
-	}
-
-	this.$scrollArea.scroll();
-}
-
-tinng.protos.Unit.prototype = {
+tinng.protos.Unit = Class({
 	tinng:tinng,
+
+	initialize:function (data) {
+		this.construct(data);
+	},
+
+	construct:function (data) {
+		var t = this.tinng;
+
+		/* СБОР */
+
+		this.data = data;
+
+		this.contentLoaded = 0;
+
+		var $body = this.$body = t.chunks.get('unit');
+		this.$scrollArea = $body.find('.scroll-area');
+		this.$contentWrap = $body.find('.content-wrap');
+		this.$content = $body.find('.content');
+		this.$header = $body.find('header');
+		this.$footer = $body.find('footer');
+
+		this.onScroll = $.proxy(this, 'onScroll');
+
+		/* ОБРАБОТКА */
+
+		$body.addClass(data.name);
+		$body.css(data.css);
+
+		if (data.header) {
+			var headerPanel = new t.protos.ui.Panel(data.header);
+			this.$header.append(headerPanel.$body);
+			this.header = headerPanel;
+		}
+
+		this.$scrollArea.on('scroll', this.onScroll);
+		this.$scrollArea.scroll();
+	},
 
 	setHeight:function (int) {
 		var height = int - this.$header.offsetHeight() - this.$footer.offsetHeight();
@@ -143,21 +174,6 @@ tinng.protos.Unit.prototype = {
 	},
 
 	addNode:function (node) {
-		var t = this.tinng;
-
-		if (this.data.name == 'posts'){
-
-			var posts = this.$content.children();
-
-			if (posts.size()) for (var i=0; i < posts.length; i++) {
-				var $post = $(posts[i]);
-				if (node.id < parseInt($post.attr('data-number'))) {
-					node.$body.insertBefore($post);
-					return;
-				}
-			}
-		}
-
 		this.$content.append(node.$body);
 	},
 
@@ -178,10 +194,75 @@ tinng.protos.Unit.prototype = {
 
 		this.atBottom = this.scrollAreaH + this.scrolledBy - this.$contentWrap.offsetHeight() == 0;
 		this.atTop = this.scrolledBy == 0;
+	}
+});
+
+
+tinng.protos.TopicsUnit = Class(tinng.protos.Unit, {
+
+	construct:function () {
+		this.tinng.protos
+			.Unit.prototype
+			.construct.apply(this, arguments);
+	}
+
+});
+
+
+tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
+
+	construct:function () {
+		var t = this.tinng;
+
+		t.protos.Unit.prototype
+			.construct.apply(this, arguments);
+
+		this.topicRename = $.proxy(this, 'topicRename');
+		this.enterRenameMode = $.proxy(this, 'enterRenameMode');
+		this.cancelRename = $.proxy(this, 'cancelRename');
+		this.saveName = $.proxy(this, 'saveName');
+
+		this.header.topicRename.on('click', this.topicRename);
+		this.header.cancel.on('click', this.cancelRename);
+		this.header.save.on('click', this.saveName);
+
+		this.$showMore = $('<div class="showmore"/>');
+		this.$contentWrap.prepend(this.$showMore);
+
+		var showNext = $('<a>' + t.txt.show_more + '</a>');
+		var showAll = $('<a>' + t.txt.show_all + '</a>');
+
+		this.showNext = $.proxy(this, 'showNext');
+		this.showAll = $.proxy(this, 'showAll');
+		showNext.click(this.showNext);
+		showAll.click(this.showAll);
+
+		this.$showMore.append(showNext, showAll);
 	},
 
-	onPostsScroll:function () {
+	addNode:function (node) {
+
+		var posts = this.$content.children();
+
+		if (posts.size()) for (var i = 0; i < posts.length; i++) {
+			var $post = $(posts[i]);
+			if (node.id < parseInt($post.attr('data-number'))) {
+				node.$body.insertBefore($post);
+				return;
+			}
+		}
+
+		this.tinng.protos
+			.Unit.prototype
+			.addNode.call(this, node);
+	},
+
+	onScroll:function () {
 		var t = this.tinng;
+
+		this.tinng.protos
+			.Unit.prototype
+			.onScroll.apply(this, arguments);
 
 		if (this.contentLoaded) {
 			if (this.atTop) {
@@ -195,16 +276,94 @@ tinng.protos.Unit.prototype = {
 		}
 	},
 
-	showNext:function(){
+	showNext:function () {
 		var t = this.tinng;
-		t.funcs.loadMore(t.sync.plimit+1);
+		t.funcs.loadMore(t.sync.plimit + 1);
 	},
 
-	showAll:function(){
+	showAll:function () {
 		var t = this.tinng;
 		t.funcs.loadMore(0);
+	},
+
+	topicRename:function () {
+		JsHttpRequest.query('backend/service.php', { // аргументы:
+			action:'check_n_lock',
+			id:this.tinng.sync.curTopic
+		}, this.enterRenameMode, true);
+
+		return false;
+	},
+
+	enterRenameMode:function (result, errors) {
+		var t = this.tinng;
+
+		if (result.locked !== null) {
+
+			if (t.state.userID == '1') {
+				if (confirm(t.txt.post_locked + '\n' + t.txt.post_locked_admin)) {
+					this.unlock()
+				} else {
+					this.mainPanel.unlock.$body.show();
+				}
+			} else alert(t.txt.post_locked);
+
+		} else {
+
+			this.nameBackup = this.header.topicName.$body.html();
+
+			this.header.topicRename.hide();
+			this.header.save.show();
+			this.header.cancel.show();
+
+			this.header.topicName.$body.attr('contenteditable', true);
+			this.header.topicName.$body.focus();
+		}
+	},
+
+	exitRenameMode:function () {
+		this.header.topicRename.show();
+		this.header.save.hide();
+		this.header.cancel.hide();
+
+		this.header.topicName.$body.removeAttr('contenteditable');
+	},
+
+	cancelRename:function () {
+
+		this.exitRenameMode();
+		this.unlock();
+		this.header.topicName.$body.html(this.nameBackup);
+		this.nameBackup = '';
+
+		return false;
+	},
+
+	saveName:function () {
+		var t = this.tinng;
+
+		t.rotor.start('update_message', {
+			id:t.sync.curTopic,
+			topic_name:this.header.topicName.$body.html()
+		});
+
+		this.exitRenameMode();
+
+		return false; // preventDefault + stopPropagation
+	},
+
+	unlock:function () {
+		JsHttpRequest.query('backend/service.php', { // аргументы:
+			action:'unlock_message',
+			id:this.tinng.sync.curTopic
+		}, function () {
+		}, true);
+
+//		this.mainPanel.unlock.$body.hide();
+
+		return false; // preventDefault + stopPropagation
 	}
-}
+});
 
 
 // Редактор сообщений
@@ -223,18 +382,20 @@ tinng.protos.Editor = function () {
 tinng.protos.Editor.prototype = {
 	tinng:tinng,
 
-	submitNew:function(){
+	submitNew:function () {
 		var t = this.tinng;
 
-		t.rotor.start('add_post', {
-			message:this.$messageBody.html(),
-			title:this.$messageTitle.val()
-		});
+		if (this.$messageBody.html() != '') { // todo - нужна нормальная проверка на пустое собщение
+			t.rotor.start('add_post', {
+				message:this.$messageBody.html(),
+				title:this.$messageTitle.val()
+			});
+
+			this.$messageBody.html(''); // todo - сделать затенение кнопки, если сообщение пустое
+			this.$messageTitle.val('');
+		}
 	}
 }
-
-
-
 
 
 // класс занимающийся интерфейсом
@@ -263,13 +424,14 @@ tinng.protos.UserInterface = function (targetWindow) {
 	/// ОБРАБОТКА ///
 
 	// размещение юнитов
-	for (var key in t.data.units) {
-		var val = t.data.units[key];
-		var $unit = t.units[val.name] = new t.protos.Unit(val);
-		this.$unitsArea.append($unit.$body);
-	}
-	this.$unitsArea.append(t.chunks.get('clearfix'));
-	//t.units.posts.$content.append($('<div style="height:1000px">'));
+
+	t.units.topics = new t.protos.TopicsUnit(t.data.units[0]);
+	t.units.posts = new t.protos.PostsUnit(t.data.units[1]);
+	this.$unitsArea.append(
+		t.units.topics.$body,
+		t.units.posts.$body,
+		t.chunks.get('clearfix')
+	);
 
 	// размещение редактора
 	var editor = this.editor = new t.protos.Editor();
