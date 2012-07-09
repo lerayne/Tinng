@@ -33,39 +33,42 @@ tinng.protos.ui.Field = function (data) {
 
 tinng.protos.ui.Button = function (data) {
 	this.$body = $('<div/>');
+	this.$button = $('<div/>');
+	this.$body.append(this.$button);
 
 	if (data.label) this.label = data.label;
 
-	this.$body.addClass('button');
+	this.$button.addClass('button');
 
-	if (data.id) this.$body.attr('id', data.id);
-	if (data.cell) this.$body.attr('data-cell', data.cell);
-	if (data.cssClass) this.$body.addClass(data.cssClass);
-	if (data.css) this.$body.css(data.css);
+	if (data.id) this.$button.attr('id', data.id);
+	if (data.cell) this.$button.attr('data-cell', data.cell);
+	if (data.cssClass) this.$button.addClass(data.cssClass);
+	if (data.css) this.$button.css(data.css);
 
-	if (data.text) this.$body.html('<span>' + data.text + '</span>');
+	if (data.text) this.$button.html('<span>' + data.text + '</span>');
 
 	if (data.icon) {
-		this.$body.css('background-image', 'url("skins/clarity/images/icons/' + data.icon + '")');
-		this.$body.addClass('with-icon');
+		this.$button.css('background-image', 'url("skins/clarity/images/icons/' + data.icon + '")');
+		this.$button.addClass('with-icon');
 	}
 
 	if (data.tip) {
-		this.$tip = $('<div class="tip"><div class="body">' + data.tip + '</div><div class="tail"></div></div>').hide().appendTo(this.$body);
+		this.$tip = $('<div class="tip"><div class="body">' + data.tip + '</div><div class="tail"></div></div>')
+			.hide().appendTo(this.$button);
 
 		this.waitTip = $.proxy(this, 'waitTip');
 		this.showTip = $.proxy(this, 'showTip');
 		this.hideTip = $.proxy(this, 'hideTip');
 
-		this.$body.on('mouseover', this.waitTip);
-		this.$body.on('mouseout', this.hideTip);
-		this.$body.on('click', this.hideTip);
+		this.$button.on('mouseover', this.waitTip);
+		this.$button.on('mouseout', this.hideTip);
+		this.$button.on('click', this.hideTip);
 	}
 }
 
 tinng.protos.ui.Button.prototype = {
 	on:function (action, callback) {
-		this.$body.on(action, callback);
+		this.$button.on(action, callback);
 	},
 
 	show:function () {
@@ -88,7 +91,7 @@ tinng.protos.ui.Button.prototype = {
 		this.$tip.css({
 			opacity:0,
 			bottom:10//,
-		//	left:leftOffset
+			//	left:leftOffset
 		}).show();
 		this.$tip.animate({opacity:targetOpacity, bottom:20}, 150);
 	},
@@ -98,6 +101,19 @@ tinng.protos.ui.Button.prototype = {
 		this.$tip.hide();
 
 		return false;
+	},
+
+	block:function () {
+		if (this.$clone) this.$clone.show();
+		else this.$clone = this.$button.clone().addClass('blocked').appendTo(this.$body);
+		this.$button.hide();
+	},
+
+	unblock:function () {
+		if (this.$clone) {
+			this.$clone.hide();
+			this.$button.show();
+		}
 	}
 }
 
@@ -204,8 +220,16 @@ tinng.protos.TopicsUnit = Class(tinng.protos.Unit, {
 		this.tinng.protos
 			.Unit.prototype
 			.construct.apply(this, arguments);
-	}
 
+		this.newTopic = $.proxy(this, 'newTopic');
+
+		this.header.newTopic.on('click', this.newTopic);
+	},
+
+	newTopic:function () {
+		this.header.newTopic.block();
+		this.tinng.units.posts.newTopic();
+	}
 });
 
 
@@ -221,6 +245,9 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 		this.enterRenameMode = $.proxy(this, 'enterRenameMode');
 		this.cancelRename = $.proxy(this, 'cancelRename');
 		this.saveName = $.proxy(this, 'saveName');
+
+		this.header.save.hide();
+		this.header.cancel.hide();
 
 		this.header.topicRename.on('click', this.topicRename);
 		this.header.cancel.on('click', this.cancelRename);
@@ -310,11 +337,12 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 
 		} else {
 
-			this.nameBackup = this.header.topicName.$body.html();
-
 			this.header.topicRename.hide();
+
+			this.nameBackup = this.header.topicName.$body.html();
 			this.header.save.show();
 			this.header.cancel.show();
+
 
 			this.header.topicName.$body.attr('contenteditable', true);
 			this.header.topicName.$body.focus();
@@ -362,6 +390,17 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 //		this.mainPanel.unlock.$body.hide();
 
 		return false; // preventDefault + stopPropagation
+	},
+
+	newTopic:function () {
+		var t = this.tinng;
+
+		console.log('new topic')
+		t.funcs.unloadTopic();
+
+		this.header.topicRename.hide();
+		this.header.topicName.$body.html('');
+		this.header.topicName.$body.attr('contenteditable', true);
 	}
 });
 
@@ -440,6 +479,7 @@ tinng.protos.UserInterface = function (targetWindow) {
 
 	// вешаем событие на ресайз окна
 	this.$window.resize(this.winResize).resize();
+	t.units.posts.header.topicName.$body.on('keyup', this.winResize);
 };
 
 tinng.protos.UserInterface.prototype = {
@@ -453,6 +493,8 @@ tinng.protos.UserInterface.prototype = {
 			- this.$mainHeader.offsetHeight()
 			- this.$mainFooter.offsetHeight()
 			;
+
+		console.log(this.$mainHeader.offsetHeight());
 
 		for (var key in t.units) t.units[key].setHeight(mainH);
 

@@ -209,16 +209,18 @@ body {
 
 .posts .panel .topicname {
 	font-size:110%;
-	/*color:white;
-	font-weight: bold;*/
-	padding:2px;
+	padding:3px 4px 2px 4px;
 	border:1px dotted transparent;
 	float:left;
+	min-width: 200px;
+	max-height: 100%;
+	margin-left:2px;
 }
 
 .posts .panel .topicname[contenteditable="true"] {
 	background-color: white;
 	border-color: #aaa;
+	/*overflow-y: auto;*/
 }
 
 .posts .showmore {
@@ -240,11 +242,17 @@ body {
 	border-top:1px solid #ddd;
 }
 
-.textarea {
+.textarea-wrapper {
 	background: white;
 	border:1px solid #ccc;
-	padding:4px;
 	margin-bottom:4px;
+	max-height: 200px;
+	overflow-y: scroll;
+	padding:1px;
+}
+
+.textarea {
+	padding:4px 6px;
 }
 
 /* tags */
@@ -271,6 +279,18 @@ body {
 	height:14px;
 	color:black;
 	position: relative;
+}
+
+.button:hover {
+	border-color: #ccc;
+	background-color: transparent;
+	opacity:0.85;
+}
+
+.button:active {
+	border-color: #ccc;
+	background-color: #eee;
+	opacity:1;
 }
 
 .button span {
@@ -307,18 +327,6 @@ body {
 	padding-left:16px;
 }
 
-.button:hover {
-	border-color: #ccc;
-	background-color: transparent;
-	opacity:0.85;
-}
-
-.button:active {
-	border-color: #ccc;
-	background-color: #eee;
-	opacity:1;
-}
-
 .button.submit, .button.submit:active {
 	opacity:1;
 	color:white;
@@ -346,14 +354,23 @@ body {
 	border-color:#999;
 }
 
-.unit header .button .tip {
-	opacity:0.7;
-}
-
 .unit header .button:active {
 	opacity:0.75;
 	background-color: #ccc;
 }
+
+.unit header .button .tip {
+	opacity:0.7;
+}
+
+.button.blocked, .button.blocked:hover, .button.blocked:active {
+	cursor:default;
+	opacity:0.4 !important;
+	border-color: transparent !important;
+	background-color: transparent !important;
+}
+
+/* / */
 
 .editor .title {
 	display:none;

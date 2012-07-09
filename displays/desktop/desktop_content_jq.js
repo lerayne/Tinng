@@ -402,6 +402,7 @@ tinng.protos.TopicNode = new Class(tinng.protos.Node, {
 		t.sync.curTopic = this.id;
 		t.rotor.start('load_pages');
 
+		t.units.topics.header.newTopic.unblock();
 		t.address.set({topic:this.id, plimit:t.sync.plimit});
 	},
 

@@ -100,7 +100,9 @@
 			<div data-chunk-name="editor" class="editor">
 				<div class="editor-inner">
 					<input type="text" class="title" />
-					<div contenteditable="true" class="textarea"></div>
+					<div class="textarea-wrapper">
+						<div contenteditable="true" class="textarea"></div>
+					</div>
 
 					<div class="submit button"><?= $txt['send'] ?></div>
 				</div>
