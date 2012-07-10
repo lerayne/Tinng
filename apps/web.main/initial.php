@@ -1,11 +1,10 @@
 <?php
 /* Подключаемый файл, который входит как в бекенд для XHR, так и в осовной php-скрипт */
 
-require_once $rootdir.'config.php'; //конфигурационный файл
-require_once $rootdir.'locale/ru.php'; // языковые файлы
-require_once $rootdir.'php/spikes.php'; // типа фреймворк)
-require_once $rootdir.'php/classes.php'; // типа классы)
-require_once $rootdir.'libraries/DbSimple/Generic.php'; // либа для работы с базой
+require_once $env['appdir'].'config.php';
+require_once $env['appdir'].'languages/ru.php';
+require_once $env['appdir'].'functions.common.php'; // типа фреймворк)
+require_once $env['rootdir'].'libraries/DbSimple/Generic.php'; // либа для работы с базой
 
 // установка локали
 $e->set_locale('utf-8');
@@ -19,13 +18,13 @@ $db->setIdentPrefix($safecfg['db_prefix'].'_');
 
 // !! todo простой логин. потом сделать более секьюрный
 $raw_user = $db->selectRow(
-	'SELECT * FROM ?_users WHERE
+    'SELECT * FROM ?_users WHERE
 		hash = ?
 		AND login = ?
 		AND approved = 1
 	'
-	, $_COOKIE['pass']
-	, $_COOKIE['login']
+    , $_COOKIE['pass']
+    , $_COOKIE['login']
 );
 
 // todo заглушка аутентификации

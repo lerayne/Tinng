@@ -6,7 +6,7 @@ tinng.funcs.onWindowLoad = function(){
 	t.ui = new t.protos.UserInterface(window);
 
 	t.rotor = new t.protos.Rotor(
-		'/backend/update.php',
+		'backend/update.php',
 		t.sync,
 		t.funcs.parser
 	);

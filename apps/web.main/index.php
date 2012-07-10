@@ -3,19 +3,15 @@
 // ИНИЦИАЛИЗАЦИЯ
 ////////////////
 
-// подключение универсального инициализатора (база в нем же)
-$rootdir = './';
-require_once 'php/initial.php';
+$env = array();
+$env['appdir'] = 'apps/web.main/';
+$env['rootdir'] = './';
 
+// подключение универсального инициализатора (база в нем же)
+require_once 'initial.php';
 
 // ПОСТРОЕНИЕ ИНТЕРФЕЙСА
 ////////////////////////
-
-$columns = array (
-	#'menu',
-	'topics',
-	'posts'
-);
 
 // установка режима работы в зависимости от устройства
 $display_mode = 'desktop';
@@ -27,10 +23,7 @@ if (
 )
 	$display_mode = 'phone';
 
-$device_path = 'displays/'.$display_mode.'/'.$display_mode.'_';
-
-//работа с сессией
-# session_start();
+$device_path = 'apps/displays/'.$display_mode.'/'.$display_mode.'_';
 
 // ПОДКЛЮЧЕНИЕ ШАБЛОНА
 //////////////////////

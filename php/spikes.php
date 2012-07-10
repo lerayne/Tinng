@@ -1,6 +1,11 @@
 <?php
 /* функции для пхп-движка, использующиеся повсеместно в скрипте */
 
+$rex['email'] = '/^[\_]*([a-z0-9]+(\.|\_*)?)+@([a-z][a-z0-9\-]+(\.|\-*\.))+[a-z]{2,6}$/';
+$rex['login'] = '/^[a-zA-Z0-9_]{4,16}$/';
+$rex['pass'] = '/^[a-zA-Z0-9_]{6,32}$/';
+$rex['empty'] = '/\s+/g';
+
 function safe_str($str){
 	return strip_tags($str,
 		'<br><strong><b><em><i><span><div><ol><ul><li><sub><sup><hr><h2><h3><h4><blockquote>'
@@ -24,7 +29,7 @@ function incl_css(){
 
 function import_js_vars(){
 	
-	global $txt, $cfg, $user;
+	global $txt, $cfg, $user, $rex;
 	
 	// импорт переменных из PHP
 	echo '
@@ -34,13 +39,16 @@ function import_js_vars(){
 		userID = '. ($user ? $user->id : 'null') .'
 		
 		var txt = {};
-		var cfg = {};	
+		var cfg = {};
+	    var rex = {};
 	';
 
 	foreach ($txt as $key => $val) echo "txt['".$key."'] = '".$val."';\n";
 	echo "\n";
 	foreach ($cfg as $key => $val) echo "cfg['".$key."'] = ".
 		(is_int($val) || is_float($val) ? $val.";\n" : "'".$val."';\n");
+    echo "\n";
+    foreach ($rex as $key => $val) echo "rex['".$key."'] = ".$val.";\n";
 	
 	echo '
 		</script>
@@ -96,10 +104,6 @@ function now($format = false){
 	return ($format == 'sql') ? date('Y-m-d H:i:s') : time();
 }
 
-$rex['email'] = '/^[\_]*([a-z0-9]+(\.|\_*)?)+@([a-z][a-z0-9\-]+(\.|\-*\.))+[a-z]{2,6}$/';
-$rex['login'] = '/^[a-zA-Z0-9_]{4,16}$/';
-$rex['pass'] = '/^[a-zA-Z0-9_]{6,32}$/';
-
 Class Everything {
 	
 	var $uagent, $path, $getstr, $get, $locale;
@@ -109,7 +113,7 @@ Class Everything {
 	// конструктор
 	function __construct(){
 		$this->uagent = $_SERVER['HTTP_USER_AGENT'];
-		list($this->path, $this->getstr) = explode('?', $GLOBALS['_ENV']['REQUEST_URI']);
+		list($this->path, $this->getstr) = explode('?', $_SERVER['REQUEST_URI']);
 		$this->get = $_GET;
 	}
 	

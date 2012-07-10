@@ -1,0 +1,35 @@
+#over_curtain .window {
+	margin-top: 20px;
+	padding: 6px;
+}
+
+#app_area {
+	padding: 0;
+}
+
+/* вьюпорт */
+.global_column, .global_column .caption {
+	border-radius:0;
+	-moz-border-radius:0;
+	-webkit-border-radius:0;
+}
+
+.vport_resizer {
+	width: 11px;
+	background-color: #AAAAAA;
+}
+.vport_resizer .fixer {width:11px;}
+
+.shadow { 
+	box-shadow:none;
+	-moz-box-shadow:none;
+	-webkit-box-shadow:none;
+}
+
+.collapser {
+	width:11px;
+}
+
+.statusbar {
+	padding:1px 8px;
+}
