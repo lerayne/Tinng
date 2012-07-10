@@ -1,0 +1,377 @@
+body {
+	background-color: #ddd;
+	margin:0;
+	padding:0;
+	overflow-y: scroll;
+	/*overflow-y: hidden;*/
+	font-family: Tahoma, Arial, serif;
+	font-size: 13px;
+	color:#333;
+}
+
+#tinng-main {
+	position:relative;
+}
+
+#curtain {
+	background-color:black;
+	opacity:0.5;
+}
+
+#dialogue {
+	width: 50%;
+	height: 70%;
+	min-width: 500px;
+	max-width: 800px;
+	min-height: 400px;
+	z-index: 810;
+}
+
+#tinng-main-header {
+	height:36px;
+	background-color: #f9f9f9;
+	border-bottom: 1px solid #ccc;
+}
+
+#tinng-main-header .logo {
+	display: inline-block;
+	margin: 2px;
+}
+
+#tinng-units-area {
+	max-width: 1210px;
+	background-color: white;
+	margin:0 auto;
+	height:100%;
+}
+
+#tinng-units-area .unit {
+	float:left;
+	height:100%;
+	position: relative;
+}
+
+#tinng-units-area .scroll-area {
+	height:100%;
+	position: relative;
+}
+
+.unit header {
+	min-height: 28px;
+	background-color: #bbb;
+	border-right:1px solid #c8c8c8;
+	position: relative;
+}
+
+#loginForm {
+	margin-top:5px;
+}
+
+/* Декоративные псевдо-тени */
+.unit header::after, .topics footer::after, .editor::after {
+	content: '';
+	width: 100%;
+	height: 3px;
+	background-color: black;
+	position: absolute;
+	opacity: 0.2;
+	z-index: 10;
+}
+
+.unit header::after {
+	bottom: -3px;
+}
+
+.topics footer::after {
+	bottom: 0;
+}
+
+.editor::after {
+	top: -3px;
+}
+
+.unit.posts header {
+	border:none;
+}
+
+.content {
+	padding-top:3px;
+}
+
+/* Индикатор активности */
+.state-ind {
+	height:17px;
+	width: 16px;
+	margin:9px 5px;
+}
+
+.state-ind.updating {
+	background-image: url('../images/throbber.gif');
+}
+
+
+
+
+/* topics & posts (global) */
+.content {
+	background-color: #ddd;
+}
+
+.content .node {
+	border:2px solid transparent;
+	margin-bottom:4px;
+	background-color: white;
+	position: relative;
+}
+
+.content .data_cell {
+	margin:10px;
+}
+
+.content .msgid {
+	margin-right:5px;
+	color:#ccc;
+}
+
+.content .author {
+	margin-right:5px;
+}
+
+/* topic */
+.content .topic {
+	cursor:pointer;
+}
+
+.content .topic.active {
+	background-color: #EAFFE8;
+	border-color:#EAFFE8;
+}
+
+.content .topic .message {
+	height: 2.5em;
+	overflow-y: hidden;
+}
+
+.content .topic .created {
+	 font-size: 11px;
+}
+
+
+
+.content .topic .topicname {
+	margin: 5px 0;
+	font-size:14px;
+	color:#007bb7;
+}
+
+.content .topic .lastmessage > div {
+	border-top:1px solid #ddd;
+	margin-top: 5px;
+	padding-top: 5px;
+	height: 2.5em;
+	overflow-y: hidden;
+}
+
+/* post */
+.content .post .data_cell {
+	margin-left:58px;
+}
+
+.content .post .avatar {
+	position:absolute;
+	top:0;
+	left:0;
+}
+
+.content .post .infobar {
+	border-bottom:1px solid #ddd;
+	margin-bottom: 6px;
+	padding-bottom: 3px;
+}
+
+.content .post .controls {
+	margin-bottom:-5px;
+	margin-right:-5px;
+}
+
+.content .post.selected {
+	border-color:#9acd32;
+}
+
+.content .post .message {
+	border:1px dotted transparent;
+	padding:3px;
+}
+
+.content .post .message[contenteditable="true"] {
+	border-color: #aaa;
+}
+
+.posts .panel .topicname {
+	font-size:110%;
+	padding:3px 4px 2px 4px;
+	border:1px dotted transparent;
+	float:left;
+	min-width: 200px;
+	max-height: 100%;
+	margin-left:2px;
+}
+
+.posts .panel .topicname[contenteditable="true"] {
+	background-color: white;
+	border-color: #aaa;
+	/*overflow-y: auto;*/
+}
+
+.posts .showmore {
+	height:20px;
+	text-align: center;
+	padding-top:7px;
+	background-color: #ddd;
+	display:none;
+}
+
+.posts .showmore a {
+	margin: 0 5px;
+}
+
+/* editor */
+.editor-inner {
+	padding:4px;
+	background: #eee;
+	border-top:1px solid #ddd;
+}
+
+.textarea-wrapper {
+	background: white;
+	border:1px solid #ccc;
+	margin-bottom:4px;
+	max-height: 200px;
+	overflow-y: scroll;
+	padding:1px;
+}
+
+.textarea {
+	padding:4px 6px;
+}
+
+/* tags */
+.tag {
+	margin:7px 4px 0 0;
+	border-radius: 2px;
+}
+
+
+/* панель и кнопки */
+
+.panel {
+	padding:2px;
+}
+
+.button {
+	background-color: transparent;
+	border:1px solid transparent;
+	border-radius: 2px;
+	font-size:90%;
+	padding:3px 5px;
+	opacity:0.6;
+	background: 2px 2px no-repeat;
+	height:14px;
+	color:black;
+	position: relative;
+}
+
+.button:hover {
+	border-color: #ccc;
+	background-color: transparent;
+	opacity:0.85;
+}
+
+.button:active {
+	border-color: #ccc;
+	background-color: #eee;
+	opacity:1;
+}
+
+.button span {
+	margin-left:4px;
+}
+
+.button .tip {
+	position: absolute;
+	opacity: 0.9;
+	z-index: 1000;
+}
+
+.button.left .tip {left:0;}
+.button.right .tip {right:0;}
+.button.left .tip .tail {background-position: left bottom}
+.button.right .tip .tail {background-position: right bottom}
+
+.button .tip .body {
+	background: black;
+	color:white;
+	font-weight: bold;
+	font-size:90%;
+	white-space: nowrap;
+	padding:3px 6px;
+	border-radius: 2px;
+}
+
+.button .tip .tail {
+	height:5px;
+	background: url('../images/tip-tail.gif') no-repeat center bottom;
+}
+
+.button.with-icon {
+	padding-left:16px;
+}
+
+.button.submit, .button.submit:active {
+	opacity:1;
+	color:white;
+	font-weight: bold;
+	border-color: #004162;
+	background-image: -webkit-linear-gradient(top, #007bb7, #006299);
+	background-color: #006299;
+	background-position: top left;
+	text-shadow:1px 1px #004162;
+}
+
+.button.submit:hover {
+	background-image: -webkit-linear-gradient(top, #018bd3, #007bb7);
+	background-color: #007bb7;
+	border-color: #006299;
+}
+
+.unit header .button {
+	opacity: 0.75;
+	margin:1px;
+}
+
+.unit header .button:hover {
+	opacity:1;
+	border-color:#999;
+}
+
+.unit header .button:active {
+	opacity:0.75;
+	background-color: #ccc;
+}
+
+.unit header .button .tip {
+	opacity:0.7;
+}
+
+.button.blocked, .button.blocked:hover, .button.blocked:active {
+	cursor:default;
+	opacity:0.4 !important;
+	border-color: transparent !important;
+	background-color: transparent !important;
+}
+
+/* / */
+
+.editor .title {
+	display:none;
+}
