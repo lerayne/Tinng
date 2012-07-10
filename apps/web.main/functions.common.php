@@ -27,40 +27,14 @@ function incl_css(){
     endforeach;
 }
 
-function import_js_vars(){
-
-    global $txt, $cfg, $user, $rex;
-
-    // импорт переменных из PHP
-    echo '
-		<script type="text/javascript" language="JavaScript">
-		
-		// Убогая заглушка авторизации на клиенте
-		userID = '. ($user ? $user->id : 'null') .'
-		
-		var txt = {};
-		var cfg = {};
-	    var rex = {};
-	';
-
-    foreach ($txt as $key => $val) echo "txt['".$key."'] = '".$val."';\n";
-    echo "\n";
-    foreach ($cfg as $key => $val) echo "cfg['".$key."'] = ".
-        (is_int($val) || is_float($val) ? $val.";\n" : "'".$val."';\n");
-    echo "\n";
-    foreach ($rex as $key => $val) echo "rex['".$key."'] = ".$val.";\n";
-
-    echo '
-		</script>
-	';
-}
-
 function incl_scripts(){
     $arr = func_get_args();
 
     global $safecfg, $display_mode;
 
     if ($safecfg['production']){
+
+        $script = '';
 
         foreach ($arr as $val):
             $script .= file_get_contents($val);
@@ -146,4 +120,3 @@ class User {
         endforeach;
     }
 }
-?>

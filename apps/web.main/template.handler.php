@@ -13,7 +13,7 @@ function path($file){
 
 function template_head(){
 
-    global $env, $cfg, $user;
+    global $env, $cfg, $user, $txt, $rex;
 
     echo '
 		<link id="favicon" rel="shortcut icon" type="image/png" href="'. path('/images/favicon.png') .'">
@@ -29,8 +29,29 @@ function template_head(){
     echo '<link rel="stylesheet" id="lowres_css" type="text/css" href="">';
     echo '<script type="text/javascript" language="JavaScript" src="'.$env['rootdir'].'libraries/jquery-1.7.2.min.js"></script>';
 
-    import_js_vars();
+    // импорт переменных из PHP
+    echo '
+		<script type="text/javascript" language="JavaScript">
 
+		// Убогая заглушка авторизации на клиенте
+		userID = '. ($user ? $user->id : 'null') .'
+		var txt = {}, cfg = {}, rex = {};
+	';
+
+    foreach ($txt as $key => $val) echo "txt['".$key."'] = '".$val."';\n";
+    echo "\n";
+
+    foreach ($cfg as $key => $val) echo "cfg['".$key."'] = ". (is_int($val) || is_float($val) ? $val.";\n" : "'".$val."';\n");
+    echo "\n";
+
+    foreach ($rex as $key => $val) echo "rex['".$key."'] = ".$val.";\n";
+    echo "\n";
+
+    echo '
+		</script>
+	';
+
+    // Подключение скриптов
     incl_scripts(
         $env['rootdir'].'libraries/JsHttpRequest.js',
         $env['appdir'].'sources/js/funcs.js',
@@ -41,4 +62,3 @@ function template_head(){
 }
 
 require_once $env['appdir'].'skins/'.$cfg['skin'].'/template.php';
-?>
