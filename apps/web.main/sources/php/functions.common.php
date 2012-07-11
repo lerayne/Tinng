@@ -22,15 +22,46 @@ function jsts2sql($str) {
 
 function incl_css() {
 	$arr = func_get_args();
-	foreach ($arr as $val):
-		echo '<link rel="stylesheet" type="text/css" href="' . $val . '?N">' . "\n";
-	endforeach;
+
+	global $safecfg, $env;
+
+	if ($safecfg['production']) {
+
+		// Собираем содержимое всех поданых css-файлов в переменную
+		$script = '';
+		foreach ($arr as $val):
+			$script .= "\n".file_get_contents($val);
+		endforeach;
+
+		// Объявляем имя файла
+		$filename = $env['appdir'].'data/compiled/css_'. md5($script) . '.css';
+
+		// Если такого файла нет - создаем
+		if (!file_exists($filename)) {
+
+			// для начала чистим директорию
+			$dir = opendir($env['appdir'].'data/compiled/');
+			while (($file = readdir($dir)) !== false) {
+				// Только нужно проверить, что мы удаляем только ненужный файл (по префиксу)
+				if (!(strpos($file, 'css_') === false)) unlink($env['appdir'].'data/compiled/' . $file);
+			}
+
+			file_put_contents($filename, $script);
+		}
+
+		echo '<link rel="stylesheet" type="text/css" href="' . $filename . '?N">' . "\n";
+
+	} else {
+		foreach ($arr as $val):
+			echo '<link rel="stylesheet" type="text/css" href="' . $val . '?N">' . "\n";
+		endforeach;
+	}
 }
 
 function incl_scripts() {
 	$arr = func_get_args();
 
-	global $safecfg, $display_mode, $env;
+	global $safecfg, $env;
 
 	if ($safecfg['production']) {
 
