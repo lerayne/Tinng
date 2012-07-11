@@ -56,7 +56,7 @@ function template_head(){
 		$env['appdir'].'sources/js/jqextend.js',
 		$env['rootdir'].'libraries/JsHttpRequest.js',
 
-		$env['appdir'].'sources/js/classes/Class.js',
+		$env['appdir'].'sources/js/classes/Class.js',			// наследователь для классов
 
 		$env['appdir'].'sources/js/classes/Tinng.js',			// главный объект-контейнер
 		$env['appdir'].'sources/js/classes/Funcs.js',			// простые функции (иногда расширяются ниже)
