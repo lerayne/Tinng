@@ -3,8 +3,8 @@
 
 require_once $rootdir.'config.php'; //конфигурационный файл
 require_once $rootdir.'locale/ru.php'; // языковые файлы
+require_once $rootdir.'libraries/toolkit.php'; // простейшие общие функции
 require_once $rootdir.'php/spikes.php'; // типа фреймворк)
-require_once $rootdir.'php/classes.php'; // типа классы)
 require_once $rootdir.'libraries/DbSimple/Generic.php'; // либа для работы с базой
 
 // установка локали

@@ -1,5 +1,5 @@
 <?php
-require_once 'backend_initial.php';
+require_once './includes/backend_initial.php';
 
 $action = $_REQUEST['action'];
 $id = $_REQUEST['id'];
@@ -61,7 +61,7 @@ switch ($action):
 	// помечаем сообщеие прочитанным
 	case 'mark_read':
 
-		$now = date('Y-m-d H:i:s');
+		$now = now('sql');
 		
 		// Выясняем, отмечал ли когда-либо пользователь эту тему прочитанной
 		$exist = $db->selectRow(

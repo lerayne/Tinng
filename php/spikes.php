@@ -12,14 +12,6 @@ function safe_str($str){
 	);
 }
 
-function jsts2phpts ($str){
-	return substr($str, 0, strlen($str)-3);
-}
-
-function jsts2sql($str){
-	return date('Y-m-d H:i:s', jsts2phpts($str));
-}
-
 function incl_css(){
 	$arr = func_get_args();
 	foreach ($arr as $val):
@@ -100,10 +92,6 @@ function incl_scripts(){
 	}	
 }
 
-function now($format = false){
-	return ($format == 'sql') ? date('Y-m-d H:i:s') : time();
-}
-
 Class Everything {
 	
 	var $uagent, $path, $getstr, $get, $locale;
@@ -135,4 +123,15 @@ Class Everything {
 }
 
 $e = new Everything();
-?>
+
+class User {
+
+    function __construct($row) {
+
+        foreach ($row as $key => $val):
+            $valname = str_replace('uset_', '', $key);
+            $this->$valname = $val;
+        endforeach;
+    }
+}
+

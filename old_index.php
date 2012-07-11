@@ -37,6 +37,5 @@ $device_path = 'displays/'.$display_mode.'/'.$display_mode.'_';
 // todo в новом интерфейсе не работает логин
 // todo без логина не работает загрузка
 
-require_once $device_path.'template_handler_jq.php';
-//require_once $device_path.'template_handler.php';
+require_once $device_path.'template_handler.php';
 ?>

@@ -3,7 +3,6 @@
 header ('Content-type:text/html;charset=utf-8;');
 
 require_once 'config.php';
-require_once 'php/classes.php';
 require_once 'php/spikes.php';
 require_once 'locale/ru.php';
 require_once 'libraries/DbSimple/Generic.php';

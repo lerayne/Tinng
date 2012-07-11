@@ -1,5 +1,5 @@
 <?php
-require_once 'backend_initial.php';
+require_once './includes/backend_initial.php';
 
 $result['xhr'] = $xhr_id;
 //$result['sessid'] = $sessid;
@@ -105,7 +105,7 @@ switch ($action):
 		$new_row['parent_id'] = $params['parent'] ? $params['parent'] : $_REQUEST['curTopic'];
 		$new_row['topic_id'] = $_REQUEST['curTopic'];
 		$new_row['message'] = $params['message'];
-		$new_row['created'] = date('Y-m-d H:i:s');
+		$new_row['created'] = now('sql');
 
 		$new_id = $db->query(
 			'INSERT INTO ?_messages (?#) VALUES (?a)', array_keys($new_row), array_values($new_row)
@@ -121,7 +121,7 @@ switch ($action):
 
 		$upd_id = $params['id'];
 		unset($params['id']);
-		$params['modified'] = date('Y-m-d H:i:s'); // при любом обновлении пишем дату,
+		$params['modified'] = now('sql'); // при любом обновлении пишем дату,
 		$params['modifier'] = $user->id; // пользователя, отредактировавшего сообщение
 		$params['locked'] = null; // и убираем блокировку
 
@@ -148,7 +148,7 @@ switch ($action):
 			unset($params['id']);
 			$params['deleted'] = 1;
 			$params['modifier'] = $user->id;
-			$params['modified'] = date('Y-m-d H:i:s');
+			$params['modified'] = now('sql');
 
 			$db->query('UPDATE ?_messages SET ?a WHERE id = ?d', $params, $upd_id);
 		}
@@ -158,9 +158,9 @@ switch ($action):
 	// убираем тег с темы
 	case 'tag_remove':
 
-		$date = date('Y-m-d H:i:s');
+		$date = now('sql');
 
-		$msgupd['modified'] = date('Y-m-d H:i:s');
+		$msgupd['modified'] = now('sql');
 		$msgupd['modifier'] = $user->id;
 
 		$db->query('UPDATE ?_messages SET ?a WHERE id = ?d', $msgupd, $params['msg']);
