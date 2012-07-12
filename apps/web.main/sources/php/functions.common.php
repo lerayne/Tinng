@@ -1,4 +1,7 @@
 <?php
+
+//echo'<pre>';var_export($_SERVER);echo'</pre>';
+
 /* функции для пхп-движка, использующиеся повсеместно в скрипте */
 
 $rex['email'] = '/^[\_]*([a-z0-9]+(\.|\_*)?)+@([a-z][a-z0-9\-]+(\.|\-*\.))+[a-z]{2,6}$/';
@@ -23,39 +26,82 @@ function jsts2sql($str) {
 function incl_css() {
 	$arr = func_get_args();
 
-	global $safecfg, $env;
+	global $env;
 
-	if ($safecfg['production']) {
+	// Собираем содержимое всех поданых css-файлов в переменную
+	$script = '';
+	foreach ($arr as $val):
+		$script .= "\n".file_get_contents($val);
+	endforeach;
 
-		// Собираем содержимое всех поданых css-файлов в переменную
-		$script = '';
-		foreach ($arr as $val):
-			$script .= "\n".file_get_contents($val);
-		endforeach;
+	// Объявляем имя файла
+	$filename = $env['appdir'].'data/compiled/css_'. md5($script) . '.css';
 
-		// Объявляем имя файла
-		$filename = $env['appdir'].'data/compiled/css_'. md5($script) . '.css';
+	// Если такого файла нет - создаем
+	if (!file_exists($filename)) {
 
-		// Если такого файла нет - создаем
-		if (!file_exists($filename)) {
-
-			// для начала чистим директорию
-			$dir = opendir($env['appdir'].'data/compiled/');
-			while (($file = readdir($dir)) !== false) {
-				// Только нужно проверить, что мы удаляем только ненужный файл (по префиксу)
-				if (!(strpos($file, 'css_') === false)) unlink($env['appdir'].'data/compiled/' . $file);
-			}
-
-			file_put_contents($filename, $script);
+		// для начала чистим директорию
+		$dir = opendir($env['appdir'].'data/compiled/');
+		while (($file = readdir($dir)) !== false) {
+			// Только нужно проверить, что мы удаляем только ненужный файл (по префиксу)
+			if (!(strpos($file, 'css_') === false)) unlink($env['appdir'].'data/compiled/' . $file);
 		}
 
-		echo '<link rel="stylesheet" type="text/css" href="' . $filename . '?N">' . "\n";
+		$less = new lessc();
 
-	} else {
-		foreach ($arr as $val):
-			echo '<link rel="stylesheet" type="text/css" href="' . $val . '?N">' . "\n";
-		endforeach;
+		file_put_contents($filename, $less->parse($script));
 	}
+
+	echo '<link rel="stylesheet" type="text/css" href="' . $filename . '?N">' . "\n";
+}
+
+function incl_turbine_css(){
+	$arr = func_get_args();
+
+	global $safecfg, $env;
+
+	$script = '';
+	foreach ($arr as $val):
+		$script .= "\n".file_get_contents($val);
+	endforeach;
+
+	// Объявляем имя файла
+	$filename = $env['appdir'].'data/compiled/cssp_'. md5($script) . '.css';
+
+	// Если такого файла нет - создаем
+	if (!file_exists($filename)) {
+
+		// для начала чистим директорию
+		$dir = opendir($env['appdir'].'data/compiled/');
+		while (($file = readdir($dir)) !== false) {
+			// Только нужно проверить, что мы удаляем только ненужный файл (по префиксу)
+			if (!(strpos($file, 'cssp_') === false)) unlink($env['appdir'].'data/compiled/' . $file);
+		}
+
+		if (function_exists('curl_init')){
+
+			$param[] = 'files='.join(';', $arr);
+
+			$conn = curl_init('http://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'].'libraries/turbine/css.php?'.join('&', $param));
+			curl_setopt($conn, CURLOPT_RETURNTRANSFER, true);
+			$script = curl_exec($conn);
+		}
+
+
+
+		/*ob_start();
+
+		$turbine_files = join(';', $arr);
+
+		include $path;
+
+		$script = ob_get_contents();
+		ob_end_clean();*/
+
+		file_put_contents($filename, $script);
+	}
+
+	echo '<link rel="stylesheet" type="text/css" href="' . $filename . '?N">' . "\n";
 }
 
 function incl_scripts() {

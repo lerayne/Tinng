@@ -20,10 +20,15 @@ function template_head(){
 		<!--[if lt IE 9]> <![endif]-->
 	';
 
+	/*incl_turbine_css(
+		path('styles/main.cssp'),
+		path('styles/design.cssp')
+	);*/
+
 	// Импорт стилей через функцию
 	incl_css(
 		path('styles/main.css'),
-		path('styles/design.css')
+		path('styles/design.less')
 	);
 
 	echo '<link rel="stylesheet" id="lowres_css" type="text/css" href="">';

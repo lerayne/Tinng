@@ -170,11 +170,11 @@ a:hover {text-decoration: underline;}
     font-weight: bold;
 }
 
-.unit .scroll-area {
-    overflow-y: scroll;
+.unit .scroll-area{
+	overflow-y: scroll
 }
 
 #tinng-main .editor {
-    position: fixed;
-    bottom:0;
+	position: fixed;
+	bottom:0;
 }
