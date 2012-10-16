@@ -41,10 +41,13 @@ function incl_css() {
 	if (!file_exists($filename)) {
 
 		// для начала чистим директорию
-		$dir = opendir($env['appdir'].'data/compiled/');
-		while (($file = readdir($dir)) !== false) {
-			// Только нужно проверить, что мы удаляем только ненужный файл (по префиксу)
-			if (!(strpos($file, 'css_') === false)) unlink($env['appdir'].'data/compiled/' . $file);
+		$compiled_path = $env['appdir'].'data/compiled/';
+		if (file_exists($compiled_path)){
+			$dir = opendir($env['appdir'].'data/compiled/');
+			while (($file = readdir($dir)) !== false) {
+				// Только нужно проверить, что мы удаляем только ненужный файл (по префиксу)
+				if (!(strpos($file, 'css_') === false)) unlink($env['appdir'].'data/compiled/' . $file);
+			}
 		}
 
 		$less = new lessc();
@@ -53,9 +56,10 @@ function incl_css() {
 	}
 
 	echo '<link rel="stylesheet" type="text/css" href="' . $filename . '?N">' . "\n";
+//	echo '<style name="less" type="text/css"> '. $less->parse($script) .' </style>'."\n";
 }
 
-function incl_turbine_css(){
+/*function incl_turbine_css(){
 	$arr = func_get_args();
 
 	global $safecfg, $env;
@@ -89,20 +93,20 @@ function incl_turbine_css(){
 
 
 
-		/*ob_start();
-
-		$turbine_files = join(';', $arr);
-
-		include $path;
-
-		$script = ob_get_contents();
-		ob_end_clean();*/
+//		ob_start();
+//
+//		$turbine_files = join(';', $arr);
+//
+//		include $path;
+//
+//		$script = ob_get_contents();
+//		ob_end_clean();
 
 		file_put_contents($filename, $script);
 	}
 
 	echo '<link rel="stylesheet" type="text/css" href="' . $filename . '?N">' . "\n";
-}
+}*/
 
 function incl_scripts() {
 	$arr = func_get_args();

@@ -3,9 +3,9 @@
 // ИНИЦИАЛИЗАЦИЯ
 ////////////////
 
-$env = array();
-$env['appdir'] = 'apps/web.main/';
-$env['rootdir'] = '';
+if (!$env) $env = array();
+if (!$env['appdir']) $env['appdir'] = '';
+if (!$env['rootdir']) $env['rootdir'] = '';
 
 // подключение универсального инициализатора (база в нем же)
 require_once 'sources/php/initial.php';
