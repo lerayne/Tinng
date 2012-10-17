@@ -16,6 +16,7 @@ require_once './classes/User.php';
 
 // установка локали
 $e->set_locale('utf-8');
+date_default_timezone_set('Europe/Kiev');
 
 $db = DbSimple_Generic::connect($safecfg['db']);
 
@@ -36,7 +37,9 @@ $raw_user = $db->selectRow(
 );
 
 // todo заглушка аутентификации
-if ($raw_user != false) $user = new User ($raw_user);
+if (!$raw_user){
+	$user->id = 0;
+} else $user = new User ($raw_user);
 
 //if ($user->gravatar)
 //$user->avatar = 'http://www.gravatar.com/avatar/'.md5(strtolower($user->email)).'?s=48';

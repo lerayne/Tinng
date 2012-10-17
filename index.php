@@ -1,5 +1,4 @@
 <?
-
 $env = array();
 $env['appdir'] = 'apps/web.main/';
 $env['rootdir'] = '';

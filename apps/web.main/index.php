@@ -8,7 +8,7 @@ if (!$env['appdir']) $env['appdir'] = '';
 if (!$env['rootdir']) $env['rootdir'] = '';
 
 // подключение универсального инициализатора (база в нем же)
-require_once 'sources/php/initial.php';
+require_once $env['appdir'].'sources/php/initial.php';
 
 
 // ПОДКЛЮЧЕНИЕ ШАБЛОНА

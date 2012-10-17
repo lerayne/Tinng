@@ -17,23 +17,24 @@ register_shutdown_function("ex", $log);
 ////////////////////////////////
 
 // подготовка каждой строки
-function ready_row($row) {
-	
+function ready_row($row)
+{
+
 	// убираем из сообщений об удаленных рядах всю лишнюю инфу
-	if ($row['deleted']){
-	
+	if ($row['deleted']) {
+
 		$cutrow['deleted'] = 1;
 		$cutrow['id'] = $row['id'];
 		$cutrow['author'] = $row['author'];
 		$cutrow['created'] = $row['created'];
 		unset($row);
 		$row = $cutrow;
-	
+
 	} else { // Если работаем не с отчетом об удалении 
-		
+
 		//if ($row['use_gravatar'] == '1')
-		$row['avatar_url'] = 'http://www.gravatar.com/avatar/'. md5(strtolower($row['author_email'])) .'?s=48';
-	
+		$row['avatar_url'] = 'http://www.gravatar.com/avatar/' . md5(strtolower($row['author_email'])) . '?s=48';
+
 		unset($row['author_email']); // не выводим мыло в аякс-переписке
 	}
 
@@ -42,7 +43,8 @@ function ready_row($row) {
 
 
 // создание дерева (внимание !! целесообразность ветвления - под вопросом)
-function make_tree($raw) {
+function make_tree($raw)
+{
 	foreach ($raw as $key => $val):
 		$raw[$key] = ready_row($val);
 		/*if ($val['parent'] == $val['topic_id']) { $result[$key] = $val; }
@@ -55,12 +57,13 @@ function make_tree($raw) {
 
 // сортировка двумерного массива по указанному полю field. Работает даже с неуникальными ключами
 // внимание! возвращает нумерованный массив, а не хеш-таблицу!
-function sort_by_field($array, $field, $reverse){
+function sort_by_field($array, $field, $reverse)
+{
 
 	$afs = Array(); // array for sort
 	$out = Array();
-	
-	foreach ($array as $key => $val) $afs[$val[$field].$key] = $val;
+
+	foreach ($array as $key => $val) $afs[$val[$field] . $key] = $val;
 	ksort($afs);
 	if ($reverse) $afs = array_reverse($afs);
 	foreach ($afs as $val) $out[] = $val;
@@ -89,7 +92,7 @@ $result['old_maxdate'] = $maxdateSQL;
 // Записываем в базу обновления
 ///////////////////////////////  
 
-// $action можт и не указывать на запись чего-либо в базу. Этот switch перебирает только записывающие действия
+// $action можт и не указывать на запись чего-либо в базу. Этот switch перебирает только записывающие действия $action
 switch ($action):
 
 	// добавляем новую тему (тут нет брейка, так и надо)
@@ -113,7 +116,7 @@ switch ($action):
 
 		$result['topic_prop']['scrollto'] = $new_id;
 
-	break;
+		break;
 
 
 	// обновляет запись в ?_messages
@@ -127,7 +130,7 @@ switch ($action):
 
 		$db->query('UPDATE ?_messages SET ?a WHERE id = ?d', $params, $upd_id);
 
-	break;
+		break;
 
 
 	// удаляем сообщение
@@ -138,7 +141,7 @@ switch ($action):
 			'SELECT locked FROM ?_messages WHERE id = ?d', $params['id']
 		);
 
-		if ($locked){
+		if ($locked) {
 
 			$result['error'] = 'post_locked';
 
@@ -153,8 +156,8 @@ switch ($action):
 			$db->query('UPDATE ?_messages SET ?a WHERE id = ?d', $params, $upd_id);
 		}
 
-	break;
-	
+		break;
+
 	// убираем тег с темы
 	case 'tag_remove':
 
@@ -167,7 +170,7 @@ switch ($action):
 
 		$db->query('DELETE FROM ?_tagmap WHERE message = ?d AND tag = ?d', $params['msg'], $params['tag']);
 
-	break;
+		break;
 
 endswitch;
 
@@ -176,15 +179,15 @@ endswitch;
 // Ищем любые обновления
 ////////////////////////
 
-$result['new_maxdate'] = $db->selectCell (
+$result['new_maxdate'] = $db->selectCell(
 	'SELECT GREATEST(MAX(created), IFNULL(MAX(modified), 0))
-	FROM ?_messages WHERE IFNULL(modified, created) > ?' . ($condition ? ' AND '.$condition : '')
+	FROM ?_messages WHERE IFNULL(modified, created) > ?' . ($condition ? ' AND ' . $condition : '')
 	, ($action == 'load_pages' || $action == 'next_page') ? 0 : $maxdateSQL
 );
 
 
 // если результатов 0 то отправляем старую макс. дату и прекращаем работу скрипта
-if (!$result['new_maxdate']){
+if (!$result['new_maxdate']) {
 	$result['new_maxdate'] = $result['old_maxdate'];
 	$GLOBALS['_RESULT'] = $result;
 	exit();
@@ -243,11 +246,11 @@ $result['topics'] = make_tree($db->select(
 
 	WHERE msg.topic_id = 0
 		AND (IFNULL(msg.modified, msg.created) > ? OR IFNULL(mupd.modified, mupd.created) > ?)
-		'.($condition ? ' AND '.$condition : '')
+		' . ($condition ? ' AND ' . $condition : '')
 
 	, $cfg['cut_length'], $cfg['cut_length'] // ограничение выборки первого поста
 	, $user->id
-	, $maxdateSQL , $maxdateSQL
+	, $maxdateSQL, $maxdateSQL
 ));
 
 
@@ -265,14 +268,14 @@ $tags = $db->select(
 		ON map.tag = tag.id
 	WHERE 
 		IFNULL(msg.modified, msg.created) > ?
-	'.($condition ? ' AND '.$condition : '')
+	' . ($condition ? ' AND ' . $condition : '')
 	, $maxdateSQL
 );
 
 foreach ($tags as $tag) {
 	$id = $tag['message'];
 
-	if ($result['topics'][$id])	$result['topics'][$id]['tags'][] = $tag;
+	if ($result['topics'][$id]) $result['topics'][$id]['tags'][] = $tag;
 }
 
 // сортировка. До сортировки массив $result['topics'] имеет индекс в виде номера темы
@@ -280,7 +283,7 @@ switch ($sort):
 
 	case 'updated':
 		$result['topics'] = sort_by_field($result['topics'], 'totalmaxd', $reverse);
-	break;
+		break;
 
 endswitch;
 
@@ -290,7 +293,7 @@ endswitch;
 //////////////////////////////////
 
 // ОПТИМИЗИРОВАТЬ КОЛ_ВО ЗАПРОСОВ
-if ($topic){
+if ($topic) {
 
 	// проверяем, существует ли тема (не удалена ли) и читаем ее заголовок
 	$topic_name = $db->selectCell(
@@ -299,27 +302,27 @@ if ($topic){
 	);
 
 	// если тема удалена (если удалена, name === null, если пустой заголовок - name === "")
-	if ($topic_name === null){
+	if ($topic_name === null) {
 
 		$result['topic_prop']['deleted'] = true; // по этому флагу отслеживаем онлайн-удаление темы 
 
-	// если тема не удалена
+		// если тема не удалена
 	} else {
-		
+
 		// Выясняем, сколько вообще сообщений в теме
 		$result['topic_prop']['postcount'] = $postcount = $db->selectCell(
 			'SELECT COUNT(id) FROM ?_messages WHERE (topic_id = ?d OR id = ?d) AND deleted <=> NULL',
 			$topic, $topic
 		);
-		
+
 		// забиваем в эту переменную значение по умолчанию
 		$pglimit_dateSQL = jsts2sql($old_pglimdateTS || 0);
-		
+
 		// Если сразу не указано грузить все
 		if (($action == 'load_pages' || $action == 'next_page') && $_REQUEST['plimit']) {
 
-		// Узнаем, сколько же сказано грузить
-			$plimit = $_REQUEST['plimit']*$cfg['posts_per_page'];
+			// Узнаем, сколько же сказано грузить
+			$plimit = $_REQUEST['plimit'] * $cfg['posts_per_page'];
 
 			// если сообщений меньше, чем предел для загрузки - сообщаем, что это последняя страница
 			if ($postcount <= $plimit) $show_all = 1;
@@ -333,7 +336,7 @@ if ($topic){
 				LIMIT 1 OFFSET ?d',
 				$topic, $topic, $plimit
 			);
-			
+
 			// Если сообщение переданное по ссылке - за пределами текущих страниц
 			if ($params['directMsg']) {
 				$direct_dateSQL = $db->select('
@@ -345,17 +348,17 @@ if ($topic){
 					WHERE t.id <= ?d AND (t.topic_id = ?d OR t.id = ?d)
 					ORDER BY t.id desc
 					LIMIT 2
-					',$pglimit_dateSQL 
+					', $pglimit_dateSQL
 					, $pglimit_dateSQL
 					, $params['directMsg']
 					, $topic
 					, $topic
 				);
-			
+
 				$pglimit_dateSQL = $direct_dateSQL[1]['newdate'];
 			}
 		}
-		
+
 		if (!$_REQUEST['plimit'] || $show_all) {
 			$result['topic_prop']['show_all'] = 1;
 			$pglimit_dateSQL = jsts2sql('0');
@@ -364,7 +367,7 @@ if ($topic){
 		$result['topic_prop']['pglimit_date'] = $pglimit_dateSQL;
 
 		if ($action == 'load_pages') { // если загружаем новую тему
-				
+
 			$maxdateSQL = $pglimit_dateSQL;
 			$result['topic_prop']['manual'] = true; // указываем что тема грузилась вручную (пока только для прокрутки) todo - не работает
 
@@ -372,29 +375,32 @@ if ($topic){
 			$result['topic_prop']['id'] = $topic;
 
 			// хотим узнать, когда пользователь отмечал эту тему прочитанной
-			$date_read = $db->selectCell(
-				'SELECT timestamp FROM ?_unread WHERE user = ?d AND topic = ?d'
-				, $user->id , $topic
-			);
-
-			// ой, ни разу! Установить ее прочитанной в этот момент!
-			if (!$date_read) {
-
-				$date_read = now('sql');
-				$values = Array(
-					'user' => $user->id,
-					'topic' => $topic,
-					'timestamp' => $date_read
+			if ($user->id != 0) {
+				$date_read = $db->selectCell(
+					'SELECT timestamp FROM ?_unread WHERE user = ?d AND topic = ?d'
+					, $user->id, $topic
 				);
-				$db->query('INSERT INTO ?_unread (?#) VALUES (?a)'
-					, array_keys($values), array_values($values) );
 
-				$date_read = 'firstRead'; // клиентская часть должна знать!
+				// ой, ни разу! Установить ее прочитанной в этот момент!
+				if (!$date_read) {
+
+					$date_read = now('sql');
+					$values = Array(
+						'user' => $user->id,
+						'topic' => $topic,
+						'timestamp' => $date_read
+					);
+					$db->query('INSERT INTO ?_unread (?#) VALUES (?a)'
+						, array_keys($values), array_values($values));
+
+					$date_read = 'firstRead'; // клиентская часть должна знать!
+				}
+
+				$result['topic_prop']['date_read'] = $date_read; // вывести в клиент
 			}
 
-			$result['topic_prop']['date_read'] = $date_read; // вывести в клиент
 		}
-		
+
 		// Что делаем, если сказано загрузить только следующую страницу
 		/*
 		if ($action == 'next_page') {
@@ -437,9 +443,9 @@ if ($topic){
 			WHERE
 				(msg.topic_id = ?d OR msg.id = ?d) AND 
 				((IFNULL(msg.modified, msg.created) > ? AND msg.created > ?)'
-				.($action == 'next_page' ? ' OR (msg.created <= ? AND msg.created > ?)' : '').')
+				. ($action == 'next_page' ? ' OR (msg.created <= ? AND msg.created > ?)' : '') . ')
 			ORDER BY msg.created ASC'
-			
+
 			, $user->id, $user->id
 			, $topic, $topic
 			, $maxdateSQL
@@ -447,7 +453,7 @@ if ($topic){
 			, jsts2sql($old_pglimdateTS)
 			, $pglimit_dateSQL
 		));
-		
+
 		$result['topic_prop']['name'] = $topic_name; // вывод в клиент имени
 	}
 }

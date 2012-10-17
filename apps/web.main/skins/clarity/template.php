@@ -20,7 +20,7 @@
 			
 			<header id="tinng-main-header">
 				<a class='logo' href='/'><img src="<?= path('images/logo_tiny.png') ?>"></a>
-				<div class='right state-ind'></div>
+				<div class='right state-ind throbber'></div>
 				<div class='right'>
 					<? require path('template.login.php'); ?>
 				</div>

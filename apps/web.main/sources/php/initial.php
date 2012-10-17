@@ -34,7 +34,6 @@ $raw_user = $db->selectRow(
     , $_COOKIE['pass']
     , $_COOKIE['login']
 );
-
 // todo заглушка аутентификации
 if ($raw_user != false) $user = new User ($raw_user);
 
