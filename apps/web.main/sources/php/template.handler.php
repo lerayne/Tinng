@@ -8,7 +8,11 @@ function template_title(){
 
 function path($file){
 	global $cfg, $env;
-	return (file_exists($env['appdir'].'skins/'.$cfg['skin'].'/'.$file)) ? $env['appdir'].'skins/'.$cfg['skin'].'/'.$file : $env['appdir'].'stock/'.$file;
+
+	$skinned_path = $env['appdir'].'skins/'.$cfg['skin'].'/'.$file;
+	$stock_path = $env['appdir'].'stock/'.$file;
+
+	return (file_exists($skinned_path)) ? $skinned_path : $stock_path;
 }
 
 function template_head(){

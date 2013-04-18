@@ -28,8 +28,18 @@ tinng.protos.UserInterface = function (targetWindow) {
 	// проксирование методов
 	this.winResize = $.proxy(this, 'winResize');
 	this.editorResize = $.proxy(this, 'editorResize');
+	this.doLogin = $.proxy(this, 'doLogin');
 
 	/// ОБРАБОТКА ///
+
+
+	// управление верхним меню
+	this.$loginForm = $('#tinng-top-login');
+
+	if (this.$loginForm.size()){
+		this.$loginBtn = this.$loginForm.find('#loginBtn').click(this.doLogin);
+		this.$logoutBtn = this.$loginForm.find('#logoutBtn').click(this.doLogin);
+	}
 
 	// размещение юнитов
 
@@ -41,10 +51,10 @@ tinng.protos.UserInterface = function (targetWindow) {
 		t.chunks.get('clearfix')
 	);
 
-	// размещение редактора
-	var editor = this.editor = new t.protos.Editor();
-	editor.$body.on('keyup', this.editorResize);
-	t.units.posts.$scrollArea.append(editor.$body);
+
+	this.editor = new t.protos.Editor();
+	this.editor.$body.on('keyup', this.editorResize);
+	t.units.posts.$scrollArea.append(this.editor.$body);
 
 	// вешаем событие на ресайз окна
 	this.$window.resize(this.winResize).resize();
@@ -65,21 +75,24 @@ tinng.protos.UserInterface.prototype = {
 
 		for (var key in t.units) t.units[key].setHeight(mainH);
 
-		this.editorResize();
+		this.editor.resize();
 	},
 
 	// Подгоняет внешний вид редактора под окно
-	editorResize:function () {
-		var posts = this.tinng.units.posts;
-		this.editor.$body.width(posts.$content.width());
+//	editorResize:function () {
+//		var posts = this.tinng.units.posts;
+//		this.editor.$body.width(posts.$content.width());
+//
+//		var atBottom = posts.atBottom; // не убирать! строка ниже меняет значение этого вызова!
+//		posts.$contentWrap.css('padding-bottom', this.editor.$body.offsetHeight());
+//		if (atBottom) posts.scrollToBottom();
+//		 // возможно в будущем для еще большей плавности стоит изменять целую пачку стилей с тем чтобы у поля ввода позиция
+//		 // не всегда была fixed. Для этого придется повесить событие OnScroll и отследивать степень прокрутки. Возможно - тогда
+//		 // не придется и плясать с нижним паддингом и враппер получится убрать
+//	},
 
-		var atBottom = posts.atBottom;
-		posts.$contentWrap.css('padding-bottom', this.editor.$body.offsetHeight());
-		if (atBottom) posts.scrollToBottom();
-		/*
-		 возможно в будущем для еще большей плавности стоит изменять целую пачку стилей с тем чтобы у поля ввода позиция
-		 не всегда была fixed. Для этого придется повесить событие OnScroll и отследивать степень прокрутки. Возможно - тогда
-		 не придется и плясать с нижним паддингом и враппер получится убрать
-		 */
+	doLogin:function(){
+		this.$loginForm[0].lochash.value = location.hash;
+		this.$loginForm.submit();
 	}
 };

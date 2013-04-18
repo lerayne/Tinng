@@ -11,7 +11,7 @@ tinng.funcs.onWindowLoad = function(){
         t.funcs.parser
     );
 
-    // загрузка данных из хеша
+    // загрузка данных из хеша адресной строки
     t.sync.curTopic = parseInt(t.address.get('topic'));
 
     // такая конструкция нужна для того, чтобы 0 воспринимался как значение

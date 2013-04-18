@@ -20,6 +20,7 @@ tinng = {
     rotor:null,
     ui:null,
     address:null,
+	user:null,
 
     // наборы статических методов
     funcs:null, // независимые от движка функции

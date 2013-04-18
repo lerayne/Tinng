@@ -11,8 +11,6 @@ require_once $env['appdir'].'functions.common.php';
 require_once $env['appdir'].'languages/ru.php';
 require_once $env['rootdir'].'libraries/DbSimple/Generic.php';
 
-
-
 $db = DbSimple_Generic::connect($safecfg['db']);
 $db->query('SET NAMES "utf8"');
 $db->setIdentPrefix($safecfg['db_prefix'].'_');

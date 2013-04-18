@@ -7,12 +7,14 @@
  */
 
 Address = function (delimSign, eqSign) {
+	// проксирование приватных функций
+	for (var i in this.$) if (typeof this.$[i] == 'function') this.$[i] = $.proxy(this.$[i], this)
 
-    this.vars = {};
+	this.vars = {};
     this.delimSign = delimSign;
     this.eqSign = eqSign;
 
-    var pairs = this.load(), pair, varName, value;
+    var pairs = this.$.load(), pair, varName, value;
 
     if (pairs.length) for (var i in pairs) {
         pair = pairs[i].split(this.eqSign);
@@ -20,15 +22,17 @@ Address = function (delimSign, eqSign) {
         value = pair[1];
         if (varName !== '') this.vars[varName] = value;
     }
+
 }
 
 Address.prototype = {
-
-    load:function () {
-        if (location.hash.length > 2 && location.hash.indexOf(this.eqSign) != -1) {
-            return location.hash.replace('#', '').split(this.delimSign);
-        } else return [];
-    },
+	$:{
+		load:function () {
+			if (location.hash.length > 2 && location.hash.indexOf(this.eqSign) != -1) {
+				return location.hash.replace('#', '').split(this.delimSign);
+			} else return [];
+		}
+	},
 
     write:function (args) {
 

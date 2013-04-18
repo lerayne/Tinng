@@ -34,8 +34,11 @@ $raw_user = $db->selectRow(
     , $_COOKIE['pass']
     , $_COOKIE['login']
 );
+
 // todo заглушка аутентификации
-if ($raw_user != false) $user = new User ($raw_user);
+if (!$raw_user){
+	$user->id = 0;
+} else $user = new User ($raw_user);
 
 //if ($user->gravatar)
 //$user->avatar = 'http://www.gravatar.com/avatar/'.md5(strtolower($user->email)).'?s=48';

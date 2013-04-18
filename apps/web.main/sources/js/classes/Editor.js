@@ -17,6 +17,7 @@ tinng.protos.Editor = function () {
     this.submitNew = $.proxy(this, 'submitNew');
 
     this.$submit.click(this.submitNew);
+	this.visible = true;
 }
 
 tinng.protos.Editor.prototype = {
@@ -54,5 +55,30 @@ tinng.protos.Editor.prototype = {
         var msg = this.$messageBody.html()
 
         return msg;
-    }
+    },
+
+	resize:function(){
+		var posts = this.tinng.units.posts;
+		this.$body.width(posts.$content.width());
+
+		var wasAtBottom = posts.atBottom; // не убирать! строка ниже меняет значение этого вызова!
+		posts.$contentWrap.css('padding-bottom', this.$body.offsetHeight());
+		if (wasAtBottom) posts.scrollToBottom();
+	},
+
+	hide:function(){
+		var wasAtBottom = this.tinng.units.posts.atBottom;
+		this.$body.hide();
+		this.visible = false;
+		this.resize();
+		if (wasAtBottom) this.tinng.units.posts.scrollToBottom();
+	},
+
+	show:function(){
+		var wasAtBottom = this.tinng.units.posts.atBottom;
+		this.$body.show();
+		this.visible = true;
+		this.resize();
+		if (wasAtBottom) this.tinng.units.posts.scrollToBottom();
+	}
 }
