@@ -50,7 +50,7 @@ function import_js_vars(){
 function incl_scripts(){
 	$arr = func_get_args();
 	
-	global $safecfg, $display_mode;
+	global $safecfg, $display_mode, $script;
 	
 	if ($safecfg['production']){
 		

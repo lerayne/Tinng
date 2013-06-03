@@ -4,8 +4,9 @@
 ////////////////
 
 // подключение универсального инициализатора (база в нем же)
-$rootdir = './';
-require_once 'php/initial.php';
+$rootdir = './obsolete/';
+$appdir = 'obsolete/';
+require_once $rootdir . 'php/initial.php';
 
 // ПОСТРОЕНИЕ ИНТЕРФЕЙСА
 ////////////////////////
@@ -26,7 +27,7 @@ if (
 )
     $display_mode = 'phone';
 
-$device_path = 'displays/'.$display_mode.'/'.$display_mode.'_';
+$device_path = $rootdir.'displays/'.$display_mode.'/'.$display_mode.'_';
 
 //работа с сессией
 # session_start();
