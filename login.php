@@ -18,10 +18,10 @@ $message = false;
 if ($_SERVER["HTTP_REFERER"]) $location = $_SERVER["HTTP_REFERER"];
 else {
 	$location = 'http://'.$_SERVER["HTTP_HOST"];
-	$path_parts = split('/', $_SERVER['REQUEST_URI']);
+	$path_parts = implode('/', $_SERVER['REQUEST_URI']);
 	array_pop($path_parts);
-	$location += join('/', $path_parts);
-	$location += '/';
+	$location .= join('/', $path_parts);
+	$location .= '/';
 }
 
 switch ($_GET['action']):
