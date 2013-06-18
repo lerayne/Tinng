@@ -6,7 +6,7 @@ function template_title(){
 	echo 'Tinng alpha';
 }
 
-function path($file){
+function path($file) {
 	global $cfg, $env;
 
 	$skinned_path = $env['appdir'].'skins/'.$cfg['skin'].'/'.$file;

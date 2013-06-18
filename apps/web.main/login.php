@@ -1,13 +1,11 @@
 <?php
 
-header ('Content-type:text/html;charset=utf-8;');
-
 $env = array();
-$env['appdir'] = 'apps/web.main/';
-$env['rootdir'] = '';
+$env['appdir'] = '';
+$env['rootdir'] = '../../';
 
 require_once $env['appdir'].'config.php';
-require_once $env['appdir'].'functions.common.php';
+require_once $env['appdir'].'sources/php/functions.common.php';
 require_once $env['appdir'].'languages/ru.php';
 require_once $env['rootdir'].'libraries/DbSimple/Generic.php';
 
@@ -22,11 +20,11 @@ else {
 	$location = 'http://'.$_SERVER["HTTP_HOST"];
 	$path_parts = explode('/', $_SERVER['REQUEST_URI']);
 	array_pop($path_parts);
-	$location += join('/', $path_parts);
-	$location += '/';
+	$location .= join('/', $path_parts);
+	$location .= '/';
 }
 
-switch ($_GET['action']):
+switch ($_POST['action']):
 
 	case 'login':
 
@@ -43,27 +41,27 @@ switch ($_GET['action']):
 		if ($raw != false) {
 
 			$time = ($_POST['memorize']) ? time()+(365*24*60*60) : false; // запоминаем на год
-			setcookie('pass', md5($_POST['pass']), $time);
-			setcookie('login', $raw['login'], $time);
-			setcookie('user', $raw['id'], $time);
+			setcookie('pass', md5($_POST['pass']), $time, '/');
+			setcookie('login', $raw['login'], $time, '/');
+			setcookie('user', $raw['id'], $time, '/');
 
 		} else {
-			setcookie('message', '1');
+			setcookie('message', '1', 0, '/');
 		}
 
 	break;
 
 	case 'logout':
 
-		setcookie('pass', '');
-		setcookie('login', '');
-		setcookie('user', '');
+		setcookie('pass', '', 0, '/');
+		setcookie('login', '', 0, '/');
+		setcookie('user', '', 0, '/');
 
 	break;
 
 	case 'register':
 
-		setcookie('logdata', base64_encode(serialize($_POST)));
+		setcookie('logdata', base64_encode(serialize($_POST)), 0, '/');
 
 		if (!preg_match($rex['pass'], $_POST['pass1'])) $message = 10;
 		if ($_POST['pass1'] != $_POST['pass2']) $message = 11;
@@ -99,7 +97,7 @@ switch ($_GET['action']):
 			$message = 20;
 		endif;
 
-		setcookie('message', $message);
+		setcookie('message', $message, 0, '/');
 
 	break;
 
@@ -119,9 +117,9 @@ switch ($_GET['action']):
 
 			$db->query('INSERT INTO ?_user_settings (uset_user) VALUES (?d)', $user['id']);
 
-			setcookie('pass', $user['hash']);
-			setcookie('login', $user['login']);
-			setcookie('user', $user['id']);
+			setcookie('pass', $user['hash'], 0, '/');
+			setcookie('login', $user['login'], 0, '/');
+			setcookie('user', $user['id'], 0, '/');
 
 			mail($user['email'], $txtp['reg_welcome_subject'], $user['login'].$txtp['reg_welcome_message']);
 
@@ -129,15 +127,17 @@ switch ($_GET['action']):
 
 		endif;
 
-		setcookie('message', $message);
+		setcookie('message', $message, 0, '/');
 
 	break;
 
 endswitch;
-/*
-echo '<pre>';
-var_dump($_SERVER);
-echo '</pre>';
-*/
-header("location: ".$location.$_POST['lochash']);
-?>
+
+/*echo '<pre>';
+//var_dump($_SERVER);
+echo $_GET['action'];
+echo '</pre>';*/
+//echo '<script type="text/javascript">alert("'.$_POST['action'].'")</script>';
+
+header ("Content-type:text/html;charset=utf-8;");
+header ("location: ".$location.$_POST['lochash']);
