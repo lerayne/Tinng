@@ -110,13 +110,16 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 		this.enterRenameMode = $.proxy(this, 'enterRenameMode');
 		this.cancelRename = $.proxy(this, 'cancelRename');
 		this.saveName = $.proxy(this, 'saveName');
+		this.cancelNewTopic = $.proxy(this, 'cancelNewTopic');
 
 		this.header.save.hide();
 		this.header.cancel.hide();
+		this.header.cancelNewTopic.hide();
 
 		this.header.topicRename.on('click', this.topicRename);
 		this.header.cancel.on('click', this.cancelRename);
 		this.header.save.on('click', this.saveName);
+		this.header.cancelNewTopic.on('click', this.cancelNewTopic)
 
 		this.$showMore = $('<div class="showmore"/>');
 		this.$contentWrap.prepend(this.$showMore);
@@ -260,12 +263,32 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 	newTopic:function () {
 		var t = this.tinng;
 
-		console.log('new topic')
 		t.funcs.unloadTopic();
 
 		this.header.topicRename.hide();
+		this.header.cancelNewTopic.show();
+		this.$showMore.hide();
 		this.header.topicName.$body.html('');
 		this.header.topicName.$body.attr('contenteditable', true);
+
+		return false;
+	},
+
+	exitNewTopicMode:function(){
+		this.header.topicRename.show();
+		this.header.cancelNewTopic.hide();
+		this.header.topicName.$body.removeAttr('contenteditable');
+		this.tinng.units.topics.header.newTopic.unblock();
+	},
+
+	cancelNewTopic:function(){
+		var t = this.tinng;
+
+		t.funcs.unloadTopic();
+		this.header.topicName.$body.html('');
+		this.exitNewTopicMode();
+
+		return false;
 	}
 });
 

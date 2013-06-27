@@ -1,5 +1,6 @@
 // Главный объект который передается во все прототипы.
 // Здесь должен полностью прописываться интерфейс этого объекта
+
 tinng = {
 
     // коллекции объектов
@@ -43,7 +44,8 @@ tinng.data = {
                 {type:'Button', label:'topicRename', cssClass:'right reveal3', icon:'pencil.png', tip:tinng.txt.rename_topic},
                 {type:'Field', label:'topicName', cssClass:'left topicname'},
                 {type:'Button', label:'cancel', cssClass:'right', icon:'cancel.png', tip:tinng.txt.cancel},
-                {type:'Button', label:'save', cssClass:'right', icon:'round_checkmark.png', tip:tinng.txt.save}
+                {type:'Button', label:'save', cssClass:'right', icon:'round_checkmark.png', tip:tinng.txt.save},
+				{type:'Button', label:'cancelNewTopic', cssClass:'right', icon:'cancel.png', tip:tinng.txt.cancel_new_topic}
             ]
         }
     ]

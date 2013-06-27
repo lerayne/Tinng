@@ -65,6 +65,8 @@ tinng.protos.Node = new Class({
 });
 
 
+
+
 tinng.protos.TopicNode = new Class(tinng.protos.Node, {
 
 	construct:function (data) {
@@ -176,6 +178,8 @@ tinng.protos.TopicNode = new Class(tinng.protos.Node, {
 		this.$body.remove();
 	}
 });
+
+
 
 
 tinng.protos.PostNode = Class(tinng.protos.Node, {
