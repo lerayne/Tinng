@@ -55,7 +55,7 @@
 				<footer></footer>
 			</div>
 
-
+			<!-- Элемент столбца тем -->
 			<div data-chunk-name="topic" class="node topic revealer">
 				<div class="data_cell">
 					<div data-cell="infobar" class="infobar">
@@ -77,7 +77,7 @@
 				</div>
 			</div>
 
-
+			<!-- Элемент столбца сообщений -->
 			<div data-chunk-name="post" class="node post revealer">
 				<div class="data_cell">
 					<div data-cell="infobar" class="infobar">
@@ -97,6 +97,7 @@
 				</div>
 			</div>
 
+			<!-- Редактор -->
 			<div data-chunk-name="editor" class="editor">
 				<div class="editor-inner">
 					<input type="text" class="title" />
