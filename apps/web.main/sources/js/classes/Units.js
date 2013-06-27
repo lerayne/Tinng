@@ -106,6 +106,8 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 		t.protos.Unit.prototype
 			.construct.apply(this, arguments);
 
+		this.newTopicMode = false;
+
 		this.topicRename = $.proxy(this, 'topicRename');
 		this.enterRenameMode = $.proxy(this, 'enterRenameMode');
 		this.cancelRename = $.proxy(this, 'cancelRename');
@@ -271,6 +273,8 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 		this.header.topicName.$body.html('');
 		this.header.topicName.$body.attr('contenteditable', true);
 
+		this.newTopicMode = true;
+
 		return false;
 	},
 
@@ -279,6 +283,8 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 		this.header.cancelNewTopic.hide();
 		this.header.topicName.$body.removeAttr('contenteditable');
 		this.tinng.units.topics.header.newTopic.unblock();
+
+		this.newTopicMode = false;
 	},
 
 	cancelNewTopic:function(){

@@ -11,6 +11,8 @@
 tinng.funcs.parser = function (result, actionUsed) {
 	var t = this.tinng;
 
+//	console.log('actionUsed: ', actionUsed)
+
 	if (result && result.error) alert(t.txt.post_locked);
 
 	var tProps = (result && result.topic_prop) ? result.topic_prop : [];
@@ -59,6 +61,12 @@ tinng.funcs.parser = function (result, actionUsed) {
 		if (tProps.show_all) {
 			t.units.posts.$showMore.hide();
 		} else t.units.posts.$showMore.show();
+
+		console.log(actionUsed);
+		if (actionUsed == 'add_topic') {
+			console.log('exitNewTopicMode')
+			t.units.posts.exitNewTopicMode();
+		}
 
 		// если страница догружалась
 		if (actionUsed == 'next_page') {

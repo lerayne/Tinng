@@ -27,10 +27,23 @@ tinng.protos.Editor.prototype = {
         var t = this.tinng;
 
         if (this.checkMessage()) {
-            t.rotor.start('add_post', {
-                message:this.preparedMessage(),
-                title:this.$messageTitle.val()
-            });
+
+			switch (t.units.posts.newTopicMode) {
+				case true:
+
+					t.rotor.start('add_topic', {
+						message: this.preparedMessage(),
+						title: t.units.posts.header.topicName.$body.text()
+					});
+
+				break;
+				default:
+
+					t.rotor.start('add_post', {
+						message:this.preparedMessage(),
+						title:''
+					});
+			}
 
             this.$messageBody.html(''); // todo - сделать затенение кнопки, если сообщение пустое
             this.$messageTitle.val('');
