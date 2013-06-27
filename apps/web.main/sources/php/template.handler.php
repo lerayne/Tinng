@@ -57,23 +57,23 @@ function template_head() {
 
 	// Подключение скриптов
 	incl_scripts(
-		$env['appdir'] . 'sources/js/jqextend.js', // мои расширения jq (в основном самопис)
+		$env['appdir'] . 'sources/js/jqextend.js', 				// мои расширения jq (в основном самопис)
 		$env['rootdir'] . 'libraries/JsHttpRequest.js',
 
-		$env['appdir'] . 'sources/js/classes/Class.js', // наследователь для классов
+		$env['appdir'] . 'sources/js/classes/Class.js',			// наследователь для классов
 
-		$env['appdir'] . 'sources/js/classes/Tinng.js', // главный объект-контейнер
-		$env['appdir'] . 'sources/js/classes/Funcs.js', // простые функции (иногда расширяются ниже)
-		$env['appdir'] . 'sources/js/classes/Address.js', // работа с хешем адресной строки
-		$env['appdir'] . 'sources/js/classes/Chunks.js', // движок подшаблонов, встроенных в базовый шаблон
-		$env['appdir'] . 'sources/js/classes/Controls.js', // абстракция элементов управления
-		$env['appdir'] . 'sources/js/classes/Units.js', // "вьюпорты", или секции основного интерфейса
-		$env['appdir'] . 'sources/js/classes/Editor.js', // редактор сообщений
+		$env['appdir'] . 'sources/js/classes/Tinng.js',			// главный объект-контейнер
+		$env['appdir'] . 'sources/js/classes/Funcs.js',			// простые функции (иногда расширяются ниже)
+		$env['appdir'] . 'sources/js/classes/Address.js',		// работа с хешем адресной строки
+		$env['appdir'] . 'sources/js/classes/Chunks.js',		// движок подшаблонов, встроенных в базовый шаблон
+		$env['appdir'] . 'sources/js/classes/Controls.js',		// абстракция элементов управления
+		$env['appdir'] . 'sources/js/classes/Units.js',			// "вьюпорты", или секции основного интерфейса
+		$env['appdir'] . 'sources/js/classes/Editor.js',		// редактор сообщений
 		$env['appdir'] . 'sources/js/classes/UserInterface.js', // основной интерфейс
-		$env['appdir'] . 'sources/js/classes/Connection.js', // ротор
-		$env['appdir'] . 'sources/js/parser.js', // обработка пришедших от сервера данных
-		$env['appdir'] . 'sources/js/classes/Tag.js', // тег
-		$env['appdir'] . 'sources/js/classes/Nodes.js', // блоки (ноды) сообщений
+		$env['appdir'] . 'sources/js/classes/Connection.js', 	// соединение с сервером данных
+		$env['appdir'] . 'sources/js/parser.js', 				// обработка пришедших от сервера данных
+		$env['appdir'] . 'sources/js/classes/Tag.js', 			// тег
+		$env['appdir'] . 'sources/js/classes/Nodes.js', 		// блоки (ноды) сообщений
 
 		$env['appdir'] . 'sources/js/onload.js'
 	);
