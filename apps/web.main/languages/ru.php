@@ -34,6 +34,7 @@ $txt['scroll_to_selected'] = 'Показать';
 $txt['show_parent'] = 'Это ответ на другое сообщение (показать)';
 
 $txt['cancel'] = 'Отмена';
+$txt['cancel_new_topic'] = 'Отмена создания темы';
 $txt['send'] = 'Отправить';
 $txt['save'] = 'Сохранить';
 $txt['answer'] = 'Ответить';

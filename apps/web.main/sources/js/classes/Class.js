@@ -7,23 +7,21 @@
  */
 
 // Конструтор классов, спасибо Riim (javascript.ru)
-var Class = (function () {
 
-    var extend = Object.extend = function (self, obj) {
-        if (self == null) self = {};
-        for (var key in obj) self[key] = obj[key];
-        return self;
-    }
+extend = Object.extend = function (self, obj) {
+	if (self == null) self = {};
+	for (var key in obj) self[key] = obj[key];
+	return self;
+}
 
-    return function (parent, declaration) {
+var Class = function (parent, declaration) {
 
         var Klass = function () {
             this.initialize.apply(this, arguments);
         }
 
         if (typeof parent == 'function') {
-            function F() {
-            }
+            function F(){}
 
             F.prototype = parent.prototype;
             Klass.prototype = new F();
@@ -35,7 +33,6 @@ var Class = (function () {
         extend(Klass.prototype, declaration).initialize || (Klass.prototype.initialize = Function.blank);
         Klass.superclass = parent;
         Klass.prototype.superclass = parent.prototype;
-        return Klass.prototype.constructor = Klass;
-    };
-
-})();
+		Klass.prototype.constructor = Klass;
+        return Klass;
+};
