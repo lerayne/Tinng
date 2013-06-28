@@ -8,16 +8,21 @@
 
 // Редактор сообщений
 tinng.protos.Editor = function () {
-    var $body = this.$body = this.tinng.chunks.get('editor');
 
-    this.$submit = $body.find('.submit.button');
-    this.$messageBody = $body.find('.textarea');
-    this.$messageTitle = $body.find('.title');
+    if (tinng.user.hasRight('writeToTopic', tinng.sync.curTopic)){
+        var $body = this.$body = this.tinng.chunks.get('editor');
 
-    this.submitNew = $.proxy(this, 'submitNew');
+        this.$submit = $body.find('.submit.button');
+        this.$messageBody = $body.find('.textarea');
+        this.$messageTitle = $body.find('.title');
 
-    this.$submit.click(this.submitNew);
-	this.visible = true;
+        this.submitNew = $.proxy(this, 'submitNew');
+
+        this.$submit.click(this.submitNew);
+        this.visible = true;
+    } else {
+        var $body = this.$body = this.tinng.chunks.get('editor-disabled');
+    }
 }
 
 tinng.protos.Editor.prototype = {

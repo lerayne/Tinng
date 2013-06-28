@@ -109,6 +109,13 @@
 				</div>
 			</div>
 
+            <!-- Редактор (закрытый, для анонимуса) -->
+            <div data-chunk-name="editor-disabled" class="editor">
+                <div class="editor-inner">
+                    <?= $txt['login_to_write'] ?>
+                </div>
+            </div>
+
 		</div>
 	</body>
 </html>

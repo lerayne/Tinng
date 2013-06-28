@@ -89,6 +89,8 @@ tinng.protos.TopicsUnit = Class(tinng.protos.Unit, {
 		this.newTopic = $.proxy(this, 'newTopic');
 
 		this.header.newTopic.on('click', this.newTopic);
+
+        if (!tinng.user.hasRight('createTopic')) this.header.newTopic.block();
 	},
 
 	newTopic:function () {
@@ -114,14 +116,19 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 		this.saveName = $.proxy(this, 'saveName');
 		this.cancelNewTopic = $.proxy(this, 'cancelNewTopic');
 
+        // прячем ненужные пока контролы
 		this.header.save.hide();
 		this.header.cancel.hide();
 		this.header.cancelNewTopic.hide();
 
+        // расстановка событий
 		this.header.topicRename.on('click', this.topicRename);
 		this.header.cancel.on('click', this.cancelRename);
 		this.header.save.on('click', this.saveName);
-		this.header.cancelNewTopic.on('click', this.cancelNewTopic)
+		this.header.cancelNewTopic.on('click', this.cancelNewTopic);
+
+        // проверка прав
+        if (!tinng.user.hasRight('editPost', t.sync.curTopic)) this.header.topicRename.hide();
 
 		this.$showMore = $('<div class="showmore"/>');
 		this.$contentWrap.prepend(this.$showMore);
@@ -272,6 +279,7 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 		this.$showMore.hide();
 		this.header.topicName.$body.html('');
 		this.header.topicName.$body.attr('contenteditable', true);
+        this.header.topicName.$body.focus();
 
 		this.newTopicMode = true;
 

@@ -19,6 +19,12 @@ tinng.funcs.parser = function (result, actionUsed) {
 
 	var i, entry, topic, post;
 
+    // общие действия - до разбора тем и постов
+    if (actionUsed == 'add_topic') {
+//        console.log('exitNewTopicMode')
+        t.units.posts.exitNewTopicMode();
+    }
+
 	// разбираем темы
 	if (result && result.topics) {
 
@@ -61,12 +67,6 @@ tinng.funcs.parser = function (result, actionUsed) {
 		if (tProps.show_all) {
 			t.units.posts.$showMore.hide();
 		} else t.units.posts.$showMore.show();
-
-		console.log(actionUsed);
-		if (actionUsed == 'add_topic') {
-			console.log('exitNewTopicMode')
-			t.units.posts.exitNewTopicMode();
-		}
 
 		// если страница догружалась
 		if (actionUsed == 'next_page') {

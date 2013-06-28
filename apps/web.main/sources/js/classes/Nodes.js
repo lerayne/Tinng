@@ -8,7 +8,7 @@
 
 /* КЛАССЫ НОДЫ, ТЕМЫ И ПОСТА */
 
-tinng.protos.Node = new Class({
+tinng.protos.Node = Class({
 	tinng:tinng,
 
 	initialize:function (data, chunkName, addCells) {
@@ -67,7 +67,7 @@ tinng.protos.Node = new Class({
 
 
 
-tinng.protos.TopicNode = new Class(tinng.protos.Node, {
+tinng.protos.TopicNode = Class(tinng.protos.Node, {
 
 	construct:function (data) {
 
@@ -84,6 +84,7 @@ tinng.protos.TopicNode = new Class(tinng.protos.Node, {
 
 		// проксирование функций
 		this.loadPosts = $.proxy(this, 'loadPosts');
+        this.kill = $.proxy(this, 'kill');
 
 		// вешаем обработчики событий
 		this.$body.on('click', this.loadPosts);
@@ -142,14 +143,13 @@ tinng.protos.TopicNode = new Class(tinng.protos.Node, {
 	loadPosts:function () {
 		var t = this.tinng;
 
+//        console.log('loadPosts:', this.data.topic_name, this.data.id);
+
 		t.funcs.unloadTopic();
 		this.select(); // делаем тему в столбце тем активной
-
 		t.sync.curTopic = this.id;
-		t.rotor.start('load_pages');
-
-		t.units.topics.header.newTopic.unblock();
 		t.address.set({topic:this.id, plimit:t.sync.plimit});
+        t.rotor.start('load_pages');
 	},
 
 	select:function () {
@@ -170,7 +170,7 @@ tinng.protos.TopicNode = new Class(tinng.protos.Node, {
 
 	// окончательно удаляет ноду
 	kill:function () {
-		this.$body.remove();
+        this.$body.remove();
 		delete(this.tinng.topics[this.id]); //todo - проверить, удаляется ли сам элемент массива
 	},
 
@@ -214,7 +214,7 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 		]);
 
 		this.mainPanel.unlock.$body.hide();
-		if (author || admin) this.cells.$controls.append(this.mainPanel.$body);
+		if (t.user.hasRight('editMessage', this)) this.cells.$controls.append(this.mainPanel.$body);
 
 		this.edit = $.proxy(this, 'edit');
 		this.enterEditMode = $.proxy(this, 'enterEditMode');
@@ -236,7 +236,7 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 		]);
 
 		this.editorPanel.$body.hide();
-		if (author || admin) this.cells.$controls.append(this.editorPanel.$body);
+		if (t.user.hasRight('editMessage', this)) this.cells.$controls.append(this.editorPanel.$body);
 
 		this.save = $.proxy(this, 'save');
 		this.cancelEdit = $.proxy(this, 'cancelEdit');

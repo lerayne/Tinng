@@ -23,6 +23,7 @@ tinng.protos.Rotor = function (backendURL, syncCollection, parseCallback) {
 
 	// проксирование функций
 	this.start = $.proxy(this, 'start');
+    this.wrappedStart = $.proxy(this, 'wrappedStart');
 	this.stop = $.proxy(this, 'stop');
 	this.onResponse = $.proxy(this, 'onResponse');
 	this.onAbort = $.proxy(this, 'onAbort');
@@ -33,26 +34,37 @@ tinng.protos.Rotor.prototype = {
 
 	// главная функция ротора
 	start:function (action, params) {
-		var t = this.tinng;
-
-		// параметры, которые должны не сохраняться, а задаваться каждый раз из аргументов
-		t.sync.action = action ? action : '';
-		t.sync.params = params ? params : {};
-		this.action = t.sync.action;
-
-		// останавливаем предыдущий запрос/таймер если находим
-		if (this.request || this.timeout) this.stop();
-
-		this.startIndication(); // показываем, что запрос начался
-
-		// Отправляем запрос
-		this.request = new JsHttpRequest();
-		this.request.onreadystatechange = this.onResponse;
-		this.request.open(null, this.backendURL, true);
-		this.request.send(this.syncCollection);
-
-		t.funcs.log('Launching query with timeout ' + this.waitTime);
+	    var that = this;
+        setTimeout(function(){
+            that.wrappedStart(action, params)
+        })
 	},
+
+    // todo: этот таймаут нужен из-за несовершенства системы XHR, баг вылазит во время создания новой темы - отправка
+    // запроса сразу после получения предыдущего происходит до закрытия соединения и новое соединение не проходит
+    wrappedStart:function(action, params){
+        var t = this.tinng;
+
+        //console.log('rotor start: ', action);
+
+        // параметры, которые должны не сохраняться, а задаваться каждый раз из аргументов
+        t.sync.action = action ? action : '';
+        t.sync.params = params ? params : {};
+        this.action = t.sync.action;
+
+        // останавливаем предыдущий запрос/таймер если находим
+        if (this.request || this.timeout) this.stop();
+
+        this.startIndication(); // показываем, что запрос начался
+
+        // Отправляем запрос
+        this.request = new JsHttpRequest();
+        this.request.onreadystatechange = this.onResponse;
+        this.request.open(null, this.backendURL, true);
+        this.request.send(this.syncCollection);
+
+        t.funcs.log('Launching query with timeout ' + this.waitTime);
+    },
 
 	// Останавливает ротор
 	stop:function () {
@@ -74,7 +86,7 @@ tinng.protos.Rotor.prototype = {
 	onResponse:function () {
 		var t = this.tinng;
 
-		if (this.request.readyState == 4) {
+    	if (this.request.readyState == 4) {
 
 			// разбираем пришедший пакет и выполняем обновления
 			t.sync.maxdateTS = this.parseCallback(this.request.responseJS, this.action, t);

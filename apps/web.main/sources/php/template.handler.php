@@ -64,7 +64,8 @@ function template_head() {
 
 		$env['appdir'] . 'sources/js/classes/Tinng.js',			// главный объект-контейнер
 		$env['appdir'] . 'sources/js/classes/Funcs.js',			// простые функции (иногда расширяются ниже)
-		$env['appdir'] . 'sources/js/classes/Address.js',		// работа с хешем адресной строки
+        $env['appdir'] . 'sources/js/classes/User.js',			// пользователь
+        $env['appdir'] . 'sources/js/classes/Address.js',		// работа с хешем адресной строки
 		$env['appdir'] . 'sources/js/classes/Chunks.js',		// движок подшаблонов, встроенных в базовый шаблон
 		$env['appdir'] . 'sources/js/classes/Controls.js',		// абстракция элементов управления
 		$env['appdir'] . 'sources/js/classes/Units.js',			// "вьюпорты", или секции основного интерфейса
