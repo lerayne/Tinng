@@ -1,6 +1,5 @@
 // TODO - здесь хранятся глобальные todo
 
-// todo - отказаться от глобального избегания замыканий. Сделать короткую переменную для глобальной tinng (t) и спокойно замыкать ее везде
 // todo - отказаться от некоторых абсолютных адресов - например для прототипов
 // todo - определить глобальную терминологию переменных - что есть message, topic, comment, post  итд
 
@@ -27,8 +26,6 @@ tinng.funcs.onWindowLoad = function(){
     // запуск соединения с сервером
     t.rotor.start('load_pages');
 }
-
-tinng.funcs.onWindowLoad.prototype.tinng = tinng;
 
 $(window).on('load', tinng.funcs.onWindowLoad)
 
