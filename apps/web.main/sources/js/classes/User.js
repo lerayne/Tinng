@@ -16,16 +16,17 @@ tinng.protos.User.prototype = {
 
     hasRight:function(rightName, value){
 
+		// неавторизованный пользователь не имеет никаких прав
         if (this.id <= 0) return false;
 
         switch (rightName){
 
             case 'writeToTopic':
-                return true;
+				if (this.id > 0) return true;
             break;
 
             case 'createTopic':
-                return true;
+				if (this.id > 0) return true;
             break;
 
             case 'editMessage':
@@ -33,6 +34,9 @@ tinng.protos.User.prototype = {
                 if (this.id == 1 || this.id == message.data.author_id) return true;
             break;
         }
+
+		// по умолчанию - отказать
+		return false;
     }
 
 }

@@ -18,7 +18,6 @@ tinng.protos.ui.Field = function (data) {
 }
 
 tinng.protos.ui.Button = function (data) {
-    var t = this.tinng;
 
     this.$body = $('<div/>');
     this.$button = $('<div/>');
@@ -55,7 +54,6 @@ tinng.protos.ui.Button = function (data) {
 }
 
 tinng.protos.ui.Button.prototype = {
-    tinng:tinng,
 
     on:function (action, callback) {
         this.$button.on(action, callback);
@@ -108,7 +106,6 @@ tinng.protos.ui.Button.prototype = {
 }
 
 tinng.protos.ui.Panel = function (dataArray) {
-    var t = this.tinng;
 
     this.$body = $('<div/>');
     this.$body.addClass('panel revealer3');
@@ -127,5 +124,5 @@ tinng.protos.ui.Panel = function (dataArray) {
 }
 
 tinng.protos.ui.Panel.prototype = {
-    tinng:tinng
+
 }

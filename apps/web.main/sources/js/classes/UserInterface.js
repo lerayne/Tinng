@@ -11,7 +11,7 @@ tinng.protos.UserInterface = function (targetWindow) {
 
 	/// СБОР ///
 
-	var t = this.tinng;
+
 
 	// ссылки на важные эелементы
 	this.window = targetWindow;
@@ -62,11 +62,11 @@ tinng.protos.UserInterface = function (targetWindow) {
 };
 
 tinng.protos.UserInterface.prototype = {
-	tinng:tinng,
+
 
 	// изменяет высоту окна
 	winResize:function () {
-		var t = this.tinng;
+
 
 		var mainH = this.sizes.mainH = this.window.document.documentElement.clientHeight
 				- this.$mainHeader.offsetHeight()
@@ -80,7 +80,7 @@ tinng.protos.UserInterface.prototype = {
 
 	// Подгоняет внешний вид редактора под окно
 //	editorResize:function () {
-//		var posts = this.tinng.units.posts;
+//		var posts = t.units.posts;
 //		this.editor.$body.width(posts.$content.width());
 //
 //		var atBottom = posts.atBottom; // не убирать! строка ниже меняет значение этого вызова!

@@ -9,12 +9,10 @@
 /* КЛАСС ТЕГА */
 
 tinng.protos.Tag = function (data) {
-	var t = this.tinng;
-
 	this.$body = t.chunks.get('tag');
 	this.$body.text(data.name);
 }
 
 tinng.protos.Tag.prototype = {
-	tinng:tinng
+
 }

@@ -9,7 +9,7 @@
 /* ОСНОВНОЙ ДВИЖОК ОБНОВЛЕНИЯ */
 
 tinng.protos.Rotor = function (backendURL, syncCollection, parseCallback) {
-	var t = this.tinng;
+
 
 	this.backendURL = backendURL;
 	this.syncCollection = syncCollection; //TODO придумать, как передавать параметры, чтобы ротор был более независимым
@@ -30,7 +30,7 @@ tinng.protos.Rotor = function (backendURL, syncCollection, parseCallback) {
 }
 
 tinng.protos.Rotor.prototype = {
-	tinng:tinng,
+
 
 	// главная функция ротора
 	start:function (action, params) {
@@ -43,7 +43,7 @@ tinng.protos.Rotor.prototype = {
     // todo: этот таймаут нужен из-за несовершенства системы XHR, баг вылазит во время создания новой темы - отправка
     // запроса сразу после получения предыдущего происходит до закрытия соединения и новое соединение не проходит
     wrappedStart:function(action, params){
-        var t = this.tinng;
+
 
         //console.log('rotor start: ', action);
 
@@ -68,7 +68,7 @@ tinng.protos.Rotor.prototype = {
 
 	// Останавливает ротор
 	stop:function () {
-		var t = this.tinng;
+
 
 		this.timeout = t.funcs.advClearTimeout(this.timeout);
 
@@ -84,7 +84,7 @@ tinng.protos.Rotor.prototype = {
 
 	// Выполняется при удачном возвращении запроса
 	onResponse:function () {
-		var t = this.tinng;
+
 
     	if (this.request.readyState == 4) {
 

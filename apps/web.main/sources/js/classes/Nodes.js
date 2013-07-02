@@ -9,7 +9,6 @@
 /* КЛАССЫ НОДЫ, ТЕМЫ И ПОСТА */
 
 tinng.protos.Node = Class({
-	tinng:tinng,
 
 	initialize:function (data, chunkName, addCells) {
 		this.construct(data, chunkName, addCells);
@@ -17,7 +16,6 @@ tinng.protos.Node = Class({
 	},
 
 	construct:function (data, chunkName, addCells) {
-		var t = this.tinng;
 
 		this.$body = t.chunks.get(chunkName || 'node');
 
@@ -49,7 +47,6 @@ tinng.protos.Node = Class({
 
 	// заполнить данными
 	fill:function (data) {
-		var t = this.tinng;
 
 		this.data = data;
 
@@ -71,7 +68,7 @@ tinng.protos.TopicNode = Class(tinng.protos.Node, {
 
 	construct:function (data) {
 
-		this.tinng.protos
+		t.protos
 			.Node.prototype
 			.construct.call(this, data, 'topic',
 			[
@@ -92,7 +89,6 @@ tinng.protos.TopicNode = Class(tinng.protos.Node, {
 
 	// заполнить данными
 	fill:function (data) {
-		var t = this.tinng;
 
 		t.protos
 			.Node.prototype
@@ -120,7 +116,6 @@ tinng.protos.TopicNode = Class(tinng.protos.Node, {
 
 	// изменить положение в списке при обновлении
 	bump:function () {
-		var t = this.tinng;
 		var topics = t.units.topics;
 
 		switch (t.sync.topicSort) {
@@ -141,7 +136,6 @@ tinng.protos.TopicNode = Class(tinng.protos.Node, {
 
 	// загрузить тему
 	loadPosts:function () {
-		var t = this.tinng;
 
 //        console.log('loadPosts:', this.data.topic_name, this.data.id);
 
@@ -158,7 +152,7 @@ tinng.protos.TopicNode = Class(tinng.protos.Node, {
 	},
 
 	deselect:function () {
-		this.tinng.funcs.topicDeselect();
+		t.funcs.topicDeselect();
 	},
 
 	// демонстрирует удаление ноды в интерфейсе и вызывает окончательное удаление
@@ -171,7 +165,7 @@ tinng.protos.TopicNode = Class(tinng.protos.Node, {
 	// окончательно удаляет ноду
 	kill:function () {
         this.$body.remove();
-		delete(this.tinng.topics[this.id]); //todo - проверить, удаляется ли сам элемент массива
+		delete(t.topics[this.id]); //todo - проверить, удаляется ли сам элемент массива
 	},
 
 	detach:function () {
@@ -185,9 +179,8 @@ tinng.protos.TopicNode = Class(tinng.protos.Node, {
 tinng.protos.PostNode = Class(tinng.protos.Node, {
 
 	construct:function (data) {
-		var t = this.tinng;
 
-		this.tinng.protos
+		t.protos
 			.Node.prototype
 			.construct.call(this, data, 'post',
 			[
@@ -202,10 +195,9 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 		this.$body.click(this.select);
 		//this.cells.$message.on('click', this.select);
 
-		var author = this.data.author_id == t.state.userID; // todo - сделать нормальную авторизацию
-		var admin = t.state.userID == '1';
-
 		/* Панель действий */
+
+		// todo - каждую кнопку формировать и навешивать на нее действие отдельно, в зависимости от прав
 
 		this.mainPanel = new t.protos.ui.Panel([
 			{type:'Button', label:'delete', cssClass:'right', icon:'doc_delete.png', tip:t.txt['delete']},
@@ -247,7 +239,7 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 
 	// заполнить сообщение данными
 	fill:function (data) {
-		this.tinng.protos
+		t.protos
 			.Node.prototype
 			.fill.apply(this, arguments);
 
@@ -256,7 +248,6 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 
 	// пометить сообщение выделенным
 	select:function () {
-		var t = this.tinng;
 
 		var selected = t.state.selectedPost;
 
@@ -279,8 +270,8 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 
 		// если после этого сразу не будет новое выделение
 		if (full) {
-			delete(this.tinng.state.selectedPost);
-			this.tinng.address.del('post');
+			delete(t.state.selectedPost);
+			t.address.del('post');
 		}
 	},
 
@@ -294,14 +285,13 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 	// окончательно удаляет ноду
 	kill:function () {
 		this.$body.remove();
-		delete(this.tinng.posts[this.id]); //todo - проверить, удаляется ли сам элемент массива
+		delete(t.posts[this.id]); //todo - проверить, удаляется ли сам элемент массива
 	},
 
 	// прокручивает список до данного сообщения
 	show:function (start) {
-		var t = this.tinng;
 
-		this.tinng.protos
+		t.protos
 			.Node.prototype
 			.show.apply(this, arguments);
 
@@ -329,7 +319,6 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 
 	// демонстрирует блокировку, или входит в режим редактирования
 	enterEditMode:function (result, errors) {
-		var t = this.tinng;
 
 		if (result.locked !== null) {
 
@@ -375,7 +364,7 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 	// срабатывает при нажатии кнопки "сохранить" в режиме редактирования
 	save:function () {
 
-		this.tinng.rotor.start('update_message', {
+		t.rotor.start('update_message', {
 			id:this.id,
 			message:this.cells.$message.html()
 		});
@@ -386,7 +375,6 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 
 	// срабатывает при нажатии кнопки "удалить" в режиме редактировая
 	erase:function () {
-		var t = this.tinng;
 
 		if (confirm(t.txt.msg_del_confirm)) {
 			t.rotor.start('delete_message', {id:this.id});

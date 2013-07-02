@@ -9,8 +9,8 @@
 // Редактор сообщений
 tinng.protos.Editor = function () {
 
-    if (tinng.user.hasRight('writeToTopic', tinng.sync.curTopic)){
-        var $body = this.$body = this.tinng.chunks.get('editor');
+	if (tinng.user.hasRight('writeToTopic', tinng.sync.curTopic)){
+        var $body = this.$body = t.chunks.get('editor');
 
         this.$submit = $body.find('.submit.button');
         this.$messageBody = $body.find('.textarea');
@@ -21,15 +21,13 @@ tinng.protos.Editor = function () {
         this.$submit.click(this.submitNew);
         this.visible = true;
     } else {
-        var $body = this.$body = this.tinng.chunks.get('editor-disabled');
+        var $body = this.$body = t.chunks.get('editor-disabled');
     }
 }
 
 tinng.protos.Editor.prototype = {
-    tinng:tinng,
 
     submitNew:function () {
-        var t = this.tinng;
 
         if (this.checkMessage()) {
 
@@ -56,7 +54,6 @@ tinng.protos.Editor.prototype = {
     },
 
     checkMessage:function(){
-        var t = this.tinng;
 
         var blockThis = false;
         var msg = this.$messageBody.text();
@@ -76,7 +73,7 @@ tinng.protos.Editor.prototype = {
     },
 
 	resize:function(){
-		var posts = this.tinng.units.posts;
+		var posts = t.units.posts;
 		this.$body.width(posts.$content.width());
 
 		var wasAtBottom = posts.atBottom; // не убирать! строка ниже меняет значение этого вызова!
@@ -85,18 +82,18 @@ tinng.protos.Editor.prototype = {
 	},
 
 	hide:function(){
-		var wasAtBottom = this.tinng.units.posts.atBottom;
+		var wasAtBottom = t.units.posts.atBottom;
 		this.$body.hide();
 		this.visible = false;
 		this.resize();
-		if (wasAtBottom) this.tinng.units.posts.scrollToBottom();
+		if (wasAtBottom) t.units.posts.scrollToBottom();
 	},
 
 	show:function(){
-		var wasAtBottom = this.tinng.units.posts.atBottom;
+		var wasAtBottom = t.units.posts.atBottom;
 		this.$body.show();
 		this.visible = true;
 		this.resize();
-		if (wasAtBottom) this.tinng.units.posts.scrollToBottom();
+		if (wasAtBottom) t.units.posts.scrollToBottom();
 	}
 }

@@ -10,7 +10,6 @@ Funcs = function () {
 };
 
 Funcs.prototype = {
-    tinng:tinng,
 
     // функция ошибки сеттера для финальных свойств
     setterError:function () {
@@ -20,7 +19,7 @@ Funcs.prototype = {
 
     // запись в консоль
     log:function (text) {
-        var t = this.tinng;
+
 
         if (t.cfg['logging']) {
             var date = new Date(), time;
@@ -68,7 +67,6 @@ Funcs.prototype = {
     },
 
     loadMore:function(pageLimit){
-        var t = this.tinng;
 
         t.sync.plimit = pageLimit;
         t.address.set('plimit', pageLimit);
@@ -76,7 +74,6 @@ Funcs.prototype = {
     },
 
 	unloadTopic: function () {
-		var t = this.tinng;
 
 		if (t.state.selectedPost) t.state.selectedPost.deselect('full');
 		t.units.posts.$content.html(''); //todo проверить полное удаление из памяти

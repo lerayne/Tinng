@@ -9,14 +9,12 @@
 // класс объекта Юнита
 
 tinng.protos.Unit = Class({
-	tinng:tinng,
 
 	initialize:function (data) {
 		this.construct(data);
 	},
 
 	construct:function (data) {
-		var t = this.tinng;
 
 		/* СБОР */
 
@@ -82,7 +80,8 @@ tinng.protos.Unit = Class({
 tinng.protos.TopicsUnit = Class(tinng.protos.Unit, {
 
 	construct:function () {
-		this.tinng.protos
+
+		t.protos
 			.Unit.prototype
 			.construct.apply(this, arguments);
 
@@ -90,12 +89,12 @@ tinng.protos.TopicsUnit = Class(tinng.protos.Unit, {
 
 		this.header.newTopic.on('click', this.newTopic);
 
-        if (!tinng.user.hasRight('createTopic')) this.header.newTopic.block();
+        if (!t.user.hasRight('createTopic')) this.header.newTopic.block();
 	},
 
 	newTopic:function () {
 		this.header.newTopic.block();
-		this.tinng.units.posts.newTopic();
+		t.units.posts.newTopic();
 	}
 });
 
@@ -103,7 +102,6 @@ tinng.protos.TopicsUnit = Class(tinng.protos.Unit, {
 tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 
 	construct:function () {
-		var t = this.tinng;
 
 		t.protos.Unit.prototype
 			.construct.apply(this, arguments);
@@ -128,7 +126,7 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 		this.header.cancelNewTopic.on('click', this.cancelNewTopic);
 
         // проверка прав
-        if (!tinng.user.hasRight('editPost', t.sync.curTopic)) this.header.topicRename.hide();
+        if (!t.user.hasRight('editMessage', t.topics[t.sync.curTopic])) this.header.topicRename.hide();
 
 		this.$showMore = $('<div class="showmore"/>');
 		this.$contentWrap.prepend(this.$showMore);
@@ -156,15 +154,14 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 			}
 		}
 
-		this.tinng.protos
+		t.protos
 			.Unit.prototype
 			.addNode.call(this, node);
 	},
 
 	onScroll:function () {
-		var t = this.tinng;
 
-		this.tinng.protos
+		t.protos
 			.Unit.prototype
 			.onScroll.apply(this, arguments);
 
@@ -181,26 +178,23 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 	},
 
 	showNext:function () {
-		var t = this.tinng;
 		t.funcs.loadMore(t.sync.plimit + 1);
 	},
 
 	showAll:function () {
-		var t = this.tinng;
 		t.funcs.loadMore(0);
 	},
 
 	topicRename:function () {
 		JsHttpRequest.query('backend/service.php', { // аргументы:
 			action:'check_n_lock',
-			id:this.tinng.sync.curTopic
+			id:t.sync.curTopic
 		}, this.enterRenameMode, true);
 
 		return false;
 	},
 
 	enterRenameMode:function (result, errors) {
-		var t = this.tinng;
 
 		if (result.locked !== null) {
 
@@ -245,7 +239,6 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 	},
 
 	saveName:function () {
-		var t = this.tinng;
 
 		t.rotor.start('update_message', {
 			id:t.sync.curTopic,
@@ -260,7 +253,7 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 	unlock:function () {
 		JsHttpRequest.query('backend/service.php', { // аргументы:
 			action:'unlock_message',
-			id:this.tinng.sync.curTopic
+			id:t.sync.curTopic
 		}, function () {
 		}, true);
 
@@ -270,7 +263,6 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 	},
 
 	newTopic:function () {
-		var t = this.tinng;
 
 		t.funcs.unloadTopic();
 
@@ -290,13 +282,12 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 		this.header.topicRename.show();
 		this.header.cancelNewTopic.hide();
 		this.header.topicName.$body.removeAttr('contenteditable');
-		this.tinng.units.topics.header.newTopic.unblock();
+		t.units.topics.header.newTopic.unblock();
 
 		this.newTopicMode = false;
 	},
 
 	cancelNewTopic:function(){
-		var t = this.tinng;
 
 		t.funcs.unloadTopic();
 		this.header.topicName.$body.html('');

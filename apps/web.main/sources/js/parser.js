@@ -9,7 +9,6 @@
 /* ФУНКЦИЯ РАЗБОРА ДАННЫХ ОБ ИЗМЕНЕНИИ */
 
 tinng.funcs.parser = function (result, actionUsed) {
-	var t = this.tinng;
 
 //	console.log('actionUsed: ', actionUsed)
 
@@ -133,7 +132,7 @@ tinng.funcs.parser = function (result, actionUsed) {
 
 		// todo разобраться почему работает только через анонимную функцию
 		setTimeout(function () {
-			this.tinng.units.posts.contentLoaded = 1
+			t.units.posts.contentLoaded = 1
 		});
 
 //		t.units.posts.setContentLoaded();
@@ -144,5 +143,5 @@ tinng.funcs.parser = function (result, actionUsed) {
 
 
 tinng.funcs.parser.prototype = {
-	tinng:tinng
+
 }
