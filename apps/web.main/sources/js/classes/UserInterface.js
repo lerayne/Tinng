@@ -11,8 +11,6 @@ tinng.protos.UserInterface = function (targetWindow) {
 
 	/// СБОР ///
 
-
-
 	// ссылки на важные эелементы
 	this.window = targetWindow;
 	this.$window = $(targetWindow);
@@ -30,8 +28,8 @@ tinng.protos.UserInterface = function (targetWindow) {
 	this.editorResize = $.proxy(this, 'editorResize');
 	this.doLogin = $.proxy(this, 'doLogin');
 
-	/// ОБРАБОТКА ///
 
+	/// ОБРАБОТКА ///
 
 	// управление верхним меню
 	this.$loginForm = $('#tinng-top-login');
