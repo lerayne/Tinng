@@ -19,12 +19,14 @@
 			</div>
 			
 			<header id="tinng-main-header">
-				<a class='logo' href='/'><img src="<?= path('images/logo_tiny.png') ?>"></a>
-				<div class='right state-ind throbber'></div>
-				<div class='right'>
-					<? require path('template.login.php'); ?>
+<!--			<a class='logo' href='/'><img src="--><?//= path('images/logo_tiny.png') ?><!--"></a>-->
+				<div class="top-panel">
+					<div class='right state-ind throbber'></div>
+					<div class='right'>
+						<? require path('template.login.php'); ?>
+					</div>
+					<div class='clearfix'></div>
 				</div>
-				<div class='clearfix'></div>
 			</header>
 
 			<div id="tinng-units-area">

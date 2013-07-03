@@ -45,9 +45,12 @@ body {
 	.nomp;
 	.background-color(85);
 	.color(20);
+	background-image:url('../../skins/clarity/images/bg1.jpg');
+	background-position: top center;
+	background-attachment: fixed;
 
-	overflow-y: scroll;
-	//overflow-y: hidden;
+//	overflow-y: scroll;
+	overflow-y: hidden;
 	font-family: Tahoma, Arial, serif;
 	font-size: 13px;
 }
@@ -71,13 +74,18 @@ body {
 }
 
 #tinng-main-header {
-	height:36px;
-	background-color: #f9f9f9;
-	border-bottom: 1px solid #ccc;
+	height:80px;
 
 	.logo {
 		display: inline-block;
 		margin: 2px;
+	}
+
+	.top-panel {
+		height:28px;
+		background-color: #333;
+		border-bottom: 1px solid #555;
+		color:white;
 	}
 }
 
@@ -99,10 +107,17 @@ body {
 
 		header {
 			min-height: 28px;
-			.background-color(73);
+			background-color:#5fc1da;
 			border-right:1px solid;
-			.border-color(78);
+			border-color:#006394;
 			position: relative;
+			color:#00405f;
+
+			.button {
+//				background-color: #95d4f3;
+				border-radius: 0;
+				border:none;
+			}
 		}
 
 		&.posts {
@@ -114,15 +129,21 @@ body {
 }
 
 #tinng-top-login {
-	margin-top:5px;
+	margin-top:1px;
+
+	input[type="text"], input[type="password"] {
+		border:1px solid #eee;
+		padding:0 5px;
+	}
 }
 
 /* Декоративные псевдо-тени */
+/*
 .unit header::after, .topics footer::after, .editor::after {
 	content: '';
 	width: 100%;
 	height: 3px;
-	background-color: black;
+	background-color: #777;
 	position: absolute;
 	opacity: 0.2;
 	z-index: 10;
@@ -139,6 +160,7 @@ body {
 .editor::after {
 	top: -3px;
 }
+*/
 
 
 
@@ -148,7 +170,7 @@ body {
 
 /* Индикатор активности */
 .state-ind {
-	margin:10px 5px;
+	margin:7px 5px 0 5px;
 }
 
 
@@ -251,7 +273,7 @@ body {
 
 .posts .panel .topicname {
 	font-size:110%;
-	padding:3px 4px 2px 4px;
+	padding:2px 4px 1px 4px;
 	border:1px dotted transparent;
 	float:left;
 	min-width: 200px;
@@ -307,7 +329,7 @@ body {
 /* панель и кнопки */
 
 .panel {
-	padding:2px;
+	padding:3px;
 }
 
 .button {

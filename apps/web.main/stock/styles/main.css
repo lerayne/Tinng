@@ -179,12 +179,22 @@ a:hover {text-decoration: underline;}
 	bottom:0;
 }
 
-.throbber {
+/*.throbber {
 	width:16px;
 	height:16px;
-	background: url(../../stock/images/throbber_tile.gif) no-repeat 1px 1px;
+	background: url(../../stock/images/throbber_tile_dark.gif) no-repeat 1px 1px;
 }
 
 .throbber.updating {
 	background-position: 1px -19px;
+}*/
+
+.throbber {
+	width:16px;
+	height:16px;
+	opacity:0.6;
+}
+
+.throbber.updating {
+	background: url(../../stock/images/throbber_dark.gif) no-repeat;
 }
