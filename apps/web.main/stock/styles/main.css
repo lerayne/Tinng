@@ -193,8 +193,9 @@ a:hover {text-decoration: underline;}
 	width:16px;
 	height:16px;
 	opacity:0.6;
+	background: url(../../stock/images/throbber_0.gif) no-repeat;
 }
 
 .throbber.updating {
-	background: url(../../stock/images/throbber_dark.gif) no-repeat;
+	background: url(../../stock/images/throbber_1.gif) no-repeat;
 }

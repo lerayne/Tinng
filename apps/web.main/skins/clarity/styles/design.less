@@ -1,3 +1,9 @@
+// переменные
+
+@bottomOffset: 15px;
+
+// функции
+
 .nomp() {
 	margin:0;
 	padding:0;
@@ -41,13 +47,21 @@
 	filter: progid:DXImageTransform.Microsoft.Alpha(opacity=(@decimal*100));
 }
 
+.width-scheme(){
+	max-width: 1210px;
+	min-width: 900px;
+	width:80%;
+}
+
+// ПОЕХАЛИ
+
 body {
 	.nomp;
 	.background-color(85);
 	.color(20);
-	background-image:url('../../skins/clarity/images/bg1.jpg');
-	background-position: top center;
-	background-attachment: fixed;
+//	background-image:url('../../skins/clarity/images/bg1.jpg');
+//	background-position: top center;
+//	background-attachment: fixed;
 
 //	overflow-y: scroll;
 	overflow-y: hidden;
@@ -73,24 +87,80 @@ body {
 	z-index: 810;
 }
 
+#decoration-area {
+	.width-scheme();
+	margin:0 auto;
+	position: relative;
+	height:38px;
+}
+
 #tinng-main-header {
-	height:80px;
 
 	.logo {
 		display: inline-block;
-		margin: 2px;
+		position: absolute;
+		bottom:2px;
+		left:0;
+
+		img {
+			height:28px;
+		}
+	}
+
+	.signature {
+		display: inline-block;
+		color:#bbb;
+		text-decoration:none;
+		padding-left:10px;
+
+		img {
+			height:20px;
+			margin-top:4px;
+			vertical-align: bottom;
+		}
 	}
 
 	.top-panel {
 		height:28px;
-		background-color: #333;
-		border-bottom: 1px solid #555;
+		background-color: #222;
 		color:white;
+	}
+
+	&.low-res {
+
+		.logo {
+			bottom:1px;
+
+			img {
+				height:21px
+			}
+		}
+
+		#decoration-area {
+			height:0;
+		}
+
+	}
+
+	&.hi-res {
+
+		.logo {
+			bottom:4px;
+
+			img {
+				height:40px
+			}
+		}
+
+		#decoration-area {
+			height:100px;
+		}
+
 	}
 }
 
 #tinng-units-area {
-	max-width: 1210px;
+	.width-scheme();
 	background-color: white;
 	margin:0 auto;
 	height:100%;
@@ -107,16 +177,37 @@ body {
 
 		header {
 			min-height: 28px;
-			background-color:#5fc1da;
+			background-color:#0e5a91;
 			border-right:1px solid;
-			border-color:#006394;
+			border-color:#1a69a8;
 			position: relative;
-			color:#00405f;
+			color:white;
 
 			.button {
-//				background-color: #95d4f3;
 				border-radius: 0;
 				border:none;
+				color:white;
+				margin:1px;
+
+				&:hover {
+					background-color: #2b7cbd;
+				}
+			}
+
+			.topicname {
+				font-size:110%;
+				padding:3px 4px 2px 4px;
+				border:1px dotted transparent;
+				float:left;
+				min-width: 200px;
+				max-height: 100%;
+				margin-left:2px;
+
+				&[contenteditable="true"] {
+					background-color: white;
+					color:#444;
+					border-color: #aaa;
+				}
 			}
 		}
 
@@ -128,22 +219,33 @@ body {
 	}
 }
 
+#tinng-main-footer {
+	height:@bottomOffset;
+}
+
 #tinng-top-login {
 	margin-top:1px;
 
 	input[type="text"], input[type="password"] {
-		border:1px solid #eee;
-		padding:0 5px;
+		border:0;
+		padding:2px 5px;
+		margin: 0 2px;
+		color:white;
+		background-color: #777;
+	}
+
+	input[type="checkbox"] {
+		margin:0 3px 3px 3px;
+		vertical-align: middle;
 	}
 }
 
 /* Декоративные псевдо-тени */
-/*
 .unit header::after, .topics footer::after, .editor::after {
 	content: '';
 	width: 100%;
 	height: 3px;
-	background-color: #777;
+	background-color: #555;
 	position: absolute;
 	opacity: 0.2;
 	z-index: 10;
@@ -160,131 +262,114 @@ body {
 .editor::after {
 	top: -3px;
 }
-*/
 
-
-
-.content {
-	padding-top:3px;
-}
 
 /* Индикатор активности */
 .state-ind {
-	margin:7px 5px 0 5px;
+	margin:6px 6px 0 5px;
 }
-
-
-
 
 /* topics & posts (global) */
 .content {
+	padding-top:3px;
 	background-color: #ddd;
+
+	.node {
+		border:2px solid transparent;
+		margin-bottom:4px;
+		background-color: white;
+		position: relative;
+	}
+
+	.data_cell {
+		margin:10px;
+	}
+
+	.msgid {
+		margin-right:5px;
+		color:#ccc;
+	}
+
+	.author {
+		margin-right:5px;
+	}
+
+	.topic {
+		cursor:pointer;
+
+		&.active {
+			background-color: #EAFFE8;
+			border-color:#EAFFE8;
+		}
+
+		.message {
+			height: 2.5em;
+			overflow-y: hidden;
+			font-size:85%;
+		}
+
+		.created {
+			font-size: 11px;
+		}
+
+		.topicname {
+			margin: 5px 0;
+			font-size:14px;
+			color:#007bb7;
+		}
+
+		.lastmessage > div {
+			border-top:1px solid #ddd;
+			margin-top: 5px;
+			padding-top: 5px;
+			height: 2.5em;
+			overflow-y: hidden;
+			font-size:85%;
+		}
+	}
+
+	.post {
+
+		&.selected {
+			border-color:#9acd32;
+		}
+
+		.data_cell {
+			margin-left:58px;
+		}
+
+		.avatar {
+			position:absolute;
+			top:0;
+			left:0;
+		}
+
+		.infobar {
+			border-bottom:1px solid #ddd;
+			margin-bottom: 6px;
+			padding-bottom: 3px;
+		}
+
+		.controls {
+			margin-bottom:-5px;
+			margin-right:-5px;
+		}
+
+		.message {
+			border:1px dotted transparent;
+			padding:3px;
+
+			&[contenteditable="true"] {
+				border-color: #aaa;
+			}
+		}
+	}
 }
 
-.content .node {
-	border:2px solid transparent;
-	margin-bottom:4px;
-	background-color: white;
-	position: relative;
-}
-
-.content .data_cell {
-	margin:10px;
-}
-
-.content .msgid {
-	margin-right:5px;
-	color:#ccc;
-}
-
-.content .author {
-	margin-right:5px;
-}
-
-/* topic */
-.content .topic {
-	cursor:pointer;
-}
-
-.content .topic.active {
-	background-color: #EAFFE8;
-	border-color:#EAFFE8;
-}
-
-.content .topic .message {
-	height: 2.5em;
-	overflow-y: hidden;
-}
-
-.content .topic .created {
-	font-size: 11px;
-}
-
-
-
-.content .topic .topicname {
-	margin: 5px 0;
-	font-size:14px;
-	color:#007bb7;
-}
-
-.content .topic .lastmessage > div {
-	border-top:1px solid #ddd;
-	margin-top: 5px;
-	padding-top: 5px;
-	height: 2.5em;
-	overflow-y: hidden;
-}
-
-/* post */
-.content .post .data_cell {
-	margin-left:58px;
-}
-
-.content .post .avatar {
-	position:absolute;
-	top:0;
-	left:0;
-}
-
-.content .post .infobar {
-	border-bottom:1px solid #ddd;
-	margin-bottom: 6px;
-	padding-bottom: 3px;
-}
-
-.content .post .controls {
-	margin-bottom:-5px;
-	margin-right:-5px;
-}
-
-.content .post.selected {
-	border-color:#9acd32;
-}
-
-.content .post .message {
-	border:1px dotted transparent;
-	padding:3px;
-}
-
-.content .post .message[contenteditable="true"] {
-	border-color: #aaa;
-}
-
-.posts .panel .topicname {
-	font-size:110%;
-	padding:2px 4px 1px 4px;
-	border:1px dotted transparent;
-	float:left;
-	min-width: 200px;
-	max-height: 100%;
-	margin-left:2px;
-}
-
-.posts .panel .topicname[contenteditable="true"] {
-	background-color: white;
-	border-color: #aaa;
-/*overflow-y: auto;*/
+#scaled-bg {
+	position: fixed;
+	z-index: -1;
+	top:28px
 }
 
 .posts .showmore {
@@ -300,6 +385,11 @@ body {
 }
 
 /* editor */
+
+#tinng-main .editor {
+	bottom:@bottomOffset;
+}
+
 .editor-inner {
 	padding:4px;
 	background: #eee;
@@ -330,25 +420,30 @@ body {
 
 .panel {
 	padding:3px;
+	min-height: 24px;
 }
 
 .button {
 	background-color: transparent;
-	border:1px solid transparent;
-	border-radius: 2px;
+	border:0;
 	font-size:90%;
-	padding:3px 5px;
-	opacity:0.6;
-	background: 2px 2px no-repeat;
+	padding: 4px 6px;
+	opacity:0.8;
+	background-position: 3px 3px;
+	background-repeat: no-repeat;
 	height:14px;
 	color:black;
 	position: relative;
+
+	&.with-icon {
+		padding-left:17px;
+	}
 }
 
 .button:hover {
 	border-color: #ccc;
-	background-color: transparent;
-	opacity:0.85;
+	background-color: #eaeaea;
+	opacity:1;
 }
 
 .button:active {
@@ -387,10 +482,6 @@ body {
 	background: url('../../skins/clarity/images/tip-tail.gif') no-repeat center bottom;
 }
 
-.button.with-icon {
-	padding-left:16px;
-}
-
 .button.submit, .button.submit:active {
 	opacity:1;
 	color:white;
@@ -406,16 +497,6 @@ body {
 	background-image: -webkit-linear-gradient(top, #018bd3, #007bb7);
 	background-color: #007bb7;
 	border-color: #006299;
-}
-
-.unit header .button {
-	opacity: 0.75;
-	margin:1px;
-}
-
-.unit header .button:hover {
-	opacity:1;
-	border-color:#999;
 }
 
 .unit header .button:active {

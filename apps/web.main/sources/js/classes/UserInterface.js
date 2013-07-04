@@ -19,6 +19,7 @@ tinng.protos.UserInterface = function (targetWindow) {
 	this.$unitsArea = $('#tinng-units-area');
 	this.$mainHeader = $('#tinng-main-header');
 	this.$mainFooter = $('#tinng-main-footer');
+	this.$screenBg = $('#scaled-bg');
 
 	// коллекция размеров
 	this.sizes = {};
@@ -65,11 +66,20 @@ tinng.protos.UserInterface.prototype = {
 	// изменяет высоту окна
 	winResize:function () {
 
+		var frameH = this.window.document.documentElement.clientHeight;
+		var frameW = this.window.document.documentElement.clientWidth;
 
-		var mainH = this.sizes.mainH = this.window.document.documentElement.clientHeight
-				- this.$mainHeader.offsetHeight()
-				- this.$mainFooter.offsetHeight()
-			;
+		// размер фоновой картинки
+		if (frameH > frameW/1.6) {
+			this.$screenBg.width('auto');
+			this.$screenBg.height(frameH);
+		} else {
+			this.$screenBg.width(frameW);
+			this.$screenBg.height('auto');
+		}
+
+		// высота основного интерфейса
+		var mainH = this.sizes.mainH = frameH - this.$mainHeader.offsetHeight() - this.$mainFooter.offsetHeight();
 
 		for (var key in t.units) t.units[key].setHeight(mainH);
 

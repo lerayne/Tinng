@@ -19,13 +19,22 @@
 			</div>
 			
 			<header id="tinng-main-header">
-<!--			<a class='logo' href='/'><img src="--><?//= path('images/logo_tiny.png') ?><!--"></a>-->
 				<div class="top-panel">
+					<div class="left">
+						<a class='signature' href='http://about.tinng.net'>
+							Powered by
+							<img src="<?= path('images/tinng_logo_small.png') ?>">
+						</a>
+					</div>
 					<div class='right state-ind throbber'></div>
 					<div class='right'>
 						<? require path('template.login.php'); ?>
 					</div>
 					<div class='clearfix'></div>
+				</div>
+
+				<div id="decoration-area">
+					<a class='logo' href='/'><img src="<?= path('images/logo.png') ?>"></a>
 				</div>
 			</header>
 
@@ -36,6 +45,8 @@
 			<footer id="tinng-main-footer">
 				
 			</footer>
+
+			<img id="scaled-bg" src="<?= path('images/bg1.jpg') ?>">
 		
 		</div>
 

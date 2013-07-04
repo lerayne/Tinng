@@ -36,16 +36,16 @@ tinng.data = {
     units:[
         {name:'topics', css:{width:'40%'},
             header:[
-                {type:'Button', label:'newTopic', cssClass:'right', icon:'doc_plus.png', text:tinng.txt.new_topic}
+                {type:'Button', label:'newTopic', cssClass:'right', icon:'doc_plus_w.png', text:tinng.txt.new_topic}
             ]
         },
         {name:'posts', css:{width:'60%'},
             header:[
-                {type:'Button', label:'topicRename', cssClass:'right reveal3', icon:'pencil.png', tip:tinng.txt.rename_topic},
+                {type:'Button', label:'topicRename', cssClass:'right reveal3', icon:'pencil_w.png', tip:tinng.txt.rename_topic},
                 {type:'Field', label:'topicName', cssClass:'left topicname'},
-                {type:'Button', label:'cancel', cssClass:'right', icon:'cancel.png', tip:tinng.txt.cancel},
-                {type:'Button', label:'save', cssClass:'right', icon:'round_checkmark.png', tip:tinng.txt.save},
-				{type:'Button', label:'cancelNewTopic', cssClass:'right', icon:'cancel.png', tip:tinng.txt.cancel_new_topic}
+                {type:'Button', label:'cancel', cssClass:'right', icon:'cancel_w.png', tip:tinng.txt.cancel},
+                {type:'Button', label:'save', cssClass:'right', icon:'round_checkmark_w.png', tip:tinng.txt.save},
+				{type:'Button', label:'cancelNewTopic', cssClass:'right', icon:'cancel_w.png', tip:tinng.txt.cancel_new_topic}
             ]
         }
     ]

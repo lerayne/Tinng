@@ -20,7 +20,7 @@ function template_head() {
 	global $env, $cfg, $user, $txt, $rex;
 
 	echo '
-		<link id="favicon" rel="shortcut icon" type="image/png" href="' . path('/images/favicon.png') . '">
+		<link id="favicon" rel="shortcut icon" type="image/ico" href="' . path('/images/favicon.ico') . '">
 		<!--[if lt IE 9]> <![endif]-->
 	';
 

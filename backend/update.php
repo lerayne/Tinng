@@ -1,4 +1,6 @@
 <?php
+//sleep(1); // в целях отладки
+
 require_once './includes/backend_initial.php';
 
 $result['xhr'] = $xhr_id;
