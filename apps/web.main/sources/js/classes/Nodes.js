@@ -122,7 +122,7 @@ tinng.protos.TopicNode = Class(tinng.protos.Node, {
 
 			// сортировка по последнему обновлению
 			case 'updated':
-				this.detach();
+				//this.detach(); // - нет необходимости
 
 				if (t.sync.tsReverse) {
 					topics.addNodeOnTop(this)
@@ -165,9 +165,10 @@ tinng.protos.TopicNode = Class(tinng.protos.Node, {
 	// окончательно удаляет ноду
 	kill:function () {
         this.$body.remove();
-		delete(t.topics[this.id]); //todo - проверить, удаляется ли сам элемент массива
+		delete(t.topics[this.id]);
 	},
 
+	//todo - при данной реализации с ноды слетают все события! использование функции отключено
 	detach:function () {
 		this.$body.remove();
 	}
