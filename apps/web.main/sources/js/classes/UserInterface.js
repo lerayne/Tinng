@@ -9,6 +9,13 @@
 // класс занимающийся интерфейсом
 tinng.protos.UserInterface = function (targetWindow) {
 
+	// проксирование методов
+	this.winResize = $.proxy(this, 'winResize');
+	this.editorResize = $.proxy(this, 'editorResize');
+	this.doLogin = $.proxy(this, 'doLogin');
+	this.hideDialogue = $.proxy(this, 'hideDialogue');
+	this.showRegForm = $.proxy(this, 'showRegForm');
+
 	/// СБОР ///
 
 	// ссылки на важные эелементы
@@ -21,13 +28,15 @@ tinng.protos.UserInterface = function (targetWindow) {
 	this.$mainFooter = $('#tinng-main-footer');
 	this.$screenBg = $('#scaled-bg');
 
+	this.$dialogueWrapper = $('#dialogue-wrapper');
+	this.$dialogueClose = this.$dialogueWrapper.find('.close');
+	this.$dialogueContent = this.$dialogueWrapper.find('section');
+	this.$dialogueTitle = this.$dialogueWrapper.find('.title');
+
+	this.$dialogueClose.click(this.hideDialogue);
+
 	// коллекция размеров
 	this.sizes = {};
-
-	// проксирование методов
-	this.winResize = $.proxy(this, 'winResize');
-	this.editorResize = $.proxy(this, 'editorResize');
-	this.doLogin = $.proxy(this, 'doLogin');
 
 
 	/// ОБРАБОТКА ///
@@ -38,6 +47,7 @@ tinng.protos.UserInterface = function (targetWindow) {
 	if (this.$loginForm.size()){
 		this.$loginBtn = this.$loginForm.find('#loginBtn').click(this.doLogin);
 		this.$logoutBtn = this.$loginForm.find('#logoutBtn').click(this.doLogin);
+		this.$regBtn = this.$loginForm.find('#regBtn').click(this.showRegForm);
 	}
 
 	// размещение юнитов
@@ -78,6 +88,13 @@ tinng.protos.UserInterface.prototype = {
 			this.$screenBg.height('auto');
 		}
 
+		// подстройка отступов под разрешение
+		this.$mainFrame.removeAttr('class');
+		if (frameH < 800) this.$mainFrame.addClass('low-res');
+		if (frameW < 1500) this.$mainFrame.addClass('low-width');
+		if (frameH > 1000) this.$mainFrame.addClass('high-res');
+
+
 		// высота основного интерфейса
 		var mainH = this.sizes.mainH = frameH - this.$mainHeader.offsetHeight() - this.$mainFooter.offsetHeight();
 
@@ -102,5 +119,23 @@ tinng.protos.UserInterface.prototype = {
 	doLogin:function(){
 		this.$loginForm[0].lochash.value = location.hash;
 		this.$loginForm.submit();
+	},
+
+	showDialogue:function(title, content){
+
+		this.$dialogueTitle.text(title);
+		this.$dialogueContent.children().remove();
+		this.$dialogueContent.append(content);
+		this.$dialogueWrapper.show();
+	},
+
+	hideDialogue:function(){
+		this.$dialogueWrapper.hide();
+		this.$dialogueContent.children().remove();
+	},
+
+	showRegForm:function(){
+		var form = t.chunks.get('registration-form');
+		this.showDialogue(txt['title_register'], form);
 	}
 };

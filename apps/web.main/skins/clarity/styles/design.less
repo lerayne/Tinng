@@ -75,16 +75,58 @@ body {
 
 #curtain {
 	.background-color(0);
-	.opacity(0.5);
+	.opacity(0.7);
 }
 
 #dialogue {
 	width: 50%;
-	height: 70%;
+//	height: 50%;
+	margin:100px auto;
 	min-width: 500px;
 	max-width: 800px;
-	min-height: 400px;
-	z-index: 810;
+	min-height: 200px;
+
+	header {
+		height: 28px;
+		position: absolute;
+		width: 100%;
+		background-color: white;
+		top: -28px;
+
+		.title {
+			margin-right:30px;
+			padding:5px 0 4px 10px;
+			font-weight:bold;
+			font-size:120%;
+			color:#676767;
+			overflow:hidden;
+		}
+
+		.close {
+			position: absolute;
+			top: 0;
+			right: 0;
+			display: block;
+			width: 20px;
+			height: 20px;
+			font-size: 150%;
+			font-weight: bold;
+			text-decoration: none;
+			color: #777;
+			padding: 3px;
+			text-align: center;
+			line-height: 90%;
+
+			&:hover {
+				color:white;
+				background-color: #bbb;
+			}
+		}
+	}
+
+	section {
+		padding:15px;
+	}
 }
 
 #decoration-area {
@@ -124,38 +166,6 @@ body {
 		height:28px;
 		background-color: #222;
 		color:white;
-	}
-
-	&.low-res {
-
-		.logo {
-			bottom:1px;
-
-			img {
-				height:21px
-			}
-		}
-
-		#decoration-area {
-			height:0;
-		}
-
-	}
-
-	&.hi-res {
-
-		.logo {
-			bottom:4px;
-
-			img {
-				height:40px
-			}
-		}
-
-		#decoration-area {
-			height:100px;
-		}
-
 	}
 }
 
@@ -519,4 +529,68 @@ body {
 
 .editor .title {
 	display:none;
+}
+
+// Подстройка под разрешение
+#tinng-main {
+
+	&.low-res {
+
+		#tinng-main-header .logo {
+
+			bottom:1px;
+
+			img {
+				height:21px
+			}
+		}
+
+		#decoration-area {
+			height:0;
+		}
+
+		#tinng-main-footer {
+			height:0;
+		}
+
+		.editor {
+			bottom:0;
+		}
+
+		&.low-width {
+
+			#tinng-main-header .signature {
+				display:none;
+			}
+
+			#tinng-top-login {
+				input[type="text"],  input[type="password"] {
+					width:100px;
+				}
+			}
+		}
+	}
+
+	&.high-res {
+
+		#tinng-main-header .logo {
+			bottom:4px;
+
+			img {
+				height:40px
+			}
+		}
+
+		#decoration-area {
+			height:70px;
+		}
+
+		#tinng-main-footer {
+			height:25px;
+		}
+
+		.editor {
+			bottom:25px;
+		}
+	}
 }
