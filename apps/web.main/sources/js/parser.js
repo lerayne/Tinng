@@ -27,6 +27,8 @@ tinng.funcs.parser = function (result, actionUsed) {
 	// разбираем темы
 	if (result && result.topics) {
 
+		t.units.topics.stopWaitIndication();
+
 		for (i in result.topics) {
 			entry = result.topics[i];
 			topic = t.topics[entry.id];
@@ -61,7 +63,14 @@ tinng.funcs.parser = function (result, actionUsed) {
 	// разбираем посты
 	if (result && result.posts) {
 
-		t.units.posts.header.topicName.$body.html(tProps.name); //вывод названия темы
+		// наличие id означает что тема загружается в первый раз, а не догружается.
+		// todo - исправить фиговое опредление!
+		if (tProps.id) {
+			t.units.posts.clear();
+			t.units.topics.markActive(tProps.id); // делаем тему в столбце тем активной
+		}
+
+		t.units.posts.setTopicName(tProps.name); //вывод названия темы
 
 		if (tProps.show_all) {
 			t.units.posts.$showMore.hide();
@@ -104,7 +113,6 @@ tinng.funcs.parser = function (result, actionUsed) {
 		// наличие id означает что тема загружается в первый раз, а не догружается.
 		// todo - исправить фиговое опредление!
 		if (tProps.id) {
-			t.topics[tProps.id].select(); // делаем тему в столбце тем активной
 
 			// если тема загружается не вручную кликом по ней - промотать до неё в списке
 			// todo - это не работает (и в продакшне тоже) - испортилось после введения пейджинга

@@ -76,7 +76,7 @@ Funcs.prototype = {
 	unloadTopic: function () {
 
 		if (t.state.selectedPost) t.state.selectedPost.deselect('full');
-		t.units.posts.$content.html(''); //todo проверить полное удаление из памяти
+		t.units.posts.clear();
 		t.posts = {};
 		t.sync.curTopic = 0;
 		t.sync.pglimdateTS = 0;

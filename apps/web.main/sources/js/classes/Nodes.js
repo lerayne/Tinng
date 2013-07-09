@@ -144,6 +144,8 @@ tinng.protos.TopicNode = Class(tinng.protos.Node, {
 		t.sync.curTopic = this.id;
 		t.address.set({topic:this.id, plimit:t.sync.plimit});
         t.rotor.start('load_pages');
+
+		t.units.posts.startWaitIndication();
 	},
 
 	select:function () {

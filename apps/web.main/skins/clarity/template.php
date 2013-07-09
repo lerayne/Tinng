@@ -178,6 +178,10 @@
 		</form>
 	</div>
 
+	<div data-chunk-name="posts-default" class="posts-default">
+		<?= $txtp['posts_default'] ?>
+	</div>
+
 </div>
 </body>
 </html>

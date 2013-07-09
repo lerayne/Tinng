@@ -284,7 +284,7 @@ foreach ($tags as $tag) {
 switch ($sort):
 
 	case 'updated':
-		$result['topics'] = sort_by_field($result['topics'], 'totalmaxd', $reverse);
+		$result['topics'] = sort_by_field($result['topics'], 'totalmaxd', !$reverse);
 		break;
 
 endswitch;

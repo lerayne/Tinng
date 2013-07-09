@@ -4,7 +4,6 @@
 // todo - определить глобальную терминологию переменных - что есть message, topic, comment, post  итд
 // todo - перенести сюда функцию bind из анрома
 // todo - создать систему дебага с включением через адрессную строку
-// todo - разобраться, почему не поднимается вверх новосозданная тема
 
 
 tinng.funcs.onWindowLoad = function(){
@@ -20,7 +19,12 @@ tinng.funcs.onWindowLoad = function(){
     );
 
     // загрузка данных из хеша адресной строки
-    t.sync.curTopic = parseInt(t.address.get('topic'));
+	var topicFromAddress = t.address.get('topic');
+    t.sync.curTopic = topicFromAddress ? parseInt(t.address.get('topic')) : 0;
+
+	t.units.topics.startWaitIndication();
+	if (!t.sync.curTopic) t.units.posts.setInvitation();
+	else t.units.posts.startWaitIndication();
 
     // такая конструкция нужна для того, чтобы 0 воспринимался как значение
     var loadedLimit = t.address.get('plimit');

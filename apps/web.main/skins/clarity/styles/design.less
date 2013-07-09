@@ -177,6 +177,12 @@ body {
 	.scroll-area {
 		height:100%;
 		position: relative;
+
+		&.loading {
+			background-image: url('../../stock/images/throbber_big.gif');
+			background-repeat: no-repeat;
+			background-position: center center;
+		}
 	}
 
 	.unit {
@@ -528,6 +534,13 @@ body {
 
 .editor .title {
 	display:none;
+}
+
+.posts-default {
+	background-color: white;
+	text-align: center;
+	padding:180px 20px 20px 20px;
+	color:#777;
 }
 
 // Подстройка под разрешение

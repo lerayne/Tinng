@@ -84,6 +84,9 @@ $txtp['reg_email_expalin'] = 'email должен быть реальным. На
 	<a  tabindex="-1" target="_blank"  href="http://www.gravatar.com">gravatar</a>, при помощи которого вы можете привязать свой
 	аватар к данному email-адресу. Другого способа залить аватар у нас пока нет, sorry :)';
 
+
+$txtp['posts_default'] = 'Выберите тему в столбце слева';
+
 $txtp['reg_approve_subject'] = 'Подтверждение аккаунта Tinng';
 $txtp['reg_approve_message'] = ', Вы зарегистрировались в системе Tinng. Чтобы активировать ваш аккаунт,
 	перейдите по этой ссылке: ';

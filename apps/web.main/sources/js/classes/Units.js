@@ -73,6 +73,21 @@ tinng.protos.Unit = Class({
 
 		this.atBottom = this.scrollAreaH + this.scrolledBy - this.$contentWrap.offsetHeight() == 0;
 		this.atTop = this.scrolledBy == 0;
+	},
+
+	clear:function(){
+		//todo проверить полное удаление из памяти
+		this.$content.html('');
+		this.stopWaitIndication();
+	},
+
+	startWaitIndication:function(){
+		this.clear();
+		this.$scrollArea.addClass('loading');
+	},
+
+	stopWaitIndication:function(){
+		this.$scrollArea.removeClass('loading');
 	}
 });
 
@@ -95,6 +110,32 @@ tinng.protos.TopicsUnit = Class(tinng.protos.Unit, {
 	newTopic:function () {
 		this.header.newTopic.block();
 		t.units.posts.newTopic();
+
+		return false;
+	},
+
+	addNode:function(node){
+		//todo - реализация похожа на node.bump - подумать что с этим можно сделать
+
+		switch (t.sync.topicSort) {
+
+			// сортировка по последнему обновлению
+			case 'updated':
+
+				if (t.sync.tsReverse) {
+					this.$content.prepend(node.$body);
+				} else {
+					this.$content.append(node.$body);
+				}
+
+				break;
+		}
+
+		return false;
+	},
+
+	markActive:function(id){
+		t.topics[id].select()
 	}
 });
 
@@ -157,6 +198,16 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 		t.protos
 			.Unit.prototype
 			.addNode.call(this, node);
+	},
+
+	setInvitation:function(){
+		this.clear();
+		this.$content.append(t.chunks.get('posts-default'));
+	},
+
+	startWaitIndication:function(){
+		this.clear();
+		this.$scrollArea.addClass('loading');
 	},
 
 	onScroll:function () {
@@ -294,6 +345,10 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 		this.exitNewTopicMode();
 
 		return false;
+	},
+
+	setTopicName:function(name){
+		this.header.topicName.$body.html(name)
 	}
 });
 
