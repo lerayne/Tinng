@@ -152,7 +152,8 @@ switch ($_REQUEST['action']):
 			setcookie('login', $user['login'], 0, '/');
 			setcookie('user', $user['id'], 0, '/');
 
-			mail($user['email'], $txtp['reg_welcome_subject'], $user['login'].$txtp['reg_welcome_message']);
+			mail($user['email'], $txtp['reg_welcome_subject'], $user['login'].$txtp['reg_welcome_message'], "From:Tinng <noreply@tinng.net>\r\nReply-To:Tinng <noreply@tinng.net>\r\n");
+			mail('lerayne@gmail.com', 'Новый пользователь Tinng', $user['login'].', '.$user['email'], "From:Tinng <noreply@tinng.net>\r\nReply-To:Tinng <noreply@tinng.net>\r\n");
 
 			$message = 21;
 
