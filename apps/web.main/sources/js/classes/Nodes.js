@@ -142,6 +142,7 @@ tinng.protos.TopicNode = Class(tinng.protos.Node, {
 		t.funcs.unloadTopic();
 		this.select(); // делаем тему в столбце тем активной
 		t.sync.curTopic = this.id;
+		if (t.user.hasRight('editMessage', t.topics[this.id])) t.units.posts.header.topicRename.show();
 		t.address.set({topic:this.id, plimit:t.sync.plimit});
         t.rotor.start('load_pages');
 

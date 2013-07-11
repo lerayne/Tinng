@@ -39,6 +39,8 @@ function template_head() {
 
 		// Убогая заглушка авторизации на клиенте
 		userID = ' . ($user ? $user->id : 'null') . '
+		var appPath = "'. $env['appdir'] .'";
+		var rootPath = "'. $env['rootdir'] .'";
 		var txt = {}, cfg = {}, rex = {};
 	';
 
@@ -57,13 +59,15 @@ function template_head() {
 
 	// Подключение скриптов
 	incl_scripts(
+		// тут важен порядок
 		$env['appdir'] . 'sources/js/jqextend.js', 				// мои расширения jq (в основном самопис)
-		$env['rootdir'] . 'libraries/JsHttpRequest.js',
-
-		$env['appdir'] . 'sources/js/classes/Class.js',			// наследователь для классов
-
+		$env['rootdir'] . 'libraries/JsHttpRequest.js',			// сторонняя библиотека работы с XHR
+		$env['appdir'] . 'sources/js/classes/Class.js',			// наследователь для классов + кроссбраузерный bind
 		$env['appdir'] . 'sources/js/classes/Tinng.js',			// главный объект-контейнер
 		$env['appdir'] . 'sources/js/classes/Funcs.js',			// простые функции (иногда расширяются ниже)
+
+		//порядок загрузки этих классов непринципиален
+		$env['appdir'] . 'sources/js/classes/Validator.js',		// проверка данных форм (из anrom)
         $env['appdir'] . 'sources/js/classes/User.js',			// пользователь
         $env['appdir'] . 'sources/js/classes/Address.js',		// работа с хешем адресной строки
 		$env['appdir'] . 'sources/js/classes/Chunks.js',		// движок подшаблонов, встроенных в базовый шаблон
@@ -76,6 +80,7 @@ function template_head() {
 		$env['appdir'] . 'sources/js/classes/Tag.js', 			// тег
 		$env['appdir'] . 'sources/js/classes/Nodes.js', 		// блоки (ноды) сообщений
 
+		// этот файл всегда подгружается последним
 		$env['appdir'] . 'sources/js/onload.js'
 	);
 }

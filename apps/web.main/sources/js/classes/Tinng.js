@@ -14,7 +14,7 @@ tinng = {
     rex:rex, // регулярные выражения
     state:{}, // записи о состоянии программы
     sync:{}, // переменные, передаваемые на сервер
-    data:{}, // здесь пока будут данные
+    data:{}, // здесь пока будут данные о сборке интерфейса
 
     // экземпляры классов
     chunks:null,
@@ -31,7 +31,7 @@ tinng = {
     }
 }
 
-// Данные
+// Данные о сборке интерфейса
 tinng.data = {
     units:[
         {name:'topics', css:{width:'40%'},
@@ -63,7 +63,7 @@ tinng.sync = {
     params:{}
 }
 
-tinng.state.blurred = false; //TODO отслеживать активность окна
+tinng.state.blurred = false; //TODO: отслеживать активность окна
 tinng.state.userID = userID;
 
 t = tinng;

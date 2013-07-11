@@ -58,7 +58,7 @@ tinng.protos.Editor.prototype = {
         var blockThis = false;
         var msg = this.$messageBody.text();
 
-        if (msg.replace(t.rex.empty, '').length == 0) blockThis = 'null length';
+        if (msg.match(t.rex.empty)) blockThis = 'null length';
 
         if (blockThis) alert(blockThis);
 

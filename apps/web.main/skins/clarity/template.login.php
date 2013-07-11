@@ -14,7 +14,7 @@
 
 	<form id="tinng-top-login" action="<?= $env['appdir'].'login.php' ?>" method="post">
 		<input type="hidden" name="action" value="logout">
-		<?= $user->email ?>
+		<?= $user->login ?>
 		<input type="hidden" name="lochash">
 		<input type="button" id="logoutBtn" value="<?= $txt['login_logout'] ?>">
 	</form>

@@ -543,6 +543,37 @@ body {
 	color:#777;
 }
 
+.user-reg {
+
+	input {
+
+		&[type="text"], &[type="password"] {
+			border:1px solid #ccc;
+			padding:2px 4px;
+		}
+	}
+}
+
+#message-bar {
+
+	z-index:1000;
+	width:100%;
+	position:absolute;
+	top:0;
+	display:none;
+	cursor:pointer;
+	background-color: #eee;
+	border-bottom:1px solid #777;
+
+	.message {
+		.width-scheme();
+		margin:0 auto;
+		padding:10px 0;
+		height:16px;
+		overflow:hidden;
+	}
+}
+
 // Подстройка под разрешение
 #tinng-main {
 

@@ -10,6 +10,8 @@
 tinng.protos.UserInterface = function (targetWindow) {
 
 	// проксирование методов
+	t.funcs.bind(this, ['hideMessage']);
+
 	this.winResize = $.proxy(this, 'winResize');
 	this.editorResize = $.proxy(this, 'editorResize');
 	this.doLogin = $.proxy(this, 'doLogin');
@@ -32,8 +34,10 @@ tinng.protos.UserInterface = function (targetWindow) {
 	this.$dialogueClose = this.$dialogueWrapper.find('.close');
 	this.$dialogueContent = this.$dialogueWrapper.find('section');
 	this.$dialogueTitle = this.$dialogueWrapper.find('.title');
+	this.$messageBar = $('#message-bar');
 
 	this.$dialogueClose.click(this.hideDialogue);
+	this.$messageBar.click(this.hideMessage);
 
 	// коллекция размеров
 	this.sizes = {};
@@ -68,6 +72,14 @@ tinng.protos.UserInterface = function (targetWindow) {
 	// вешаем событие на ресайз окна
 	this.$window.resize(this.winResize).resize();
 	t.units.posts.header.topicName.$body.on('keyup', this.winResize);
+
+
+	// сообщения
+	var serverMessage = t.funcs.getCookie('message');
+	if (serverMessage) {
+		this.showMessage(serverMessage);
+		t.funcs.deleteCookie('message');
+	}
 };
 
 tinng.protos.UserInterface.prototype = {
@@ -134,8 +146,56 @@ tinng.protos.UserInterface.prototype = {
 		this.$dialogueContent.children().remove();
 	},
 
+	showMessage:function(messageCode){
+		var body = this.$messageBar.find('.text');
+		body.html(txt['ret_message_'+messageCode]);
+		this.$messageBar.slideDown();
+		setTimeout(this.hideMessage, 10000);
+	},
+
+	hideMessage:function(){
+		this.$messageBar.slideUp();
+	},
+
 	showRegForm:function(){
-		var form = t.chunks.get('registration-form');
-		this.showDialogue(txt['title_register'], form);
+		var template = t.chunks.get('registration-form');
+		var form = template.find('form');
+
+		var vldtr = new t.protos.Validator({
+			form:form,
+			filters:{
+				login: {regexp:t.rex.login, errtext:'Имя пользователя слишком корокое, слишком длинное, или содержит недопустимые символы'},
+				pass: {regexp:t.rex.pass, errtext:'Пароль слишком корокий, слишком длинный, или содержит недопустимые символы'},
+				email: {regexp:t.rex.email, errtext:'Неверный формат e-mail'}
+			}
+		});
+
+		var validate = function(input, name){
+			console.log('validate_'+name+':');
+
+			var data = {};
+			data['action'] = 'check_'+name;
+			data[name] = input.val();
+
+			$.post(appPath + 'login.php', data, function(data){
+
+				if (data == 'allowed') vldtr.addToValid(input);
+				else vldtr.invalid(input, txt['ajax_error_'+name]);
+
+			});
+		}
+
+		vldtr.customFuncs = {
+
+			validateLogin:function(input){
+				validate(input, 'login');
+			},
+
+			validateEmail:function(input){
+				validate(input, 'email')
+			}
+		}
+
+		this.showDialogue(txt['title_register'], template);
 	}
 };

@@ -167,7 +167,7 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 		this.header.cancelNewTopic.on('click', this.cancelNewTopic);
 
         // проверка прав
-        if (!t.user.hasRight('editMessage', t.topics[t.sync.curTopic])) this.header.topicRename.hide();
+		this.header.topicRename.hide();
 
 		this.$showMore = $('<div class="showmore"/>');
 		this.$contentWrap.prepend(this.$showMore);

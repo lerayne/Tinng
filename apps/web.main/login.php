@@ -15,16 +15,26 @@ $db->setIdentPrefix($safecfg['db_prefix'].'_');
 
 $message = false;
 
-if ($_SERVER["HTTP_REFERER"]) $location = $_SERVER["HTTP_REFERER"];
-else {
+// todo - разобраться с этим бредовым решением системы обратного редиректа. Возможно, следует использовать глобальные переменные, или передавать адрес редиректа в гет
+//if ($_SERVER["HTTP_REFERER"]) $location = $_SERVER["HTTP_REFERER"];
+//else {
 	$location = 'http://'.$_SERVER["HTTP_HOST"];
 	$path_parts = explode('/', $_SERVER['REQUEST_URI']);
 	array_pop($path_parts);
-	$location .= join('/', $path_parts);
+	$location .= implode('/', $path_parts);
 	$location .= '/';
+//}
+
+header ("Content-type:text/html;charset=utf-8;");
+
+function redirect_back(){
+	global $location;
+	//header ("Content-type:text/html;charset=utf-8;");
+	header ("location: ". ($_SERVER["HTTP_REFERER"] ? $_SERVER["HTTP_REFERER"] : 'http://'.$_SERVER["HTTP_HOST"]).$_POST['lochash']);
+	echo '|'.$_SERVER["HTTP_REFERER"].'|';
 }
 
-switch ($_POST['action']):
+switch ($_REQUEST['action']):
 
 	case 'login':
 
@@ -49,6 +59,8 @@ switch ($_POST['action']):
 			setcookie('message', '1', 0, '/');
 		}
 
+		redirect_back();
+
 	break;
 
 	case 'logout':
@@ -56,6 +68,8 @@ switch ($_POST['action']):
 		setcookie('pass', '', 0, '/');
 		setcookie('login', '', 0, '/');
 		setcookie('user', '', 0, '/');
+
+		redirect_back();
 
 	break;
 
@@ -88,16 +102,33 @@ switch ($_POST['action']):
 			$unum = $db->query(
 				'INSERT INTO ?_users (?#) VALUES (?a)', array_keys($new_row), array_values($new_row)
 			);
+
+//			$unum = 1; // тут был дебаг
 			
 			$appr_link = $location.'login.php?action=approve&u='.$unum.'&token='
 				.md5($_POST['login'].'zerso'.md5($_POST['pass1']).'b0t'.$_POST['email']);
 
-			mail($_POST['email'], $txtp['reg_approve_subject'], $_POST['login'].$txtp['reg_approve_message'].$appr_link);
+//			echo "<br><br>";
+//			echo print_r($_REQUEST)."<br><br>";
+//			echo $location."<br><br>";
+//			echo  $_SERVER["HTTP_REFERER"]."<br><br>";
+//			echo '|'.$_POST['email']."|<br><br>";
+//			echo '|'.$txtp['reg_approve_subject']."|<br><br>";
+//			echo $_POST['login'].$txtp['reg_approve_message'].$appr_link."<br><br>";
+
+			mail(
+				$_POST['email'],
+				$txtp['reg_approve_subject'],
+				$_POST['login'].$txtp['reg_approve_message'].$appr_link,
+				"From:Tinng <noreply@tinng.net>\r\nReply-To:Tinng <noreply@tinng.net>\r\n"
+			);
 
 			$message = 20;
 		endif;
 
 		setcookie('message', $message, 0, '/');
+
+		redirect_back();
 
 	break;
 
@@ -127,17 +158,38 @@ switch ($_POST['action']):
 
 		endif;
 
+		echo $message;
+
 		setcookie('message', $message, 0, '/');
+
+		redirect_back();
 
 	break;
 
+	case 'check_login':
+
+		$user = $db->selectRow(
+			'SELECT * FROM ?_users WHERE login = ?',
+			$_POST['login']
+		);
+
+		if ($user) echo 'exists';
+		else echo 'allowed';
+
+	break;
+
+	case 'check_email':
+
+		$user = $db->selectRow(
+			'SELECT * FROM ?_users WHERE email = ?',
+			$_POST['email']
+		);
+
+		if ($user) echo 'exists';
+		else echo 'allowed';
+	break;
+
+	default:
+		echo 'action parameter not passed';
+
 endswitch;
-
-/*echo '<pre>';
-//var_dump($_SERVER);
-echo $_GET['action'];
-echo '</pre>';*/
-//echo '<script type="text/javascript">alert("'.$_POST['action'].'")</script>';
-
-header ("Content-type:text/html;charset=utf-8;");
-header ("location: ".$location.$_POST['lochash']);
