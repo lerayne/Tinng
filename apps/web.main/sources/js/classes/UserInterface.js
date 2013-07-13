@@ -147,6 +147,7 @@ tinng.protos.UserInterface.prototype = {
 	},
 
 	showMessage:function(messageCode){
+		// todo - оформить внешний вид сообщений, поработать с анимацией
 		var body = this.$messageBar.find('.text');
 		body.html(txt['ret_message_'+messageCode]);
 		this.$messageBar.slideDown();

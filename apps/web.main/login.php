@@ -29,7 +29,6 @@ header ("Content-type:text/html;charset=utf-8;");
 
 function redirect_back(){
 	global $location;
-	//header ("Content-type:text/html;charset=utf-8;");
 	header ("location: ". ($_SERVER["HTTP_REFERER"] ? $_SERVER["HTTP_REFERER"] : 'http://'.$_SERVER["HTTP_HOST"]).$_POST['lochash']);
 	echo '|'.$_SERVER["HTTP_REFERER"].'|';
 }
@@ -56,7 +55,7 @@ switch ($_REQUEST['action']):
 			setcookie('user', $raw['id'], $time, '/');
 
 		} else {
-			setcookie('message', '1', 0, '/');
+			setcookie('message', 'login_failure', 0, '/');
 		}
 
 		redirect_back();
@@ -75,20 +74,22 @@ switch ($_REQUEST['action']):
 
 	case 'register':
 
-		setcookie('logdata', base64_encode(serialize($_POST)), 0, '/');
+//		setcookie('logdata', base64_encode(serialize($_POST)), 0, '/');
 
-		if (!preg_match($rex['pass'], $_POST['pass1'])) $message = 10;
-		if ($_POST['pass1'] != $_POST['pass2']) $message = 11;
-		if (!preg_match($rex['email'], $_POST['email'])) $message = 12;
-		if (!preg_match($rex['login'], $_POST['login'])) $message = 13;
-		if ($_POST['quiz'] != trim($quiz[$_POST['number']*1]['answer'])) $message = 14;
+//		$debug = 1;
+
+		if (!preg_match($rex['pass'], $_POST['pass1'])) $message = 'wrong_password';
+		if ($_POST['pass1'] != $_POST['pass2']) $message = 'password_mismatch';
+		if (!preg_match($rex['email'], $_POST['email'])) $message = 'wrong_email';
+		if (!preg_match($rex['login'], $_POST['login'])) $message = 'wrong_login';
+		if ($_POST['quiz'] != trim($quiz[$_POST['number']*1]['answer'])) $message = 'wrong_antibot';
 
 		$raw = $db->selectRow(
 			'SELECT * FROM ?_users WHERE login = ? OR email = ?'
 			, $_POST['login']
 			, $_POST['email']
 		);
-		if ($raw) $message = 15;
+		if ($raw) $message = 'user_exists';
 
 		if (!$message):
 
@@ -99,36 +100,36 @@ switch ($_REQUEST['action']):
 				'reg_date' => date('Y-m-d H:i:s')
 			);
 
-			$unum = $db->query(
-				'INSERT INTO ?_users (?#) VALUES (?a)', array_keys($new_row), array_values($new_row)
-			);
+			if ($debug) {
 
-//			$unum = 1; // тут был дебаг
-			
-			$appr_link = $location.'login.php?action=approve&u='.$unum.'&token='
-				.md5($_POST['login'].'zerso'.md5($_POST['pass1']).'b0t'.$_POST['email']);
+				$appr_link = $location.'login.php?action=approve&u=1&token='
+					.md5($_POST['login'].'zerso'.md5($_POST['pass1']).'b0t'.$_POST['email']);
 
-//			echo "<br><br>";
-//			echo print_r($_REQUEST)."<br><br>";
-//			echo $location."<br><br>";
-//			echo  $_SERVER["HTTP_REFERER"]."<br><br>";
-//			echo '|'.$_POST['email']."|<br><br>";
-//			echo '|'.$txtp['reg_approve_subject']."|<br><br>";
-//			echo $_POST['login'].$txtp['reg_approve_message'].$appr_link."<br><br>";
+			} else {
 
-			mail(
-				$_POST['email'],
-				$txtp['reg_approve_subject'],
-				$_POST['login'].$txtp['reg_approve_message'].$appr_link,
-				"From:Tinng <noreply@tinng.net>\r\nReply-To:Tinng <noreply@tinng.net>\r\n"
-			);
+				$unum = $db->query(
+					'INSERT INTO ?_users (?#) VALUES (?a)', array_keys($new_row), array_values($new_row)
+				);
 
-			$message = 20;
+				$appr_link = $location.'login.php?action=approve&u='.$unum.'&token='
+					.md5($_POST['login'].'zerso'.md5($_POST['pass1']).'b0t'.$_POST['email']);
+
+				mail(
+					$_POST['email'],
+					$txtp['reg_approve_subject'],
+					$_POST['login'].$txtp['reg_approve_message'].$appr_link,
+					"From:Tinng <noreply@tinng.net>\r\nReply-To:Tinng <noreply@tinng.net>\r\n"
+				);
+			}
+
+			$message = 'registration_success';
 		endif;
+
+		if ($debug) echo $txt['ret_message_'.$message];
 
 		setcookie('message', $message, 0, '/');
 
-		redirect_back();
+		if (!$debug) redirect_back();
 
 	break;
 
@@ -138,9 +139,9 @@ switch ($_REQUEST['action']):
 			'SELECT * FROM ?_users WHERE id = ?d AND approved <=> NULL', $_GET['u']
 		);
 
-		
-		if ($_GET['token'] != md5($user['login'].'zerso'.$user['hash'].'b0t'.$user['email'])) $message = 17;
-		if (!$user) $message = 16;
+		if ($user) {
+			if ($_GET['token'] != md5($user['login'].'zerso'.$user['hash'].'b0t'.$user['email'])) $message = 'activation_wrong_token';
+		} else $message = 'activation_no_user';
 
 		if (!$message):
 
@@ -155,7 +156,7 @@ switch ($_REQUEST['action']):
 			mail($user['email'], $txtp['reg_welcome_subject'], $user['login'].$txtp['reg_welcome_message'], "From:Tinng <noreply@tinng.net>\r\nReply-To:Tinng <noreply@tinng.net>\r\n");
 			mail('lerayne@gmail.com', 'Новый пользователь Tinng', $user['login'].', '.$user['email'], "From:Tinng <noreply@tinng.net>\r\nReply-To:Tinng <noreply@tinng.net>\r\n");
 
-			$message = 21;
+			$message = 'activation_success';
 
 		endif;
 

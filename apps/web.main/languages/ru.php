@@ -73,24 +73,23 @@ $txt['btn_markread'] = 'Отметить тему прочитанной';
 $txt['show_more'] = 'Предыдущие '.$cfg['posts_per_page'];
 $txt['show_all'] = 'Показать все';
 
-$txt['login_to_write'] = "Войдите или зарегистриуйтесь, чтобы писать";
+$txt['login_to_write'] = 'Войдите или <a href="javascript:t.ui.showRegForm()">зарегистриуйтесь</a>, чтобы писать';
 
 $txt['ajax_error_login'] = 'Логин занят!';
 $txt['ajax_error_email'] = 'e-mail занят!';
 
-$txt['ret_message_10'] = 'Вы неправильно ввели пароль';
-$txt['ret_message_11'] = 'Пароли не совпадают';
-$txt['ret_message_12'] = 'Неправильно введен email';
-$txt['ret_message_13'] = 'Неправильно введен логин';
-$txt['ret_message_14'] = 'Вы неправильно ответили на загадку';
-$txt['ret_message_15'] = 'Пользователь с таким логином и/или email уже существует';
-$txt['ret_message_16'] = 'Не найдена запись, ожидающая одобрения. Возможно, вы уже активировали ее';
-$txt['ret_message_17'] = 'Ключ активации неверен';
-$txt['ret_message_1'] = 'Неправильный логин или пароль. Возможно, такого пользователя не существует';
+$txt['ret_message_1'] = $txt['ret_message_login_failure'] = 'Неправильный логин или пароль. Возможно, такого пользователя не существует';
+$txt['ret_message_10'] = $txt['ret_message_wrong_password'] = 'Вы неправильно ввели пароль';
+$txt['ret_message_11'] = $txt['ret_message_password_mismatch'] = 'Пароли не совпадают';
+$txt['ret_message_12'] = $txt['ret_message_wrong_email'] = 'Неправильно введен email';
+$txt['ret_message_13'] = $txt['ret_message_wrong_login'] = 'Неправильно введен логин';
+$txt['ret_message_14'] = $txt['ret_message_wrong_antibot'] = 'Вы неправильно ответили на загадку';
+$txt['ret_message_15'] = $txt['ret_message_user_exists'] = 'Пользователь с таким логином и/или email уже существует';
+$txt['ret_message_16'] = $txt['ret_message_activation_no_user'] = 'Не найдена запись, ожидающая одобрения. Возможно, вы уже активировали ее';
+$txt['ret_message_17'] = $txt['ret_message_activation_wrong_token'] = 'Ключ активации неверен';
 
-$txt['ret_message_20'] = 'Регистрация прошла успешно. На ваш e-mail отправлено письмо, с активационной ссылкой.';
-
-$txt['ret_message_21'] = 'Аккаунт успешно активирован. Поздравляем, вы авторизированы в системе';
+$txt['ret_message_20'] = $txt['ret_message_registration_success'] = 'Регистрация прошла успешно. На ваш e-mail отправлено письмо, с активационной ссылкой';
+$txt['ret_message_21'] =  $txt['ret_message_activation_success'] = 'Аккаунт успешно активирован. Поздравляем, вы авторизированы в системе';
 
 $txtp['reg_login_expalin'] = 'Логин может содержать только латинские буквы, цифры, точку и знак "_". Длина логина -
 	от 4 до 24 символов';
