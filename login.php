@@ -16,6 +16,7 @@ $db->setIdentPrefix($safecfg['db_prefix'].'_');
 
 $message = false;
 
+
 if ($_SERVER["HTTP_REFERER"]) $location = $_SERVER["HTTP_REFERER"];
 else {
 	$location = 'http://'.$_SERVER["HTTP_HOST"];
