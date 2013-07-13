@@ -118,7 +118,7 @@ switch ($_REQUEST['action']):
 					$_POST['email'],
 					$txtp['reg_approve_subject'],
 					$_POST['login'].$txtp['reg_approve_message'].$appr_link,
-					"From:".$safecfg['instance_name']." <".$safecfg['instance_email'].">"
+					"From:".$cfg['instance_name']." <".$safecfg['instance_email'].">"
 				);
 			}
 
@@ -153,8 +153,8 @@ switch ($_REQUEST['action']):
 			setcookie('login', $user['login'], 0, '/');
 			setcookie('user', $user['id'], 0, '/');
 
-			mail($user['email'], $txtp['reg_welcome_subject'], $user['login'].$txtp['reg_welcome_message'], "From:".$safecfg['instance_name']." <".$safecfg['instance_email'].">");
-			mail($safecfg['admin_email'], 'Новый пользователь Tinng', $user['login'].', '.$user['email'], "From:".$safecfg['instance_name']." <".$safecfg['instance_email'].">");
+			mail($user['email'], $txtp['reg_welcome_subject'], $user['login'].$txtp['reg_welcome_message'], "From:".$cfg['instance_name']." <".$safecfg['instance_email'].">");
+			mail($safecfg['admin_email'], 'Новый пользователь Tinng', $user['login'].', '.$user['email'], "From:".$cfg['instance_name']." <".$safecfg['instance_email'].">");
 
 			$message = 'activation_success';
 
