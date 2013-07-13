@@ -106,12 +106,12 @@ $txtp['reg_email_expalin'] = 'email должен быть реальным. На
 
 $txtp['posts_default'] = 'Выберите тему в столбце слева';
 
-$txtp['reg_approve_subject'] = 'Подтверждение аккаунта Tinng';
-$txtp['reg_approve_message'] = ', Вы успешно зарегистрировались в системе Tinng.
+$txtp['reg_approve_subject'] = 'Подтверждение аккаунта «'. $cfg['instance_name'] .'»';
+$txtp['reg_approve_message'] = ', Вы успешно зарегистрировались на сайте «'. $cfg['instance_name'] .'».
 Чтобы активировать ваш аккаунт,	перейдите по этой ссылке: ';
 
-$txtp['reg_welcome_subject'] = 'Добро пожаловать на Tinng';
-$txtp['reg_welcome_message'] = ', Вы успешно зарегистрировались и активировали аккаунт в системе Tinng. Приятного общения!';
+$txtp['reg_welcome_subject'] = 'Добро пожаловать на «'. $cfg['instance_name'] .'»';
+$txtp['reg_welcome_message'] = ', Вы успешно зарегистрировались и активировали аккаунт на сайте «'. $cfg['instance_name'] .'». Приятного общения!';
 
 $quiz[0]['body'] = 'Сидит дед, во сто шуб одет. Кто его раздевает, тот слезы ...';
 $quiz[0]['answer'] = 'проливает';
