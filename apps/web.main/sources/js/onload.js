@@ -24,7 +24,11 @@ tinng.funcs.onWindowLoad = function(){
 
 	t.units.topics.startWaitIndication();
 	if (!t.sync.curTopic) t.units.posts.setInvitation();
-	else t.units.posts.startWaitIndication();
+	else {
+		// todo - еще один костыль, напоминающий, что нужно сделать функцию инициализации темы
+		if (t.user.hasRight('editMessage', t.topics[t.sync.curTopic])) t.units.posts.header.topicRename.show();
+		t.units.posts.startWaitIndication();
+	}
 
     // такая конструкция нужна для того, чтобы 0 воспринимался как значение
     var loadedLimit = t.address.get('plimit');

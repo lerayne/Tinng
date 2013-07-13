@@ -74,7 +74,9 @@ tinng.funcs.parser = function (result, actionUsed) {
 
 		if (tProps.show_all) {
 			t.units.posts.$showMore.hide();
-		} else t.units.posts.$showMore.show();
+		} else if (actionUsed == 'next_page' || actionUsed == 'load_pages') {
+			t.units.posts.$showMore.show();
+		}
 
 		// если страница догружалась
 		if (actionUsed == 'next_page') {
