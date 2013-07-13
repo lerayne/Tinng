@@ -55,6 +55,7 @@ $txt['login_memorize'] = 'Запомнить';
 $txt['login_btn'] = 'Вход';
 $txt['login_logout'] = 'Выход';
 $txt['login_reg'] = 'Регистрация';
+$txt['login_forget'] = 'забыли?';
 
 $txt['title_register'] = 'Регистрация нового пользователя';
 $txt['title_message'] = 'Сообщение:';

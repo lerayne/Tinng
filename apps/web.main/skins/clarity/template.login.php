@@ -4,10 +4,11 @@
 		<input type="hidden" name="action" value="login">
 		<?= $txt['login_name'] ?> <input class="text" type="text" name="login">
 		<?= $txt['login_pass'] ?> <input class="text" type="password" name="pass">
+		<span class="dimmed" id="passForget">(<?= $txt['login_forget'] ?>)</span>
 		<?= $txt['login_memorize'] ?> <input type="checkbox" name="memorize">
 		<input type="hidden" name="lochash">
 		<input type="button" id="loginBtn" value="<?= $txt['login_btn'] ?>">
-		<input type="button" id="regBtn" value="<?= $txt['login_reg'] ?>">
+		<a id="regBtn"><?= $txt['login_reg'] ?></a>
 	</form>
 
 <? else: ?>
