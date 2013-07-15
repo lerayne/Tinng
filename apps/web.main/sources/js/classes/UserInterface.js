@@ -8,13 +8,13 @@
 
 // класс занимающийся интерфейсом
 tinng.protos.UserInterface = function (targetWindow) {
+	var that = this;
 
 	// проксирование методов
-	t.funcs.bind(this, ['hideMessage']);
+	t.funcs.bind(this, ['hideMessage', 'showLoginForm', 'showRestoreForm', 'authVK']);
 
 	this.winResize = $.proxy(this, 'winResize');
 	this.editorResize = $.proxy(this, 'editorResize');
-	this.doLogin = $.proxy(this, 'doLogin');
 	this.hideDialogue = $.proxy(this, 'hideDialogue');
 	this.showRegForm = $.proxy(this, 'showRegForm');
 
@@ -49,8 +49,11 @@ tinng.protos.UserInterface = function (targetWindow) {
 	this.$loginForm = $('#tinng-top-login');
 
 	if (this.$loginForm.size()){
-		this.$loginBtn = this.$loginForm.find('#loginBtn').click(this.doLogin);
-		this.$logoutBtn = this.$loginForm.find('#logoutBtn').click(this.doLogin);
+		this.$loginBtn = this.$loginForm.find('#loginBtn').click(this.showLoginForm);
+		this.$logoutBtn = this.$loginForm.find('#logoutBtn').click(function(){
+			that.$loginForm[0].lochash.value = location.hash;
+			that.$loginForm.submit();
+		});
 		this.$regBtn = this.$loginForm.find('#regBtn').click(this.showRegForm);
 	}
 
@@ -128,11 +131,6 @@ tinng.protos.UserInterface.prototype = {
 //		 // не придется и плясать с нижним паддингом и враппер получится убрать
 //	},
 
-	doLogin:function(){
-		this.$loginForm[0].lochash.value = location.hash;
-		this.$loginForm.submit();
-	},
-
 	showDialogue:function(title, content){
 
 		this.$dialogueTitle.text(title);
@@ -156,6 +154,30 @@ tinng.protos.UserInterface.prototype = {
 
 	hideMessage:function(){
 		this.$messageBar.slideUp();
+	},
+
+	showLoginForm:function(){
+		var template = t.chunks.get('login-form');
+		var form = template.find('form');
+
+		form.find('#doLogin').click(function(){
+			form[0].lochash.value = location.hash;
+			form.submit();
+		});
+
+		form.find('#passForget').click(this.showRestoreForm)
+
+		this.showDialogue(txt['title_login'], template);
+	},
+
+	showRestoreForm:function(){
+		var template = t.chunks.get('pass-restore-form');
+
+		var vkAuth = template.find('#vkAuth');
+
+		vkAuth.click(this.authVK);
+
+		this.showDialogue(txt['title_restore'], template);
 	},
 
 	showRegForm:function(){
@@ -198,5 +220,11 @@ tinng.protos.UserInterface.prototype = {
 		}
 
 		this.showDialogue(txt['title_register'], template);
+	},
+
+	authVK:function(){
+		var template = t.chunks.get('auth-vk');
+
+		this.showDialogue(txt['title_login'], template);
 	}
 };

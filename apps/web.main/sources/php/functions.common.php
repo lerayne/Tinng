@@ -24,6 +24,13 @@ function jsts2sql($str) {
 	return date('Y-m-d H:i:s', jsts2phpts($str));
 }
 
+function str($str){
+	global $txt, $txtp;
+	if ($txtp[$str]) return $txtp[$str];
+	elseif ($txt[$str]) return $txt[$str];
+	else return $str;
+}
+
 function incl_css() {
 	$arr = func_get_args();
 

@@ -169,6 +169,22 @@ body {
 		a {
 			color:#56c4ff;
 		}
+
+		.button-link {
+			display:inline-block;
+			height:28px;
+			color:#eee;
+
+			&:hover {
+				text-decoration: none;
+				background-color: #444;
+			}
+
+			span {
+				display:block;
+				padding: 5px 8px;
+			}
+		}
 	}
 }
 
@@ -243,7 +259,6 @@ body {
 }
 
 #tinng-top-login {
-	margin-top:1px;
 
 	input[type="text"], input[type="password"] {
 		border:0;
@@ -257,6 +272,12 @@ body {
 		margin:0 3px 3px 3px;
 		vertical-align: middle;
 	}
+}
+
+#doLogin {
+	margin:10px;
+	padding:4px 8px;
+	cursor:pointer;
 }
 
 /* Декоративные псевдо-тени */
@@ -621,12 +642,6 @@ body {
 			#tinng-main-header .signature {
 				display:none;
 			}
-
-			#tinng-top-login {
-				input[type="text"],  input[type="password"] {
-					width:100px;
-				}
-			}
 		}
 
 		#dialogue {
@@ -655,6 +670,10 @@ body {
 
 		.editor {
 			bottom:25px;
+		}
+
+		#dialogue {
+			margin:140px auto 110px auto;
 		}
 	}
 }

@@ -17,12 +17,12 @@
 		<div id="curtain"></div>
 		<div id="dialogue">
 			<div id="dialogueInner">
-			<header>
-				<div class="title">
-				</div>
-				<a href="#" class="close">&times;</a>
-			</header>
-			<section></section>
+				<header>
+					<div class="title">
+					</div>
+					<a href="#" class="close">&times;</a>
+				</header>
+				<section></section>
 			</div>
 		</div>
 	</div>
@@ -43,7 +43,27 @@
 			</div>
 			<div class='right state-ind throbber'></div>
 			<div class='right'>
-				<? require path('template.login.php'); ?>
+
+				<!--				--><?// require path('template.login.php'); ?>
+
+				<? if (!$user || $user->id == 0): ?>
+
+				<form id="tinng-top-login" action="<?= $env['appdir'] . 'login.php' ?>" method="post">
+					<a class="button-link" id="loginBtn"><span><?= $txt['login_btn'] ?></span></a>
+					<a class="button-link" id="regBtn"><span><?= $txt['login_reg'] ?></span></a>
+				</form>
+
+				<? else: ?>
+
+				<form id="tinng-top-login" action="<?= $env['appdir'] . 'login.php' ?>" method="post">
+					<input type="hidden" name="action" value="logout">
+					<?= $user->login ?>
+					<input type="hidden" name="lochash">
+					<a class="button-link" id="logoutBtn"><span><?= $txt['login_logout'] ?></span></a>
+				</form>
+
+				<? endif; ?>
+
 			</div>
 			<div class='clearfix'></div>
 		</div>
@@ -141,6 +161,85 @@
 		</div>
 	</div>
 
+
+	<div data-chunk-name="login-form">
+
+		<div class="w50 left">
+
+			<h4><?= $txt['login_local'] ?></h4>
+
+			<form action="<?= $env['appdir'] . 'login.php' ?>" method="post">
+				<input type="hidden" name="action" value="login">
+				<input type="hidden" name="lochash">
+
+				<table cellpadding=5 cellspacing=5 border=0>
+					<tr>
+						<td><?= $txt['login_name'] ?></td>
+						<td><input class="text" type="text" name="login"></td>
+					</tr>
+					<tr>
+						<td><?= $txt['login_pass'] ?></td>
+						<td>
+							<input class="text" type="password" name="pass">
+							<span class="dimmed" id="passForget">(<?= $txt['login_forget'] ?>)</span>
+						</td>
+					</tr>
+					<tr>
+						<td><?= $txt['login_memorize'] ?></td>
+						<td><input type="checkbox" name="memorize"></td>
+					</tr>
+				</table>
+
+				<input type="button" id="doLogin" value="<?= str('login_btn') ?>">
+
+			</form>
+
+		</div>
+
+		<div class="w50 left">
+
+			<h4><?= str('login_social') ?></h4>
+
+			<a href="https://oauth.vk.com/authorize?client_id=<?= $safecfg['vk_app_id'] ?>&scope=&redirect_uri=http://dev.tinng.net/apps/web.main/vkauth.php&response_type=code"><img src="" style="width:32px; height:32px"></a>
+
+		</div>
+
+		<div class="clearfix"></div>
+
+	</div>
+
+
+	<div data-chunk-name="pass-restore-form">
+
+		<div class="w50" style="margin:0 auto">
+
+			<div style="margin:15px 0">
+				<?= str('restore_text') ?>
+			</div>
+
+			<div style="text-align: center;">
+
+				<?
+				$quiz_num = mt_rand(0, count($quiz) - 1);
+				$this_quiz = $quiz[$quiz_num];
+				?>
+
+				<input type="text" id="restoreInput" ><br><br>
+
+				<b><?= $txt['reg_quiz_1'] ?>:</b><br>
+				<?= $this_quiz['body'] ?><br>
+				<input type="text" name="quiz" vldtr-enabled="true" vldtr-required="true"><br>
+
+				<input type="hidden" name="number" value="<?= $quiz_num * 1 ?>">
+
+				<input type="button" style="margin:10px 0" value="<?= str('restore_send') ?>">
+			</div>
+
+		</div>
+
+	</div>
+
+
 	<div data-chunk-name="registration-form">
 		<form action="<?= $env['appdir'] ?>login.php" method="post" class="user-reg">
 			<input type="hidden" name="action" value="register">
@@ -148,32 +247,36 @@
 			<table cellpadding="5" cellspacing="5" border="0">
 
 				<?
-				$quiz_num = mt_rand(0, count($quiz)-1);
+				$quiz_num = mt_rand(0, count($quiz) - 1);
 				$this_quiz = $quiz[$quiz_num];
 				?>
 
 				<tr>
 					<td><?= $txt['reg_login'] ?>:</td>
 					<td>
-						<input type="text" name="login" vldtr-enabled="true" vldtr-required="true" vldtr-filter="login" vldtr-funcname="validateLogin">
+						<input type="text" name="login" vldtr-enabled="true" vldtr-required="true" vldtr-filter="login"
+							   vldtr-funcname="validateLogin">
 					</td>
 					<td><?= $txtp['reg_login_expalin'] ?></td>
 				</tr>
 				<tr>
 					<td><?= $txt['reg_pass1'] ?>:</td>
 					<td>
-						<input id="regPass1" type="password" name="pass1" vldtr-enabled="true" vldtr-required="true" vldtr-filter="pass" vldtr-eqref="#regPass2">
+						<input id="regPass1" type="password" name="pass1" vldtr-enabled="true" vldtr-required="true"
+							   vldtr-filter="pass" vldtr-eqref="#regPass2">
 					</td>
 					<td><?= $txtp['reg_pass_expalin'] ?></td>
 				</tr>
 				<tr>
 					<td><?= $txt['reg_pass2'] ?>:</td>
-					<td><input  id="regPass2" type="password" name="pass2" vldtr-enabled="true" vldtr-required="true" vldtr-eqref="#regPass1"></td>
+					<td><input id="regPass2" type="password" name="pass2" vldtr-enabled="true" vldtr-required="true"
+							   vldtr-eqref="#regPass1"></td>
 					<td></td>
 				</tr>
 				<tr>
 					<td><?= $txt['reg_email'] ?>:</td>
-					<td><input type="text" name="email" vldtr-enabled="true" vldtr-required="true" vldtr-filter="email" vldtr-funcname="validateEmail"></td>
+					<td><input type="text" name="email" vldtr-enabled="true" vldtr-required="true" vldtr-filter="email"
+							   vldtr-funcname="validateEmail"></td>
 					<td><?= $txtp['reg_email_expalin'] ?></td>
 				</tr>
 				<tr>
@@ -194,6 +297,14 @@
 
 		</form>
 	</div>
+
+
+	<div data-chunk-name="auth-vk">
+
+		<iframe src="" />
+
+	</div>
+
 
 	<div data-chunk-name="posts-default" class="posts-default">
 		<?= $txtp['posts_default'] ?>

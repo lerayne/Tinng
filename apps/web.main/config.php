@@ -41,4 +41,8 @@ $safecfg['admin_email'] = 'lerayne@gmail.com';
 
 // Имейл, от которого будут приходить письма
 $safecfg['instance_email'] = 'noreply@tinng.net';
+
+// Авторизация через "вконтакте"
+$safecfg['vk_app_id'] = '3767832';
+$safecfg['vk_secret_key'] = 'aFietr8akXBn9wweMpum';
 ?>

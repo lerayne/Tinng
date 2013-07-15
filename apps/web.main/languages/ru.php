@@ -56,15 +56,22 @@ $txt['login_btn'] = 'Вход';
 $txt['login_logout'] = 'Выход';
 $txt['login_reg'] = 'Регистрация';
 $txt['login_forget'] = 'забыли?';
+$txt['login_local'] = 'Введите свои логин и пароль...';
+$txt['login_social'] = '...или войдите через социальную сеть';
 
 $txt['title_register'] = 'Регистрация нового пользователя';
+$txt['title_login'] = 'Авторизация';
+$txt['title_restore'] = 'Восстановление пароля';
 $txt['title_message'] = 'Сообщение:';
+
+$txt['restore_send'] = 'Отправить';
 
 $txt['reg_login'] = 'Логин';
 $txt['reg_email'] = 'email';
 $txt['reg_pass1'] = 'Пароль';
 $txt['reg_pass2'] = 'Повтор пароля';
 $txt['reg_quiz'] = 'Загадка';
+$txt['reg_quiz_1'] = 'Небольшая предосторожность - продолжите фразу';
 $txt['reg_answer'] = 'Ответ';
 $txt['reg_reg'] = 'Зарегистрироваться';
 
@@ -110,6 +117,8 @@ $txtp['posts_default'] = 'Выберите тему в столбце слева
 $txtp['reg_approve_subject'] = 'Подтверждение аккаунта «'. $cfg['instance_name'] .'»';
 $txtp['reg_approve_message'] = ', Вы успешно зарегистрировались на сайте «'. $cfg['instance_name'] .'».
 Чтобы активировать ваш аккаунт,	перейдите по этой ссылке: ';
+
+$txtp['restore_text'] = 'Забыли пароль? Введите в поле ниже то, что помните (email, или логин) и ссылка для восстановления пароля будет отправлена на email, который вы указали при регистрации';
 
 $txtp['reg_welcome_subject'] = 'Добро пожаловать на «'. $cfg['instance_name'] .'»';
 $txtp['reg_welcome_message'] = ', Вы успешно зарегистрировались и активировали аккаунт на сайте «'. $cfg['instance_name'] .'». Приятного общения!';

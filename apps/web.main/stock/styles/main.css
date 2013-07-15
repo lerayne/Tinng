@@ -72,6 +72,7 @@ a:hover {text-decoration: underline;}
 .subtext a	{ color:#555555; font-size: 10px; }
 
 .w80		{ width: 80%; }
+.w50		{ width: 50%; }
 .pointer	{ cursor: pointer; }
 .e_resize	{ cursor: e-resize; }
 .clear		{ cursor:auto; background:transparent; }
@@ -208,4 +209,8 @@ a:hover {text-decoration: underline;}
 
 .throbber.updating {
 	background: url(../../stock/images/throbber_1.gif) no-repeat;
+}
+
+input[type="button"], input[type="submit"] {
+	cursor:pointer;
 }
