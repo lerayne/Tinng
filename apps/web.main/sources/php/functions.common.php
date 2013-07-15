@@ -24,11 +24,10 @@ function jsts2sql($str) {
 	return date('Y-m-d H:i:s', jsts2phpts($str));
 }
 
-function str($str){
+function str($str) {
 	global $txt, $txtp;
 	if ($txtp[$str]) return $txtp[$str];
-	elseif ($txt[$str]) return $txt[$str];
-	else return $str;
+	elseif ($txt[$str]) return $txt[$str]; else return $str;
 }
 
 function incl_css() {
@@ -39,22 +38,22 @@ function incl_css() {
 	// Собираем содержимое всех поданых css-файлов в переменную
 	$script = '';
 	foreach ($arr as $val):
-		$script .= "\n".file_get_contents($val);
+		$script .= "\n" . file_get_contents($val);
 	endforeach;
 
 	// Объявляем имя файла
-	$filename = $env['appdir'].'data/compiled/css_'. md5($script) . '.css';
+	$filename = $env['appdir'] . 'data/compiled/css_' . md5($script) . '.css';
 
 	// Если такого файла нет - создаем
 	if (!file_exists($filename)) {
 
 		// для начала чистим директорию
-		$compiled_path = $env['appdir'].'data/compiled/';
-		if (file_exists($compiled_path)){
-			$dir = opendir($env['appdir'].'data/compiled/');
+		$compiled_path = $env['appdir'] . 'data/compiled/';
+		if (file_exists($compiled_path)) {
+			$dir = opendir($env['appdir'] . 'data/compiled/');
 			while (($file = readdir($dir)) !== false) {
 				// Только нужно проверить, что мы удаляем только ненужный файл (по префиксу)
-				if (!(strpos($file, 'css_') === false)) unlink($env['appdir'].'data/compiled/' . $file);
+				if (!(strpos($file, 'css_') === false)) unlink($env['appdir'] . 'data/compiled/' . $file);
 			}
 		}
 
@@ -76,26 +75,26 @@ function incl_scripts() {
 		// Собираем содержимое всех поданых js-файлов в переменную
 		$script = '';
 		foreach ($arr as $val):
-			$script .= "\n".file_get_contents($val);
+			$script .= "\n" . file_get_contents($val);
 		endforeach;
 
 		// Объявляем имя файла
-		$filename = $env['appdir'].'data/compiled/script_'. md5($script) . '.js';
+		$filename = $env['appdir'] . 'data/compiled/script_' . md5($script) . '.js';
 
 		// Если такого файла нет - создаем
 		if (!file_exists($filename)) {
 
 			// для начала чистим директорию
-			$dir = opendir($env['appdir'].'data/compiled/');
+			$dir = opendir($env['appdir'] . 'data/compiled/');
 			while (($file = readdir($dir)) !== false) {
 				// Только нужно проверить, что мы удаляем только ненужный файл (по префиксу)
-				if (!(strpos($file, 'script_') === false)) unlink($env['appdir'].'data/compiled/' . $file);
+				if (!(strpos($file, 'script_') === false)) unlink($env['appdir'] . 'data/compiled/' . $file);
 			}
 
-			if (function_exists('curl_init')){
+			if (function_exists('curl_init')) {
 				$conn = curl_init("http://closure-compiler.appspot.com/compile");
 
-				$param[] = 'js_code='.urlencode($script);
+				$param[] = 'js_code=' . urlencode($script);
 				$param[] = 'compilation_level=SIMPLE_OPTIMIZATIONS';
 				$param[] = 'output_format=json';
 				$param[] = 'output_info=compiled_code';
@@ -107,8 +106,8 @@ function incl_scripts() {
 
 				$json = json_decode(curl_exec($conn), 'assoc');
 
-				$error_path = $env['appdir'].'data/compiled/closure_errors.txt';
-				$serverr_path = $env['appdir'].'data/compiled/closure_server_errors.txt';
+				$error_path = $env['appdir'] . 'data/compiled/closure_errors.txt';
+				$serverr_path = $env['appdir'] . 'data/compiled/closure_server_errors.txt';
 
 				if (file_exists($error_path)) unlink($error_path);
 				if (file_exists($serverr_path)) unlink($serverr_path);
@@ -136,4 +135,41 @@ function incl_scripts() {
 
 function now($format = false) {
 	return ($format == 'sql') ? date('Y-m-d H:i:s') : time();
+}
+
+function curl($url, $param, $mode = 'plain') {
+
+	if (function_exists('curl_init')) {
+
+		$conn = curl_init($url);
+
+		// Задаем POST вкачестве метода
+		curl_setopt($conn, CURLOPT_POST, true);
+		// Отправляем поля POST
+		curl_setopt($conn, CURLOPT_POSTFIELDS, join('&', $param));
+		// Получать результат в строку, а не выводить в браузер
+		curl_setopt($conn, CURLOPT_RETURNTRANSFER, true);
+		// не проверять SSL сертификат
+		curl_setopt($conn, CURLOPT_SSL_VERIFYPEER, 0);
+		// не проверять Host SSL сертификата
+		curl_setopt($conn, CURLOPT_SSL_VERIFYHOST, 0);
+		// это необходимо, чтобы cURL не высылал заголовок на ожидание
+		curl_setopt($conn, CURLOPT_HTTPHEADER, array('Expect:'));
+
+		$result = curl_exec($conn);
+
+		switch ($mode) {
+			case 'json':
+				$result = json_decode($result, true);
+				break;
+
+			case 'json_object':
+				$result = json_decode($result);
+				break;
+		}
+
+		return $result;
+	} else {
+		return 'no cURL!';
+	}
 }
