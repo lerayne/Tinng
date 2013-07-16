@@ -179,7 +179,7 @@
 						<td><?= $txt['login_pass'] ?></td>
 						<td>
 							<input class="text" type="password" name="pass">
-							<span class="dimmed" id="passForget">(<?= $txt['login_forget'] ?>)</span>
+							<!--<span class="dimmed" id="passForget">(<?= $txt['login_forget'] ?>)</span>-->
 						</td>
 					</tr>
 					<tr>

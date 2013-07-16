@@ -81,7 +81,7 @@ $txt['btn_markread'] = 'Отметить тему прочитанной';
 $txt['show_more'] = 'Предыдущие '.$cfg['posts_per_page'];
 $txt['show_all'] = 'Показать все';
 
-$txt['login_to_write'] = 'Войдите или <a href="javascript:t.ui.showRegForm()">зарегистриуйтесь</a>, чтобы писать';
+$txt['login_to_write'] = '<a href="javascript:t.ui.showLoginForm()">Войдите</a> или <a href="javascript:t.ui.showRegForm()">зарегистриуйтесь</a>, чтобы писать';
 
 $txt['ajax_error_login'] = 'Логин занят!';
 $txt['ajax_error_email'] = 'e-mail занят!';
