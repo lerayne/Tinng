@@ -148,19 +148,6 @@ body {
 		}
 	}
 
-	.signature {
-		display: inline-block;
-		color:#bbb;
-		text-decoration:none;
-		padding-left:10px;
-
-		img {
-			height:20px;
-			margin-top:4px;
-			vertical-align: bottom;
-		}
-	}
-
 	.top-panel {
 		height:28px;
 		background-color: #222;
@@ -173,7 +160,6 @@ body {
 		.button-link {
 			display:inline-block;
 			height:28px;
-			color:#eee;
 
 			&:hover {
 				text-decoration: none;
@@ -183,6 +169,19 @@ body {
 			span {
 				display:block;
 				padding: 5px 8px;
+			}
+		}
+
+		.signature {
+			display: inline-block;
+			color:#bbb;
+			text-decoration:none;
+			padding-left:10px;
+
+			img {
+				height:20px;
+				margin-top:4px;
+				vertical-align: bottom;
 			}
 		}
 	}
@@ -334,6 +333,17 @@ body {
 		margin-right:5px;
 	}
 
+	.avatar {
+		position:absolute;
+		top:0;
+		left:0;
+
+		img {
+			width:48px;
+			height:48px;
+		}
+	}
+
 	.topic {
 		cursor:pointer;
 
@@ -376,12 +386,6 @@ body {
 
 		.data_cell {
 			margin-left:58px;
-		}
-
-		.avatar {
-			position:absolute;
-			top:0;
-			left:0;
 		}
 
 		.infobar {

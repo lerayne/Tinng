@@ -72,6 +72,8 @@ switch ($_REQUEST['action']):
 
 	break;
 
+
+
 	case 'register':
 
 //		setcookie('logdata', base64_encode(serialize($_POST)), 0, '/');
@@ -132,6 +134,8 @@ switch ($_REQUEST['action']):
 		if (!$debug) redirect_back();
 
 	break;
+
+
 
 	case 'approve':
 

@@ -26,7 +26,8 @@ tinng.funcs.onWindowLoad = function(){
 	if (!t.sync.curTopic) t.units.posts.setInvitation();
 	else {
 		// todo - еще один костыль, напоминающий, что нужно сделать функцию инициализации темы
-		if (t.user.hasRight('editMessage', t.topics[t.sync.curTopic])) t.units.posts.header.topicRename.show();
+		// todo - проблема: здесь массив t.topics еще не заполнен
+		//if (t.user.hasRight('editMessage', t.topics[t.sync.curTopic])) t.units.posts.header.topicRename.show();
 		t.units.posts.startWaitIndication();
 	}
 

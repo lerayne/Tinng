@@ -34,8 +34,9 @@ function ready_row($row)
 
 	} else { // Если работаем не с отчетом об удалении 
 
-		//if ($row['use_gravatar'] == '1')
-		$row['avatar_url'] = 'http://www.gravatar.com/avatar/' . md5(strtolower($row['author_email'])) . '?s=48';
+		if ($row['author_avatar'] == 'gravatar'){
+			$row['author_avatar'] = 'http://www.gravatar.com/avatar/' . md5(strtolower($row['author_email'])) . '?s=48';
+		}
 
 		unset($row['author_email']); // не выводим мыло в аякс-переписке
 	}
@@ -45,6 +46,7 @@ function ready_row($row)
 
 
 // создание дерева (внимание !! целесообразность ветвления - под вопросом)
+// сейчас используется для подготовки всех опций
 function make_tree($raw)
 {
 	foreach ($raw as $key => $val):
@@ -219,12 +221,12 @@ $result['topics'] = make_tree($db->select(
 		IFNULL(msg.modified, msg.created) AS maxdate,
 		msg.deleted,
 		usr.email AS author_email,
-		usr.login AS author,
+		IFNULL(usr.display_name, usr.login) AS author,
 		mlast.id AS last_id,
 		LEFT(mlast.message, ?d) AS lastpost,
 		IFNULL(mlast.modified, mlast.created) AS lastdate,
 		GREATEST(IFNULL(msg.modified, msg.created), IFNULL(IFNULL(mlast.modified, mlast.created),0)) as totalmaxd,
-		lma.login AS lastauthor,
+		IFNULL(lma.display_name, lma.login) AS lastauthor,
 		(SELECT COUNT(mcount.id) FROM ?_messages mcount WHERE mcount.topic_id = msg.id AND mcount.deleted <=> NULL) AS postsquant,
 		IF(unr.timestamp < GREATEST(IFNULL(msg.modified, msg.created), IFNULL(IFNULL(mlast.modified, mlast.created),0)), 1, 0) AS unread
 	FROM ?_messages msg
@@ -429,10 +431,11 @@ if ($topic) {
 				msg.deleted,
 				msg.modifier,
 				usr.email AS author_email,
-				usr.login AS author,
+				IFNULL(usr.display_name, usr.login) AS author,
 				IF(unr.timestamp < IFNULL(msg.modified, msg.created) && IFNULL(msg.modifier, msg.author_id) != ?d, 1, 0) AS unread,
 				moder.login AS modifier_name,
-				(SELECT starter.author_id FROM ?_messages starter WHERE starter.id = msg.topic_id ) AS topicstarter
+				(SELECT starter.author_id FROM ?_messages starter WHERE starter.id = msg.topic_id ) AS topicstarter,
+				uset.param_value as author_avatar
 			FROM ?_messages msg
 
 			LEFT JOIN ?_users usr 
@@ -441,6 +444,8 @@ if ($topic) {
 				ON unr.topic = IF(msg.topic_id = 0, msg.id, msg.topic_id) AND unr.user = ?d
 			LEFT JOIN ?_users moder
 				ON msg.modifier = moder.id
+			LEFT JOIN ?_user_settings uset
+				ON msg.author_id = uset.user_id AND uset.param_key = "avatar"
 
 			WHERE
 				(msg.topic_id = ?d OR msg.id = ?d) AND 

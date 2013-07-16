@@ -247,7 +247,7 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 			.Node.prototype
 			.fill.apply(this, arguments);
 
-		this.cells.$avatar.attr('src', data.avatar_url);
+		this.cells.$avatar.attr('src', data.author_avatar);
 	},
 
 	// пометить сообщение выделенным

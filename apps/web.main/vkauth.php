@@ -22,6 +22,26 @@ $db->setIdentPrefix($safecfg['db_prefix'].'_');
 
 header ("Content-type:text/html;charset=utf-8;");
 
+
+// todo - разобраться с этим бредовым решением системы обратного редиректа. Возможно, следует использовать глобальные переменные, или передавать адрес редиректа в гет
+//if ($_SERVER["HTTP_REFERER"]) $location = $_SERVER["HTTP_REFERER"];
+//else {
+$location = 'http://'.$_SERVER["HTTP_HOST"];
+$path_parts = explode('/', $_SERVER['REQUEST_URI']);
+array_pop($path_parts);
+$location .= implode('/', $path_parts);
+$location .= '/';
+//}
+
+header ("Content-type:text/html;charset=utf-8;");
+
+function redirect_back(){
+	global $location;
+	header ("location: ". ($_SERVER["HTTP_REFERER"] ? $_SERVER["HTTP_REFERER"] : 'http://'.$_SERVER["HTTP_HOST"]).$_POST['lochash']);
+	echo '|'.$_SERVER["HTTP_REFERER"].'|';
+}
+
+
 // Получение token
 $param[] = 'client_id='.$safecfg['vk_app_id'];
 $param[] = 'client_secret='.$safecfg['vk_secret_key'];
@@ -42,6 +62,61 @@ if ($response['error']) {
 	$param[] = 'fields=screen_name,bdate,timezone,photo,photo_medium,';
 
 	$user_data = curl("https://api.vk.com/method/users.get", $param, 'json');
+	$user_data = $user_data['response'][0];
+
+	// формируем новые данные
+	$new_user['login'] = 'vk' . $user_data['uid'];
+	$new_user['email'] = 'vk' . $user_data['uid']. '@nomail';
+	$new_user['hash'] = $response['access_token'];
+	$new_user['display_name'] = $user_data['first_name'].' '.$user_data['last_name'];
+	$new_user['approved'] = 1;
+	$new_user['source'] = 'vk.com';
+
+	$new_user_settings['param_key'] = 'avatar';
+	$new_user_settings['param_value'] = $user_data['photo'];
+
+	// проверяем наличие такого юзера в базе
+	$user_exists = $db->selectRow(
+		'SELECT * FROM ?_users WHERE login = ? OR email = ?'
+		, $new_user['login']
+		, $new_user['email']
+	);
+
+	// если такой пользователь есть
+	if ($user_exists) {
+
+		$new_user['id'] = $user_exists['id'];
+
+		// обновляем юзера
+		// todo - обновлять и другие данные (решить какие)
+		$db->query(
+			'UPDATE ?_users SET hash = ? WHERE id = ?d'
+			, $new_user['hash']
+			, $new_user['id']
+		);
+
+	} else {
+
+		$new_user['reg_date'] = date('Y-m-d H:i:s');
+
+		$new_id = $db->query(
+			'INSERT INTO ?_users (?#) VALUES (?a)', array_keys($new_user), array_values($new_user)
+		);
+
+		$new_user_settings['user_id'] = $new_user['id'] = $new_id;
+
+		$db->query(
+			'INSERT INTO ?_user_settings (?#) VALUES (?a)', array_keys($new_user_settings), array_values($new_user_settings)
+		);
+	}
+
+	// логиним юзера
+	$time = time()+($response['expires_in']*1); // запоминаем на время актуальности токена
+	setcookie('pass', $new_user['hash'], $time, '/');
+	setcookie('login', $new_user['login'], $time, '/');
+	setcookie('user', $new_user['id'], $time, '/');
+
+	redirect_back();
 }
 
 ?>

@@ -44,8 +44,6 @@
 			<div class='right state-ind throbber'></div>
 			<div class='right'>
 
-				<!--				--><?// require path('template.login.php'); ?>
-
 				<? if (!$user || $user->id == 0): ?>
 
 				<form id="tinng-top-login" action="<?= $env['appdir'] . 'login.php' ?>" method="post">
@@ -57,7 +55,7 @@
 
 				<form id="tinng-top-login" action="<?= $env['appdir'] . 'login.php' ?>" method="post">
 					<input type="hidden" name="action" value="logout">
-					<?= $user->login ?>
+					<strong><?= $user->display_name ? $user->display_name : $user->login ?></strong>
 					<input type="hidden" name="lochash">
 					<a class="button-link" id="logoutBtn"><span><?= $txt['login_logout'] ?></span></a>
 				</form>
@@ -200,13 +198,15 @@
 
 			<h4><?= str('login_social') ?></h4>
 
-			<a href="https://oauth.vk.com/authorize?client_id=<?= $safecfg['vk_app_id'] ?>&scope=&redirect_uri=http://dev.tinng.net/apps/web.main/vkauth.php&response_type=code"><img src="" style="width:32px; height:32px"></a>
+			<a href="https://oauth.vk.com/authorize?client_id=<?= $safecfg['vk_app_id'] ?>&scope=&redirect_uri=http://dev.tinng.net/apps/web.main/vkauth.php&response_type=code"><img src="<?= path('images/vk.png')?>"></a>
 
 		</div>
 
 		<div class="clearfix"></div>
 
 	</div>
+
+
 
 
 	<div data-chunk-name="pass-restore-form">
