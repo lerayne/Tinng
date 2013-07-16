@@ -150,7 +150,13 @@ switch ($_REQUEST['action']):
 
 			$db->query('UPDATE ?_users SET approved = 1 WHERE id = ?', $user['id']);
 
-			$db->query('INSERT INTO ?_user_settings (uset_user) VALUES (?d)', $user['id']);
+			$avatar = Array(
+				'user_id' => $user['id'],
+				'param_key' => 'avatar',
+				'param_value' => 'gravatar'
+			);
+
+			$db->query('INSERT INTO ?_user_settings (?#) VALUES (?a)', array_keys($avatar), array_values($avatar));
 
 			setcookie('pass', $user['hash'], 0, '/');
 			setcookie('login', $user['login'], 0, '/');
