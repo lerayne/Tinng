@@ -30,7 +30,6 @@ header ("Content-type:text/html;charset=utf-8;");
 function redirect_back(){
 	global $location;
 	header ("location: ". ($_SERVER["HTTP_REFERER"] ? $_SERVER["HTTP_REFERER"] : 'http://'.$_SERVER["HTTP_HOST"]).$_POST['lochash']);
-	echo '|'.$_SERVER["HTTP_REFERER"].'|';
 }
 
 switch ($_REQUEST['action']):

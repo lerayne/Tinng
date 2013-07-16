@@ -198,7 +198,9 @@
 
 			<h4><?= str('login_social') ?></h4>
 
-			<a href="https://oauth.vk.com/authorize?client_id=<?= $safecfg['vk_app_id'] ?>&scope=&redirect_uri=http://dev.tinng.net/apps/web.main/vkauth.php&response_type=code"><img src="<?= path('images/vk.png')?>"></a>
+			<a href="https://oauth.vk.com/authorize?client_id=<?= $safecfg['vk_app_id'] ?>&scope=&response_type=code&redirect_uri=<?= $e->full_app_path ?>vkauth.php">
+				<img src="<?= path('images/vk.png')?>">
+			</a>
 
 		</div>
 
@@ -294,6 +296,15 @@
 			</table>
 
 			<input type="hidden" name="number" value="<?= $quiz_num * 1 ?>">
+
+			<div>
+				<h4><?= str('login_social') ?></h4>
+
+				<a href="https://oauth.vk.com/authorize?client_id=<?= $safecfg['vk_app_id'] ?>&scope=&response_type=code&redirect_uri=<?= $e->full_app_path; ?>vkauth.php">
+					<img src="<?= path('images/vk.png')?>">
+				</a>
+
+			</div>
 
 		</form>
 	</div>

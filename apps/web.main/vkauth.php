@@ -26,19 +26,18 @@ header ("Content-type:text/html;charset=utf-8;");
 // todo - разобраться с этим бредовым решением системы обратного редиректа. Возможно, следует использовать глобальные переменные, или передавать адрес редиректа в гет
 //if ($_SERVER["HTTP_REFERER"]) $location = $_SERVER["HTTP_REFERER"];
 //else {
-$location = 'http://'.$_SERVER["HTTP_HOST"];
+$host = 'http://' . $_SERVER["HTTP_HOST"];
+$script_addr = $host . $_SERVER['SCRIPT_NAME'];
+$location =
 $path_parts = explode('/', $_SERVER['REQUEST_URI']);
 array_pop($path_parts);
-$location .= implode('/', $path_parts);
-$location .= '/';
-//}
+$location = $host . (implode('/', $path_parts)) . '/';
 
 header ("Content-type:text/html;charset=utf-8;");
 
 function redirect_back(){
 	global $location;
 	header ("location: ". ($_SERVER["HTTP_REFERER"] ? $_SERVER["HTTP_REFERER"] : 'http://'.$_SERVER["HTTP_HOST"]).$_POST['lochash']);
-	echo '|'.$_SERVER["HTTP_REFERER"].'|';
 }
 
 
@@ -46,13 +45,15 @@ function redirect_back(){
 $param[] = 'client_id='.$safecfg['vk_app_id'];
 $param[] = 'client_secret='.$safecfg['vk_secret_key'];
 $param[] = 'code='.$_REQUEST['code'];
-$param[] = 'redirect_uri=http://dev.tinng.net/apps/web.main/vkauth.php';;
+$param[] = 'redirect_uri=' . $script_addr;
 
 $response = curl("https://oauth.vk.com/access_token", $param, 'json');
 
 if ($response['error']) {
 
-	die('Ошибка');
+	setcookie('message', $response['error'], 0, '/');
+
+	redirect_back();
 
 } elseif ($response['access_token']) {
 
@@ -120,8 +121,10 @@ if ($response['error']) {
 }
 
 ?>
-<pre>
-<? echo var_dump($response) ?><br><br>
-<? echo var_dump($param) ?><br><br>
-<? echo var_dump($user_data) ?><br><br>
-</pre>
+<!--<pre>
+
+<?/* echo print_r($_SERVER) */?><br><br>
+<?/* echo var_dump($response) */?><br><br>
+<?/* echo var_dump($param) */?><br><br>
+<?/* echo var_dump($user_data) */?><br><br>
+</pre>-->

@@ -11,9 +11,13 @@ class Environment {
 
     // конструктор
     function __construct(){
+		global $env;
+
         $this->uagent = $_SERVER['HTTP_USER_AGENT'];
+		$this->protocol = strpos($_SERVER['SERVER_PROTOCOL'], 'HTTPS' !== false) ? 'https://' : 'http://';
+		$this->full_app_path = $this->protocol . $_SERVER['SERVER_NAME'] . '/'. $env['appdir'];
         list($this->path, $this->getstr) = explode('?', $_SERVER['REQUEST_URI']);
-        $this->get = $_GET;
+       	$this->get = $_GET;
     }
 
     // установка локали
