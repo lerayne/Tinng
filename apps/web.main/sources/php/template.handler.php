@@ -7,7 +7,7 @@ function template_title() {
 }
 
 function path($file) {
-	global $cfg, $env;
+	global $cfg, $env, $e;
 
 	$skinned_path = $env['appdir'] . 'skins/' . $cfg['skin'] . '/' . $file;
 	$stock_path = $env['appdir'] . 'stock/' . $file;
@@ -17,7 +17,7 @@ function path($file) {
 
 function template_head() {
 
-	global $env, $cfg, $user, $txt, $rex;
+	global $env, $cfg, $user, $txt, $rex, $e;
 
 	echo '
 		<link id="favicon" rel="shortcut icon" type="image/ico" href="' . path('/images/favicon.ico') . '">
@@ -83,6 +83,8 @@ function template_head() {
 		// этот файл всегда подгружается последним
 		$env['appdir'] . 'sources/js/onload.js'
 	);
+
+	echo '<meta property="og:image" content="'. $e->full_app_path .'stock/images/social_big.png">';
 }
 
 require_once $env['appdir'] . 'skins/' . $cfg['skin'] . '/template.php';
