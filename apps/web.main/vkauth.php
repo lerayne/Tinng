@@ -98,6 +98,7 @@ if ($response['error']) {
 
 	} else {
 
+		// добавляем запись о нем в базу
 		$new_user['reg_date'] = date('Y-m-d H:i:s');
 
 		$new_id = $db->query(
@@ -109,6 +110,9 @@ if ($response['error']) {
 		$db->query(
 			'INSERT INTO ?_user_settings (?#) VALUES (?a)', array_keys($new_user_settings), array_values($new_user_settings)
 		);
+
+		// Пишем админу
+		mail($safecfg['admin_email'], 'Новый пользователь Tinng', $new_user['display_name'].', http://vk.com/id'.$user_data['uid'] , "From:".$cfg['instance_name']." <".$safecfg['instance_email'].">");
 	}
 
 	// логиним юзера
