@@ -10,6 +10,7 @@
 tinng.protos.Editor = function () {
 
 	if (tinng.user.hasRight('writeToTopic', tinng.sync.curTopic)){
+
         var $body = this.$body = t.chunks.get('editor');
 
         this.$submit = $body.find('.submit.button');
@@ -20,12 +21,20 @@ tinng.protos.Editor = function () {
 
         this.$submit.click(this.submitNew);
         this.visible = true;
+
+		tinng.keyListener.register('ctrl+enter', this, this.submitNew);
+		tinng.keyListener.register('alt+enter', this, this.submitNew);
+
     } else {
         var $body = this.$body = t.chunks.get('editor-disabled');
     }
 }
 
 tinng.protos.Editor.prototype = {
+
+	keyListener:function(e){
+
+	},
 
     submitNew:function () {
 

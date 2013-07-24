@@ -149,6 +149,7 @@
 			</div>
 
 			<div class="submit button"><?= $txt['send'] ?></div>
+			<span class="subtext"><?= $txt['press_to_send_post'] ?></span>
 		</div>
 	</div>
 

@@ -6,7 +6,7 @@
  * To change this template use File | Settings | File Templates.
  */
 
-Address = function (delimSign, eqSign) {
+tinng.protos.Address = function (delimSign, eqSign) {
 	// проксирование приватных функций
 	for (var i in this.$) if (typeof this.$[i] == 'function') this.$[i] = $.proxy(this.$[i], this)
 
@@ -25,7 +25,7 @@ Address = function (delimSign, eqSign) {
 
 }
 
-Address.prototype = {
+tinng.protos.Address.prototype = {
 	$:{
 		load:function () {
 			if (location.hash.length > 2 && location.hash.indexOf(this.eqSign) != -1) {
@@ -58,4 +58,4 @@ Address.prototype = {
     }
 }
 
-tinng.address = new Address(';', ':');
+tinng.address = new tinng.protos.Address(';', ':');

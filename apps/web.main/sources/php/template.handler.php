@@ -66,6 +66,8 @@ function template_head() {
 		$env['appdir'] . 'sources/js/classes/Tinng.js',			// главный объект-контейнер
 		$env['appdir'] . 'sources/js/classes/Funcs.js',			// простые функции (иногда расширяются ниже)
 
+		$env['appdir'] . 'sources/js/classes/KeyListener.js',	// обработка горячих клавиш
+
 		//порядок загрузки этих классов непринципиален
 		$env['appdir'] . 'sources/js/classes/Validator.js',		// проверка данных форм (из anrom)
         $env['appdir'] . 'sources/js/classes/User.js',			// пользователь
