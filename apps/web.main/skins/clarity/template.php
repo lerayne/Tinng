@@ -310,16 +310,14 @@
 		</form>
 	</div>
 
+	<div data-chunk-name="posts-default" class="posts-default">
+		<?= $txtp['posts_default'] ?>
+	</div>
 
 	<div data-chunk-name="auth-vk">
 
 		<iframe src="" />
 
-	</div>
-
-
-	<div data-chunk-name="posts-default" class="posts-default">
-		<?= $txtp['posts_default'] ?>
 	</div>
 
 </div>
