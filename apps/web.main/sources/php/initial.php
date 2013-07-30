@@ -25,14 +25,25 @@ $db->setErrorHandler('databaseErrorHandler');
 $db->setIdentPrefix($safecfg['db_prefix'].'_');
 
 // !! todo простой логин. потом сделать более секьюрный
-$raw_user = $db->selectRow(
-    'SELECT * FROM ?_users WHERE
-		hash = ?
-		AND login = ?
-		AND approved = 1
+$raw_user = $db->selectRow('
+	SELECT
+		usr.id,
+		usr.login,
+		usr.display_name,
+		usr.email,
+		usr.hash,
+		usr.reg_date,
+		usr.source,
+		portrait.param_value as portrait
+	FROM ?_users usr
+
+	LEFT JOIN ?_user_settings portrait ON usr.id = portrait.user_id AND portrait.param_key = "avatar"
+
+	WHERE usr.hash = ? AND (usr.login = ? OR usr.email = ?) AND usr.approved = 1
 	'
     , $_COOKIE['pass']
     , $_COOKIE['login']
+	, $_COOKIE['login']
 );
 
 // todo заглушка аутентификации

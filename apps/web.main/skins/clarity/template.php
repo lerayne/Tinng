@@ -55,6 +55,7 @@
 
 				<form id="tinng-top-login" action="<?= $env['appdir'] . 'login.php' ?>" method="post">
 					<input type="hidden" name="action" value="logout">
+					<img src="<?= $user->portrait ?>" class="portrait">
 					<strong><?= $user->display_name ? $user->display_name : $user->login ?></strong>
 					<input type="hidden" name="lochash">
 					<a class="button-link" id="logoutBtn"><span><?= $txt['login_logout'] ?></span></a>
@@ -180,7 +181,7 @@
 						<td><?= $txt['login_pass'] ?></td>
 						<td>
 							<input class="text" type="password" name="pass">
-							<!--<span class="dimmed" id="passForget">(<?= $txt['login_forget'] ?>)</span>-->
+							<span class="dimmed" id="passForget">(<?= $txt['login_forget'] ?>)</span>
 						</td>
 					</tr>
 					<tr>
@@ -312,12 +313,6 @@
 
 	<div data-chunk-name="posts-default" class="posts-default">
 		<?= $txtp['posts_default'] ?>
-	</div>
-
-	<div data-chunk-name="auth-vk">
-
-		<iframe src="" />
-
 	</div>
 
 </div>

@@ -176,10 +176,6 @@ tinng.protos.UserInterface.prototype = {
 	showRestoreForm:function(){
 		var template = t.chunks.get('pass-restore-form');
 
-		var vkAuth = template.find('#vkAuth');
-
-		vkAuth.click(this.authVK);
-
 		this.showDialogue(txt['title_restore'], template);
 	},
 
@@ -223,11 +219,5 @@ tinng.protos.UserInterface.prototype = {
 		}
 
 		this.showDialogue(txt['title_register'], template);
-	},
-
-	authVK:function(){
-		var template = t.chunks.get('auth-vk');
-
-		this.showDialogue(txt['title_login'], template);
 	}
 };

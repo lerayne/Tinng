@@ -102,7 +102,7 @@ Funcs.prototype = {
 
 		// собственно, функция привязки к контексту
 		var _bind = function (funcName) {
-			context[funcName] = context[funcName].bind(context);
+			if (typeof context[funcName] == 'function') context[funcName] = context[funcName].bind(context);
 		}
 
 		switch (typeof funcNames) {
