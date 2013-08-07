@@ -16,6 +16,8 @@ tinng.protos.Node = Class({
 	},
 
 	construct:function (data, chunkName, addCells) {
+		var that = this;
+		t.funcs.bind(this, ['markRead', 'flushReadState']);
 
 		this.$body = t.chunks.get(chunkName || 'node');
 
@@ -112,6 +114,9 @@ tinng.protos.TopicNode = Class(tinng.protos.Node, {
 				this.cells.$tags.append(new t.protos.Tag(data.tags[i]).$body);
 			}
 		}
+
+		// отмечаем темы непрочитанными
+		if (this.data.unread == '1') this.markUnread();
 	},
 
 	// изменить положение в списке при обновлении
@@ -174,6 +179,21 @@ tinng.protos.TopicNode = Class(tinng.protos.Node, {
 	//todo - при данной реализации с ноды слетают все события! использование функции отключено
 	detach:function () {
 		this.$body.remove();
+	},
+
+	markUnread:function(){
+		var toMarkUnread = true;
+
+		if (t.user.id == 0) toMarkUnread = false;
+		// todo - не учитывается юзер, отредактировавший как первое, так и последнее сообщение
+		if (t.user.id == parseInt(this.data.lastauthor_id,10)) toMarkUnread = false;
+		if (!this.data.last_id && t.user.id == parseInt(this.data.author_id,10)) toMarkUnread = false;
+
+		if (toMarkUnread) {
+			this.$body.addClass('unread');
+		} else {
+			this.data.unread = '0';
+		}
 	}
 });
 
@@ -183,6 +203,7 @@ tinng.protos.TopicNode = Class(tinng.protos.Node, {
 tinng.protos.PostNode = Class(tinng.protos.Node, {
 
 	construct:function (data) {
+		var that = this;
 
 		t.protos
 			.Node.prototype
@@ -239,6 +260,15 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 
 		this.editorPanel.save.on('click', this.save);
 		this.editorPanel.cancel.on('click', this.cancelEdit);
+
+		// снятие статуса непрочитанности
+		this.mousetimer = 0;
+		this.$body.mouseenter(function(){
+			this.mousetimer = setTimeout(that.markRead, 300);
+		});
+		this.$body.mouseleave(function(){
+			clearTimeout(this.mousetimer);
+		});
 	},
 
 	// заполнить сообщение данными
@@ -248,6 +278,9 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 			.fill.apply(this, arguments);
 
 		this.cells.$avatar.attr('src', data.author_avatar);
+
+		// отмечаем сообщения непрочитанными
+		if (this.data.unread == '1') this.markUnread();
 	},
 
 	// пометить сообщение выделенным
@@ -398,5 +431,35 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 		this.mainPanel.unlock.$body.hide();
 
 		return false; // preventDefault + stopPropagation
+	},
+
+	markUnread:function(){
+
+		var toMarkUnread = true;
+
+		if (t.user.id == 0) toMarkUnread = false;
+		if (t.user.id == parseInt(this.data.author_id,10) && t.user.id == parseInt(this.data.modifier,10)) toMarkUnread = false;
+
+		if (toMarkUnread) {
+			this.$body.addClass('unread');
+		} else {
+			this.data.unread = '0';
+		}
+	},
+
+	markRead:function(){
+		if (this.data.unread == '1') {
+			this.$body.removeClass('unread');
+
+			this.latestReadTS = this.data.modified ? t.funcs.sql2stamp(this.data.modified) : t.funcs.sql2stamp(this.data.created);
+
+			t.stateService.push({
+				action:'read_topic',
+				id: this.data.topic_id == 0 ? this.data.id : this.data.topic_id,
+				time:this.latestReadTS
+			});
+
+			this.data.unread = '0';
+		}
 	}
 });

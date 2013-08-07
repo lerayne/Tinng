@@ -321,14 +321,14 @@ body {
 	background-color: #ddd;
 
 	.node {
-		border:2px solid transparent;
+		border:0px solid transparent;
 		margin-bottom:4px;
 		background-color: white;
 		position: relative;
 	}
 
 	.data_cell {
-		margin:10px;
+		padding:10px;
 	}
 
 	.msgid {
@@ -353,6 +353,7 @@ body {
 
 	.topic {
 		cursor:pointer;
+		border-left-width:8px;
 
 		&.active {
 			background-color: #EAFFE8;
@@ -386,13 +387,14 @@ body {
 	}
 
 	.post {
+		border-right-width:8px;
 
 		&.selected {
 			border-color:#9acd32;
 		}
 
 		.data_cell {
-			margin-left:58px;
+			padding-left:58px;
 		}
 
 		.infobar {
@@ -414,6 +416,10 @@ body {
 				border-color: #aaa;
 			}
 		}
+	}
+
+	.unread {
+		background-color: #fffce6;
 	}
 }
 

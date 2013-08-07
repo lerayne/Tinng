@@ -227,6 +227,7 @@ $result['topics'] = make_tree($db->select(
 		IFNULL(mlast.modified, mlast.created) AS lastdate,
 		GREATEST(IFNULL(msg.modified, msg.created), IFNULL(IFNULL(mlast.modified, mlast.created),0)) as totalmaxd,
 		IFNULL(lma.display_name, lma.login) AS lastauthor,
+		lma.id AS lastauthor_id,
 		(SELECT COUNT(mcount.id) FROM ?_messages mcount WHERE mcount.topic_id = msg.id AND mcount.deleted <=> NULL) AS postsquant,
 		IF(unr.timestamp < GREATEST(IFNULL(msg.modified, msg.created), IFNULL(IFNULL(mlast.modified, mlast.created),0)), 1, 0) AS unread
 	FROM ?_messages msg

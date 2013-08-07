@@ -18,6 +18,8 @@ tinng.funcs.onWindowLoad = function(){
         t.funcs.parser
     );
 
+	t.stateService = new t.protos.StateService();
+
     // загрузка данных из хеша адресной строки
 	var topicFromAddress = t.address.get('topic');
     t.sync.curTopic = topicFromAddress ? parseInt(t.address.get('topic')) : 0;

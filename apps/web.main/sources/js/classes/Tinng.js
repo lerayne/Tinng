@@ -19,6 +19,7 @@ tinng = {
     // экземпляры классов
     chunks:null,
     rotor:null,
+	stateService:null,
     ui:null,
     address:null,
 	user:null,

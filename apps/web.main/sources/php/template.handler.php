@@ -69,6 +69,7 @@ function template_head() {
 		$env['appdir'] . 'sources/js/classes/KeyListener.js',	// обработка горячих клавиш
 
 		//порядок загрузки этих классов непринципиален
+		$env['appdir'] . 'sources/js/classes/StateService.js',	// служба второчтепенной связи с сервером
 		$env['appdir'] . 'sources/js/classes/Validator.js',		// проверка данных форм (из anrom)
         $env['appdir'] . 'sources/js/classes/User.js',			// пользователь
         $env['appdir'] . 'sources/js/classes/Address.js',		// работа с хешем адресной строки
