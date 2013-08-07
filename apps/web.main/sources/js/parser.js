@@ -16,7 +16,7 @@ tinng.funcs.parser = function (result, actionUsed) {
 
 	var tProps = (result && result.topic_prop) ? result.topic_prop : [];
 
-	var i, entry, topic, post;
+	var i, post;
 
     // общие действия - до разбора тем и постов
     if (actionUsed == 'add_topic') {
@@ -30,27 +30,44 @@ tinng.funcs.parser = function (result, actionUsed) {
 		t.units.topics.stopWaitIndication();
 
 		for (i in result.topics) {
-			entry = result.topics[i];
-			topic = t.topics[entry.id];
+			var entry = result.topics[i];
+			var existingTopic = t.topics[entry.id];
+
+			// обрабатываем информацию о непрочитанности
+
+			// Эта логика потребовала размышлений, так что с подробными комментами:
+			// если присутсвует последнее сообщение...
+			if (entry.last_id) {
+				// и юзер - его автор - не показывать непрочитанным, кем бы не были остальные создатели/редакторы
+				if (parseInt(entry.lastauthor_id,10) == t.user.id) entry.unread = '0';
+			// иначе если первое сообщение было изменено...
+			} else if (entry.modifier_id && parseInt(entry.modifier_id,10) > 0) {
+				// и юзер - его редактор - не показывать непрочитанным, кем бы не были остальные создатели/редакторы
+				if (parseInt(entry.modifier_id,10) == t.user.id) entry.unread = '0';
+			// иначе - подразумеваем что есть толкьо первое неотредактированное сообщение...
+			} else {
+				// и само собой - не показываем непрочитанность, если юзер - автор.
+				if (parseInt(entry.author_id,10) == t.user.id) entry.unread = '0';
+			}
 
 			// если в текущем массиве загруженных тем такая уже есть - обновляем существующую
-			if (topic) {
+			if (existingTopic) {
 
 				if (entry.deleted) {
 
-					topic.remove('fast');
+					existingTopic.remove('fast');
 					if (entry.id == t.sync.curTopic) t.funcs.unloadTopic();
-					delete(topic);
+					delete(existingTopic);
 
 				} else {
-					topic.fill(entry);
-					topic.bump();
+					existingTopic.fill(entry);
+					existingTopic.bump();
 				}
 
 				// если же в текущем массиве тем такой нет и пришедшая не удалена, создаем новую
 			} else if (!entry.deleted) {
 
-				topic = t.topics[entry.id] = new t.protos.TopicNode(entry);
+				var topic = t.topics[entry.id] = new t.protos.TopicNode(entry);
 				t.units.topics.addNode(topic);
 				if (tProps['new']) topic.loadPosts();
 				//ifblur_notify('New Topic: '+entry.topic_name, entry.message);
@@ -72,6 +89,7 @@ tinng.funcs.parser = function (result, actionUsed) {
 
 		t.units.posts.setTopicName(tProps.name); //вывод названия темы
 
+		// управление отображением догрузочных кнопок
 		if (tProps.show_all) {
 			t.units.posts.$showMore.hide();
 		} else if (actionUsed == 'next_page' || actionUsed == 'load_pages') {
@@ -86,8 +104,21 @@ tinng.funcs.parser = function (result, actionUsed) {
 		}
 
 		for (var i in result.posts) {
-			entry = result.posts[i];
-			post = t.posts[entry.id];
+			var entry = result.posts[i];
+			var post = t.posts[entry.id];
+
+			// обрабатываем информацию о непрочитанности
+
+			// Эта логика потребовала размышлений, так что с подробными комментами:
+			// если сообщение было изменено...
+			if (entry.modifier_id && parseInt(entry.modifier_id,10) > 0) {
+				// и юзер - его редактор - не показывать непрочитанным, кем бы не были остальные создатели/редакторы
+				if (parseInt(entry.modifier_id,10) == t.user.id) entry.unread = '0';
+				// иначе - подразумеваем что есть только неотредактированное сообщение...
+			} else {
+				// и само собой - не показываем непрочитанность, если юзер - автор.
+				if (parseInt(entry.author_id,10) == t.user.id) entry.unread = '0';
+			}
 
 			if (post) { // если в текущем массиве загруженных сообщений такое уже есть
 
@@ -99,7 +130,7 @@ tinng.funcs.parser = function (result, actionUsed) {
 
 			} else if (!entry.deleted) { // если в текущем массиве такого нет и пришедшее не удалено
 
-				post = t.posts[entry.id] = new t.protos.PostNode(entry);
+				var post = t.posts[entry.id] = new t.protos.PostNode(entry);
 				t.units.posts.addNode(post);
 			}
 		}

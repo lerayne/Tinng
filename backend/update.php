@@ -218,6 +218,7 @@ $result['topics'] = make_tree($db->select(
 		msg.topic_name,
 		msg.created,
 		msg.modified,
+		msg.modifier AS modifier_id,
 		IFNULL(msg.modified, msg.created) AS maxdate,
 		msg.deleted,
 		usr.email AS author_email,
@@ -297,7 +298,7 @@ endswitch;
 // Получаем изменения текущей темы
 //////////////////////////////////
 
-// ОПТИМИЗИРОВАТЬ КОЛ_ВО ЗАПРОСОВ
+// ОПТИМИЗИРОВАТЬ КОЛ-ВО ЗАПРОСОВ
 if ($topic) {
 
 	// проверяем, существует ли тема (не удалена ли) и читаем ее заголовок

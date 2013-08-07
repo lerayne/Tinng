@@ -6,6 +6,33 @@ $id = $_REQUEST['id'];
 
 switch ($action):
 
+	case 'batch':
+
+		if (!!$_REQUEST['read_topic']){
+			$read_topics = $_REQUEST['read_topic'];
+
+			foreach ($read_topics as $topic_id => $new_TS) {
+				$new_sqltime = jsts2sql($new_TS);
+
+				// Выясняем, отмечал ли когда-либо пользователь эту тему прочитанной
+				$exist = $db->selectRow(
+					'SELECT * FROM ?_unread WHERE user = ?d AND topic = ?d AND timestamp < ?'
+					, $user->id
+					, $topic_id
+					, $new_sqltime
+				);
+
+				if ($exist):
+					$result[$topic_id]['exists'] = $exist['timestamp'];
+					$result[$topic_id]['new'] = $new_sqltime;
+				else:
+
+				endif;
+			}
+		}
+
+	break;
+
 	// пока функция без дела сидит :)
 	case 'check':
 

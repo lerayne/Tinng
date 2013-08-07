@@ -116,7 +116,7 @@ tinng.protos.TopicNode = Class(tinng.protos.Node, {
 		}
 
 		// отмечаем темы непрочитанными
-		if (this.data.unread == '1') this.markUnread();
+		if (this.data.unread == '1') this.$body.addClass('unread');
 	},
 
 	// изменить положение в списке при обновлении
@@ -179,21 +179,6 @@ tinng.protos.TopicNode = Class(tinng.protos.Node, {
 	//todo - при данной реализации с ноды слетают все события! использование функции отключено
 	detach:function () {
 		this.$body.remove();
-	},
-
-	markUnread:function(){
-		var toMarkUnread = true;
-
-		if (t.user.id == 0) toMarkUnread = false;
-		// todo - не учитывается юзер, отредактировавший как первое, так и последнее сообщение
-		if (t.user.id == parseInt(this.data.lastauthor_id,10)) toMarkUnread = false;
-		if (!this.data.last_id && t.user.id == parseInt(this.data.author_id,10)) toMarkUnread = false;
-
-		if (toMarkUnread) {
-			this.$body.addClass('unread');
-		} else {
-			this.data.unread = '0';
-		}
 	}
 });
 
@@ -280,7 +265,7 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 		this.cells.$avatar.attr('src', data.author_avatar);
 
 		// отмечаем сообщения непрочитанными
-		if (this.data.unread == '1') this.markUnread();
+		if (this.data.unread == '1') this.$body.addClass('unread');
 	},
 
 	// пометить сообщение выделенным
@@ -431,20 +416,6 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 		this.mainPanel.unlock.$body.hide();
 
 		return false; // preventDefault + stopPropagation
-	},
-
-	markUnread:function(){
-
-		var toMarkUnread = true;
-
-		if (t.user.id == 0) toMarkUnread = false;
-		if (t.user.id == parseInt(this.data.author_id,10) && t.user.id == parseInt(this.data.modifier,10)) toMarkUnread = false;
-
-		if (toMarkUnread) {
-			this.$body.addClass('unread');
-		} else {
-			this.data.unread = '0';
-		}
 	},
 
 	markRead:function(){

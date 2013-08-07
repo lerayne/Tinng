@@ -18,7 +18,7 @@ t.protos.StateService.prototype = {
 	push:function(object){
 
 		if (this.timer == 0) {
-			this.timer = setTimeout(this.flushState, 5000);
+			this.timer = setTimeout(this.flushState, 3000);
 		}
 
 		var action = object.action;
@@ -38,8 +38,16 @@ t.protos.StateService.prototype = {
 
 		console.log('state flushed to server! data:', this.stateData);
 
+		this.stateData.action = 'batch';
+
+		JsHttpRequest.query('backend/service.php', this.stateData, this.parseResponse)
+
 		clearTimeout(this.timer);
 		this.stateData = {};
 		this.timer = 0;
+	},
+
+	parseResponse:function(result, errors) {
+		console.log(result);
 	}
 }
