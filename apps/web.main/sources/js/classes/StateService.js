@@ -49,5 +49,36 @@ t.protos.StateService.prototype = {
 
 	parseResponse:function(result, errors) {
 		console.log(result);
+
+		if (result.read_topic) {
+			for (var topic_id in result.read_topic) {
+				var readTime = t.funcs.sql2stamp(result.read_topic[topic_id]);
+
+				// если "прочитанная" тема присутствует в текущей выборке
+				if (t.topics[topic_id]) {
+					var topic = t.topics[topic_id];
+
+					var topicMaxTime = topic.data.lastdate ? topic.data.lastdate : topic.data.modified ? topic.data.modified : topic.data.created;
+
+					console.log('readTime:',readTime);
+					console.log('topicMaxTime:',topicMaxTime, t.funcs.sql2stamp(topicMaxTime), (t.funcs.sql2stamp(topicMaxTime) >= readTime));
+
+					if (t.funcs.sql2stamp(topicMaxTime) <= readTime) topic.markRead();
+				}
+
+				// если мы в теме, которую "прочитали"
+				if (t.sync.curTopic == topic_id){
+					for (var post_id in t.posts){
+						var post = t.posts[post_id];
+
+						var postMaxTime = post.data.modified ? post.data.modified : post.data.created;
+
+						if (t.funcs.sql2stamp(postMaxTime) < readTime) post.markRead();
+					}
+				}
+
+
+			}
+		}
 	}
 }

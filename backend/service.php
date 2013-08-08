@@ -8,27 +8,53 @@ switch ($action):
 
 	case 'batch':
 
-		if (!!$_REQUEST['read_topic']){
+		if (!!$_REQUEST['read_topic']) {
 			$read_topics = $_REQUEST['read_topic'];
 
-			foreach ($read_topics as $topic_id => $new_TS) {
-				$new_sqltime = jsts2sql($new_TS);
+			foreach ($read_topics as $topic_id => $new_TS):
+
+				$newDate = new DateTime(date('Y-m-d H:i:s', jsts2phpts($new_TS)));
+				$new_TS = $newDate->format('U')+0;
+				$new_sqldate = $newDate->format('Y-m-d H:i:s');
 
 				// Выясняем, отмечал ли когда-либо пользователь эту тему прочитанной
 				$exist = $db->selectRow(
-					'SELECT * FROM ?_unread WHERE user = ?d AND topic = ?d AND timestamp < ?'
+					'SELECT * FROM ?_unread WHERE user = ?d AND topic = ?d'
 					, $user->id
 					, $topic_id
-					, $new_sqltime
 				);
 
-				if ($exist):
-					$result[$topic_id]['exists'] = $exist['timestamp'];
-					$result[$topic_id]['new'] = $new_sqltime;
-				else:
+				if ($exist) {
 
-				endif;
-			}
+					$oldDate = new DateTime($exist['timestamp']);
+					$old_TS = $oldDate->format('U')+0;
+
+					// Если новая дата позднее предыдущей
+					if ($new_TS > $old_TS):
+						$db->query(
+							'UPDATE ?_unread SET timestamp = ? WHERE user = ?d AND topic = ?d'
+							, $new_sqldate
+							, $user->id
+							, $topic_id
+						);
+
+						$result['read_topic'][$topic_id] = $new_sqldate;
+					endif;
+
+				} else {
+
+					$values = Array(
+						'user' => $user->id,
+						'topic' => $topic_id,
+						'timestamp' => $new_sqldate
+					);
+
+					$db->query('INSERT INTO ?_unread (?#) VALUES (?a)', array_keys($values), array_values($values));
+
+					$result['read_topic'][$topic_id] = $new_sqldate;
+				}
+
+			endforeach;
 		}
 
 	break;

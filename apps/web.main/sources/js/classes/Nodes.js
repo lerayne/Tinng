@@ -17,7 +17,7 @@ tinng.protos.Node = Class({
 
 	construct:function (data, chunkName, addCells) {
 		var that = this;
-		t.funcs.bind(this, ['markRead', 'flushReadState']);
+		t.funcs.bind(this, ['markRead', 'pushReadState']);
 
 		this.$body = t.chunks.get(chunkName || 'node');
 
@@ -60,6 +60,11 @@ tinng.protos.Node = Class({
 
 	show:function (start) {
 		this.$body[0].scrollIntoView(start);
+	},
+
+	markRead:function(){
+		this.$body.removeClass('unread');
+		this.data.unread = '0';
 	}
 });
 
@@ -249,7 +254,7 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 		// снятие статуса непрочитанности
 		this.mousetimer = 0;
 		this.$body.mouseenter(function(){
-			this.mousetimer = setTimeout(that.markRead, 300);
+			this.mousetimer = setTimeout(that.pushReadState, 300);
 		});
 		this.$body.mouseleave(function(){
 			clearTimeout(this.mousetimer);
@@ -418,9 +423,8 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 		return false; // preventDefault + stopPropagation
 	},
 
-	markRead:function(){
+	pushReadState:function(){
 		if (this.data.unread == '1') {
-			this.$body.removeClass('unread');
 
 			this.latestReadTS = this.data.modified ? t.funcs.sql2stamp(this.data.modified) : t.funcs.sql2stamp(this.data.created);
 
@@ -430,7 +434,7 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 				time:this.latestReadTS
 			});
 
-			this.data.unread = '0';
+			this.markRead();
 		}
 	}
 });
