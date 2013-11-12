@@ -185,6 +185,7 @@ tinng.protos.ui.SearchBox.prototype = {
 		if (this.timeout) clearTimeout(this.timeout);
 
 		// если запрос уже ушел, но еще не вернулся - абортнуть его
+		// todo - тут не совсем понятно, точно ли нужен status, потому что у только что отправленного запроса статус - null
 		if (this.request && this.request.status) {
 			this.request.onreadystatechange = this.onAbort;
 			this.request.abort();
