@@ -6,6 +6,7 @@
  * To change this template use File | Settings | File Templates.
  */
 
+// Поле
 tinng.protos.ui.Field = function (data) {
     this.$body = $('<div/>');
 
@@ -17,15 +18,14 @@ tinng.protos.ui.Field = function (data) {
     if (data.css) this.$body.css(data.css);
 }
 
+// Кнопка
 tinng.protos.ui.Button = function (data) {
 
-    this.$body = $('<div/>');
-    this.$button = $('<div/>');
+    this.$body = $('<div class="button-body">');
+    this.$button = $('<div class="button">');
     this.$body.append(this.$button);
 
     if (data.label) this.label = data.label;
-
-    this.$button.addClass('button');
 
     if (data.id) this.$button.attr('id', data.id);
     if (data.cell) this.$button.attr('data-cell', data.cell);
@@ -105,10 +105,101 @@ tinng.protos.ui.Button.prototype = {
     }
 }
 
+
+// умный поиск по тегам
+tinng.protos.ui.SearchBox = function(config){
+	t.funcs.bind(this);
+
+	// настройки по умолчанию и их перегрузка
+	this.conf = t.funcs.objectConfig(config, this.defaultConf = {
+		css:'',
+		cssClass:'',
+		placeholder:'Search...',
+		suggest:'on_topics',
+
+		// вызывается когда объект поиска подтверждается тем или иным способом
+		onConfirm:function(){}
+	});
+
+	// сборка объекта
+	this.$body = $('<div class="smart-search"/>');
+	if (this.conf.cssClass) this.$body.addClass(this.conf.cssClass);
+	if (this.conf.css) this.$body.css(this.conf.css);
+
+	this.$smartArea = $('<div class="smart-area">').appendTo(this.$body);
+	this.$input = $('<input type="text" placeholder="'+ this.conf.placeholder +'">').appendTo(this.$body);
+	this.$throbber = $('<div class="throbber updating">').appendTo(this.$body);
+
+	this.$input.on('keyup', this.waitAndSuggest);
+	this.$input.on('paste', this.suggest);
+}
+
+tinng.protos.ui.SearchBox.prototype = {
+	suggest:function(){
+		var that = this;
+
+		var query = this.$input.val();
+
+		if (query.length > 1) {
+			console.log('here goes the query: ', query);
+
+			// todo - возможно, создать обертку вокруг реквеста, которая будет управлять отображением троббера и лагом сама
+			// если запрос не возвращается дольше заданного времени (xhr_lag) - показываем троббер
+			this.XHRLag = setTimeout(function(){
+				that.$throbber.css({visibility:'visible'})
+			}, t.cfg.xhr_lag);
+
+			this.request = new JsHttpRequest();
+			this.request.onreadystatechange = this.onResponse;
+			this.request.open(null, '/backend/suggest.php', true);
+			this.request.send({
+				suggest: this.conf.suggest,
+				subject: query
+			});
+		}
+	},
+
+	onResponse:function(){
+
+		switch (this.request.readyState){
+
+			// success
+			case 4:
+				console.log('query returned:', this.request.responseJS);
+				break;
+		}
+
+		this.clearLag();
+	},
+
+	onAbort:function(){
+		this.clearLag();
+	},
+
+	clearLag:function(){
+		if (this.XHRLag) clearTimeout(this.XHRLag);
+		this.$throbber.css({visibility:'hidden'});
+	},
+
+	waitAndSuggest:function(){
+		if (this.timeout) clearTimeout(this.timeout);
+
+		// если запрос уже ушел, но еще не вернулся - абортнуть его
+		if (this.request && this.request.status) {
+			this.request.onreadystatechange = this.onAbort;
+			this.request.abort();
+		}
+
+		// рестартуем таймер
+		this.timeout = setTimeout(this.suggest, t.cfg.xhr_suggest);
+	}
+}
+
+
+
 tinng.protos.ui.Panel = function (dataArray) {
 
-    this.$body = $('<div/>');
-    this.$body.addClass('panel revealer3');
+    this.$body = $('<div class="panel revealer3">');
 
     for (var i = 0; i < dataArray.length; i++) {
         var data = dataArray[i];

@@ -22,6 +22,7 @@ tinng.protos.Unit = Class({
 
 		this.contentLoaded = 0;
 
+		// todo - переделать под чанки
 		var $body = this.$body = t.chunks.get('unit');
 		this.$scrollArea = $body.find('.scroll-area');
 		this.$contentWrap = $body.find('.content-wrap');
@@ -36,12 +37,14 @@ tinng.protos.Unit = Class({
 		$body.addClass(data.name);
 		$body.css(data.css);
 
+		// todo - переделать систему сбора контролов. Конфигурация через тинг-объект это плохо
+		// создание панелей управления
 		if (data.header) {
-			var headerPanel = new t.protos.ui.Panel(data.header);
-			this.$header.append(headerPanel.$body);
-			this.header = headerPanel;
+			this.header = new t.protos.ui.Panel(data.header);
+			this.$header.append(this.header.$body);
 		}
 
+		// привязка событий прокрутки
 		this.$scrollArea.on('scroll', this.onScroll);
 		this.$scrollArea.scroll();
 	},
@@ -99,6 +102,14 @@ tinng.protos.TopicsUnit = Class(tinng.protos.Unit, {
 		t.protos
 			.Unit.prototype
 			.construct.apply(this, arguments);
+
+		// панель поиска
+		this.searchBox = new t.protos.ui.SearchBox({
+			css:{
+				float:'left'
+			}
+		});
+		this.header.$body.prepend(this.searchBox.$body);
 
 		this.newTopic = $.proxy(this, 'newTopic');
 

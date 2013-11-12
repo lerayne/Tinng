@@ -167,6 +167,13 @@ Funcs.prototype = {
 
 		this.setCookie(newConfig);
 		return true;
+	},
+
+	objectConfig:function(argSettings, defaultSettings) {
+		var settings = {};
+		for (var key in defaultSettings) settings[key] = argSettings[key] ? argSettings[key] : defaultSettings[key];
+
+		return settings;
 	}
 }
 

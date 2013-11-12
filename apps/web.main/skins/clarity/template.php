@@ -13,6 +13,7 @@
 
 <div id="tinng-main">
 
+	<!-- Модальное окно -->
 	<div id="dialogue-wrapper">
 		<div id="curtain"></div>
 		<div id="dialogue">
@@ -27,12 +28,14 @@
 		</div>
 	</div>
 
+	<!-- Панель сообщений -->
 	<div id="message-bar">
 		<div class="message">
 			<div class="text"></div>
 		</div>
 	</div>
 
+	<!-- заголовок -->
 	<header id="tinng-main-header">
 		<div class="top-panel">
 			<div class="left">
@@ -72,14 +75,17 @@
 		</div>
 	</header>
 
+	<!-- область юнитов -->
 	<div id="tinng-units-area">
 		<!-- сюда пишутся юниты -->
 	</div>
 
+	<!-- футер -->
 	<footer id="tinng-main-footer">
 
 	</footer>
 
+	<!-- масштабируемый бекграунд -->
 	<img id="scaled-bg" src="<?= path('images/bg1.jpg') ?>">
 
 </div>

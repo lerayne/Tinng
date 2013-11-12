@@ -416,11 +416,14 @@ body {
 		}
 
 		.message {
-			border:1px dotted transparent;
+			border:1px solid;
+			border-color:transparent;
+//			border-color:transparent transparent #eee transparent;
 			padding:3px;
 
 			&[contenteditable="true"] {
 				border-color: #aaa;
+				border-style: dotted;
 			}
 		}
 	}
@@ -701,5 +704,22 @@ body {
 		#dialogue {
 			margin:140px auto 110px auto;
 		}
+	}
+}
+
+.smart-search {
+	background-color: #fff;
+
+	input {
+		border:0;
+		background: transparent;
+		vertical-align: middle;
+	}
+
+	.throbber {
+		display: inline-block;
+		margin: 0 4px;
+		vertical-align: middle;
+		visibility: hidden;
 	}
 }

@@ -63,7 +63,7 @@ function template_head() {
 		$env['appdir'] . 'sources/js/jqextend.js', 				// мои расширения jq (в основном самопис)
 		$env['rootdir'] . 'libraries/JsHttpRequest.js',			// сторонняя библиотека работы с XHR
 		$env['appdir'] . 'sources/js/classes/Class.js',			// наследователь для классов + кроссбраузерный bind
-		$env['appdir'] . 'sources/js/classes/Tinng.js',			// главный объект-контейнер
+		$env['appdir'] . 'sources/js/tinng_init.js',			// главный объект-контейнер
 		$env['appdir'] . 'sources/js/classes/Funcs.js',			// простые функции (иногда расширяются ниже)
 
 		$env['appdir'] . 'sources/js/classes/KeyListener.js',	// обработка горячих клавиш
