@@ -130,7 +130,7 @@ class DbSimple_Mysql extends DbSimple_Generic_Database
                     $queryMain = array('SELECT FOUND_ROWS()');
                 }
                 // Else use manual calculation.
-                // TODO: GROUP BY ... -> COUNT(DISTINCT ...)
+                // TO DO: GROUP BY ... -> COUNT(DISTINCT ...)
                 $re = '/^
                     (?> -- [^\r\n]* | \s+)*
                     (\s* SELECT \s+)                                      #1     

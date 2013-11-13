@@ -3,7 +3,6 @@
 header ('Content-type:text/html;charset=utf-8;');
 
 require_once 'config.php';
-require_once 'php/classes.php';
 require_once 'php/spikes.php';
 require_once 'locale/ru.php';
 require_once 'libraries/DbSimple/Generic.php';
@@ -20,7 +19,7 @@ $message = false;
 if ($_SERVER["HTTP_REFERER"]) $location = $_SERVER["HTTP_REFERER"];
 else {
 	$location = 'http://'.$_SERVER["HTTP_HOST"];
-	$path_parts = split('/', $_SERVER['REQUEST_URI']);
+	$path_parts = implode('/', $_SERVER['REQUEST_URI']);
 	array_pop($path_parts);
 	$location .= join('/', $path_parts);
 	$location .= '/';

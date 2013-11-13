@@ -212,7 +212,7 @@ class JsHttpRequest
             // All scalars are converted to strings to avoid indeterminism.
             // PHP's "1" and 1 are equal for all PHP operators, but
             // JS's "1" and 1 are not. So if we pass "1" or 1 from the PHP backend,
-            // we should get the same result in the JS frontend (string).
+            // we should get the same result in the JS apps (string).
             // Character replacements for JSON.
             static $jsonReplaces = array(
                 array("\\", "/", "\n", "\t", "\r", "\b", "\f", '"'),
@@ -257,7 +257,7 @@ class JsHttpRequest
         // ATTENTION!!!
         // HTTP_RAW_POST_DATA is only accessible when Content-Type of POST request
         // is NOT default "application/x-www-form-urlencoded"!!!
-        // Library frontend sets "application/octet-stream" for that purpose,
+        // Library apps sets "application/octet-stream" for that purpose,
         // see JavaScript code. In PHP 5.2.2.HTTP_RAW_POST_DATA is not set sometimes;
         // in such cases - read the POST data manually from the STDIN stream.
         $rawPost = strcasecmp($_SERVER['REQUEST_METHOD'], 'POST') == 0? (isset($GLOBALS['HTTP_RAW_POST_DATA'])? $GLOBALS['HTTP_RAW_POST_DATA'] : @file_get_contents("php://input")) : null;

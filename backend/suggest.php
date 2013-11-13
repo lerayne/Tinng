@@ -1,5 +1,5 @@
 <?php
-require_once 'backend_initial.php';
+require_once './includes/backend_initial.php';
 
 $suggest = $_REQUEST['suggest'];
 $subject = $_REQUEST['subject'];
@@ -7,7 +7,9 @@ $subject = $_REQUEST['subject'];
 switch ($suggest):
 	
 	case 'on_topics':
-		
+
+		$subjects = explode(' ', trim($subject));
+
 		$result = $db->select(
 			'SELECT
 				  id
@@ -15,9 +17,9 @@ switch ($suggest):
 				, type
 				, strict
 			FROM ?_tags
-			WHERE name LIKE ?
+			WHERE name REGEXP ?
 			LIMIT 10
-			', '%'.$subject.'%'
+			', implode('|', $subjects)
 		);
 		
 	break;

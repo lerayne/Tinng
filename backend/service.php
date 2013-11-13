@@ -1,18 +1,63 @@
 <?php
-require_once 'backend_initial.php';
+require_once './includes/backend_initial.php';
 
 $action = $_REQUEST['action'];
 $id = $_REQUEST['id'];
 
 switch ($action):
 
-	// разблокировать пост (ничего не возвращает)
-	case 'unlock_message':
-		
-		$db->query('UPDATE ?_messages SET locked = NULL WHERE id = ?d', $id);
-		
-	break;
+	case 'batch':
 
+		if (!!$_REQUEST['read_topic']) {
+			$read_topics = $_REQUEST['read_topic'];
+
+			foreach ($read_topics as $topic_id => $new_TS):
+
+				$newDate = new DateTime(date('Y-m-d H:i:s', jsts2phpts($new_TS)));
+				$new_TS = $newDate->format('U')+0;
+				$new_sqldate = $newDate->format('Y-m-d H:i:s');
+
+				// Выясняем, отмечал ли когда-либо пользователь эту тему прочитанной
+				$exist = $db->selectRow(
+					'SELECT * FROM ?_unread WHERE user = ?d AND topic = ?d'
+					, $user->id
+					, $topic_id
+				);
+
+				if ($exist) {
+
+					$oldDate = new DateTime($exist['timestamp']);
+					$old_TS = $oldDate->format('U')+0;
+
+					// Если новая дата позднее предыдущей
+					if ($new_TS > $old_TS):
+						$db->query(
+							'UPDATE ?_unread SET timestamp = ? WHERE user = ?d AND topic = ?d'
+							, $new_sqldate
+							, $user->id
+							, $topic_id
+						);
+
+						$result['read_topic'][$topic_id] = $new_sqldate;
+					endif;
+
+				} else {
+
+					$values = Array(
+						'user' => $user->id,
+						'topic' => $topic_id,
+						'timestamp' => $new_sqldate
+					);
+
+					$db->query('INSERT INTO ?_unread (?#) VALUES (?a)', array_keys($values), array_values($values));
+
+					$result['read_topic'][$topic_id] = $new_sqldate;
+				}
+
+			endforeach;
+		}
+
+	break;
 
 	// пока функция без дела сидит :)
 	case 'check':
@@ -49,6 +94,13 @@ switch ($action):
 			$db->query('UPDATE ?_messages SET locked = ?d WHERE id = ?d', $user->id, $id);
 		
 	break;
+
+	// разблокировать пост (ничего не возвращает)
+	case 'unlock_message':
+
+		$db->query('UPDATE ?_messages SET locked = NULL WHERE id = ?d', $id);
+
+	break;
 	
 	
 	// Пока не используется
@@ -62,7 +114,7 @@ switch ($action):
 	// помечаем сообщеие прочитанным
 	case 'mark_read':
 
-		$now = date('Y-m-d H:i:s');
+		$now = now('sql');
 		
 		// Выясняем, отмечал ли когда-либо пользователь эту тему прочитанной
 		$exist = $db->selectRow(
