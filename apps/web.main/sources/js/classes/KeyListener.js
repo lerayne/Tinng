@@ -63,14 +63,13 @@ tinng.protos.KeyListener.prototype = {
 	// todo - в данный момент эта функция навешивает на каждое нажатие по событию на несчастный window :)
 	// переделать так, чтобы keypress был всего один - в конце при активации листенера (метод activate)
 	register:function(){
-
 		var that = this;
-		var combination = arguments[0];
+
+		var combination = arguments[0].toLowerCase();
 		var context = arguments[1];
 		var callback = arguments[2];
 
-		combination = combination.toLowerCase();
-
+		// все последующие аргументы передаются в коллбек-функцию, как аргументы
 		var callbackArgs = [];
 		for (var i = 3; i < arguments.length; i++) {
 			callbackArgs[i-3] = arguments[i];

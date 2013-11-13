@@ -77,6 +77,7 @@ $txt['reg_reg'] = 'Зарегистрироваться';
 
 $txt['btn_newtopic'] = 'Новая тема';
 $txt['btn_markread'] = 'Отметить тему прочитанной';
+$txt['filter_by_tags'] = 'Искать по тегам';
 
 $txt['show_more'] = 'Предыдущие '.$cfg['posts_per_page'];
 $txt['show_all'] = 'Показать все';

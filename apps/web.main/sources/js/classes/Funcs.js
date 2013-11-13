@@ -174,6 +174,10 @@ Funcs.prototype = {
 		for (var key in defaultSettings) settings[key] = argSettings[key] ? argSettings[key] : defaultSettings[key];
 
 		return settings;
+	},
+
+	stopPropagation:function(e){
+		e.stopPropagation();
 	}
 }
 

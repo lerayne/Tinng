@@ -482,6 +482,10 @@ body {
 .tag {
 	margin:7px 4px 0 0;
 	border-radius: 2px;
+	display:inline-block;
+	background-color: #007bb7;
+	padding: 2px 4px;
+	border-radius: 0;
 }
 
 
@@ -709,11 +713,14 @@ body {
 
 .smart-search {
 	background-color: #fff;
+	margin-left:1px;
+	position:relative;
 
 	input {
 		border:0;
 		background: transparent;
 		vertical-align: middle;
+		padding:1px 3px;
 	}
 
 	.throbber {
@@ -721,5 +728,40 @@ body {
 		margin: 0 4px;
 		vertical-align: middle;
 		visibility: hidden;
+	}
+
+	.smart-area {
+		display: inline-block;
+		vertical-align: middle;
+
+		.tag {
+			margin:0 0 0 2px;
+			padding: 1px 3px;
+		}
+	}
+
+	.suggest-box {
+		position: absolute;
+		min-width: 80px;
+		max-width: 250px;
+		min-height: 10px;
+		max-height: 400px;
+		overflow-y: auto;
+		overflow-x: hidden;
+		background-color: #fff;
+		box-shadow: 0 3px 10px #bbb;
+		z-index: 100;
+		display:none;
+
+		.item {
+			&.active {
+				background-color: #018bd3;
+			}
+		}
+
+		.tag {
+			cursor:pointer;
+			margin:5px 8px;
+		}
 	}
 }

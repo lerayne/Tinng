@@ -8,6 +8,7 @@
 
 // Редактор сообщений
 tinng.protos.Editor = function () {
+	t.funcs.bind(this);
 
 	if (tinng.user.hasRight('writeToTopic', tinng.sync.curTopic)){
 
@@ -22,8 +23,11 @@ tinng.protos.Editor = function () {
         this.$submit.click(this.submitNew);
         this.visible = true;
 
-		tinng.keyListener.register('ctrl+enter', this, this.submitNew);
-		tinng.keyListener.register('alt+enter', this, this.submitNew);
+		this.$messageBody.on('keypress', this.onKeyPress)
+
+		// todo - мой кейлистенер - полное Г. Переделать.
+//		tinng.keyListener.register('ctrl+enter', this, this.submitNew);
+//		tinng.keyListener.register('alt+enter', this, this.submitNew);
 
     } else {
         var $body = this.$body = t.chunks.get('editor-disabled');
@@ -32,8 +36,12 @@ tinng.protos.Editor = function () {
 
 tinng.protos.Editor.prototype = {
 
-	keyListener:function(e){
-
+	onKeyPress:function(e){
+		// todo - разобраться, почему не срабатывает alt+enter (подозение - раскладка бирмана)
+		//console.log('key:', e.keyCode,'; alt:', e.altKey, '; ctrl:', e.ctrlKey)
+		if (e.keyCode == 10 || ( e.keyCode == 13 && (e.altKey || e.ctrlKey) )){
+			this.submitNew();
+		}
 	},
 
     submitNew:function () {
