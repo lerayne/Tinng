@@ -132,6 +132,7 @@ tinng.protos.ui.SearchBox = function(config){
 		cssClass:'',
 		placeholder:'Search...',
 		suggest:'on_topics',
+		clearOnConfirm:true,
 
 		// вызывается когда объект поиска подтверждается тем или иным способом
 		onConfirm:function(){}
@@ -321,9 +322,15 @@ tinng.protos.ui.SearchBox.prototype = {
 			this.tagList.push(smartAreaTag);
 
 			// сбрасываем интерфейс в начальное положение
-			//this.$input.val(this.$input.val().replace(data.name,''));
-			this.$suggestBox.find('[data-tag-id="'+ data.id +'"]').remove();
-			if (!this.$suggestBox.children().size()) this.hideSuggested();
+
+			if (this.conf.clearOnConfirm) {
+				this.$input.val('');
+				this.$suggestBox.children().remove();
+				this.hideSuggested();
+			} else {
+				this.$suggestBox.find('[data-tag-id="'+ data.id +'"]').remove();
+				if (!this.$suggestBox.children().size()) this.hideSuggested();
+			}
 
 			//передаем выбранные теги в коллбек
 			this.conf.onConfirm(this.tagSet)
