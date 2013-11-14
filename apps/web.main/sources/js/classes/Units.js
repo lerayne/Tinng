@@ -235,10 +235,10 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 		this.$content.append(t.chunks.get('posts-default'));
 	},
 
-	startWaitIndication:function(){
+	/*startWaitIndication:function(){
 		this.clear();
 		this.$scrollArea.addClass('loading');
-	},
+	},*/
 
 	onScroll:function () {
 

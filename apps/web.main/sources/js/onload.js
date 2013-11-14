@@ -12,8 +12,10 @@ tinng.funcs.onWindowLoad = function(){
     t.ui = new t.protos.UserInterface(window);
 
 	t.connection = new t.protos.Connection({
-		server:'backend/update.php',
-		callback:function(){}
+		server:'backend/update/',
+		callback:function(data){
+			//console.log(data)
+		}
 	})
 
     t.rotor = new t.protos.Rotor(
@@ -28,13 +30,13 @@ tinng.funcs.onWindowLoad = function(){
 	var topicFromAddress = t.address.get('topic');
     t.sync.curTopic = topicFromAddress ? parseInt(t.address.get('topic')) : 0;
 
-	t.units.topics.startWaitIndication();
+	//t.units.topics.startWaitIndication();
 	if (!t.sync.curTopic) t.units.posts.setInvitation();
 	else {
 		// todo - еще один костыль, напоминающий, что нужно сделать функцию инициализации темы
 		// todo - проблема: здесь массив t.topics еще не заполнен
 		//if (t.user.hasRight('editMessage', t.topics[t.sync.curTopic])) t.units.posts.header.topicRename.show();
-		t.units.posts.startWaitIndication();
+		//t.units.posts.startWaitIndication();
 	}
 
     // такая конструкция нужна для того, чтобы 0 воспринимался как значение
@@ -42,7 +44,22 @@ tinng.funcs.onWindowLoad = function(){
     t.sync.plimit = (loadedLimit === false) ? t.sync.plimit : parseInt(loadedLimit);
 
     // запуск соединения с сервером
-    t.rotor.start('load_pages');
+    //t.rotor.start('load_pages');
+
+	t.connection.subscribe(t.units.topics, {
+		feed:'topics',
+		sort:'updated',
+		sort_reversed:true,
+		filter:''
+	});
+
+	if (t.sync.curTopic) {
+		t.connection.subscribe(t.units.posts, {
+			feed:'posts',
+			topic: t.sync.curTopic,
+			pages:1
+		});
+	}
 }
 
 $(window).on('load', tinng.funcs.onWindowLoad)

@@ -10,6 +10,8 @@
 
 tinng.funcs.parser = function (result, actionUsed) {
 
+	if (!result) return false;
+
 //	console.log('actionUsed: ', actionUsed)
 
 	if (result && result.error) alert(t.txt.post_locked);

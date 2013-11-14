@@ -31,7 +31,9 @@ tinng.protos.Connection = function (config) {
 		'write',
 		'subscribe',
 		'rescribe',
-		'unscribe'
+		'unscribe',
+		'stop',
+		'resume'
 	]
 
 	for (var j = 0; j < requiredMethods.length; j++) {
@@ -57,6 +59,14 @@ tinng.protos.Connection = function (config) {
 
 	this.rescribe = function(){
 		return wrapped.rescribe.apply(wrapped, arguments)
+	}
+
+	this.stop = function(){
+		return wrapped.stop.apply(wrapped, arguments)
+	}
+
+	this.resume = function(){
+		return wrapped.resume.apply(wrapped, arguments)
 	}
 }
 

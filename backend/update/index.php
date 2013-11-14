@@ -1,10 +1,7 @@
 <?php
 //sleep(1); // в целях отладки
 
-$GLOBALS['_RESULT'] = '';
-exit();
-
-require_once './includes/backend_initial.php';
+require_once '../includes/backend_initial2.php';
 
 $result['xhr'] = $xhr_id;
 //$result['sessid'] = $sessid;
@@ -82,19 +79,191 @@ function sort_by_field($array, $field, $reverse)
 // Импорт и подготовка переменных
 /////////////////////////////////
 
-$id = $_REQUEST['id']; // универсальный указатель номера записи
+function extract_tag_array ($string) {
+	$chunks = explode('|', $string);
+	$arr = array();
+	if (count($chunks) && $chunks[0] != ''){
+		foreach ($chunks as $val) {
+			$arr[] = (int) $val;
+		}
+	}
+	return $arr;
+}
+
+// класс чтения обновлений сервера
+class Feed {
+
+	function __construct() {
+
+		$this->condition = false;
+
+		$this->later_than = 0;
+		$this->sql_later_than = jsts2sql($this->later_than);
+	}
+
+
+	// темы
+	function get_topics($params) {
+		global $cfg, $db, $user;
+
+		if ($new_sql_lastchange = $this->any_new()) {
+
+			$tag_array = extract_tag_array($params['filter']);
+
+			$topics = make_tree($db->select(
+				'SELECT
+					msg.id AS ARRAY_KEY,
+					msg.id,
+					LEFT(msg.message, ?d) AS message,
+					msg.author_id,
+					msg.parent_id,
+					msg.topic_name,
+					msg.created,
+					msg.modified,
+					msg.modifier AS modifier_id,
+					IFNULL(msg.modified, msg.created) AS maxdate,
+					msg.deleted,
+					usr.email AS author_email,
+					IFNULL(usr.display_name, usr.login) AS author,
+					mlast.id AS last_id,
+					LEFT(mlast.message, ?d) AS lastpost,
+					IFNULL(mlast.modified, mlast.created) AS lastdate,
+					GREATEST(IFNULL(msg.modified, msg.created), IFNULL(IFNULL(mlast.modified, mlast.created),0)) as totalmaxd,
+					IFNULL(lma.display_name, lma.login) AS lastauthor,
+					lma.id AS lastauthor_id,
+					(SELECT COUNT(mcount.id) FROM ?_messages mcount WHERE mcount.topic_id = msg.id AND mcount.deleted <=> NULL) AS postsquant,
+					IF(unr.timestamp < GREATEST(IFNULL(msg.modified, msg.created), IFNULL(IFNULL(mlast.modified, mlast.created),0)), 1, 0) AS unread
+				FROM ?_messages msg
+
+				LEFT JOIN ?_users usr
+					ON msg.author_id = usr.id
+				LEFT JOIN ?_messages mupd
+					ON mupd.topic_id = msg.id
+					AND IFNULL(mupd.modified, mupd.created) =
+						(SELECT GREATEST(MAX(mmax.created), MAX(IFNULL(mmax.modified, 0))) FROM ?_messages mmax WHERE mmax.topic_id = msg.id)
+				LEFT JOIN ?_messages mlast
+					ON mlast.topic_id = msg.id
+					AND mlast.deleted <=> NULL
+					AND mlast.id =
+						(SELECT MAX(mmax.id) FROM ?_messages mmax WHERE mmax.topic_id = msg.id AND mmax.deleted <=> NULL)
+				LEFT JOIN ?_users lma
+					ON lma.id = mlast.author_id
+				LEFT JOIN ?_unread unr
+					ON unr.topic = msg.id
+					AND unr.user = ?d
+				{JOIN ?_tagmap tagmap
+					ON tagmap.message = msg.id
+					AND tagmap.tag IN (?a)}
+
+				WHERE msg.topic_id = 0
+					AND (IFNULL(msg.modified, msg.created) > ? OR IFNULL(mupd.modified, mupd.created) > ?)
+					' . ($this->condition ? (' AND ('.$this->condition.')') : '') . '
+
+				GROUP BY msg.id
+				'
+
+				, $cfg['cut_length'], $cfg['cut_length'] // ограничение выборки первого поста
+				, $user->id
+				, (count($tag_array) ? $tag_array : DBSIMPLE_SKIP)
+				, $this->sql_later_than, $this->sql_later_than
+			));
+
+
+			// выборка тегов
+			$tags = $db->select(
+				'SELECT
+					msg.id AS message,
+					tag.id,
+					tag.name,
+					tag.type
+				FROM ?_tagmap map
+				LEFT JOIN ?_messages msg
+					ON map.message = msg.id
+				LEFT JOIN ?_tags tag
+					ON map.tag = tag.id
+				WHERE
+					IFNULL(msg.modified, msg.created) > ?
+				' . ($this->condition ? (' AND ('.$this->condition.')') : '')
+				, $this->sql_later_than
+			);
+
+			foreach ($tags as $tag) {
+				$id = $tag['message'];
+
+				if ($topics[$id]) $topics[$id]['tags'][] = $tag;
+			}
+
+			// сортировка. До сортировки массив $result['topics'] имеет индекс в виде номера темы
+			switch ($params['sort']):
+
+				case 'updated':
+					$topics = sort_by_field($topics, 'totalmaxd', $params['sort_reverse']);
+					break;
+
+			endswitch;
+
+			// возвращаем полученный массив тем
+			return $topics;
+		}
+	}
+
+
+	// posts
+	function get_posts ($params) {
+		return array();
+	}
+
+
+	// есть ли вообще новые
+	function any_new() {
+		global $db;
+
+		$new_sql_lastchange = $db->selectCell(
+			'SELECT GREATEST(MAX(created), IFNULL(MAX(modified), 0))
+			FROM ?_messages WHERE IFNULL(modified, created) > ?' . ($this->condition ? (' AND ('.$this->condition.')') : '')
+			, /*($action == 'load_pages' || $action == 'next_page') ? 0 :*/ $this->sql_later_than
+		);
+
+		return $new_sql_lastchange;
+
+
+		// если результатов 0 то отправляем старую макс. дату и прекращаем работу скрипта
+		/*if (!$result['new_maxdate']) {
+			$result['new_maxdate'] = $result['old_maxdate'];
+			$GLOBALS['_RESULT'] = $result;
+			exit();
+		}*/
+	}
+}
+
+$feed = new Feed();
+
+// разбираем что пришло
+if ($_REQUEST['subscribe']) {
+
+	// есть ли подписки?
+	$subcriptions = $_REQUEST['subscribe'];
+
+	if (is_array($subcriptions) && count($subcriptions)) {
+
+		$result['feeds'] = Array();
+
+		foreach ($subcriptions as $subscriberId => $params) {
+			$method_name = 'get_'.$params['feed'];
+			$result['feeds'][$subscriberId] = $feed->$method_name($params);
+		}
+	}
+}
+
+
 
 $maxdateSQL = jsts2sql($_REQUEST['maxdateTS']);
 $old_pglimdateTS = $_REQUEST['pglimdateTS'];
 
-$action = $_REQUEST['action']; // указывает что именно пишем, если не false
-$params = $_REQUEST['params']; // прочие передаваемые данные (например новые данные для записи)
-$topic = $_REQUEST['curTopic'];
-$filter_query = $_REQUEST['filterQuery']; // строка фильтрации списка тем
-$test = $_REQUEST['test'];
 
 
 $result['old_maxdate'] = $maxdateSQL;
+
 
 
 ///////////////////////////////
@@ -202,122 +371,6 @@ if (!$result['new_maxdate']) {
 	exit();
 }
 // иначе:
-
-
-////////////////////////////////
-// Получаем изменения списка тем
-////////////////////////////////
-
-// Импорт переменных
-$sort = $_REQUEST['topicSort'] ? $_REQUEST['topicSort'] : 'updated';
-$reverse = $_REQUEST['tsReverse'];
-
-function extractTagArray ($string) {
-	$chunks = explode('|', $string);
-	$arr = array();
-	if (count($chunks) && $chunks[0] != ''){
-		foreach ($chunks as $val) {
-			$arr[] = (int) $val;
-		}
-	}
-	return $arr;
-}
-
-$tag_array = extractTagArray($filter_query);
-
-// выбираем обновленные темы (втч удаленные)
-$result['topics'] = make_tree($db->select(
-	'SELECT
-		msg.id AS ARRAY_KEY,
-		msg.id,
-		LEFT(msg.message, ?d) AS message,
-		msg.author_id,
-		msg.parent_id,
-		msg.topic_name,
-		msg.created,
-		msg.modified,
-		msg.modifier AS modifier_id,
-		IFNULL(msg.modified, msg.created) AS maxdate,
-		msg.deleted,
-		usr.email AS author_email,
-		IFNULL(usr.display_name, usr.login) AS author,
-		mlast.id AS last_id,
-		LEFT(mlast.message, ?d) AS lastpost,
-		IFNULL(mlast.modified, mlast.created) AS lastdate,
-		GREATEST(IFNULL(msg.modified, msg.created), IFNULL(IFNULL(mlast.modified, mlast.created),0)) as totalmaxd,
-		IFNULL(lma.display_name, lma.login) AS lastauthor,
-		lma.id AS lastauthor_id,
-		(SELECT COUNT(mcount.id) FROM ?_messages mcount WHERE mcount.topic_id = msg.id AND mcount.deleted <=> NULL) AS postsquant,
-		IF(unr.timestamp < GREATEST(IFNULL(msg.modified, msg.created), IFNULL(IFNULL(mlast.modified, mlast.created),0)), 1, 0) AS unread
-	FROM ?_messages msg
-
-	LEFT JOIN ?_users usr 
-		ON msg.author_id = usr.id
-	LEFT JOIN ?_messages mupd 
-		ON mupd.topic_id = msg.id
-		AND IFNULL(mupd.modified, mupd.created) =
-			(SELECT GREATEST(MAX(mmax.created), MAX(IFNULL(mmax.modified, 0))) FROM ?_messages mmax WHERE mmax.topic_id = msg.id)
-	LEFT JOIN ?_messages mlast
-		ON mlast.topic_id = msg.id 
-		AND mlast.deleted <=> NULL
-		AND mlast.id = 
-			(SELECT MAX(mmax.id) FROM ?_messages mmax WHERE mmax.topic_id = msg.id AND mmax.deleted <=> NULL)
-	LEFT JOIN ?_users lma 
-		ON lma.id = mlast.author_id
-	LEFT JOIN ?_unread unr
-		ON unr.topic = msg.id
-		AND unr.user = ?d
-	{JOIN ?_tagmap tagmap
-		ON tagmap.message = msg.id
-		AND tagmap.tag IN (?a)}
-
-	WHERE msg.topic_id = 0
-		AND (IFNULL(msg.modified, msg.created) > ? OR IFNULL(mupd.modified, mupd.created) > ?)
-		' . ($condition ? (' AND ('.$condition.')') : '') . '
-
-	GROUP BY msg.id
-	'
-
-	, $cfg['cut_length'], $cfg['cut_length'] // ограничение выборки первого поста
-	, $user->id
-	, (count($tag_array) ? $tag_array : DBSIMPLE_SKIP)
-	, $maxdateSQL, $maxdateSQL
-));
-
-
-// выборка тегов
-$tags = $db->select(
-	'SELECT
-		msg.id AS message,
-		tag.id,
-		tag.name,
-		tag.type
-	FROM ?_tagmap map
-	LEFT JOIN ?_messages msg 
-		ON map.message = msg.id
-	LEFT JOIN ?_tags tag
-		ON map.tag = tag.id
-	WHERE 
-		IFNULL(msg.modified, msg.created) > ?
-	' . ($condition ? ' AND ' . $condition : '')
-	, $maxdateSQL
-);
-
-foreach ($tags as $tag) {
-	$id = $tag['message'];
-
-	if ($result['topics'][$id]) $result['topics'][$id]['tags'][] = $tag;
-}
-
-// сортировка. До сортировки массив $result['topics'] имеет индекс в виде номера темы
-switch ($sort):
-
-	case 'updated':
-		$result['topics'] = sort_by_field($result['topics'], 'totalmaxd', !$reverse);
-		break;
-
-endswitch;
-
 
 //////////////////////////////////
 // Получаем изменения текущей темы
@@ -494,7 +547,8 @@ if ($topic) {
 
 $GLOBALS['_RESULT'] = $result;
 
-print_r(json_decode($test, true));
+print_r($_REQUEST);
+/*print_r(json_decode($test, true));
 echo "\n";
-print_r($tag_array);
+print_r($tag_array);*/
 ?>

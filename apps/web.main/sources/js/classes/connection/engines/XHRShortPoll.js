@@ -18,17 +18,19 @@ tinng.protos.strategic.XHRShortPoll = function(server, callback){
 
 	this.$stateIndicator = $('.state-ind');
 
-	this.syncCollection = {} // изменить ВСЁ!!
-
-	this.subscriptions = [];
-
+	this.subscriptions = {};
+	this.actions = {};
 }
 
 tinng.protos.strategic.XHRShortPoll.prototype = {
 	write:function(params){
-		return this.conf;
+
+		this.actions = params;
+
+		this.start();
 	},
 
+	// подписывает и переподписывает заново
 	subscribe:function(){
 		var subscriber = arguments[0];
 		var feed = arguments[arguments.length-1];
@@ -37,40 +39,52 @@ tinng.protos.strategic.XHRShortPoll.prototype = {
 
 		this.subscriptions[subscriberId] = feed;
 
+		this.start();
 	},
 
+	// изменяет параметры текущей подписки (возможно, поведение стоит поменять наоборот)
 	rescribe:function(){
 		var subscriber = arguments[0];
-		var feed = arguments[arguments.length-1];
+		var feedChanges = arguments[arguments.length-1];
 
+		var subscriberId = t.connection.subscriberId(subscriber);
 
+		if (!this.subscriptions[subscriberId]) {
+			console.error('no subscription for '+ subscriber);
+			return false;
+		}
+
+		for (var key in feedChanges) {
+			if (this.subscriptions[subscriberId][key]) this.subscriptions[subscriberId][key] = feedChanges[key]
+		}
+
+		this.start();
 	},
 
-	unscribe:function(subscriberId){
+	// отменяет подписку
+	unscribe:function(subscriber){
+		var subscriberId = t.connection.subscriberId(subscriber);
 
+		if (this.subscriptions[subscriberId]) delete this.subscriptions[subscriberId];
+
+		this.start();
 	},
 
 
 
 
 	// главная функция ротора
-	start:function (action, params) {
-		var that = this;
-		setTimeout(function(){
-			that.wrappedStart(action, params)
-		}, 0)
+	start:function () {
+		setTimeout(this.wrappedStart, 0);
+
+		return true;
 	},
 
 	// todo: этот враппер-таймаут нужен из-за несовершенства обертки XHR, баг вылазит во время создания новой темы -
 	// отправка запроса сразу после получения предыдущего происходит до закрытия соединения и новое соединение не проходит
-	wrappedStart:function(action, params){
+	wrappedStart:function(){
 
 		//console.log('rotor start: ', action);
-
-		// параметры, которые должны не сохраняться, а задаваться каждый раз из аргументов
-		t.sync.action = action ? action : '';
-		t.sync.params = params ? params : {};
-		this.action = t.sync.action;
 
 		// останавливаем предыдущий запрос/таймер если находим
 		if (this.request || this.timeout) this.stop();
@@ -81,14 +95,16 @@ tinng.protos.strategic.XHRShortPoll.prototype = {
 		this.request = new JsHttpRequest();
 		this.request.onreadystatechange = this.onResponse;
 		this.request.open(null, this.backendURL, true);
-		this.request.send(this.syncCollection);
+		this.request.send({
+			subscribe: this.subscriptions,
+			write: this.actions
+		});
 
 		t.funcs.log('Launching query with timeout ' + this.waitTime);
 	},
 
 	// Останавливает ротор
 	stop:function () {
-
 
 		this.timeout = t.funcs.advClearTimeout(this.timeout);
 
@@ -100,6 +116,12 @@ tinng.protos.strategic.XHRShortPoll.prototype = {
 
 			t.funcs.log('STOP occured while WAITING. Query has been ABORTED');
 		}
+
+		return true;
+	},
+
+	resume:function(){
+		return this.start();
 	},
 
 	// Выполняется при удачном возвращении запроса
@@ -112,7 +134,9 @@ tinng.protos.strategic.XHRShortPoll.prototype = {
 			}
 
 			// разбираем пришедший пакет и выполняем обновления
-			t.sync.maxdateTS = this.parseCallback(this.request.responseJS, this.action, t);
+			t.sync.maxdateTS = this.parseCallback(this.request.responseJS, this.actions);
+
+			this.actions = {};
 
 
 			this.stopIndication(); // индикация ожидания откл

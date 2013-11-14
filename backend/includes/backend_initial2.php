@@ -1,9 +1,9 @@
 <?php
 /* Подключаемый файл, который входит в бекенд для XHR */
 
-$env['rootdir'] = '../';
-$env['appdir'] = '../apps/web.main/';
-$env['includes'] = './';
+$env['rootdir'] = '../../';
+$env['appdir'] = '../../apps/web.main/';
+$env['includes'] = '../';
 
 require_once $env['includes'].'includes/config.php'; //конфигурационный файл
 require_once $env['rootdir'].'libraries/toolkit.php'; // типа фреймворк)
