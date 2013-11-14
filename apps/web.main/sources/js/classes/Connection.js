@@ -86,8 +86,13 @@ tinng.protos.Rotor.prototype = {
 
     	if (this.request.readyState == 4) {
 
+			if (this.request.responseText) {
+				console.error(this.request.responseText)
+			}
+
 			// разбираем пришедший пакет и выполняем обновления
 			t.sync.maxdateTS = this.parseCallback(this.request.responseJS, this.action, t);
+
 
 			this.stopIndication(); // индикация ожидания откл
 			this.request = false;

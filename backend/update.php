@@ -207,6 +207,8 @@ if (!$result['new_maxdate']) {
 $sort = $_REQUEST['topicSort'] ? $_REQUEST['topicSort'] : 'updated';
 $reverse = $_REQUEST['tsReverse'];
 
+$tag_array = array();
+
 // выбираем обновленные темы (втч удаленные)
 $result['topics'] = make_tree($db->select(
 	'SELECT
@@ -249,13 +251,20 @@ $result['topics'] = make_tree($db->select(
 	LEFT JOIN ?_unread unr
 		ON unr.topic = msg.id
 		AND unr.user = ?d
+	{JOIN ?_tagmap tagmap
+		ON tagmap.message = msg.id
+		AND tagmap.tag IN (?a)}
 
 	WHERE msg.topic_id = 0
 		AND (IFNULL(msg.modified, msg.created) > ? OR IFNULL(mupd.modified, mupd.created) > ?)
-		' . ($condition ? ' AND ' . $condition : '')
+		' . ($condition ? (' AND ('.$condition.')') : '') . '
+
+	GROUP BY msg.id
+	'
 
 	, $cfg['cut_length'], $cfg['cut_length'] // ограничение выборки первого поста
 	, $user->id
+	, (count($tag_array) ? $tag_array : DBSIMPLE_SKIP)
 	, $maxdateSQL, $maxdateSQL
 ));
 
