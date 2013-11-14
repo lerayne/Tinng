@@ -65,10 +65,10 @@ tinng.sync = {
 	filterQuery:'',
     params:{},
 	test: JSON.stringify({
-		get:[
-			{feed:'topics', sort:'updated', reverse_sort:'true', filter:'1|2', laterThan:0},
-			{feed:'posts', topic:474, laterThan:0}
-		],
+		get:{
+			11:{feed:'topics', sort:'updated', reverse_sort:'true', filter:'1|2', laterThan:0},
+			45:{feed:'posts', topic:474, laterThan:0}
+		},
 		set:[
 			{action:'new_message', topic:747, message:'А что я знаю! %-процент, " - кавычка, [] - массив, {} - объект'}
 		]

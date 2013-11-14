@@ -10,18 +10,13 @@
 // нужен return new InternalClass() в конструкторе. Само собой, возможна и полузакрытая схема
 tinng.protos.Connection = function (config) {
 
+	this.subscribers = []
+
 	// настройки по умолчанию и их перегрузка
 	this.conf = t.funcs.objectConfig(config, this.defaultConf = {
 		server:'',
 		callback:function(){}
 	});
-
-	var requiredMethods = [
-		'write',
-		'subscribe',
-		'rescribe',
-		'unscribe'
-	]
 
 	// заглушка на определение класса, который должен будет исполнять роль connection
 	if (true) {
@@ -29,6 +24,15 @@ tinng.protos.Connection = function (config) {
 		this.wrappedClassName = 'tinng.protos.strategic.XHRShortPoll';
 		var wrapped = new this.wrappedClass(this.conf.server, this.conf.callback);
 	}
+
+	// проверка встроенного класса на совместимость
+
+	var requiredMethods = [
+		'write',
+		'subscribe',
+		'rescribe',
+		'unscribe'
+	]
 
 	for (var j = 0; j < requiredMethods.length; j++) {
 		var methodName = requiredMethods[j];
@@ -53,5 +57,13 @@ tinng.protos.Connection = function (config) {
 
 	this.rescribe = function(){
 		return wrapped.rescribe.apply(wrapped, arguments)
+	}
+}
+
+tinng.protos.Connection.prototype = {
+	subscriberId:function(object){
+		if (this.subscribers.indexOf(object) == -1) this.subscribers.push(object)
+
+		return	this.subscribers.indexOf(object)
 	}
 }

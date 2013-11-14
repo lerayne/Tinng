@@ -20,7 +20,7 @@ tinng.protos.strategic.XHRShortPoll = function(server, callback){
 
 	this.syncCollection = {} // изменить ВСЁ!!
 
-	this.subscriptions = {}
+	this.subscriptions = [];
 
 }
 
@@ -30,14 +30,17 @@ tinng.protos.strategic.XHRShortPoll.prototype = {
 	},
 
 	subscribe:function(){
-		var subscriberId = arguments[0];
+		var subscriber = arguments[0];
 		var feed = arguments[arguments.length-1];
 
-		return this.subscriptions;
+		var subscriberId = t.connection.subscriberId(subscriber);
+
+		this.subscriptions[subscriberId] = feed;
+
 	},
 
 	rescribe:function(){
-		var subscriberId = arguments[0];
+		var subscriber = arguments[0];
 		var feed = arguments[arguments.length-1];
 
 

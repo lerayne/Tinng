@@ -491,7 +491,7 @@ if ($topic) {
 
 $GLOBALS['_RESULT'] = $result;
 
-/*print_r(json_decode($test));
+print_r(json_decode($test, true));
 echo "\n";
-print_r($tag_array);*/
+print_r($tag_array);
 ?>
