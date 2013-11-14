@@ -28,7 +28,8 @@ tinng = {
     funcs:null, // независимые от движка функции
 
     protos:{ // прототипные классы
-        ui:{} // ..контролов и интерфейсных элементов
+        ui:{}, // ..контролов и интерфейсных элементов
+		strategic:{} // классы, которые не используются напрямую, а являются исходниками для стратегических врапперов
     }
 }
 
@@ -61,7 +62,17 @@ tinng.sync = {
     pglimdateTS:0,
     topicSort:'updated',
     tsReverse:true,
-    params:{}
+	filterQuery:'',
+    params:{},
+	test: JSON.stringify({
+		get:[
+			{feed:'topics', sort:'updated', reverse_sort:'true', filter:'1|2', laterThan:0},
+			{feed:'posts', topic:474, laterThan:0}
+		],
+		set:[
+			{action:'new_message', topic:747, message:'А что я знаю! %-процент, " - кавычка, [] - массив, {} - объект'}
+		]
+	})
 }
 
 tinng.state.blurred = false; //TODO: отслеживать активность окна

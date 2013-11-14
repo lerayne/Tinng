@@ -87,6 +87,8 @@ $old_pglimdateTS = $_REQUEST['pglimdateTS'];
 $action = $_REQUEST['action']; // указывает что именно пишем, если не false
 $params = $_REQUEST['params']; // прочие передаваемые данные (например новые данные для записи)
 $topic = $_REQUEST['curTopic'];
+$filter_query = $_REQUEST['filterQuery']; // строка фильтрации списка тем
+$test = $_REQUEST['test'];
 
 
 $result['old_maxdate'] = $maxdateSQL;
@@ -185,7 +187,7 @@ endswitch;
 
 $result['new_maxdate'] = $db->selectCell(
 	'SELECT GREATEST(MAX(created), IFNULL(MAX(modified), 0))
-	FROM ?_messages WHERE IFNULL(modified, created) > ?' . ($condition ? ' AND ' . $condition : '')
+	FROM ?_messages WHERE IFNULL(modified, created) > ?' . ($condition ? (' AND ('.$condition.')') : '')
 	, ($action == 'load_pages' || $action == 'next_page') ? 0 : $maxdateSQL
 );
 
@@ -207,7 +209,18 @@ if (!$result['new_maxdate']) {
 $sort = $_REQUEST['topicSort'] ? $_REQUEST['topicSort'] : 'updated';
 $reverse = $_REQUEST['tsReverse'];
 
-$tag_array = array();
+function extractTagArray ($string) {
+	$chunks = explode('|', $string);
+	$arr = array();
+	if (count($chunks) && $chunks[0] != ''){
+		foreach ($chunks as $val) {
+			$arr[] = (int) $val;
+		}
+	}
+	return $arr;
+}
+
+$tag_array = extractTagArray($filter_query);
 
 // выбираем обновленные темы (втч удаленные)
 $result['topics'] = make_tree($db->select(
@@ -478,4 +491,7 @@ if ($topic) {
 
 $GLOBALS['_RESULT'] = $result;
 
+/*print_r(json_decode($test));
+echo "\n";
+print_r($tag_array);*/
 ?>

@@ -11,6 +11,11 @@ tinng.funcs.onWindowLoad = function(){
     t.chunks = new t.protos.ChunksEngine('tinng-chunks', 'data-chunk-name');
     t.ui = new t.protos.UserInterface(window);
 
+	t.connection = new t.protos.Connection({
+		server:'backend/update.php',
+		callback:function(){}
+	})
+
     t.rotor = new t.protos.Rotor(
         'backend/update.php',
         t.sync,

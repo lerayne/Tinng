@@ -66,8 +66,9 @@ function template_head() {
 		$env['appdir'] . 'sources/js/tinng_init.js',			// главный объект-контейнер
 		$env['appdir'] . 'sources/js/classes/Funcs.js',			// простые функции (иногда расширяются ниже)
 
-		$env['appdir'] . 'sources/js/classes/KeyListener.js',	// обработка горячих клавиш
+		//$env['appdir'] . 'sources/js/classes/KeyListener.js',	// обработка горячих клавиш
 
+		// todo - придумать механизм реквайринга js-исходников
 		//порядок загрузки этих классов непринципиален
 		$env['appdir'] . 'sources/js/classes/StateService.js',	// служба второчтепенной связи с сервером
 		$env['appdir'] . 'sources/js/classes/Validator.js',		// проверка данных форм (из anrom)
@@ -78,10 +79,13 @@ function template_head() {
 		$env['appdir'] . 'sources/js/classes/Units.js',			// "вьюпорты", или секции основного интерфейса
 		$env['appdir'] . 'sources/js/classes/Editor.js',		// редактор сообщений
 		$env['appdir'] . 'sources/js/classes/UserInterface.js', // основной интерфейс
-		$env['appdir'] . 'sources/js/classes/Connection.js', 	// соединение с сервером данных
+		$env['appdir'] . 'sources/js/classes/Rotor.js', 		// соединение с сервером данных
 		$env['appdir'] . 'sources/js/parser.js', 				// обработка пришедших от сервера данных
 		$env['appdir'] . 'sources/js/classes/Tag.js', 			// тег
 		$env['appdir'] . 'sources/js/classes/Nodes.js', 		// блоки (ноды) сообщений
+
+		$env['appdir'] . 'sources/js/classes/connection/Connection.js', 				// враппер соединения
+		$env['appdir'] . 'sources/js/classes/connection/engines/XHRShortPoll.js', 		// враппер соединения
 
 		// этот файл всегда подгружается последним
 		$env['appdir'] . 'sources/js/onload.js'

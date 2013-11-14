@@ -98,6 +98,7 @@ tinng.protos.Unit = Class({
 tinng.protos.TopicsUnit = Class(tinng.protos.Unit, {
 
 	construct:function () {
+		var that = this;
 
 		t.protos
 			.Unit.prototype
@@ -109,7 +110,9 @@ tinng.protos.TopicsUnit = Class(tinng.protos.Unit, {
 			css:{
 				float:'left'
 			},
-			onConfirm:function(tagSet) {console.log('add tag to filter:', tagSet)}
+			onConfirm:function(tagSet) {
+				that.setFilterQuery(tagSet);
+			}
 		});
 		this.header.$body.prepend(this.searchBox.$body);
 
@@ -148,7 +151,21 @@ tinng.protos.TopicsUnit = Class(tinng.protos.Unit, {
 	},
 
 	markActive:function(id){
-		t.topics[id].select()
+		if (t.topics[id]) t.topics[id].select()
+	},
+
+	setFilterQuery:function(tagSet){
+		var newQuery = [];
+
+		console.log('tagSet: ', tagSet)
+
+		for (var i in tagSet){
+			newQuery.push(tagSet[i].id);
+		}
+
+		t.sync.filterQuery = newQuery.join('|');
+		console.log('query: ', t.sync.filterQuery)
+		t.rotor.start('load_pages');
 	}
 });
 

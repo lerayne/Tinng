@@ -87,7 +87,7 @@ tinng.protos.Rotor.prototype = {
     	if (this.request.readyState == 4) {
 
 			if (this.request.responseText) {
-				console.error(this.request.responseText)
+				console.log('PHP backtrace:\n==============\n'+this.request.responseText)
 			}
 
 			// разбираем пришедший пакет и выполняем обновления
