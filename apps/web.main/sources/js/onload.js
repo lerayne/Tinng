@@ -13,9 +13,7 @@ tinng.funcs.onWindowLoad = function(){
 
 	t.connection = new t.protos.Connection({
 		server:'backend/update/',
-		callback:function(data){
-			//console.log(data)
-		}
+		callback:t.funcs.parser2
 	})
 
     t.rotor = new t.protos.Rotor(
@@ -46,20 +44,45 @@ tinng.funcs.onWindowLoad = function(){
     // запуск соединения с сервером
     //t.rotor.start('load_pages');
 
-	t.connection.subscribe(t.units.topics, {
-		feed:'topics',
-		sort:'updated',
-		sort_reversed:true,
-		filter:''
+	var initialSubscriptions = [];
+
+	initialSubscriptions.push({
+		subscriber: t.units.topics,
+		feedName: 'topics',
+		feed:{
+			feed:'topics',
+			sort:'updated',
+			sort_reversed:true,
+			filter:''
+		}
 	});
 
-	if (t.sync.curTopic) {
-		t.connection.subscribe(t.units.posts, {
-			feed:'posts',
-			topic: t.sync.curTopic,
-			pages:1
+	var curTopic = t.sync.curTopic;
+
+	if (curTopic) {
+
+		initialSubscriptions.push({
+			subscriber: t.units.posts,
+			feedName:'posts',
+			feed:{
+				feed:'posts',
+				topic: curTopic,
+				quantity: 1 * parseInt(t.cfg.posts_per_page, 10)
+			}
+		});
+
+		initialSubscriptions.push({
+			subscriber: t.units.posts,
+			feedName:'topic_data',
+			feed:{
+				feed:'topic',
+				id: curTopic,
+				fields:['id', 'date_read', 'name', 'post_count'] // пока не работает
+			}
 		});
 	}
+
+	t.connection.subscribe(initialSubscriptions);
 }
 
 $(window).on('load', tinng.funcs.onWindowLoad)

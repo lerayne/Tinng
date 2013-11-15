@@ -44,27 +44,53 @@ tinng.protos.Connection = function (config) {
 		}
 	}
 
-	// todo - пробовал сделать в цикле - фигня получается. Попробовать еще
+	// вызывается внутри некоторых активных методов. Не требует обязательной реализации во внутреннем классе
+	// например при шорт-поллинге этот метод сразу отправляет новый запрос после любого изменения
+	this.refresh = function(){
+
+		if (wrapped.refresh) {
+			return wrapped.refresh.apply(wrapped, arguments);
+		} else {
+			return false;
+		}
+	}
+
 	this.write = function(){
-		return wrapped.write.apply(wrapped, arguments)
+		return wrapped.write.apply(wrapped, arguments);
+
+		this.refresh();
 	}
 
+	// подписывает объект на новый фид, или редактирует значение существующего
+	// может принимать объект с полями subscriber, feedName и  feed, аргументы в таком порядке, или массив таких объектов
 	this.subscribe = function(){
-		return wrapped.subscribe.apply(wrapped, arguments)
+		this.callScribe(wrapped, 'subscribe', arguments);
+
+		return this.refresh();
 	}
 
-	this.unscribe = function(){
-		return wrapped.unscribe.apply(wrapped, arguments)
-	}
-
+	// принудительно заменяет существующую подписку на новую
+	// может принимать объект с полями subscriber, feedName и  feed, аргументы в таком порядке, или массив таких объектов
 	this.rescribe = function(){
-		return wrapped.rescribe.apply(wrapped, arguments)
+		this.callScribe(wrapped, 'rescribe', arguments);
+
+		return this.refresh();
 	}
 
+	// удаляет подписку
+	// может принимать объект с полями subscriber и feedName, аргументы в таком порядке, или массив таких объектов
+	this.unscribe = function() {
+		this.callScribe(wrapped, 'unscribe', arguments);
+
+		return this.refresh();
+	}
+
+	// приостанавливает соединение
 	this.stop = function(){
 		return wrapped.stop.apply(wrapped, arguments)
 	}
 
+	// возобновляет работу соединения
 	this.resume = function(){
 		return wrapped.resume.apply(wrapped, arguments)
 	}
@@ -75,5 +101,28 @@ tinng.protos.Connection.prototype = {
 		if (this.subscribers.indexOf(object) == -1) this.subscribers.push(object)
 
 		return	this.subscribers.indexOf(object)
+	},
+
+	callScribe: function(object, funcName, args){
+
+		if (args.length > 1) {
+			args[0] = this.subscriberId(args[0]);
+
+			return object[funcName].apply(object, args);
+
+		} else if (args[0] instanceof Array) {
+			for (var i = 0; i < args[0].length; i++) {
+
+				var params = args[0][i];
+
+				object[funcName].call(object, this.subscriberId(params.subscriber), params.feedName, params.feed);
+			}
+
+		} else if (args[0] instanceof Object) {
+
+			var params = args[0];
+
+			object[funcName].call(object, this.subscriberId(params.subscriber), params.feedName, params.feed);
+		}
 	}
 }

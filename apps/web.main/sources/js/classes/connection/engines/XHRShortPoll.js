@@ -20,9 +20,14 @@ tinng.protos.strategic.XHRShortPoll = function(server, callback){
 
 	this.subscriptions = {};
 	this.actions = {};
+	this.latest_change = 0;
 }
 
 tinng.protos.strategic.XHRShortPoll.prototype = {
+	refresh:function(){
+		this.start();
+	},
+
 	write:function(params){
 
 		this.actions = params;
@@ -30,44 +35,73 @@ tinng.protos.strategic.XHRShortPoll.prototype = {
 		this.start();
 	},
 
-	// подписывает и переподписывает заново
+	// подписывает, или изменяет параметры текущей подписки
 	subscribe:function(){
-		var subscriber = arguments[0];
+
+		console.log('subscribe args:', arguments);
+
+		var subscriberId = arguments[0];
+		var feedName = arguments[1];
 		var feed = arguments[arguments.length-1];
 
-		var subscriberId = t.connection.subscriberId(subscriber);
+		//var subscriberId = t.connection.subscriberId(subscriber);
 
-		this.subscriptions[subscriberId] = feed;
+		var subscriberFeeds = this.subscriptions[subscriberId];
 
-		this.start();
+		// если такой подписчик уже есть
+		if (subscriberFeeds) {
+
+			// если такая подписка уже есть у подписчика
+			if (subscriberFeeds[feedName]){
+				for (var key in feed) {
+					subscriberFeeds[feedName][key] = feed[key];
+				}
+			// иначе создаем новую подписку
+			} else subscriberFeeds[feedName] = feed;
+
+		// иначе создаем подписчика и подписку у него
+		} else {
+			this.subscriptions[subscriberId] = {};
+			this.subscriptions[subscriberId][feedName] = feed;
+		}
 	},
 
-	// изменяет параметры текущей подписки (возможно, поведение стоит поменять наоборот)
+	// полностью перезаписывает существующую подписку
 	rescribe:function(){
-		var subscriber = arguments[0];
-		var feedChanges = arguments[arguments.length-1];
+		var subscriberId = arguments[0];
+		var feedName = arguments[1];
+		var feed = arguments[arguments.length-1];
 
-		var subscriberId = t.connection.subscriberId(subscriber);
+		//var subscriberId = t.connection.subscriberId(subscriber);
 
 		if (!this.subscriptions[subscriberId]) {
-			console.error('no subscription for '+ subscriber);
-			return false;
+			this.subscriptions[subscriberId] = {};
 		}
 
-		for (var key in feedChanges) {
-			if (this.subscriptions[subscriberId][key]) this.subscriptions[subscriberId][key] = feedChanges[key]
-		}
-
-		this.start();
+		this.subscriptions[subscriberId][feedName] = feed;
 	},
 
 	// отменяет подписку
-	unscribe:function(subscriber){
-		var subscriberId = t.connection.subscriberId(subscriber);
+	unscribe:function(subscriberId, feedName){
 
-		if (this.subscriptions[subscriberId]) delete this.subscriptions[subscriberId];
+		//var subscriberId = t.connection.subscriberId(subscriber);
 
-		this.start();
+		// если такой вообще есть
+		if (this.subscriptions[subscriberId][feedName]) {
+
+			delete this.subscriptions[subscriberId][feedName];
+
+			// считаем, сколько подписок осталось
+			var i = 0;
+			for (var key in this.subscriptions[subscriberId]) {
+				/*if (this.subscriptions[subscriberId].propertyIsEnumerable(key))*/ i++;
+			}
+
+			// если ни одной - прибиваем подписчика
+			if (i == 0) {
+				delete this.subscriptions[subscriberId];
+			}
+		}
 	},
 
 
@@ -97,7 +131,8 @@ tinng.protos.strategic.XHRShortPoll.prototype = {
 		this.request.open(null, this.backendURL, true);
 		this.request.send({
 			subscribe: this.subscriptions,
-			write: this.actions
+			write: this.actions,
+			later_than: this.latest_change
 		});
 
 		t.funcs.log('Launching query with timeout ' + this.waitTime);

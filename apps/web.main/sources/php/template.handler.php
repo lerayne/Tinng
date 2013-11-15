@@ -86,6 +86,7 @@ function template_head() {
 
 		$env['appdir'] . 'sources/js/classes/connection/Connection.js', 				// враппер соединения
 		$env['appdir'] . 'sources/js/classes/connection/engines/XHRShortPoll.js', 		// враппер соединения
+		$env['appdir'] . 'sources/js/parser2.js', 										// обработка пришедших от сервера данных
 
 		// этот файл всегда подгружается последним
 		$env['appdir'] . 'sources/js/onload.js'

@@ -93,182 +93,367 @@ function extract_tag_array ($string) {
 // класс чтения обновлений сервера
 class Feed {
 
-	function __construct() {
+	function __construct($maxdate) {
 
 		$this->condition = false;
 
-		$this->later_than = 0;
-		$this->sql_later_than = jsts2sql($this->later_than);
+		$this->maxdate = $maxdate;
+		$this->sql_maxdate = jsts2sql($this->maxdate);
+		$this->new_sql_maxdate = $this->sql_maxdate;
 	}
 
 
-	// темы
-	function get_topics($params) {
-		global $cfg, $db, $user;
-
-		if ($new_sql_lastchange = $this->any_new()) {
-
-			$tag_array = extract_tag_array($params['filter']);
-
-			$topics = make_tree($db->select(
-				'SELECT
-					msg.id AS ARRAY_KEY,
-					msg.id,
-					LEFT(msg.message, ?d) AS message,
-					msg.author_id,
-					msg.parent_id,
-					msg.topic_name,
-					msg.created,
-					msg.modified,
-					msg.modifier AS modifier_id,
-					IFNULL(msg.modified, msg.created) AS maxdate,
-					msg.deleted,
-					usr.email AS author_email,
-					IFNULL(usr.display_name, usr.login) AS author,
-					mlast.id AS last_id,
-					LEFT(mlast.message, ?d) AS lastpost,
-					IFNULL(mlast.modified, mlast.created) AS lastdate,
-					GREATEST(IFNULL(msg.modified, msg.created), IFNULL(IFNULL(mlast.modified, mlast.created),0)) as totalmaxd,
-					IFNULL(lma.display_name, lma.login) AS lastauthor,
-					lma.id AS lastauthor_id,
-					(SELECT COUNT(mcount.id) FROM ?_messages mcount WHERE mcount.topic_id = msg.id AND mcount.deleted <=> NULL) AS postsquant,
-					IF(unr.timestamp < GREATEST(IFNULL(msg.modified, msg.created), IFNULL(IFNULL(mlast.modified, mlast.created),0)), 1, 0) AS unread
-				FROM ?_messages msg
-
-				LEFT JOIN ?_users usr
-					ON msg.author_id = usr.id
-				LEFT JOIN ?_messages mupd
-					ON mupd.topic_id = msg.id
-					AND IFNULL(mupd.modified, mupd.created) =
-						(SELECT GREATEST(MAX(mmax.created), MAX(IFNULL(mmax.modified, 0))) FROM ?_messages mmax WHERE mmax.topic_id = msg.id)
-				LEFT JOIN ?_messages mlast
-					ON mlast.topic_id = msg.id
-					AND mlast.deleted <=> NULL
-					AND mlast.id =
-						(SELECT MAX(mmax.id) FROM ?_messages mmax WHERE mmax.topic_id = msg.id AND mmax.deleted <=> NULL)
-				LEFT JOIN ?_users lma
-					ON lma.id = mlast.author_id
-				LEFT JOIN ?_unread unr
-					ON unr.topic = msg.id
-					AND unr.user = ?d
-				{JOIN ?_tagmap tagmap
-					ON tagmap.message = msg.id
-					AND tagmap.tag IN (?a)}
-
-				WHERE msg.topic_id = 0
-					AND (IFNULL(msg.modified, msg.created) > ? OR IFNULL(mupd.modified, mupd.created) > ?)
-					' . ($this->condition ? (' AND ('.$this->condition.')') : '') . '
-
-				GROUP BY msg.id
-				'
-
-				, $cfg['cut_length'], $cfg['cut_length'] // ограничение выборки первого поста
-				, $user->id
-				, (count($tag_array) ? $tag_array : DBSIMPLE_SKIP)
-				, $this->sql_later_than, $this->sql_later_than
-			));
-
-
-			// выборка тегов
-			$tags = $db->select(
-				'SELECT
-					msg.id AS message,
-					tag.id,
-					tag.name,
-					tag.type
-				FROM ?_tagmap map
-				LEFT JOIN ?_messages msg
-					ON map.message = msg.id
-				LEFT JOIN ?_tags tag
-					ON map.tag = tag.id
-				WHERE
-					IFNULL(msg.modified, msg.created) > ?
-				' . ($this->condition ? (' AND ('.$this->condition.')') : '')
-				, $this->sql_later_than
-			);
-
-			foreach ($tags as $tag) {
-				$id = $tag['message'];
-
-				if ($topics[$id]) $topics[$id]['tags'][] = $tag;
-			}
-
-			// сортировка. До сортировки массив $result['topics'] имеет индекс в виде номера темы
-			switch ($params['sort']):
-
-				case 'updated':
-					$topics = sort_by_field($topics, 'totalmaxd', $params['sort_reverse']);
-					break;
-
-			endswitch;
-
-			// возвращаем полученный массив тем
-			return $topics;
-		}
-	}
-
-
-	// posts
-	function get_posts ($params) {
-		return array();
-	}
-
-
+	///////////////////////
 	// есть ли вообще новые
+	///////////////////////
+
 	function any_new() {
 		global $db;
 
-		$new_sql_lastchange = $db->selectCell(
+		$new_sql_maxdate = $db->selectCell(
 			'SELECT GREATEST(MAX(created), IFNULL(MAX(modified), 0))
 			FROM ?_messages WHERE IFNULL(modified, created) > ?' . ($this->condition ? (' AND ('.$this->condition.')') : '')
-			, /*($action == 'load_pages' || $action == 'next_page') ? 0 :*/ $this->sql_later_than
+			, /*($action == 'load_pages' || $action == 'next_page') ? 0 :*/ $this->sql_maxdate
 		);
 
-		return $new_sql_lastchange;
+		if ($new_sql_maxdate) {
+			$this->new_sql_maxdate = $new_sql_maxdate;
+			return true;
+		} else return false;
+	}
 
 
-		// если результатов 0 то отправляем старую макс. дату и прекращаем работу скрипта
-		/*if (!$result['new_maxdate']) {
-			$result['new_maxdate'] = $result['old_maxdate'];
-			$GLOBALS['_RESULT'] = $result;
-			exit();
-		}*/
+	///////
+	// темы
+	///////
+
+	function get_topics($params) {
+		global $cfg, $db, $user;
+
+		$tag_array = extract_tag_array($params['filter']);
+
+		$topics = make_tree($db->select(
+			'SELECT
+				msg.id AS ARRAY_KEY,
+				msg.id,
+				LEFT(msg.message, ?d) AS message,
+				msg.author_id,
+				msg.parent_id,
+				msg.topic_name,
+				msg.created,
+				msg.modified,
+				msg.modifier AS modifier_id,
+				IFNULL(msg.modified, msg.created) AS maxdate,
+				msg.deleted,
+				usr.email AS author_email,
+				IFNULL(usr.display_name, usr.login) AS author,
+				mlast.id AS last_id,
+				LEFT(mlast.message, ?d) AS lastpost,
+				IFNULL(mlast.modified, mlast.created) AS lastdate,
+				GREATEST(IFNULL(msg.modified, msg.created), IFNULL(IFNULL(mlast.modified, mlast.created),0)) as totalmaxd,
+				IFNULL(lma.display_name, lma.login) AS lastauthor,
+				lma.id AS lastauthor_id,
+				(SELECT COUNT(mcount.id) FROM ?_messages mcount WHERE mcount.topic_id = msg.id AND mcount.deleted <=> NULL) AS postsquant,
+				IF(unr.timestamp < GREATEST(IFNULL(msg.modified, msg.created), IFNULL(IFNULL(mlast.modified, mlast.created),0)), 1, 0) AS unread
+			FROM ?_messages msg
+
+			LEFT JOIN ?_users usr
+				ON msg.author_id = usr.id
+			LEFT JOIN ?_messages mupd
+				ON mupd.topic_id = msg.id
+				AND IFNULL(mupd.modified, mupd.created) =
+					(SELECT GREATEST(MAX(mmax.created), MAX(IFNULL(mmax.modified, 0))) FROM ?_messages mmax WHERE mmax.topic_id = msg.id)
+			LEFT JOIN ?_messages mlast
+				ON mlast.topic_id = msg.id
+				AND mlast.deleted <=> NULL
+				AND mlast.id =
+					(SELECT MAX(mmax.id) FROM ?_messages mmax WHERE mmax.topic_id = msg.id AND mmax.deleted <=> NULL)
+			LEFT JOIN ?_users lma
+				ON lma.id = mlast.author_id
+			LEFT JOIN ?_unread unr
+				ON unr.topic = msg.id
+				AND unr.user = ?d
+			{JOIN ?_tagmap tagmap
+				ON tagmap.message = msg.id
+				AND tagmap.tag IN (?a)}
+
+			WHERE msg.topic_id = 0
+				AND (IFNULL(msg.modified, msg.created) > ? OR IFNULL(mupd.modified, mupd.created) > ?)
+				' . ($this->condition ? (' AND ('.$this->condition.')') : '') . '
+
+			GROUP BY msg.id
+			'
+
+			, $cfg['cut_length'], $cfg['cut_length'] // ограничение выборки первого поста
+			, $user->id
+			, (count($tag_array) ? $tag_array : DBSIMPLE_SKIP)
+			, $this->sql_maxdate, $this->sql_maxdate
+		));
+
+
+		// выборка тегов
+		$tags = $db->select(
+			'SELECT
+				msg.id AS message,
+				tag.id,
+				tag.name,
+				tag.type
+			FROM ?_tagmap map
+			LEFT JOIN ?_messages msg
+				ON map.message = msg.id
+			LEFT JOIN ?_tags tag
+				ON map.tag = tag.id
+			WHERE
+				IFNULL(msg.modified, msg.created) > ?
+			' . ($this->condition ? (' AND ('.$this->condition.')') : '')
+			, $this->sql_maxdate
+		);
+
+		foreach ($tags as $tag) {
+			$id = $tag['message'];
+
+			if ($topics[$id]) $topics[$id]['tags'][] = $tag;
+		}
+
+		// сортировка. До сортировки массив $result['topics'] имеет индекс в виде номера темы
+		switch ($params['sort']):
+
+			case 'updated':
+				$topics = sort_by_field($topics, 'totalmaxd', $params['sort_reverse']);
+				break;
+
+		endswitch;
+
+		// возвращаем полученный массив тем
+		return $topics;
+	}
+
+
+	////////
+	// posts
+	////////
+
+	function get_posts ($posts) {
+		global $cfg, $db, $user;
+
+
+		// забиваем в эту переменную значение по умолчанию
+		$pglimit_dateSQL = jsts2sql($old_pglimdateTS || 0);
+
+		// Если сразу не указано грузить все
+		if (/*($action == 'load_pages' || $action == 'next_page') &&*/ $posts['quantity']) {
+
+			$postcount = $db->selectCell(
+				'SELECT COUNT(id) FROM ?_messages WHERE (topic_id = ?d OR id = ?d) AND deleted <=> NULL',
+				$posts['topic'], $posts['topic']
+			);
+
+			// если сообщений меньше, чем предел для загрузки - сообщаем, что это последняя страница
+			if ($postcount <= $posts['quantity']) $show_all = 1;
+
+			// Определение самого раннего сообщения, с которого нужно грузить страницу (исключительно)
+			if (!$show_all) $pglimit_dateSQL = $db->selectCell('
+				SELECT created AS message FROM ?_messages
+				WHERE (topic_id = ?d OR id = ?d)
+					AND deleted <=> NULL
+				ORDER BY created DESC
+				LIMIT 1 OFFSET ?d',
+				$posts['topic'], $posts['topic'], $posts['quantity']
+			);
+
+			// Если сообщение переданное по ссылке - за пределами текущих страниц
+			if ($posts['directMsg']) {
+				$direct_dateSQL = $db->select('
+				SELECT
+					t.created,
+					t.id,
+					IF(t.created <= ?, t.created, ?) AS newdate
+				FROM ?_messages AS t
+				WHERE t.id <= ?d AND (t.topic_id = ?d OR t.id = ?d)
+				ORDER BY t.id desc
+				LIMIT 2
+				', $pglimit_dateSQL
+					, $pglimit_dateSQL
+					, $posts['directMsg']
+					, $posts['topic']
+					, $posts['topic']
+				);
+
+				$pglimit_dateSQL = $direct_dateSQL[1]['newdate'];
+			}
+		}
+
+		if (!$_REQUEST['plimit'] || $show_all) {
+			$result['topic_prop']['show_all'] = 1;
+			$pglimit_dateSQL = jsts2sql('0');
+		}
+
+		$result['topic_prop']['pglimit_date'] = $pglimit_dateSQL;
+
+		if ($action == 'load_pages') { // если загружаем новую тему
+
+			$maxdateSQL = $pglimit_dateSQL;
+			$result['topic_prop']['manual'] = true; // указываем что тема грузилась вручную (пока только для прокрутки) todo - не работает
+
+			// выводим номер темы для подсветки ее в колонке тем
+			$result['topic_prop']['id'] = $posts['topic'];
+
+			// хотим узнать, когда пользователь отмечал эту тему прочитанной
+			if ($user->id != 0) {
+				$date_read = $db->selectCell(
+					'SELECT timestamp FROM ?_unread WHERE user = ?d AND topic = ?d'
+					, $user->id, $posts['topic']
+				);
+
+				// ой, ни разу! Установить ее прочитанной в этот момент!
+				if (!$date_read) {
+
+					$date_read = now('sql');
+					$values = Array(
+						'user' => $user->id,
+						'topic' => $posts['topic'],
+						'timestamp' => $date_read
+					);
+					$db->query('INSERT INTO ?_unread (?#) VALUES (?a)'
+						, array_keys($values), array_values($values));
+
+					$date_read = 'firstRead'; // клиентская часть должна знать!
+				}
+
+				$result['topic_prop']['date_read'] = $date_read; // вывести в клиент
+			}
+		}
+
+		// выбираем ВСЕ сообщения с более новой датой (даже удаленные)
+		$result['posts'] = make_tree($db->select(
+			'SELECT
+				msg.id,
+				msg.message,
+				msg.author_id,
+				msg.parent_id,
+				msg.topic_id,
+				msg.topic_name,
+				msg.created,
+				msg.modified,
+				msg.deleted,
+				msg.modifier,
+				usr.email AS author_email,
+				IFNULL(usr.display_name, usr.login) AS author,
+				IF(unr.timestamp < IFNULL(msg.modified, msg.created) && IFNULL(msg.modifier, msg.author_id) != ?d, 1, 0) AS unread,
+				moder.login AS modifier_name,
+				(SELECT starter.author_id FROM ?_messages starter WHERE starter.id = msg.topic_id ) AS topicstarter,
+				uset.param_value as author_avatar
+			FROM ?_messages msg
+
+			LEFT JOIN ?_users usr
+				ON msg.author_id = usr.id
+			LEFT JOIN ?_unread unr
+				ON unr.topic = IF(msg.topic_id = 0, msg.id, msg.topic_id) AND unr.user = ?d
+			LEFT JOIN ?_users moder
+				ON msg.modifier = moder.id
+			LEFT JOIN ?_user_settings uset
+				ON msg.author_id = uset.user_id AND uset.param_key = "avatar"
+
+			WHERE
+				(msg.topic_id = ?d OR msg.id = ?d) AND
+				((IFNULL(msg.modified, msg.created) > ? AND msg.created > ?)'
+						. ($action == 'next_page' ? ' OR (msg.created <= ? AND msg.created > ?)' : '') . ')
+			ORDER BY msg.created ASC'
+
+			, $user->id, $user->id
+			, $posts['topic'], $posts['topic']
+			, $maxdateSQL
+			, $pglimit_dateSQL
+			, jsts2sql($old_pglimdateTS)
+			, $pglimit_dateSQL
+		));
+
+		$result['topic_prop']['name'] = $topic_name; // вывод в клиент имени
+
+		return array();
+	}
+
+	///////////////
+	// single topic
+	///////////////
+
+	function get_topic ($topic) {
+		global $db;
+
+		// проверяем, существует ли тема и читаем ее заголовок.
+		$topic = $db->selectRow(
+			'SELECT
+				msg.id,
+				msg.message,
+				msg.author_id,
+				msg.parent_id,
+				msg.topic_id,
+				msg.topic_name,
+				msg.created,
+				msg.modified,
+				msg.deleted,
+				msg.modifier,
+				(SELECT COUNT(id) FROM ?_messages msgq WHERE (msgq.topic_id = ?d OR msgq.id = ?d) AND deleted <=> NULL) AS post_count
+
+			FROM ?_messages msg
+
+			WHERE msg.id = ?d AND msg.topic_id = 0
+			'
+			, $topic['id'], $topic['id'], $topic['id']
+		);
+
+		return $topic;
 	}
 }
 
-$feed = new Feed();
+
 
 // разбираем что пришло
-if ($_REQUEST['subscribe']) {
+function parse_request($request) {
+
+	$result = array();
+
+	$feed = new Feed($request['later_than']);
 
 	// есть ли подписки?
-	$subcriptions = $_REQUEST['subscribe'];
+	if ($request['subscribe']) {
 
-	if (is_array($subcriptions) && count($subcriptions)) {
+		$subscribers = $request['subscribe'];
 
-		$result['feeds'] = Array();
+		if (count($subscribers) && $feed->any_new()) {
 
-		foreach ($subcriptions as $subscriberId => $params) {
-			$method_name = 'get_'.$params['feed'];
-			$result['feeds'][$subscriberId] = $feed->$method_name($params);
+			$result['feeds'] = Array();
+
+			foreach ($subscribers as $subscriberId => $subscriptions) {
+
+				$result['feeds'][$subscriberId] = Array();
+
+				foreach ($subscriptions as $feedName => $params) {
+					// вызываем метод get_[имя фида]
+					$method_name = 'get_'.$params['feed'];
+					$result['feeds'][$subscriberId][$feedName] = $feed->$method_name($params);
+				}
+			}
 		}
+
+		$result['latest_change'] = $feed->new_sql_maxdate;
+		$result['previous_change'] = $feed->sql_maxdate;
 	}
+
+	return $result;
 }
 
+$GLOBALS['_RESULT'] = parse_request($_REQUEST);
 
 
-$maxdateSQL = jsts2sql($_REQUEST['maxdateTS']);
+
 $old_pglimdateTS = $_REQUEST['pglimdateTS'];
-
-
-
-$result['old_maxdate'] = $maxdateSQL;
 
 
 
 ///////////////////////////////
 // Записываем в базу обновления
-///////////////////////////////  
+///////////////////////////////
 
 // $action можт и не указывать на запись чего-либо в базу. Этот switch перебирает только записывающие действия $action
 switch ($action):
@@ -352,202 +537,15 @@ switch ($action):
 
 endswitch;
 
-
-////////////////////////
-// Ищем любые обновления
-////////////////////////
-
-$result['new_maxdate'] = $db->selectCell(
-	'SELECT GREATEST(MAX(created), IFNULL(MAX(modified), 0))
-	FROM ?_messages WHERE IFNULL(modified, created) > ?' . ($condition ? (' AND ('.$condition.')') : '')
-	, ($action == 'load_pages' || $action == 'next_page') ? 0 : $maxdateSQL
-);
-
-
-// если результатов 0 то отправляем старую макс. дату и прекращаем работу скрипта
-if (!$result['new_maxdate']) {
-	$result['new_maxdate'] = $result['old_maxdate'];
-	$GLOBALS['_RESULT'] = $result;
-	exit();
-}
-// иначе:
-
 //////////////////////////////////
 // Получаем изменения текущей темы
 //////////////////////////////////
 
-// ОПТИМИЗИРОВАТЬ КОЛ-ВО ЗАПРОСОВ
-if ($topic) {
 
-	// проверяем, существует ли тема (не удалена ли) и читаем ее заголовок
-	$topic_name = $db->selectCell(
-		'SELECT msg.topic_name AS topic FROM ?_messages msg WHERE msg.id = ?d AND msg.deleted <=> NULL'
-		, $topic
-	);
 
-	// если тема удалена (если удалена, name === null, если пустой заголовок - name === "")
-	if ($topic_name === null) {
+//$GLOBALS['_RESULT'] = $result;
 
-		$result['topic_prop']['deleted'] = true; // по этому флагу отслеживаем онлайн-удаление темы 
-
-		// если тема не удалена
-	} else {
-
-		// Выясняем, сколько вообще сообщений в теме
-		$result['topic_prop']['postcount'] = $postcount = $db->selectCell(
-			'SELECT COUNT(id) FROM ?_messages WHERE (topic_id = ?d OR id = ?d) AND deleted <=> NULL',
-			$topic, $topic
-		);
-
-		// забиваем в эту переменную значение по умолчанию
-		$pglimit_dateSQL = jsts2sql($old_pglimdateTS || 0);
-
-		// Если сразу не указано грузить все
-		if (($action == 'load_pages' || $action == 'next_page') && $_REQUEST['plimit']) {
-
-			// Узнаем, сколько же сказано грузить
-			$plimit = $_REQUEST['plimit'] * $cfg['posts_per_page'];
-
-			// если сообщений меньше, чем предел для загрузки - сообщаем, что это последняя страница
-			if ($postcount <= $plimit) $show_all = 1;
-
-			// Определение самого раннего сообщения, с которого нужно грузить страницу (исключительно)
-			if (!$show_all) $pglimit_dateSQL = $db->selectCell('
-				SELECT created AS message FROM ?_messages
-				WHERE (topic_id = ?d OR id = ?d)
-					AND deleted <=> NULL
-				ORDER BY created DESC 
-				LIMIT 1 OFFSET ?d',
-				$topic, $topic, $plimit
-			);
-
-			// Если сообщение переданное по ссылке - за пределами текущих страниц
-			if ($params['directMsg']) {
-				$direct_dateSQL = $db->select('
-					SELECT
-						t.created,
-						t.id,
-						IF(t.created <= ?, t.created, ?) AS newdate
-					FROM ?_messages AS t
-					WHERE t.id <= ?d AND (t.topic_id = ?d OR t.id = ?d)
-					ORDER BY t.id desc
-					LIMIT 2
-					', $pglimit_dateSQL
-					, $pglimit_dateSQL
-					, $params['directMsg']
-					, $topic
-					, $topic
-				);
-
-				$pglimit_dateSQL = $direct_dateSQL[1]['newdate'];
-			}
-		}
-
-		if (!$_REQUEST['plimit'] || $show_all) {
-			$result['topic_prop']['show_all'] = 1;
-			$pglimit_dateSQL = jsts2sql('0');
-		}
-
-		$result['topic_prop']['pglimit_date'] = $pglimit_dateSQL;
-
-		if ($action == 'load_pages') { // если загружаем новую тему
-
-			$maxdateSQL = $pglimit_dateSQL;
-			$result['topic_prop']['manual'] = true; // указываем что тема грузилась вручную (пока только для прокрутки) todo - не работает
-
-			// выводим номер темы для подсветки ее в колонке тем
-			$result['topic_prop']['id'] = $topic;
-
-			// хотим узнать, когда пользователь отмечал эту тему прочитанной
-			if ($user->id != 0) {
-				$date_read = $db->selectCell(
-					'SELECT timestamp FROM ?_unread WHERE user = ?d AND topic = ?d'
-					, $user->id, $topic
-				);
-
-				// ой, ни разу! Установить ее прочитанной в этот момент!
-				if (!$date_read) {
-
-					$date_read = now('sql');
-					$values = Array(
-						'user' => $user->id,
-						'topic' => $topic,
-						'timestamp' => $date_read
-					);
-					$db->query('INSERT INTO ?_unread (?#) VALUES (?a)'
-						, array_keys($values), array_values($values));
-
-					$date_read = 'firstRead'; // клиентская часть должна знать!
-				}
-
-				$result['topic_prop']['date_read'] = $date_read; // вывести в клиент
-			}
-
-		}
-
-		// Что делаем, если сказано загрузить только следующую страницу
-		/*
-		if ($action == 'next_page') {
-			
-			if (!$plimit) {
-				//$params['old_limit'];
-			} else {
-				
-			}
-		}
-		*/
-
-		// выбираем ВСЕ сообщения с более новой датой (даже удаленные)
-		$result['posts'] = make_tree($db->select(
-			'SELECT
-				msg.id,
-				msg.message,
-				msg.author_id,
-				msg.parent_id,
-				msg.topic_id,
-				msg.topic_name,
-				msg.created,
-				msg.modified,
-				msg.deleted,
-				msg.modifier,
-				usr.email AS author_email,
-				IFNULL(usr.display_name, usr.login) AS author,
-				IF(unr.timestamp < IFNULL(msg.modified, msg.created) && IFNULL(msg.modifier, msg.author_id) != ?d, 1, 0) AS unread,
-				moder.login AS modifier_name,
-				(SELECT starter.author_id FROM ?_messages starter WHERE starter.id = msg.topic_id ) AS topicstarter,
-				uset.param_value as author_avatar
-			FROM ?_messages msg
-
-			LEFT JOIN ?_users usr 
-				ON msg.author_id = usr.id
-			LEFT JOIN ?_unread unr
-				ON unr.topic = IF(msg.topic_id = 0, msg.id, msg.topic_id) AND unr.user = ?d
-			LEFT JOIN ?_users moder
-				ON msg.modifier = moder.id
-			LEFT JOIN ?_user_settings uset
-				ON msg.author_id = uset.user_id AND uset.param_key = "avatar"
-
-			WHERE
-				(msg.topic_id = ?d OR msg.id = ?d) AND 
-				((IFNULL(msg.modified, msg.created) > ? AND msg.created > ?)'
-				. ($action == 'next_page' ? ' OR (msg.created <= ? AND msg.created > ?)' : '') . ')
-			ORDER BY msg.created ASC'
-
-			, $user->id, $user->id
-			, $topic, $topic
-			, $maxdateSQL
-			, $pglimit_dateSQL
-			, jsts2sql($old_pglimdateTS)
-			, $pglimit_dateSQL
-		));
-
-		$result['topic_prop']['name'] = $topic_name; // вывод в клиент имени
-	}
-}
-
-$GLOBALS['_RESULT'] = $result;
-
-print_r($_REQUEST);
+//print_r($_REQUEST);
 /*print_r(json_decode($test, true));
 echo "\n";
 print_r($tag_array);*/

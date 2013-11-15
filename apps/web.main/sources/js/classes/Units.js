@@ -80,7 +80,7 @@ tinng.protos.Unit = Class({
 
 	clear:function(){
 		//todo проверить полное удаление из памяти
-		this.$content.html('');
+		this.$content.children().remove();
 		this.stopWaitIndication();
 	},
 
@@ -91,6 +91,10 @@ tinng.protos.Unit = Class({
 
 	stopWaitIndication:function(){
 		this.$scrollArea.removeClass('loading');
+	},
+
+	parseFeed:function(feed) {
+		console.log('this is only a placeholder for "parseFeed". Feeds are: ', feed)
 	}
 });
 
@@ -163,9 +167,79 @@ tinng.protos.TopicsUnit = Class(tinng.protos.Unit, {
 			newQuery.push(tagSet[i].id);
 		}
 
-		t.sync.filterQuery = newQuery.join('|');
+		this.clear();
+
+		t.connection.subscribe(this, 'topics', {
+			filter: newQuery.join('|')
+		});
+
+		//t.sync.filterQuery = newQuery.join('|');
 		console.log('query: ', t.sync.filterQuery)
-		t.rotor.start('load_pages');
+		//t.rotor.start('load_pages');
+	},
+
+	clear:function(){
+		t.protos.Unit.prototype['clear'].apply(this, arguments);
+
+		t.topics = {};
+	},
+
+	parseFeed:function(feed) {
+		if (feed.topics){
+
+			this.stopWaitIndication();
+
+			for (var i in feed.topics) {
+				var entry = feed.topics[i];
+				var existingTopic = t.topics[entry.id];
+
+				// обрабатываем информацию о непрочитанности
+
+				// todo - темы, в которые юзер ни разу не заходил не отмечаются непрочитанными. Придумать что с ними делать
+
+				// Эта логика потребовала размышлений, так что с подробными комментами:
+				// если присутсвует последнее сообщение...
+				if (entry.last_id) {
+					// и юзер - его автор - не показывать непрочитанным, кем бы не были остальные создатели/редакторы
+					if (parseInt(entry.lastauthor_id,10) == t.user.id) entry.unread = '0';
+
+					// иначе, если есть только первое сообщение и оно было изменено...
+				} else if (entry.modifier_id && parseInt(entry.modifier_id,10) > 0) {
+					// и юзер - его редактор - не показывать непрочитанным, кем бы не были остальные создатели/редакторы
+					if (parseInt(entry.modifier_id,10) == t.user.id) entry.unread = '0';
+
+					// иначе (есть только первое неотредактированное сообщение)
+				} else {
+					// не показываем непрочитанность, если юзер - автор.
+					if (parseInt(entry.author_id,10) == t.user.id) entry.unread = '0';
+				}
+
+				// если в текущем массиве загруженных тем такая уже есть - обновляем существующую
+				if (existingTopic) {
+
+					if (entry.deleted) {
+
+						existingTopic.remove('fast');
+						//if (entry.id == t.sync.curTopic) t.funcs.unloadTopic();
+						delete(existingTopic);
+
+					} else {
+						existingTopic.fill(entry);
+						existingTopic.bump();
+					}
+
+					// если же в текущем массиве тем такой нет и пришедшая не удалена, создаем новую
+				} else if (!entry.deleted) {
+
+					var topic = t.topics[entry.id] = new t.protos.TopicNode(entry);
+					this.addNode(topic);
+					//if (tProps['new']) topic.loadPosts();
+					//ifblur_notify('New Topic: '+entry.topic_name, entry.message);
+				}
+			}
+
+			this.contentLoaded = 1;
+		}
 	}
 });
 
@@ -379,6 +453,10 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 
 	setTopicName:function(name){
 		this.header.topicName.$body.html(name)
+	},
+
+	parseFeed:function(feed) {
+
 	}
 });
 
