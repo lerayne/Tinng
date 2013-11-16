@@ -19,6 +19,7 @@ tinng.protos.strategic.XHRShortPoll = function(server, callback){
 	this.$stateIndicator = $('.state-ind');
 
 	this.subscriptions = {};
+	this.meta = {};
 	this.actions = {};
 	this.latest_change = 0;
 }
@@ -38,13 +39,9 @@ tinng.protos.strategic.XHRShortPoll.prototype = {
 	// подписывает, или изменяет параметры текущей подписки
 	subscribe:function(){
 
-		console.log('subscribe args:', arguments);
-
 		var subscriberId = arguments[0];
 		var feedName = arguments[1];
 		var feed = arguments[arguments.length-1];
-
-		//var subscriberId = t.connection.subscriberId(subscriber);
 
 		var subscriberFeeds = this.subscriptions[subscriberId];
 
@@ -56,6 +53,8 @@ tinng.protos.strategic.XHRShortPoll.prototype = {
 				for (var key in feed) {
 					subscriberFeeds[feedName][key] = feed[key];
 				}
+
+				this.meta[subscriberId][feedName] = {};
 			// иначе создаем новую подписку
 			} else subscriberFeeds[feedName] = feed;
 
@@ -72,8 +71,6 @@ tinng.protos.strategic.XHRShortPoll.prototype = {
 		var feedName = arguments[1];
 		var feed = arguments[arguments.length-1];
 
-		//var subscriberId = t.connection.subscriberId(subscriber);
-
 		if (!this.subscriptions[subscriberId]) {
 			this.subscriptions[subscriberId] = {};
 		}
@@ -83,8 +80,6 @@ tinng.protos.strategic.XHRShortPoll.prototype = {
 
 	// отменяет подписку
 	unscribe:function(subscriberId, feedName){
-
-		//var subscriberId = t.connection.subscriberId(subscriber);
 
 		// если такой вообще есть
 		if (this.subscriptions[subscriberId][feedName]) {
@@ -132,7 +127,7 @@ tinng.protos.strategic.XHRShortPoll.prototype = {
 		this.request.send({
 			subscribe: this.subscriptions,
 			write: this.actions,
-			later_than: this.latest_change
+			meta: this.meta
 		});
 
 		t.funcs.log('Launching query with timeout ' + this.waitTime);
@@ -165,11 +160,13 @@ tinng.protos.strategic.XHRShortPoll.prototype = {
 		if (this.request.readyState == 4) {
 
 			if (this.request.responseText) {
-				console.log('PHP backtrace:\n==============\n'+this.request.responseText)
+				console.log('PHP backtrace:\n==============\n' + this.request.responseText)
 			}
 
 			// разбираем пришедший пакет и выполняем обновления
 			t.sync.maxdateTS = this.parseCallback(this.request.responseJS, this.actions);
+
+			this.meta = this.request.responseJS.meta;
 
 			this.actions = {};
 

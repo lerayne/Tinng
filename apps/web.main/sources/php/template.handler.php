@@ -31,7 +31,14 @@ function template_head() {
 	);
 
 	echo '<link rel="stylesheet" id="lowres_css" type="text/css" href="">';
-	echo '<script type="text/javascript" language="JavaScript" src="' . $env['rootdir'] . 'libraries/jquery-1.7.2.min.js"></script>';
+
+	$agent = $_SERVER['HTTP_USER_AGENT'];
+
+	if (strpos('MSIE 8.0', $agent) || strpos('MSIE 7.0', $agent) || strpos('MSIE 6.0', $agent)) {
+		echo '<script type="text/javascript" language="JavaScript" src="' . $env['rootdir'] . 'libraries/jquery-1.x.js"></script>';
+	} else {
+		echo '<script type="text/javascript" language="JavaScript" src="' . $env['rootdir'] . 'libraries/jquery-2.x.js"></script>';
+	}
 
 	// импорт переменных из PHP
 	echo '

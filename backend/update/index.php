@@ -14,13 +14,14 @@ function ex ($log){
 register_shutdown_function("ex", $log);
 */
 
+$GLOBALS['debug'] = Array();
+
 ////////////////////////////////
 // Функции для этой части движка
 ////////////////////////////////
 
 // подготовка каждой строки
-function ready_row($row)
-{
+function ready_row($row) {
 
 	// убираем из сообщений об удаленных рядах всю лишнюю инфу
 	if ($row['deleted']) {
@@ -34,7 +35,7 @@ function ready_row($row)
 
 	} else { // Если работаем не с отчетом об удалении 
 
-		if ($row['author_avatar'] == 'gravatar'){
+		if ($row['author_avatar'] == 'gravatar') {
 			$row['author_avatar'] = 'http://www.gravatar.com/avatar/' . md5(strtolower($row['author_email'])) . '?s=48';
 		}
 
@@ -47,8 +48,7 @@ function ready_row($row)
 
 // создание дерева (внимание !! целесообразность ветвления - под вопросом)
 // сейчас используется для подготовки всех опций
-function make_tree($raw)
-{
+function make_tree($raw) {
 	foreach ($raw as $key => $val):
 		$raw[$key] = ready_row($val);
 		/*if ($val['parent'] == $val['topic_id']) { $result[$key] = $val; }
@@ -61,8 +61,7 @@ function make_tree($raw)
 
 // сортировка двумерного массива по указанному полю field. Работает даже с неуникальными ключами
 // внимание! возвращает нумерованный массив, а не хеш-таблицу!
-function sort_by_field($array, $field, $reverse)
-{
+function sort_by_field($array, $field, $reverse) {
 
 	$afs = Array(); // array for sort
 	$out = Array();
@@ -79,10 +78,10 @@ function sort_by_field($array, $field, $reverse)
 // Импорт и подготовка переменных
 /////////////////////////////////
 
-function extract_tag_array ($string) {
+function extract_tag_array($string) {
 	$chunks = explode('|', $string);
 	$arr = array();
-	if (count($chunks) && $chunks[0] != ''){
+	if (count($chunks) && $chunks[0] != '') {
 		foreach ($chunks as $val) {
 			$arr[] = (int) $val;
 		}
@@ -95,8 +94,6 @@ class Feed {
 
 	function __construct($maxdate) {
 
-		$this->condition = false;
-
 		$this->maxdate = $maxdate;
 		$this->sql_maxdate = jsts2sql($this->maxdate);
 		$this->new_sql_maxdate = $this->sql_maxdate;
@@ -107,33 +104,62 @@ class Feed {
 	// есть ли вообще новые
 	///////////////////////
 
+	// todo - возможно - убрать совсем, так как сейчас она фактически ни с чем не сравнивается
 	function any_new() {
 		global $db;
 
-		$new_sql_maxdate = $db->selectCell(
-			'SELECT GREATEST(MAX(created), IFNULL(MAX(modified), 0))
-			FROM ?_messages WHERE IFNULL(modified, created) > ?' . ($this->condition ? (' AND ('.$this->condition.')') : '')
+		// с этой переменной ничего не сравнивается. Ее наличие говорит о необходимости выгрести какие-то новые данные,
+		// а потом она просто передается в клиент для установки там новой отсчетной даты.
+		$new_sql_maxdate = $db->selectCell('
+			SELECT GREATEST(MAX(created), IFNULL(MAX(modified), 0))
+			FROM ?_messages WHERE IFNULL(modified, created) > ?
+			'
+
 			, /*($action == 'load_pages' || $action == 'next_page') ? 0 :*/ $this->sql_maxdate
 		);
 
 		if ($new_sql_maxdate) {
-			$this->new_sql_maxdate = $new_sql_maxdate;
 			return true;
 		} else return false;
 	}
+
 
 
 	///////
 	// темы
 	///////
 
-	function get_topics($params) {
+	function get_topics($params, &$meta = Array()) {
 		global $cfg, $db, $user;
+
+		if (!$meta['updates_since']) $meta['updates_since'] = jsts2sql(0);
 
 		$tag_array = extract_tag_array($params['filter']);
 
-		$topics = make_tree($db->select(
-			'SELECT
+		// проверяем простым запросом, есть ли что на вывод вообще, прежде чем отправлять следующего "монстра"))
+		// todo - удалось избавиться от подзапроса для вычисления даты последнего поста темы. Может удастся и в монстре?
+		$any_new = $db->selectCell('
+			SELECT GREATEST(MAX(msg.created), IFNULL(MAX(msg.modified), 0), MAX(mupd.created), IFNULL(MAX(mupd.modified), 0))
+			FROM ?_messages msg
+			LEFT JOIN ?_messages mupd ON mupd.topic_id = msg.id
+			{JOIN ?_tagmap map ON map.message = msg.id AND map.tag IN(?a)}
+			WHERE GREATEST(IFNULL(msg.modified, msg.created), IFNULL(mupd.modified, mupd.created)) > ? AND msg.topic_id = 0
+			'
+			, (count($tag_array) ? $tag_array : DBSIMPLE_SKIP)
+			, $meta['updates_since']
+		);
+
+		$GLOBALS['debug']['since'] = $meta['updates_since'];
+		$GLOBALS['debug']['tags'] = $tag_array;
+
+		// если нет - возвращаем пустой массив и прерываем функцию
+		if (!$any_new) return Array();
+
+		// todo - рано или поздно с этим монстром надо что-то делать. Оптимизация архитектуры бд...
+		// в данный момент база оптимизирована на скорость записи. Но вообще чтение происходит чаще. Немного спасают
+		// проверочные предварительные запросы, но значит ли это, что стоит оставлять этого монстра с кучей подзапросов?
+		$query = "
+			SELECT
 				msg.id AS ARRAY_KEY,
 				msg.id,
 				LEFT(msg.message, ?d) AS message,
@@ -173,41 +199,60 @@ class Feed {
 			LEFT JOIN ?_unread unr
 				ON unr.topic = msg.id
 				AND unr.user = ?d
+
 			{JOIN ?_tagmap tagmap
 				ON tagmap.message = msg.id
 				AND tagmap.tag IN (?a)}
 
 			WHERE msg.topic_id = 0
 				AND (IFNULL(msg.modified, msg.created) > ? OR IFNULL(mupd.modified, mupd.created) > ?)
-				' . ($this->condition ? (' AND ('.$this->condition.')') : '') . '
+				AND ISNULL(msg.deleted)
 
 			GROUP BY msg.id
-			'
+		";
+
+		$topics = make_tree( $db->select( $query
 
 			, $cfg['cut_length'], $cfg['cut_length'] // ограничение выборки первого поста
 			, $user->id
 			, (count($tag_array) ? $tag_array : DBSIMPLE_SKIP)
-			, $this->sql_maxdate, $this->sql_maxdate
+			, $meta['updates_since']
+			, $meta['updates_since']
 		));
+
+		$GLOBALS['debug']['posts'] = count($topics);
+
 
 
 		// выборка тегов
-		$tags = $db->select(
-			'SELECT
+		// todo - выбираются все теги по неудаленным темам, подходящим под выборку по дате. Нужно чтобы работала выборка и по
+		// самим тегам, но я с этим 2 часа возился - так и не понял. опциональный блок в этом запросе работает только если в массиве один тег
+		$query = "
+			SELECT
 				msg.id AS message,
 				tag.id,
 				tag.name,
 				tag.type
 			FROM ?_tagmap map
-			LEFT JOIN ?_messages msg
-				ON map.message = msg.id
-			LEFT JOIN ?_tags tag
-				ON map.tag = tag.id
-			WHERE
-				IFNULL(msg.modified, msg.created) > ?
-			' . ($this->condition ? (' AND ('.$this->condition.')') : '')
-			, $this->sql_maxdate
+			JOIN ?_messages msg ON map.message = msg.id
+			JOIN ?_tags tag ON tag.id = map.tag
+			{
+				JOIN ?_tagmap map2
+					ON map2.message = msg.id
+					AND map2.tag IN (?a)
+        	}
+
+			WHERE ISNULL(msg.deleted) AND IFNULL(msg.modified, msg.created) > ?
+			ORDER BY msg.id, tag.id
+		";
+
+		$tags = $db->select( $query
+
+			, (/*count($tag_array) ? $tag_array : */DBSIMPLE_SKIP)
+			, $meta['updates_since']
 		);
+
+		$GLOBALS['debug']['tags'] = $tags;
 
 		foreach ($tags as $tag) {
 			$id = $tag['message'];
@@ -215,25 +260,29 @@ class Feed {
 			if ($topics[$id]) $topics[$id]['tags'][] = $tag;
 		}
 
-		// сортировка. До сортировки массив $result['topics'] имеет индекс в виде номера темы
-		switch ($params['sort']):
+
+
+		// сортировка. До сортировки массив $topics имеет индекс в виде номера темы
+		switch ($params['sort']){
 
 			case 'updated':
 				$topics = sort_by_field($topics, 'totalmaxd', $params['sort_reverse']);
 				break;
+		}
 
-		endswitch;
+		$meta['updates_since'] = $any_new;
 
 		// возвращаем полученный массив тем
 		return $topics;
 	}
 
 
+
 	////////
 	// posts
 	////////
 
-	function get_posts ($posts) {
+	function get_posts($posts, &$meta = Array()) {
 		global $cfg, $db, $user;
 
 
@@ -241,7 +290,9 @@ class Feed {
 		$pglimit_dateSQL = jsts2sql($old_pglimdateTS || 0);
 
 		// Если сразу не указано грузить все
-		if (/*($action == 'load_pages' || $action == 'next_page') &&*/ $posts['quantity']) {
+		if ( /*($action == 'load_pages' || $action == 'next_page') &&*/
+			$posts['quantity']
+		) {
 
 			$postcount = $db->selectCell(
 				'SELECT COUNT(id) FROM ?_messages WHERE (topic_id = ?d OR id = ?d) AND deleted <=> NULL',
@@ -357,7 +408,7 @@ class Feed {
 			WHERE
 				(msg.topic_id = ?d OR msg.id = ?d) AND
 				((IFNULL(msg.modified, msg.created) > ? AND msg.created > ?)'
-						. ($action == 'next_page' ? ' OR (msg.created <= ? AND msg.created > ?)' : '') . ')
+				. ($action == 'next_page' ? ' OR (msg.created <= ? AND msg.created > ?)' : '') . ')
 			ORDER BY msg.created ASC'
 
 			, $user->id, $user->id
@@ -377,12 +428,12 @@ class Feed {
 	// single topic
 	///////////////
 
-	function get_topic ($topic) {
+	function get_topic($topic, &$meta = Array()) {
 		global $db;
 
 		// проверяем, существует ли тема и читаем ее заголовок.
-		$topic = $db->selectRow(
-			'SELECT
+		$topic = $db->selectRow('
+			SELECT
 				msg.id,
 				msg.message,
 				msg.author_id,
@@ -405,39 +456,139 @@ class Feed {
 		return $topic;
 	}
 }
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-
+///////////////////////
 // разбираем что пришло
+///////////////////////
+
 function parse_request($request) {
+	global $user, $db;
 
 	$result = array();
 
 	$feed = new Feed($request['later_than']);
 
-	// есть ли подписки?
+
+
+	///////////////////////////////
+	// Записываем в базу обновления
+	///////////////////////////////
+
+	if ($request['write']) {
+
+		$writes = $request['write'];
+
+		foreach ($writes as $write) {
+			switch ($write['action']) {
+
+				// добавляем новую тему (тут нет брейка, так и надо)
+				case 'add_topic':
+
+					$new_row['topic_name'] = $write['title'];
+					$result['topic_prop']['new'] = 1;
+
+				// вставляем новое сообщение (адаптировать для старта темы!)
+				case 'add_post':
+
+					$new_row['author_id'] = $user->id;
+					$new_row['parent_id'] = $write['parent'] ? $write['parent'] : $_REQUEST['curTopic'];
+					$new_row['topic_id'] = $_REQUEST['curTopic'];
+					$new_row['message'] = $write['message'];
+					$new_row['created'] = now('sql');
+
+					$new_id = $db->query(
+						'INSERT INTO ?_messages (?#) VALUES (?a)', array_keys($new_row), array_values($new_row)
+					);
+
+					$result['topic_prop']['scrollto'] = $new_id;
+
+					break;
+
+
+				// обновляет запись в ?_messages
+				case 'update_message':
+
+					$upd_id = $write['id'];
+					unset($write['id']);
+					$params['modified'] = now('sql'); // при любом обновлении пишем дату,
+					$params['modifier'] = $user->id; // пользователя, отредактировавшего сообщение
+					$params['locked'] = null; // и убираем блокировку
+
+					$db->query('UPDATE ?_messages SET ?a WHERE id = ?d', $write, $upd_id);
+
+					break;
+
+
+				// удаляем сообщение
+				case 'delete_message':
+
+					// проверка блокировки сообщения
+					$locked = $db->selectCell(
+						'SELECT locked FROM ?_messages WHERE id = ?d', $write['id']
+					);
+
+					if ($locked) {
+
+						$result['error'] = 'post_locked';
+
+					} else {
+
+						$upd_id = $write['id'];
+						unset($write['id']);
+						$write['deleted'] = 1;
+						$write['modifier'] = $user->id;
+						$write['modified'] = now('sql');
+
+						$db->query('UPDATE ?_messages SET ?a WHERE id = ?d', $write, $upd_id);
+					}
+
+					break;
+
+				// убираем тег с темы
+				case 'tag_remove':
+
+					$date = now('sql');
+
+					$msgupd['modified'] = now('sql');
+					$msgupd['modifier'] = $user->id;
+
+					$db->query('UPDATE ?_messages SET ?a WHERE id = ?d', $msgupd, $write['msg']);
+
+					$db->query('DELETE FROM ?_tagmap WHERE message = ?d AND tag = ?d', $write['msg'], $write['tag']);
+
+					break;
+			}
+		}
+	}
+
+
+	/////////////////////////////
+	// выдаем данные по подпискам
+	/////////////////////////////
+
 	if ($request['subscribe']) {
 
 		$subscribers = $request['subscribe'];
 
-		if (count($subscribers) && $feed->any_new()) {
+		if ($request['meta']) $meta = $request['meta'];
 
-			$result['feeds'] = Array();
+		// есть ли подписчики и хоть что-то обновленное на сервере?
+		if (count($subscribers) && $feed->any_new()) {
 
 			foreach ($subscribers as $subscriberId => $subscriptions) {
 
-				$result['feeds'][$subscriberId] = Array();
-
 				foreach ($subscriptions as $feedName => $params) {
 					// вызываем метод get_[имя фида]
-					$method_name = 'get_'.$params['feed'];
-					$result['feeds'][$subscriberId][$feedName] = $feed->$method_name($params);
+					$method_name = 'get_' . $params['feed'];
+					// тут в конце страшная магия - передача параметра в функцию по ссылке
+					$result['feeds'][$subscriberId][$feedName] = $feed->$method_name($params, $meta[$subscriberId][$feedName]);
 				}
 			}
 		}
 
-		$result['latest_change'] = $feed->new_sql_maxdate;
-		$result['previous_change'] = $feed->sql_maxdate;
+		// и вот тут мы записываем мету
+		$result['meta'] = $meta;
 	}
 
 	return $result;
@@ -446,106 +597,10 @@ function parse_request($request) {
 $GLOBALS['_RESULT'] = parse_request($_REQUEST);
 
 
-
 $old_pglimdateTS = $_REQUEST['pglimdateTS'];
 
 
-
-///////////////////////////////
-// Записываем в базу обновления
-///////////////////////////////
-
-// $action можт и не указывать на запись чего-либо в базу. Этот switch перебирает только записывающие действия $action
-switch ($action):
-
-	// добавляем новую тему (тут нет брейка, так и надо)
-	case 'add_topic':
-
-		$new_row['topic_name'] = $params['title'];
-		$result['topic_prop']['new'] = 1;
-
-	// вставляем новое сообщение (адаптировать для старта темы!)
-	case 'add_post':
-
-		$new_row['author_id'] = $user->id;
-		$new_row['parent_id'] = $params['parent'] ? $params['parent'] : $_REQUEST['curTopic'];
-		$new_row['topic_id'] = $_REQUEST['curTopic'];
-		$new_row['message'] = $params['message'];
-		$new_row['created'] = now('sql');
-
-		$new_id = $db->query(
-			'INSERT INTO ?_messages (?#) VALUES (?a)', array_keys($new_row), array_values($new_row)
-		);
-
-		$result['topic_prop']['scrollto'] = $new_id;
-
-		break;
-
-
-	// обновляет запись в ?_messages
-	case 'update_message':
-
-		$upd_id = $params['id'];
-		unset($params['id']);
-		$params['modified'] = now('sql'); // при любом обновлении пишем дату,
-		$params['modifier'] = $user->id; // пользователя, отредактировавшего сообщение
-		$params['locked'] = null; // и убираем блокировку
-
-		$db->query('UPDATE ?_messages SET ?a WHERE id = ?d', $params, $upd_id);
-
-		break;
-
-
-	// удаляем сообщение
-	case 'delete_message':
-
-		// проверка блокировки сообщения
-		$locked = $db->selectCell(
-			'SELECT locked FROM ?_messages WHERE id = ?d', $params['id']
-		);
-
-		if ($locked) {
-
-			$result['error'] = 'post_locked';
-
-		} else {
-
-			$upd_id = $params['id'];
-			unset($params['id']);
-			$params['deleted'] = 1;
-			$params['modifier'] = $user->id;
-			$params['modified'] = now('sql');
-
-			$db->query('UPDATE ?_messages SET ?a WHERE id = ?d', $params, $upd_id);
-		}
-
-		break;
-
-	// убираем тег с темы
-	case 'tag_remove':
-
-		$date = now('sql');
-
-		$msgupd['modified'] = now('sql');
-		$msgupd['modifier'] = $user->id;
-
-		$db->query('UPDATE ?_messages SET ?a WHERE id = ?d', $msgupd, $params['msg']);
-
-		$db->query('DELETE FROM ?_tagmap WHERE message = ?d AND tag = ?d', $params['msg'], $params['tag']);
-
-		break;
-
-endswitch;
-
-//////////////////////////////////
-// Получаем изменения текущей темы
-//////////////////////////////////
-
-
-
-//$GLOBALS['_RESULT'] = $result;
-
-//print_r($_REQUEST);
+//print_r($GLOBALS['debug']);
 /*print_r(json_decode($test, true));
 echo "\n";
 print_r($tag_array);*/

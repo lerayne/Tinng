@@ -75,9 +75,9 @@ tinng.funcs.onWindowLoad = function(){
 			subscriber: t.units.posts,
 			feedName:'topic_data',
 			feed:{
-				feed:'topic',
-				id: curTopic,
-				fields:['id', 'date_read', 'name', 'post_count'] // пока не работает
+				feed:'topic'
+				,id: curTopic
+				//,fields:['id', 'date_read', 'name', 'post_count'] // пока не работает
 			}
 		});
 	}

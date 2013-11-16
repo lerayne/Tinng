@@ -63,16 +63,7 @@ tinng.sync = {
     topicSort:'updated',
     tsReverse:true,
 	filterQuery:'',
-    params:{},
-	test: JSON.stringify({
-		get:{
-			11:{feed:'topics', sort:'updated', reverse_sort:'true', filter:'1|2', laterThan:0},
-			45:{feed:'posts', topic:474, laterThan:0}
-		},
-		set:[
-			{action:'new_message', topic:747, message:'А что я знаю! %-процент, " - кавычка, [] - массив, {} - объект'}
-		]
-	})
+    params:{}
 }
 
 tinng.state.blurred = false; //TODO: отслеживать активность окна
