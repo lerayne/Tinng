@@ -104,14 +104,15 @@ tinng.protos.TopicsUnit = Class(tinng.protos.Unit, {
 			.construct.apply(this, arguments);
 
 		// панель поиска
-		this.searchBox = new t.protos.ui.SearchBox({
+		/*this.searchBox = new t.protos.ui.SearchBox({
 			placeholder: t.txt.filter_by_tags,
 			css:{
 				float:'left'
 			},
 			onConfirm:function(tagSet) {console.log('add tag to filter:', tagSet)}
 		});
-		this.header.$body.prepend(this.searchBox.$body);
+
+		this.header.$body.prepend(this.searchBox.$body);*/
 
 		this.newTopic = $.proxy(this, 'newTopic');
 
