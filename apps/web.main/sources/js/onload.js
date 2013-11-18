@@ -42,7 +42,7 @@ tinng.funcs.onWindowLoad = function(){
     t.sync.plimit = (loadedLimit === false) ? t.sync.plimit : parseInt(loadedLimit);
 
     // запуск соединения с сервером
-    //t.rotor.start('load_pages');
+    t.rotor.start('load_pages');
 
 	var initialSubscriptions = [];
 

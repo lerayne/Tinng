@@ -89,6 +89,19 @@ function extract_tag_array($string) {
 	return $arr;
 }
 
+function strip_nulls($array) {
+
+	foreach ($array as $key => $val) {
+
+		// сначала рекурсивно вычищаем нуллы
+		if (is_array($val)) $array[$key] = strip_nulls($val);
+		// а потом проверяем не $val, а $array[$key] и таким образом рекурсивно избавляемся от пустых массивов
+		if ($array[$key] == null || count($array[$key]) == 0) unset($array[$key]);
+	}
+
+	return $array;
+}
+
 // класс чтения обновлений сервера
 class Feed {
 
@@ -132,7 +145,12 @@ class Feed {
 	function get_topics($params, &$meta = Array()) {
 		global $cfg, $db, $user;
 
-		if (!$meta['updates_since']) $meta['updates_since'] = jsts2sql(0);
+
+		if ($meta['updates_since']) {
+			$update_mode = true;
+		} else {
+			$meta['updates_since'] = jsts2sql(0);
+		}
 
 		$tag_array = extract_tag_array($params['filter']);
 
@@ -145,12 +163,9 @@ class Feed {
 			{JOIN ?_tagmap map ON map.message = msg.id AND map.tag IN(?a)}
 			WHERE GREATEST(IFNULL(msg.modified, msg.created), IFNULL(mupd.modified, mupd.created)) > ? AND msg.topic_id = 0
 			'
-			, (count($tag_array) ? $tag_array : DBSIMPLE_SKIP)
+			, $tag_array // при пустом массиве скип автоматический
 			, $meta['updates_since']
 		);
-
-		$GLOBALS['debug']['since'] = $meta['updates_since'];
-		$GLOBALS['debug']['tags'] = $tag_array;
 
 		// если нет - возвращаем пустой массив и прерываем функцию
 		if (!$any_new) return Array();
@@ -206,7 +221,7 @@ class Feed {
 
 			WHERE msg.topic_id = 0
 				AND (IFNULL(msg.modified, msg.created) > ? OR IFNULL(mupd.modified, mupd.created) > ?)
-				AND ISNULL(msg.deleted)
+				{AND ISNULL(msg.deleted)}
 
 			GROUP BY msg.id
 		";
@@ -215,18 +230,14 @@ class Feed {
 
 			, $cfg['cut_length'], $cfg['cut_length'] // ограничение выборки первого поста
 			, $user->id
-			, (count($tag_array) ? $tag_array : DBSIMPLE_SKIP)
+			, $tag_array // при пустом массиве скип автоматический
 			, $meta['updates_since']
 			, $meta['updates_since']
+			, ($update_mode ? DBSIMPLE_SKIP : true) // достаем удаленные только если мы в режиме обновления, а не начальной загрузки
 		));
-
-		$GLOBALS['debug']['posts'] = count($topics);
-
 
 
 		// выборка тегов
-		// todo - выбираются все теги по неудаленным темам, подходящим под выборку по дате. Нужно чтобы работала выборка и по
-		// самим тегам, но я с этим 2 часа возился - так и не понял. опциональный блок в этом запросе работает только если в массиве один тег
 		$query = "
 			SELECT
 				msg.id AS message,
@@ -236,19 +247,18 @@ class Feed {
 			FROM ?_tagmap map
 			JOIN ?_messages msg ON map.message = msg.id
 			JOIN ?_tags tag ON tag.id = map.tag
-			{
-				JOIN ?_tagmap map2
-					ON map2.message = msg.id
-					AND map2.tag IN (?a)
-        	}
+			{JOIN ?_tagmap map2
+				ON map2.message = msg.id
+				AND map2.tag IN (?a)}
 
 			WHERE ISNULL(msg.deleted) AND IFNULL(msg.modified, msg.created) > ?
-			ORDER BY msg.id, tag.id
+			GROUP BY map.link_id
+			ORDER BY tag.id
 		";
 
 		$tags = $db->select( $query
 
-			, (/*count($tag_array) ? $tag_array : */DBSIMPLE_SKIP)
+			, (count($tag_array) ? $tag_array : DBSIMPLE_SKIP)
 			, $meta['updates_since']
 		);
 
@@ -574,7 +584,7 @@ function parse_request($request) {
 		if ($request['meta']) $meta = $request['meta'];
 
 		// есть ли подписчики и хоть что-то обновленное на сервере?
-		if (count($subscribers) && $feed->any_new()) {
+		if (count($subscribers) /*&& $feed->any_new()*/ ) { // отменил, потому что сейчас не преедается глобальная дата
 
 			foreach ($subscribers as $subscriberId => $subscriptions) {
 
@@ -587,8 +597,8 @@ function parse_request($request) {
 			}
 		}
 
-		// и вот тут мы записываем мету
-		$result['meta'] = $meta;
+		// и вот тут мы записываем мету (параллельно очищая ее от нуллов и пустых массивов)
+		$result['meta'] = strip_nulls($meta);
 	}
 
 	return $result;
@@ -597,11 +607,5 @@ function parse_request($request) {
 $GLOBALS['_RESULT'] = parse_request($_REQUEST);
 
 
-$old_pglimdateTS = $_REQUEST['pglimdateTS'];
-
-
 //print_r($GLOBALS['debug']);
-/*print_r(json_decode($test, true));
-echo "\n";
-print_r($tag_array);*/
 ?>

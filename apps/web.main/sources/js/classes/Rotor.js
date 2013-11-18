@@ -35,9 +35,9 @@ tinng.protos.Rotor.prototype = {
 	// главная функция ротора
 	start:function (action, params) {
 	    var that = this;
-        setTimeout(function(){
+        /*setTimeout(function(){
 			that.wrappedStart(action, params)
-		},0);
+		},0);*/
 	},
 
     // todo: этот враппер-таймаут нужен из-за несовершенства обертки XHR, баг вылазит во время создания новой темы -
