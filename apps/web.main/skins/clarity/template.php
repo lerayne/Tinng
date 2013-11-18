@@ -85,8 +85,9 @@
 
 	</footer>
 
+	
 	<!-- масштабируемый бекграунд -->
-	<img id="scaled-bg" src="<?= path('images/bg1.jpg') ?>">
+	<img id="scaled-bg" src="<?= path('images/bg4.jpg') ?>">
 
 </div>
 
