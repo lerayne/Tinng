@@ -11,7 +11,7 @@ require_once 'php/initial.php';
 // ПОСТРОЕНИЕ ИНТЕРФЕЙСА
 ////////////////////////
 
-// some 2
+// some 22
 
 $columns = array (
 	#'menu', 
