@@ -50,10 +50,7 @@ tinng.funcs.onWindowLoad = function(){
 		subscriber: t.units.topics,
 		feedName: 'topics',
 		feed:{
-			feed:'topics',
-			sort:'updated',
-			sort_reversed:true,
-			filter:''
+			feed:'topics'
 		}
 	});
 
@@ -67,7 +64,7 @@ tinng.funcs.onWindowLoad = function(){
 			feed:{
 				feed:'posts',
 				topic: curTopic,
-				quantity: 1 * parseInt(t.cfg.posts_per_page, 10)
+				limit: 1 * parseInt(t.cfg.posts_per_page, 10)
 			}
 		});
 

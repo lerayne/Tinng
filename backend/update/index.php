@@ -102,6 +102,14 @@ function strip_nulls($array) {
 	return $array;
 }
 
+function load_defaults ($params, $defaults) {
+	foreach ($defaults as $key => $def_val) {
+		if (!$params[$key]) $params[$key] = $def_val;
+	}
+
+	return $params;
+}
+
 // класс чтения обновлений сервера
 class Feed {
 
@@ -145,14 +153,23 @@ class Feed {
 	function get_topics($params, &$meta = Array()) {
 		global $cfg, $db, $user;
 
+		// defaults
+		$params = load_defaults($params, $params_defaults = Array(
+			'sort' 			=> 'updated',
+			'sort_reversed' => true,
+			'filter' 		=> ''
+		));
 
-		if ($meta['updates_since']) {
-			$update_mode = true;
-		} else {
-			$meta['updates_since'] = jsts2sql(0);
-		}
+		$meta = load_defaults($meta, $meta_defaults = Array(
+			'updates_since' => jsts2sql(0)
+		));
 
+		// режим обновления?
+		$update_mode = ($meta['updates_since'] == $meta_defaults['updates_since']);
+
+		// есть фильтрация по тегам?
 		$tag_array = extract_tag_array($params['filter']);
+
 
 		// проверяем простым запросом, есть ли что на вывод вообще, прежде чем отправлять следующего "монстра"))
 		// todo - удалось избавиться от подзапроса для вычисления даты последнего поста темы. Может удастся и в монстре?
@@ -169,6 +186,7 @@ class Feed {
 
 		// если нет - возвращаем пустой массив и прерываем функцию
 		if (!$any_new) return Array();
+
 
 		// todo - рано или поздно с этим монстром надо что-то делать. Оптимизация архитектуры бд...
 		// в данный момент база оптимизирована на скорость записи. Но вообще чтение происходит чаще. Немного спасают
@@ -262,8 +280,6 @@ class Feed {
 			, $meta['updates_since']
 		);
 
-		$GLOBALS['debug']['tags'] = $tags;
-
 		foreach ($tags as $tag) {
 			$id = $tag['message'];
 
@@ -295,31 +311,40 @@ class Feed {
 	function get_posts($posts, &$meta = Array()) {
 		global $cfg, $db, $user;
 
+		// defaults
+		$posts = load_defaults($posts, $posts_defaults = Array(
+			'limit' => 0, // Ограничение выборки последними n сообщениями. 0 - грузить все
+			'show_post' => 0 // При указани на конкретный пост происходит проверка не вне лимита ли он и если да - лимит сдвигается до него
+		));
 
-		// забиваем в эту переменную значение по умолчанию
-		$pglimit_dateSQL = jsts2sql($old_pglimdateTS || 0);
+		$meta = load_defaults($meta, $meta_defaults = Array(
+			'updates_since' => jsts2sql(0),
+			'page_start' => jsts2sql(0)
+		));
 
-		// Если сразу не указано грузить все
-		if ( /*($action == 'load_pages' || $action == 'next_page') &&*/
-			$posts['quantity']
-		) {
 
-			$postcount = $db->selectCell(
-				'SELECT COUNT(id) FROM ?_messages WHERE (topic_id = ?d OR id = ?d) AND deleted <=> NULL',
-				$posts['topic'], $posts['topic']
-			);
+		// Если указано ограничение
+		if ($posts['limit'] != 0) {
 
-			// если сообщений меньше, чем предел для загрузки - сообщаем, что это последняя страница
-			if ($postcount <= $posts['quantity']) $show_all = 1;
+			// Если при этом еще не определена дата
+			if ($meta['page_start'] == $meta_defaults['page_start']) {
+
+				//todo - вычисление даты с учетом указания на сообщение
+				//todo - как мы узнаем, что загружена первая страница? очень просто - в ней есть сообщение, id которого совпадает с id темы
+				//почему нельзя вычислять по кол-ву сообщений? потому что при апдейте кол-во увеличивается, а переподписка не происходит,
+				// соответственно сервер опирается на кол-во сообщений только для вычисления опорной даты, а когда она есть - только чтобы узнать, ограничивать
+				// ли выборку вообще
+			}
 
 			// Определение самого раннего сообщения, с которого нужно грузить страницу (исключительно)
-			if (!$show_all) $pglimit_dateSQL = $db->selectCell('
-				SELECT created AS message FROM ?_messages
+			// todo - вспоминаем, почему исключительно!
+			$meta['page_start'] = $db->selectCell('
+				SELECT created FROM ?_messages
 				WHERE (topic_id = ?d OR id = ?d)
-					AND deleted <=> NULL
+					AND ISNULL(deleted)
 				ORDER BY created DESC
 				LIMIT 1 OFFSET ?d',
-				$posts['topic'], $posts['topic'], $posts['quantity']
+				$posts['topic'], $posts['topic'], $posts['limit']
 			);
 
 			// Если сообщение переданное по ссылке - за пределами текущих страниц
