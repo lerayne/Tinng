@@ -36,13 +36,7 @@ tinng.protos.strategic.XHRShortPoll.prototype = {
 		this.start();
 	},
 
-	// подписывает, или изменяет параметры текущей подписки
-	subscribe:function(){
-
-		var subscriberId = arguments[0];
-		var feedName = arguments[1];
-		var feed = arguments[arguments.length-1];
-
+	_subscribe:function(subscriberId, feedName, feed, soft){
 		var subscriberFeeds = this.subscriptions[subscriberId];
 
 		// если такой подписчик уже есть
@@ -54,28 +48,28 @@ tinng.protos.strategic.XHRShortPoll.prototype = {
 					subscriberFeeds[feedName][key] = feed[key];
 				}
 
-				this.meta[subscriberId][feedName] = {};
-			// иначе создаем новую подписку
+				// сбрасываем ее мету
+				if (!soft) this.meta[subscriberId][feedName] = {};
+
+				// иначе создаем новую подписку
 			} else subscriberFeeds[feedName] = feed;
 
-		// иначе создаем подписчика и подписку у него
+			// иначе создаем подписчика и подписку у него
 		} else {
 			this.subscriptions[subscriberId] = {};
 			this.subscriptions[subscriberId][feedName] = feed;
 		}
 	},
 
-	// полностью перезаписывает существующую подписку
-	rescribe:function(){
-		var subscriberId = arguments[0];
-		var feedName = arguments[1];
-		var feed = arguments[arguments.length-1];
+	// подписывает, или изменяет параметры текущей подписки
+	subscribe:function(subscriberId, feedName, feed){
+		this._subscribe(subscriberId, feedName, feed, false)
+	},
 
-		if (!this.subscriptions[subscriberId]) {
-			this.subscriptions[subscriberId] = {};
-		}
-
-		this.subscriptions[subscriberId][feedName] = feed;
+	// "мягко" изменяет параметры подписки, не меняя ее метаданные
+	// пока-что нужно для динамической подгрузки "страниц"
+	rescribe:function(subscriberId, feedName, feed){
+		this._subscribe(subscriberId, feedName, feed, true)
 	},
 
 	// отменяет подписку

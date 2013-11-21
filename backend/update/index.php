@@ -83,7 +83,7 @@ function extract_tag_array($string) {
 	$arr = array();
 	if (count($chunks) && $chunks[0] != '') {
 		foreach ($chunks as $val) {
-			$arr[] = (int) $val;
+			$arr[] = (int)$val;
 		}
 	}
 	return $arr;
@@ -102,7 +102,7 @@ function strip_nulls($array) {
 	return $array;
 }
 
-function load_defaults ($params, $defaults) {
+function load_defaults($params, $defaults) {
 	foreach ($defaults as $key => $def_val) {
 		if (!$params[$key]) $params[$key] = $def_val;
 	}
@@ -136,8 +136,8 @@ class Feed {
 			FROM ?_messages WHERE IFNULL(modified, created) > ?
 			'
 
-			, /*($action == 'load_pages' || $action == 'next_page') ? 0 :*/ $this->sql_maxdate
-		);
+			, /*($action == 'load_pages' || $action == 'next_page') ? 0 :*/
+			$this->sql_maxdate);
 
 		if ($new_sql_maxdate) {
 			return true;
@@ -145,30 +145,29 @@ class Feed {
 	}
 
 
-
 	///////
 	// темы
 	///////
 
-	function get_topics($params, &$meta = Array()) {
+	function get_topics($topics, &$meta = Array()) {
 		global $cfg, $db, $user;
 
 		// defaults
-		$params = load_defaults($params, $params_defaults = Array(
-			'sort' 			=> 'updated',
+		$topics = load_defaults($topics, $topics_defaults = Array(
+			'sort' => 'updated',
 			'sort_reversed' => true,
-			'filter' 		=> ''
+			'filter' => ''
 		));
 
 		$meta = load_defaults($meta, $meta_defaults = Array(
-			'updates_since' => jsts2sql(0)
+			'updates_since' => '0' // работает как false, а в SQL-запросах по дате - как 0
 		));
 
 		// режим обновления?
-		$update_mode = ($meta['updates_since'] == $meta_defaults['updates_since']);
+		$update_mode = !!$meta['updates_since'];
 
 		// есть фильтрация по тегам?
-		$tag_array = extract_tag_array($params['filter']);
+		$tag_array = extract_tag_array($topics['filter']);
 
 
 		// проверяем простым запросом, есть ли что на вывод вообще, прежде чем отправлять следующего "монстра"))
@@ -178,11 +177,10 @@ class Feed {
 			FROM ?_messages msg
 			LEFT JOIN ?_messages mupd ON mupd.topic_id = msg.id
 			{JOIN ?_tagmap map ON map.message = msg.id AND map.tag IN(?a)}
-			WHERE GREATEST(IFNULL(msg.modified, msg.created), IFNULL(mupd.modified, mupd.created)) > ? AND msg.topic_id = 0
+			WHERE msg.topic_id = 0 { AND GREATEST(IFNULL(msg.modified, msg.created), IFNULL(mupd.modified, mupd.created)) > ?}
 			'
 			, $tag_array // при пустом массиве скип автоматический
-			, $meta['updates_since']
-		);
+			, ($meta['updates_since'] ? $meta['updates_since'] : DBSIMPLE_SKIP));
 
 		// если нет - возвращаем пустой массив и прерываем функцию
 		if (!$any_new) return Array();
@@ -238,20 +236,20 @@ class Feed {
 				AND tagmap.tag IN (?a)}
 
 			WHERE msg.topic_id = 0
-				AND (IFNULL(msg.modified, msg.created) > ? OR IFNULL(mupd.modified, mupd.created) > ?)
+				/* пробовал через GREATEST - сокращает вывод до одной строки */
+				{AND (IFNULL(msg.modified, msg.created) > ?}{ OR IFNULL(mupd.modified, mupd.created) > ?)}
 				{AND ISNULL(msg.deleted)}
 
 			GROUP BY msg.id
 		";
 
-		$topics = make_tree( $db->select( $query
+		$output_topics = make_tree($db->select($query
 
 			, $cfg['cut_length'], $cfg['cut_length'] // ограничение выборки первого поста
-			, $user->id
-			, $tag_array // при пустом массиве скип автоматический
-			, $meta['updates_since']
-			, $meta['updates_since']
-			, ($update_mode ? DBSIMPLE_SKIP : true) // достаем удаленные только если мы в режиме обновления, а не начальной загрузки
+			, $user->id, $tag_array // при пустом массиве скип автоматический
+			, ($meta['updates_since'] ? $meta['updates_since'] : DBSIMPLE_SKIP) // зачем ставить условия, если выбираем всё?
+			, ($meta['updates_since'] ? $meta['updates_since'] : DBSIMPLE_SKIP)
+			, ($update_mode ? true : DBSIMPLE_SKIP) // достаем удаленные только если мы в режиме обновления, а не начальной загрузки
 		));
 
 
@@ -274,34 +272,32 @@ class Feed {
 			ORDER BY tag.id
 		";
 
-		$tags = $db->select( $query
+		$tags = $db->select($query
 
-			, (count($tag_array) ? $tag_array : DBSIMPLE_SKIP)
+			, $tag_array
 			, $meta['updates_since']
 		);
 
 		foreach ($tags as $tag) {
 			$id = $tag['message'];
 
-			if ($topics[$id]) $topics[$id]['tags'][] = $tag;
+			if ($output_topics[$id]) $output_topics[$id]['tags'][] = $tag;
 		}
 
 
-
 		// сортировка. До сортировки массив $topics имеет индекс в виде номера темы
-		switch ($params['sort']){
+		switch ($topics['sort']) {
 
 			case 'updated':
-				$topics = sort_by_field($topics, 'totalmaxd', $params['sort_reverse']);
+				$output_topics = sort_by_field($output_topics, 'totalmaxd', $topics['sort_reverse']);
 				break;
 		}
 
 		$meta['updates_since'] = $any_new;
 
 		// возвращаем полученный массив тем
-		return $topics;
+		return $output_topics;
 	}
-
 
 
 	////////
@@ -318,10 +314,72 @@ class Feed {
 		));
 
 		$meta = load_defaults($meta, $meta_defaults = Array(
-			'updates_since' => jsts2sql(0),
-			'page_start' => jsts2sql(0)
+			'updates_since' => '0', // работает как false, а в SQL-запросах по дате - как 0
+			'slice_start' => '0' // работает как false, а в SQL-запросах по дате - как 0
 		));
 
+
+// секция установки слайсов ////////////////////////////////////////////////////////////////////////////////////////////
+
+
+		// используем для того, чтобы отсечь ненужные условия в запросе
+		if ($posts['limit']) {
+			$postcount = $db->selectCell('', $posts['limit']);
+
+			// если кол-во сообщений в теме меньше, чем ограничение - сбросить ограничение
+			if ($postcount <= $posts['limit']) $posts['limit'] = 0;
+		}
+
+		// если нет ограничения по постам
+		if (!$posts['limit']) {
+
+			// устанавливаем дату "от" на 0
+			$slice_start = '0';
+
+			// если это догрузка - устанавливаем дату "до"
+			if ($meta['slice_start']) $slice_end = $meta['slice_start'];
+
+		} else {
+
+			// если в выборке по лимиту есть более ранние сообщения, чем мета, или же меты нет - возвращаем дату
+			// самого раннего, иначе - мету
+			$slice_start = $db->selectCell(''
+				, ($meta['slice_start'] ? $meta['slice_start'] : DBSIMPLE_SKIP)
+				, $posts['limit']
+			);
+
+			// если передан номер конкретного поста - проверяем, не выходит ли он за слайс-"от" и если да - возвращаем новый слайс-"от"
+			// это только для передачи номера поста по параметру из адрессной строки, поэтому в догрузке не используется
+			if ($posts['show_post']) {
+				$slice_start = $db->selectCell(''
+					, $posts['show_post']
+					, $slice_start
+				);
+			}
+
+			// если в мете слайс-от уже был и он не равен новому - устанавливаем слайс-до в значение из меты
+			if ($meta['slice_start'] && $slice_start != $meta['slice_start']) $slice_end = $meta['slice_start'];
+		}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		// todo - логика по updates_since
+
+		// todo - логика отметок прочитанности
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		// наконец, запрашиваем посты!
+		$output_posts = $db->select(''
+			, ($slice_start ? $slice_start : DBSIMPLE_SKIP)
+			, ($slice_end ? $slice_end : DBSIMPLE_SKIP) // исключительная выборка
+			, ($meta['updates_since'] ? $meta['updates_since'] : DBSIMPLE_SKIP));
+
+		$meta['slice_start'] = $slice_start;
+
+		return $output_posts;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 		// Если указано ограничение
 		if ($posts['limit'] != 0) {
@@ -329,11 +387,9 @@ class Feed {
 			// Если при этом еще не определена дата
 			if ($meta['page_start'] == $meta_defaults['page_start']) {
 
+
 				//todo - вычисление даты с учетом указания на сообщение
-				//todo - как мы узнаем, что загружена первая страница? очень просто - в ней есть сообщение, id которого совпадает с id темы
-				//почему нельзя вычислять по кол-ву сообщений? потому что при апдейте кол-во увеличивается, а переподписка не происходит,
-				// соответственно сервер опирается на кол-во сообщений только для вычисления опорной даты, а когда она есть - только чтобы узнать, ограничивать
-				// ли выборку вообще
+				//todo - как мы узнаем на клиенте что загружена первая страница? очень просто - в ней есть сообщение, id которого совпадает с id темы
 			}
 
 			// Определение самого раннего сообщения, с которого нужно грузить страницу (исключительно)
@@ -343,9 +399,7 @@ class Feed {
 				WHERE (topic_id = ?d OR id = ?d)
 					AND ISNULL(deleted)
 				ORDER BY created DESC
-				LIMIT 1 OFFSET ?d',
-				$posts['topic'], $posts['topic'], $posts['limit']
-			);
+				LIMIT 1 OFFSET ?d', $posts['topic'], $posts['topic'], $posts['limit']);
 
 			// Если сообщение переданное по ссылке - за пределами текущих страниц
 			if ($posts['directMsg']) {
@@ -358,12 +412,7 @@ class Feed {
 				WHERE t.id <= ?d AND (t.topic_id = ?d OR t.id = ?d)
 				ORDER BY t.id desc
 				LIMIT 2
-				', $pglimit_dateSQL
-					, $pglimit_dateSQL
-					, $posts['directMsg']
-					, $posts['topic']
-					, $posts['topic']
-				);
+				', $pglimit_dateSQL, $pglimit_dateSQL, $posts['directMsg'], $posts['topic'], $posts['topic']);
 
 				$pglimit_dateSQL = $direct_dateSQL[1]['newdate'];
 			}
@@ -386,22 +435,14 @@ class Feed {
 
 			// хотим узнать, когда пользователь отмечал эту тему прочитанной
 			if ($user->id != 0) {
-				$date_read = $db->selectCell(
-					'SELECT timestamp FROM ?_unread WHERE user = ?d AND topic = ?d'
-					, $user->id, $posts['topic']
-				);
+				$date_read = $db->selectCell('SELECT timestamp FROM ?_unread WHERE user = ?d AND topic = ?d', $user->id, $posts['topic']);
 
 				// ой, ни разу! Установить ее прочитанной в этот момент!
 				if (!$date_read) {
 
 					$date_read = now('sql');
-					$values = Array(
-						'user' => $user->id,
-						'topic' => $posts['topic'],
-						'timestamp' => $date_read
-					);
-					$db->query('INSERT INTO ?_unread (?#) VALUES (?a)'
-						, array_keys($values), array_values($values));
+					$values = Array('user' => $user->id, 'topic' => $posts['topic'], 'timestamp' => $date_read);
+					$db->query('INSERT INTO ?_unread (?#) VALUES (?a)', array_keys($values), array_values($values));
 
 					$date_read = 'firstRead'; // клиентская часть должна знать!
 				}
@@ -411,8 +452,7 @@ class Feed {
 		}
 
 		// выбираем ВСЕ сообщения с более новой датой (даже удаленные)
-		$result['posts'] = make_tree($db->select(
-			'SELECT
+		$result['posts'] = make_tree($db->select('SELECT
 				msg.id,
 				msg.message,
 				msg.author_id,
@@ -442,17 +482,18 @@ class Feed {
 
 			WHERE
 				(msg.topic_id = ?d OR msg.id = ?d) AND
-				((IFNULL(msg.modified, msg.created) > ? AND msg.created > ?)'
-				. ($action == 'next_page' ? ' OR (msg.created <= ? AND msg.created > ?)' : '') . ')
+				((IFNULL(msg.modified, msg.created) > ? AND msg.created > ?)' . ($action == 'next_page' ? ' OR (msg.created <= ? AND msg.created > ?)' : '') . ')
 			ORDER BY msg.created ASC'
 
-			, $user->id, $user->id
-			, $posts['topic'], $posts['topic']
+			, $user->id
+			, $user->id
+			, $posts['topic']
+			, $posts['topic']
 			, $maxdateSQL
 			, $pglimit_dateSQL
 			, jsts2sql($old_pglimdateTS)
-			, $pglimit_dateSQL
-		));
+			, $pglimit_dateSQL)
+		);
 
 		$result['topic_prop']['name'] = $topic_name; // вывод в клиент имени
 
@@ -484,13 +525,12 @@ class Feed {
 			FROM ?_messages msg
 
 			WHERE msg.id = ?d AND msg.topic_id = 0
-			'
-			, $topic['id'], $topic['id'], $topic['id']
-		);
+			', $topic['id'], $topic['id'], $topic['id']);
 
 		return $topic;
 	}
 }
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 ///////////////////////
@@ -503,7 +543,6 @@ function parse_request($request) {
 	$result = array();
 
 	$feed = new Feed($request['later_than']);
-
 
 
 	///////////////////////////////
@@ -532,9 +571,7 @@ function parse_request($request) {
 					$new_row['message'] = $write['message'];
 					$new_row['created'] = now('sql');
 
-					$new_id = $db->query(
-						'INSERT INTO ?_messages (?#) VALUES (?a)', array_keys($new_row), array_values($new_row)
-					);
+					$new_id = $db->query('INSERT INTO ?_messages (?#) VALUES (?a)', array_keys($new_row), array_values($new_row));
 
 					$result['topic_prop']['scrollto'] = $new_id;
 
@@ -559,9 +596,7 @@ function parse_request($request) {
 				case 'delete_message':
 
 					// проверка блокировки сообщения
-					$locked = $db->selectCell(
-						'SELECT locked FROM ?_messages WHERE id = ?d', $write['id']
-					);
+					$locked = $db->selectCell('SELECT locked FROM ?_messages WHERE id = ?d', $write['id']);
 
 					if ($locked) {
 
@@ -609,7 +644,7 @@ function parse_request($request) {
 		if ($request['meta']) $meta = $request['meta'];
 
 		// есть ли подписчики и хоть что-то обновленное на сервере?
-		if (count($subscribers) /*&& $feed->any_new()*/ ) { // отменил, потому что сейчас не преедается глобальная дата
+		if (count($subscribers) /*&& $feed->any_new()*/) { // отменил, потому что сейчас не преедается глобальная дата
 
 			foreach ($subscribers as $subscriberId => $subscriptions) {
 
