@@ -76,9 +76,10 @@ tinng.protos.strategic.XHRShortPoll.prototype = {
 	unscribe:function(subscriberId, feedName){
 
 		// если такой вообще есть
-		if (this.subscriptions[subscriberId][feedName]) {
+		if (this.subscriptions[subscriberId] && this.subscriptions[subscriberId][feedName]) {
 
 			delete this.subscriptions[subscriberId][feedName];
+			delete this.meta[subscriberId][feedName];
 
 			// считаем, сколько подписок осталось
 			var i = 0;
@@ -89,6 +90,7 @@ tinng.protos.strategic.XHRShortPoll.prototype = {
 			// если ни одной - прибиваем подписчика
 			if (i == 0) {
 				delete this.subscriptions[subscriberId];
+				delete this.meta[subscriberId];
 			}
 		}
 	},

@@ -153,8 +153,35 @@ tinng.protos.TopicNode = Class(tinng.protos.Node, {
 		this.select(); // делаем тему в столбце тем активной
 		t.sync.curTopic = this.id;
 		if (t.user.hasRight('editMessage', t.topics[this.id])) t.units.posts.header.topicRename.show();
+        //t.rotor.start('load_pages');
+
+		// todo - возможно, стоит и установку адреса возложить на connection
 		t.address.set({topic:this.id, plimit:t.sync.plimit});
-        t.rotor.start('load_pages');
+
+		t.connection.unscribe([
+			{subscriber:t.units.posts, feedName:'posts'},
+			{subscriber:t.units.posts, feedName:'topic_data'}
+		]);
+
+		t.connection.subscribe([
+			{
+				subscriber:t.units.posts,
+				feedName:'posts',
+				feed: {
+					feed:'posts',
+					topic: this.id,
+					limit: 1 * parseInt(t.cfg.posts_per_page, 10)
+				}
+			},{
+				subscriber:t.units.posts,
+				feedName:'topic_data',
+				feed: {
+					feed:'topic'
+					,id: this.id
+					//,fields:['id', 'date_read', 'name', 'post_count'] // пока не работает
+				}
+			}
+		]);
 
 		t.units.posts.startWaitIndication();
 	},
@@ -166,6 +193,10 @@ tinng.protos.TopicNode = Class(tinng.protos.Node, {
 
 	deselect:function () {
 		t.funcs.topicDeselect();
+	},
+
+	isSelected:function(){
+		return this.$body.hasClass('active');
 	},
 
 	// демонстрирует удаление ноды в интерфейсе и вызывает окончательное удаление

@@ -13,12 +13,12 @@ tinng.funcs.parser2 = function (result, actions) {
 	if (!result) return false;
 
 	if (result.feeds) {
-		for (var cubscriberId in result.feeds) {
-			if (t.connection.subscribers[cubscriberId] && t.connection.subscribers[cubscriberId].parseFeed) {
+		for (var subscriberId in result.feeds) {
+			if (t.connection.subscribers[subscriberId] && t.connection.subscribers[subscriberId].parseFeed) {
 
-				t.connection.subscribers[cubscriberId].parseFeed(result.feeds[cubscriberId], actions);
+				t.connection.subscribers[subscriberId].parseFeed(result.feeds[subscriberId], actions);
 			} else
-				console.error('subscriber ', cubscriberId, ' doesnt exist, or have no "parseFeed" method. Result:', result);
+				console.error('subscriber ', subscriberId, ' doesnt exist, or have no "parseFeed" method. Result:', result);
 		}
 	}
 }

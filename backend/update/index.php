@@ -241,7 +241,7 @@ class Feed {
 			WHERE msg.topic_id = 0
 				/* пробовал через GREATEST - сокращает вывод до одной строки */
 				{AND (IFNULL(msg.modified, msg.created) > ?}{ OR IFNULL(mupd.modified, mupd.created) > ?)}
-				{AND ISNULL(msg.deleted)}
+				{AND msg.deleted IS NULL AND 1 = ?d}
 
 			GROUP BY msg.id
 		";
@@ -252,7 +252,7 @@ class Feed {
 			, $user->id, $tag_array // при пустом массиве скип автоматический
 			, ($meta['updates_since'] ? $meta['updates_since'] : DBSIMPLE_SKIP) // зачем ставить условия, если выбираем всё?
 			, ($meta['updates_since'] ? $meta['updates_since'] : DBSIMPLE_SKIP)
-			, ($update_mode ? true : DBSIMPLE_SKIP) // достаем удаленные только если мы в режиме обновления, а не начальной загрузки
+			, (!$update_mode ? 1 : DBSIMPLE_SKIP) // достаем удаленные только если мы в режиме обновления, а не начальной загрузки
 		));
 
 
@@ -338,7 +338,15 @@ class Feed {
 
 		// используем для того, чтобы отсечь ненужные условия в запросе
 		if ($posts['limit']) {
-			$postcount = $db->selectCell('', $posts['limit']);
+			// всего постов в теме
+			$postcount = $db->selectCell('
+				SELECT COUNT(id)
+				FROM ?_messages
+				WHERE IF(topic_id = 0, id, topic_id) = ?d
+					AND deleted IS NULL
+				'
+				, $posts['topic']
+			);
 
 			// если кол-во сообщений в теме меньше, чем ограничение - сбросить ограничение
 			if ($postcount <= $posts['limit']) $posts['limit'] = 0;
@@ -386,7 +394,11 @@ class Feed {
 			SELECT GREATEST(MAX(msg.created), IFNULL(MAX(msg.modified), 0))
 			FROM ?_messages msg
 			WHERE IF(msg.topic_id = 0, msg.id, msg.topic_id) = ?d /* topic_id */
+			/*{AND ISNULL(msg.deleted)}*/
 		';
+
+		// issue - если первая выборка даты не выдает удаленных, возможна ситуация когда последний удаленный пост приходит
+		// с ближайшим апдейтом
 
 		if ($slice_end) {
 
@@ -398,25 +410,31 @@ class Feed {
 
 		} else {
 
-			$query .= '--sql
+			$query .= '/*sql*/
 				{AND msg.created >= ?} /* $slice_start */
 				{AND IFNULL(msg.modified, msg.created) > ?} /* $meta["updates_since"] */
 			';
 
 			$new_updates_sinse = $db->selectCell( $query
 				, $posts['topic']
+				//, ($meta['updates_since'] ? true : DBSIMPLE_SKIP)
+
 				, ($slice_start ? $slice_start : DBSIMPLE_SKIP)
 				, ($meta['updates_since'] ? $meta['updates_since'] : DBSIMPLE_SKIP)
 			);
 		}
 
+		// если нечего показывать - возвращаем пустой массив.
+		// todo - возможно нужно что-то сделать со $slice_satrt
+		if (!$new_updates_sinse) return Array();
+
 		// todo - логика отметок прочитанности
 
-		////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+		////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 		// наконец, запрашиваем посты!
 
-		$query_start = '
+		$query = '
 			SELECT
 				msg.id,
 				msg.message,
@@ -446,22 +464,29 @@ class Feed {
 				ON msg.author_id = uset.user_id AND uset.param_key = "avatar"
 			WHERE
 				IF(msg.topic_id = 0, msg.id, msg.topic_id) = ?d
+				{AND ISNULL(msg.deleted) AND 1 = ?d}
 		';
 
 		$query_end = '/*sql*/ ORDER BY msg.created ASC ';
 
-		$query = $query_start;
-		$query .= '/*sql*/ AND ()';
+		$query .= '/*sql*/
+			{AND msg.created >= ?} /* $slice_start */
+			{AND IFNULL(msg.modified, msg.created) > ?} /* $meta["updates_since"] */
+		';
+
 		$query .= $query_end;
 
-		$output_posts = $db->select($query
+		$output_posts = make_tree($db->select($query
 			, $user->id
 			, $user->id
 			, $posts['topic']
+			, (!$meta['updates_since'] ? 1 : DBSIMPLE_SKIP)
 
 			, ($slice_start ? $slice_start : DBSIMPLE_SKIP)
-			, ($slice_end ? $slice_end : DBSIMPLE_SKIP) // исключительная выборка
-			, ($meta['updates_since'] ? $meta['updates_since'] : DBSIMPLE_SKIP));
+			//, ($slice_end ? $slice_end : DBSIMPLE_SKIP) // исключительная выборка
+			, ($meta['updates_since'] ? $meta['updates_since'] : DBSIMPLE_SKIP)
+		));
+
 
 		$meta['slice_start'] = $slice_start;
 		$meta['updates_since'] = $new_updates_sinse;

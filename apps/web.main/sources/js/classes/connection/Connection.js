@@ -86,7 +86,9 @@ tinng.protos.Connection = function (config) {
 	this.unscribe = function() {
 		this.callScribe(wrapped, 'unscribe', arguments);
 
-		return this.refresh();
+		//вроде как здесь не обязательно, потому что отписка не подразумевает возвращения данных
+		//если так - это сильно упрощает работу :)
+		//return this.refresh();
 	}
 
 	// приостанавливает соединение

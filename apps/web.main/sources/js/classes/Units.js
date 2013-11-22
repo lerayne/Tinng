@@ -154,10 +154,6 @@ tinng.protos.TopicsUnit = Class(tinng.protos.Unit, {
 		return false;
 	},
 
-	markActive:function(id){
-		if (t.topics[id]) t.topics[id].select()
-	},
-
 	setFilterQuery:function(tagSet){
 		var newQuery = [];
 
@@ -245,6 +241,8 @@ tinng.protos.TopicsUnit = Class(tinng.protos.Unit, {
 	}
 });
 
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 
@@ -459,6 +457,119 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 
 	parseFeed:function(feed) {
 
+		// разбираем посты
+		if (feed.posts) {
+
+			// наличие id означает что тема загружается в первый раз, а не догружается.
+			// todo - исправить фиговое опредление!
+			/*if (tProps.id) {
+				t.units.posts.clear();
+			}*/
+
+			// управление отображением догрузочных кнопок
+			/*if (tProps.show_all) {
+				t.units.posts.$showMore.hide();
+			} else if (actionUsed == 'next_page' || actionUsed == 'load_pages') {
+				t.units.posts.$showMore.show();
+			}*/
+
+			// если страница догружалась
+			/*if (actionUsed == 'next_page') {
+				var rememberTop = t.units.posts.$content.children()[0];
+				var more_height = t.units.posts.$showMore.offsetHeight();
+				//console.log('moreH=' + more_height);
+			}*/
+
+			for (var i in feed.posts) {
+				var postData = feed.posts[i];
+				var existingPost = t.posts[postData.id];
+
+				// обрабатываем информацию о непрочитанности
+				var modifier = parseInt(postData.modifier_id,10);
+				var author = parseInt(postData.author_id,10);
+
+				// если сообщение было изменено и юзер - его редактор - не показывать непрочитанным, кем бы не был создатель
+				if (!isNaN(modifier) && modifier > 0) {
+					if (modifier == t.user.id) postData.unread = '0';
+				} else if (author == t.user.id) {
+					// если сообщение не редактировалось - не показываем непрочитанность, если юзер - автор
+					 postData.unread = '0';
+				}
+
+				if (existingPost) {
+				// если в текущем массиве загруженных сообщений такое уже есть
+
+					if (postData.deleted) existingPost.remove();
+					else existingPost.fill(postData);
+
+				} else if (!postData.deleted) {
+				// если в текущем массиве такого нет и пришедшее не удалено
+
+					var newPost = t.posts[postData.id] = new t.protos.PostNode(postData);
+					this.addNode(newPost);
+				}
+			}
+
+
+
+			/*if (actionUsed == 'next_page') {
+				rememberTop.scrollIntoView(true);
+				//console.log(t.units.posts.$scrollArea.scrollTop())
+				t.units.posts.$scrollArea.scrollTop(t.units.posts.$scrollArea.scrollTop() - more_height - 3);
+			} // todo - неправильно прокручивается, если до догрузки все сообщения помещались и прокрутка не появлялась*/
+
+			// наличие id означает что тема загружается в первый раз, а не догружается.
+			// todo - исправить фиговое опредление!
+			/*if (tProps.id) {
+
+				// управляем автопрокруткой
+				// Если целевой пост задан в адресе и загружен в теме - проматываем до него
+				var refPost = t.address.get('post');
+
+				if (t.posts[refPost]) {
+
+					t.posts[refPost].select();
+					t.posts[refPost].show(false);
+
+				} else if (tProps.date_read != 'firstRead') {
+					// todo !! тут будет прокрутка до первого непрочитанного поста.
+					// Сейчас - прокрутка просто до последнего сообщения в теме, если юзер уже читал эту тему
+					t.units.posts.scrollToBottom();
+				}
+			}*/
+
+			// это вроде уже не надо
+			//if (tProps.pglimit_date) t.sync.pglimdateTS = t.funcs.sql2stamp(tProps.pglimit_date);
+
+			// todo разобраться почему работает только через анонимную функцию
+			setTimeout(function () {
+				this.contentLoaded = 1
+			});
+
+			//this.setContentLoaded();
+		}
+
+		if (feed.topic_data) {
+
+			var topic = feed.topic_data;
+
+			this.setTopicName(topic.topic_name); //вывод названия темы
+
+			// todo - если введем автовысоту через css - убрать
+			t.ui.winResize(); // потому что от размера названия темы может разнести хедер
+
+			// todo - в будущем тут будет проверка на наличие модулей, подписанных на список тем
+			if (t.topics && t.topics[topic.id]) {
+
+				// если тема есть, но она не выделена - значит тема грузилась не кликом по ней
+				if (!t.topics[topic.id].isSelected()) {
+					t.topics[topic.id].select(); // сделать актвной
+					t.topics[topic.id].show(false); // промотать до нее
+				}
+			}
+
+			//if (tProps.scrollto) t.posts[tProps.scrollto].show(false);
+		}
 	}
 });
 
