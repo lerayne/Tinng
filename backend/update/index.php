@@ -172,18 +172,21 @@ class Feed {
 
 		// проверяем простым запросом, есть ли что на вывод вообще, прежде чем отправлять следующего "монстра"))
 		// todo - удалось избавиться от подзапроса для вычисления даты последнего поста темы. Может удастся и в монстре?
-		$any_new = $db->selectCell('
+		$updates_since = $db->selectCell('
 			SELECT GREATEST(MAX(msg.created), IFNULL(MAX(msg.modified), 0), MAX(mupd.created), IFNULL(MAX(mupd.modified), 0))
 			FROM ?_messages msg
 			LEFT JOIN ?_messages mupd ON mupd.topic_id = msg.id
+
 			{JOIN ?_tagmap map ON map.message = msg.id AND map.tag IN(?a)}
-			WHERE msg.topic_id = 0 { AND GREATEST(IFNULL(msg.modified, msg.created), IFNULL(mupd.modified, mupd.created)) > ?}
+
+			WHERE msg.topic_id = 0
+			{ AND GREATEST(IFNULL(msg.modified, msg.created), IFNULL(mupd.modified, mupd.created)) > ?}
 			'
 			, $tag_array // при пустом массиве скип автоматический
 			, ($meta['updates_since'] ? $meta['updates_since'] : DBSIMPLE_SKIP));
 
 		// если нет - возвращаем пустой массив и прерываем функцию
-		if (!$any_new) return Array();
+		if (!$updates_since) return Array();
 
 
 		// todo - рано или поздно с этим монстром надо что-то делать. Оптимизация архитектуры бд...
@@ -263,11 +266,12 @@ class Feed {
 			FROM ?_tagmap map
 			JOIN ?_messages msg ON map.message = msg.id
 			JOIN ?_tags tag ON tag.id = map.tag
+
 			{JOIN ?_tagmap map2
 				ON map2.message = msg.id
 				AND map2.tag IN (?a)}
 
-			WHERE ISNULL(msg.deleted) AND IFNULL(msg.modified, msg.created) > ?
+			WHERE ISNULL(msg.deleted) {AND IFNULL(msg.modified, msg.created) > ?}
 			GROUP BY map.link_id
 			ORDER BY tag.id
 		";
@@ -275,7 +279,7 @@ class Feed {
 		$tags = $db->select($query
 
 			, $tag_array
-			, $meta['updates_since']
+			, ($meta['updates_since'] ? $meta['updates_since'] : DBSIMPLE_SKIP)
 		);
 
 		foreach ($tags as $tag) {
@@ -293,7 +297,8 @@ class Feed {
 				break;
 		}
 
-		$meta['updates_since'] = $any_new;
+		// все запросы в базу идут со старой датой и только потом мы обновляем ее
+		$meta['updates_since'] = $updates_since;
 
 		// возвращаем полученный массив тем
 		return $output_topics;
@@ -319,7 +324,7 @@ class Feed {
 		));
 
 
-// секция установки слайсов ////////////////////////////////////////////////////////////////////////////////////////////
+		// секция установки слайсов ////////////////////////////////////////////////////////////////////////////////////
 
 
 		// используем для того, чтобы отсечь ненужные условия в запросе
@@ -329,6 +334,7 @@ class Feed {
 			// если кол-во сообщений в теме меньше, чем ограничение - сбросить ограничение
 			if ($postcount <= $posts['limit']) $posts['limit'] = 0;
 		}
+
 
 		// если нет ограничения по постам
 		if (!$posts['limit']) {
@@ -340,9 +346,11 @@ class Feed {
 			if ($meta['slice_start']) $slice_end = $meta['slice_start'];
 
 		} else {
+		//если есть ограничение
 
-			// если в выборке по лимиту есть более ранние сообщения, чем мета, или же меты нет - возвращаем дату
-			// самого раннего, иначе - мету
+			// мета есть, в выборке по лимиту есть более ранние сообщения, чем мета - возвращаем новую дату
+			// меты нет - возвращаем новую дату по лимиту
+			// мета есть и она раньше, чем новая выборка по лимиту - возвращаем мету
 			$slice_start = $db->selectCell(''
 				, ($meta['slice_start'] ? $meta['slice_start'] : DBSIMPLE_SKIP)
 				, $posts['limit']
@@ -361,21 +369,89 @@ class Feed {
 			if ($meta['slice_start'] && $slice_start != $meta['slice_start']) $slice_end = $meta['slice_start'];
 		}
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+		////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-		// todo - логика по updates_since
+		// есть ли хоть что-то к показу? заодно получаем новую дату (пока не учитывает случай догрузки!)
+
+		$query = '
+			SELECT GREATEST(MAX(msg.created), IFNULL(MAX(msg.modified), 0))
+			FROM ?_messages msg
+			WHERE IF(msg.topic_id = 0, msg.id, msg.topic_id) = ?d
+		';
+
+		if ($slice_end) {
+
+			// todo - прописать!!!
+
+			$query .= '';
+
+			$new_updates_sinse = $db->selectCell( $query );
+
+		} else {
+
+			$query .= '--sql
+				{AND msg.created >= ?} /* $slice_start */
+				{AND IFNULL(msg.modified, msg.created) > ?} /* $meta["updates_since"] */
+			';
+
+			$new_updates_sinse = $db->selectCell( $query
+				, $posts['topic']
+				, ($slice_start ? $slice_start : DBSIMPLE_SKIP)
+				, ($meta['updates_since'] ? $meta['updates_since'] : DBSIMPLE_SKIP)
+			);
+		}
 
 		// todo - логика отметок прочитанности
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+		////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 		// наконец, запрашиваем посты!
-		$output_posts = $db->select(''
+
+		$query_start = '
+			SELECT
+				msg.id,
+				msg.message,
+				msg.author_id,
+				msg.parent_id,
+				msg.topic_id,
+				msg.topic_name,
+				msg.created,
+				msg.modified,
+				msg.deleted,
+				msg.modifier,
+				usr.email AS author_email,
+				IFNULL(usr.display_name, usr.login) AS author,
+				IF(unr.timestamp < IFNULL(msg.modified, msg.created) && IFNULL(msg.modifier, msg.author_id) != ?d, 1, 0) AS unread,
+				moder.login AS modifier_name,
+				(SELECT starter.author_id FROM ?_messages starter WHERE starter.id = msg.topic_id ) AS topicstarter,
+				uset.param_value as author_avatar
+			FROM ?_messages msg
+
+			LEFT JOIN ?_users usr
+				ON msg.author_id = usr.id
+			LEFT JOIN ?_unread unr
+				ON unr.topic = IF(msg.topic_id = 0, msg.id, msg.topic_id) AND unr.user = ?d
+			LEFT JOIN ?_users moder
+				ON msg.modifier = moder.id
+			LEFT JOIN ?_user_settings uset
+				ON msg.author_id = uset.user_id AND uset.param_key = "avatar"
+			WHERE
+				IF(msg.topic_id = 0, msg.id, msg.topic_id) = ?d
+		';
+
+		$query_end = ' ORDER BY msg.created ASC';
+
+		$output_posts = $db->select($query_start.' AND ...'.$query_end
+			, $user->id
+			, $user->id
+			, $posts['topic']
+
 			, ($slice_start ? $slice_start : DBSIMPLE_SKIP)
 			, ($slice_end ? $slice_end : DBSIMPLE_SKIP) // исключительная выборка
 			, ($meta['updates_since'] ? $meta['updates_since'] : DBSIMPLE_SKIP));
 
 		$meta['slice_start'] = $slice_start;
+		$meta['updates_since'] = $new_updates_sinse;
 
 		return $output_posts;
 
