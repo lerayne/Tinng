@@ -376,7 +376,7 @@ class Feed {
 		$query = '
 			SELECT GREATEST(MAX(msg.created), IFNULL(MAX(msg.modified), 0))
 			FROM ?_messages msg
-			WHERE IF(msg.topic_id = 0, msg.id, msg.topic_id) = ?d
+			WHERE IF(msg.topic_id = 0, msg.id, msg.topic_id) = ?d /* topic_id */
 		';
 
 		if ($slice_end) {
@@ -439,9 +439,13 @@ class Feed {
 				IF(msg.topic_id = 0, msg.id, msg.topic_id) = ?d
 		';
 
-		$query_end = ' ORDER BY msg.created ASC';
+		$query_end = '/*sql*/ ORDER BY msg.created ASC ';
 
-		$output_posts = $db->select($query_start.' AND ...'.$query_end
+		$query = $query_start;
+		$query .= '/*sql*/ AND ()';
+		$query .= $query_end;
+
+		$output_posts = $db->select($query
 			, $user->id
 			, $user->id
 			, $posts['topic']
