@@ -394,11 +394,11 @@ class Feed {
 			SELECT GREATEST(MAX(msg.created), IFNULL(MAX(msg.modified), 0))
 			FROM ?_messages msg
 			WHERE IF(msg.topic_id = 0, msg.id, msg.topic_id) = ?d /* topic_id */
-			/*{AND ISNULL(msg.deleted)}*/
+			/*{AND msg.deleted IS NULL AND 1 = ?d}*/
 		';
 
 		// issue - если первая выборка даты не выдает удаленных, возможна ситуация когда последний удаленный пост приходит
-		// с ближайшим апдейтом
+		// с ближайшим апдейтом. todo - проверить все ли ок.
 
 		if ($slice_end) {
 
@@ -417,7 +417,7 @@ class Feed {
 
 			$new_updates_sinse = $db->selectCell( $query
 				, $posts['topic']
-				//, ($meta['updates_since'] ? true : DBSIMPLE_SKIP)
+				//, (!$meta['updates_since'] ? 1 : DBSIMPLE_SKIP)
 
 				, ($slice_start ? $slice_start : DBSIMPLE_SKIP)
 				, ($meta['updates_since'] ? $meta['updates_since'] : DBSIMPLE_SKIP)
