@@ -22,7 +22,7 @@ tinng.protos.Connection = function (config) {
 	if (true) {
 		this.wrappedClass = tinng.protos.strategic.XHRShortPoll;
 		this.wrappedClassName = 'tinng.protos.strategic.XHRShortPoll';
-		var wrapped = new this.wrappedClass(this.conf.server, this.conf.callback);
+		var wrapped = this.engine = new this.wrappedClass(this.conf.server, this.conf.callback);
 	}
 
 	// проверка встроенного класса на совместимость

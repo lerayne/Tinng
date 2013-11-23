@@ -371,13 +371,27 @@ class Feed {
 			// мета есть, в выборке по лимиту есть более ранние сообщения, чем мета - возвращаем новую дату
 			// меты нет - возвращаем новую дату по лимиту
 			// мета есть и она раньше, чем новая выборка по лимиту - возвращаем мету
-			$slice_start = $db->selectCell(''
-				, ($meta['slice_start'] ? $meta['slice_start'] : DBSIMPLE_SKIP)
-				, $posts['limit']
+
+			$prev_sstart = $meta['slice_start'] ? $meta['slice_start'] : DBSIMPLE_SKIP;
+
+			$slice_start = $db->selectCell('
+				SELECT
+					{IF(created < ?, created, }{ ?) AS} created
+				FROM ?_messages
+				WHERE IF(topic_id=0, id, topic_id) = ?d AND deleted IS NULL
+				ORDER BY created DESC
+				LIMIT 1 OFFSET ?d
+				'
+				, $prev_sstart, $prev_sstart
+				, $posts['topic']
+				, ((int) $posts['limit'])-1
 			);
+
+			unset($prev_sstart);
 
 			// если передан номер конкретного поста - проверяем, не выходит ли он за слайс-"от" и если да - возвращаем новый слайс-"от"
 			// это только для передачи номера поста по параметру из адрессной строки, поэтому в догрузке не используется
+			// todo - сделать!
 			if ($posts['show_post']) {
 				$slice_start = $db->selectCell(''
 					, $posts['show_post']
@@ -391,45 +405,28 @@ class Feed {
 
 		////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-		// есть ли хоть что-то к показу? заодно получаем новую дату (пока не учитывает случай догрузки!)
-
-		$query = '
+		// смотрим, есть ли сообщение с датой позже чем $meta['updates_since'] и $slice_start
+		// issue - если первая выборка даты не выдает удаленных, возможна ситуация когда последний удаленный пост приходит
+		// с ближайшим апдейтом. todo - проверить все ли ок.
+		$new_updates_since = $db->selectCell( '
 			SELECT GREATEST(MAX(msg.created), IFNULL(MAX(msg.modified), 0))
 			FROM ?_messages msg
 			WHERE IF(msg.topic_id = 0, msg.id, msg.topic_id) = ?d /* topic_id */
-			/*{AND msg.deleted IS NULL AND 1 = ?d}*/
-		';
-
-		// issue - если первая выборка даты не выдает удаленных, возможна ситуация когда последний удаленный пост приходит
-		// с ближайшим апдейтом. todo - проверить все ли ок.
-
-		if ($slice_end) {
-
-			// todo - прописать!!!
-
-			$query .= '';
-
-			$new_updates_sinse = $db->selectCell( $query );
-
-		} else {
-
-			$query .= '/*sql*/
+				/*{AND msg.deleted IS NULL AND 1 = ?d}*/
 				{AND msg.created >= ?} /* $slice_start */
 				{AND IFNULL(msg.modified, msg.created) > ?} /* $meta["updates_since"] */
-			';
+			'
+			, $posts['topic']
+			//, (!$meta['updates_since'] ? 1 : DBSIMPLE_SKIP)
+			, ($slice_start ? $slice_start : DBSIMPLE_SKIP)
+			, ($meta['updates_since'] ? $meta['updates_since'] : DBSIMPLE_SKIP)
+		);
 
-			$new_updates_sinse = $db->selectCell( $query
-				, $posts['topic']
-				//, (!$meta['updates_since'] ? 1 : DBSIMPLE_SKIP)
 
-				, ($slice_start ? $slice_start : DBSIMPLE_SKIP)
-				, ($meta['updates_since'] ? $meta['updates_since'] : DBSIMPLE_SKIP)
-			);
-		}
-
-		// если нечего показывать - возвращаем пустой массив.
+		// если мы не в режиме догрузки и нет новых/обновленных - возвращаем пустой массив.
 		// todo - возможно нужно что-то сделать со $slice_satrt
-		if (!$new_updates_sinse) return Array();
+		if (!$slice_end && !$new_updates_since) return Array();
+
 
 		// todo - логика отметок прочитанности
 
@@ -467,32 +464,51 @@ class Feed {
 				ON msg.author_id = uset.user_id AND uset.param_key = "avatar"
 			WHERE
 				IF(msg.topic_id = 0, msg.id, msg.topic_id) = ?d
-				{AND ISNULL(msg.deleted) AND 1 = ?d}
+				{AND msg.deleted IS NULL AND 1 = ?d}
 		';
 
 		$query_end = '/*sql*/ ORDER BY msg.created ASC ';
 
-		$query .= '/*sql*/
-			{AND msg.created >= ?} /* $slice_start */
-			{AND IFNULL(msg.modified, msg.created) > ?} /* $meta["updates_since"] */
-		';
+		// если режим догрузки
+		if ($slice_end) {
 
-		$query .= $query_end;
+			$query .= '/*sql*/
+				AND msg.created >= ?
+				AND ((msg.created < ? AND msg.deleted IS NULL) OR IFNULL(msg.modified, msg.created) > ?)
+			';
 
-		$output_posts = make_tree($db->select($query
-			, $user->id
-			, $user->id
-			, $posts['topic']
-			, (!$meta['updates_since'] ? 1 : DBSIMPLE_SKIP)
+			$output_posts = make_tree($db->select($query . $query_end
+				, $user->id
+				, $user->id
+				, $posts['topic']
+				, (!$meta['updates_since'] ? 1 : DBSIMPLE_SKIP)
 
-			, ($slice_start ? $slice_start : DBSIMPLE_SKIP)
-			//, ($slice_end ? $slice_end : DBSIMPLE_SKIP) // исключительная выборка
-			, ($meta['updates_since'] ? $meta['updates_since'] : DBSIMPLE_SKIP)
-		));
+				, $slice_start
+				, $slice_end
+				, $meta['updates_since']
+			));
+
+		} else {
+
+			$query .= '/*sql*/
+				{AND msg.created >= ?} /* $slice_start */
+				{AND IFNULL(msg.modified, msg.created) > ?} /* $meta["updates_since"] */
+			';
+
+			$output_posts = make_tree($db->select($query . $query_end
+				, $user->id
+				, $user->id
+				, $posts['topic']
+				, (!$meta['updates_since'] ? 1 : DBSIMPLE_SKIP)
+
+				, ($slice_start ? $slice_start : DBSIMPLE_SKIP)
+				, ($meta['updates_since'] ? $meta['updates_since'] : DBSIMPLE_SKIP)
+			));
+		}
 
 
 		$meta['slice_start'] = $slice_start;
-		$meta['updates_since'] = $new_updates_sinse;
+		if ($new_updates_since) $meta['updates_since'] = $new_updates_since;
 
 		return $output_posts;
 
@@ -611,10 +627,6 @@ class Feed {
 			, jsts2sql($old_pglimdateTS)
 			, $pglimit_dateSQL)
 		);
-
-		$result['topic_prop']['name'] = $topic_name; // вывод в клиент имени
-
-		return array();
 	}
 
 	///////////////
@@ -624,8 +636,29 @@ class Feed {
 	function get_topic($topic, &$meta = Array()) {
 		global $db;
 
-		// проверяем, существует ли тема и читаем ее заголовок.
-		$topic = $db->selectRow('
+		// defaults
+		$topic = load_defaults($topic, $topic_defaults = Array(
+			'id' => 0, // Ограничение выборки последними n сообщениями. 0 - грузить все
+		));
+
+		$meta = load_defaults($meta, $meta_defaults = Array(
+			'updated_at' => '0', // определяем
+		));
+
+		// изменялось ли заглавное сообщение темы?
+		$new_updated_at = $db->selectCell('
+			SELECT IFNULL(msg.modified, msg.created) AS updated
+			FROM ?_messages msg
+			WHERE msg.id = ?d AND msg.topic_id = 0
+			{AND IFNULL(msg.modified, msg.created) > ?}
+			'
+			, $topic['id']
+			, ($meta['updated_at'] ? $meta['updated_at'] : DBSIMPLE_SKIP)
+		);
+
+		if ($new_updated_at) {
+
+			$topic = $db->selectRow('
 			SELECT
 				msg.id,
 				msg.message,
@@ -637,12 +670,22 @@ class Feed {
 				msg.modified,
 				msg.deleted,
 				msg.modifier,
-				(SELECT COUNT(id) FROM ?_messages msgq WHERE (msgq.topic_id = ?d OR msgq.id = ?d) AND deleted <=> NULL) AS post_count
+				(SELECT COUNT(id) FROM ?_messages msgq WHERE IF(msgq.topic_id = 0, msgq.id, msgq.topic_id) = ?d AND deleted IS NULL) AS post_count
 
 			FROM ?_messages msg
 
 			WHERE msg.id = ?d AND msg.topic_id = 0
-			', $topic['id'], $topic['id'], $topic['id']);
+			'
+				, $topic['id']
+				, $topic['id']
+			);
+
+			$meta['updated_at'] = $new_updated_at;
+
+		} else {
+
+			$topic = Array();
+		}
 
 		return $topic;
 	}
@@ -769,7 +812,8 @@ function parse_request($request) {
 					// вызываем метод get_[имя фида]
 					$method_name = 'get_' . $params['feed'];
 					// тут в конце страшная магия - передача параметра в функцию по ссылке
-					$result['feeds'][$subscriberId][$feedName] = $feed->$method_name($params, $meta[$subscriberId][$feedName]);
+					$feed_result = $feed->$method_name($params, $meta[$subscriberId][$feedName]);
+					if (count($feed_result)) $result['feeds'][$subscriberId][$feedName] = $feed_result;
 				}
 			}
 		}

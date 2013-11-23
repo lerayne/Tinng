@@ -75,7 +75,7 @@ tinng.protos.Unit = Class({
 	onScroll:function () {
 		this.scrolledBy = this.$scrollArea.scrollTop();
 
-		this.atBottom = this.scrollAreaH + this.scrolledBy - this.$contentWrap.offsetHeight() == 0;
+		this.atBottom = this.scrollAreaH + this.scrolledBy - this.$contentWrap.offsetHeight() >= 0;
 		this.atTop = this.scrolledBy == 0;
 	},
 
@@ -190,63 +190,64 @@ tinng.protos.TopicsUnit = Class(tinng.protos.Unit, {
 	},
 
 	parseFeed:function(feed) {
-		if (feed.topics){
+		if (feed.topics) this.parseTopics(feed.topics);
+	},
 
-			this.stopWaitIndication();
+	parseTopics:function(topicsList){
+		this.stopWaitIndication();
 
-			for (var i in feed.topics) {
-				var topicData = feed.topics[i];
-				var existingTopic = t.topics[topicData.id];
+		for (var i in topicsList) {
+			var topicData = topicsList[i];
+			var existingTopic = t.topics[topicData.id];
 
-				// обрабатываем информацию о непрочитанности
+			// обрабатываем информацию о непрочитанности
 
-				// Эта логика потребовала размышлений, так что с подробными комментами:
-				// если присутсвует последнее сообщение...
-				if (topicData.last_id) {
-					// и юзер - его автор - не показывать непрочитанным, кем бы не были остальные создатели/редакторы
-					if (parseInt(topicData.lastauthor_id,10) == t.user.id) topicData.unread = '0';
+			// Эта логика потребовала размышлений, так что с подробными комментами:
+			// если присутсвует последнее сообщение...
+			if (topicData.last_id) {
+				// и юзер - его автор - не показывать непрочитанным, кем бы не были остальные создатели/редакторы
+				if (parseInt(topicData.lastauthor_id,10) == t.user.id) topicData.unread = '0';
 
-					// иначе, если есть только первое сообщение и оно было изменено...
-				} else if (topicData.modifier_id && parseInt(topicData.modifier_id,10) > 0) {
-					// и юзер - его редактор - не показывать непрочитанным, кем бы не были остальные создатели/редакторы
-					if (parseInt(topicData.modifier_id,10) == t.user.id) topicData.unread = '0';
+				// иначе, если есть только первое сообщение и оно было изменено...
+			} else if (topicData.modifier_id && parseInt(topicData.modifier_id,10) > 0) {
+				// и юзер - его редактор - не показывать непрочитанным, кем бы не были остальные создатели/редакторы
+				if (parseInt(topicData.modifier_id,10) == t.user.id) topicData.unread = '0';
 
-					// иначе (есть только первое неотредактированное сообщение)
-				} else {
-					// не показываем непрочитанность, если юзер - автор.
-					if (parseInt(topicData.author_id,10) == t.user.id) topicData.unread = '0';
-				}
-				// todo - внимание! в таком случае своё сообщение _отмечается_ непрочитанным, если юзер отредактировал
-				// первое сообщение темы и при этом есть последнее сообщение, которое написал не он, даже если оно уже прочитано
-				// при этом снять "непрочитанность" с такой темы невозможно, так как в ленте сообщений отсутствуют
-				// "непрочитанные" посты, по наведению на которые снимается непрочитанность
-
-				// если в текущем массиве загруженных тем такая уже есть - обновляем существующую
-				if (existingTopic) {
-
-					if (topicData.deleted) {
-
-						existingTopic.remove('fast');
-						//if (topicData.id == t.sync.curTopic) t.funcs.unloadTopic();
-						delete(existingTopic);
-
-					} else {
-						existingTopic.fill(topicData);
-						existingTopic.bump();
-					}
-
-					// если же в текущем массиве тем такой нет и пришедшая не удалена, создаем новую
-				} else if (!topicData.deleted) {
-
-					var topic = t.topics[topicData.id] = new t.protos.TopicNode(topicData);
-					this.addNode(topic);
-					//if (tProps['new']) topic.loadPosts();
-					//ifblur_notify('New Topic: '+topicData.topic_name, topicData.message);
-				}
+				// иначе (есть только первое неотредактированное сообщение)
+			} else {
+				// не показываем непрочитанность, если юзер - автор.
+				if (parseInt(topicData.author_id,10) == t.user.id) topicData.unread = '0';
 			}
+			// todo - внимание! в таком случае своё сообщение _отмечается_ непрочитанным, если юзер отредактировал
+			// первое сообщение темы и при этом есть последнее сообщение, которое написал не он, даже если оно уже прочитано
+			// при этом снять "непрочитанность" с такой темы невозможно, так как в ленте сообщений отсутствуют
+			// "непрочитанные" посты, по наведению на которые снимается непрочитанность
 
-			this.contentLoaded = 1;
+			// если в текущем массиве загруженных тем такая уже есть - обновляем существующую
+			if (existingTopic) {
+
+				if (topicData.deleted) {
+
+					existingTopic.remove('fast');
+					//if (topicData.id == t.sync.curTopic) t.funcs.unloadTopic();
+					delete(existingTopic);
+
+				} else {
+					existingTopic.fill(topicData);
+					existingTopic.bump();
+				}
+
+				// если же в текущем массиве тем такой нет и пришедшая не удалена, создаем новую
+			} else if (!topicData.deleted) {
+
+				var topic = t.topics[topicData.id] = new t.protos.TopicNode(topicData);
+				this.addNode(topic);
+				//if (tProps['new']) topic.loadPosts();
+				//ifblur_notify('New Topic: '+topicData.topic_name, topicData.message);
+			}
 		}
+
+		this.contentLoaded = 1;
 	}
 });
 
@@ -476,125 +477,138 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 
 	parseFeed:function(feed) {
 
-		//console.log('parse posts')
-
 		// разбираем посты
-		if (feed.posts) {
+		if (feed.posts) this.parsePosts(feed.posts);
 
-			// управление отображением догрузочных кнопок
-			/*if (tProps.show_all) {
-				t.units.posts.$showMore.hide();
-			} else if (actionUsed == 'next_page' || actionUsed == 'load_pages') {
-				t.units.posts.$showMore.show();
-			}*/
+		// разбираем свойства темы
+		if (feed.topic_data) this.parseTopicData(feed.topic_data);
+	},
 
-			// если страница догружалась
-			/*if (actionUsed == 'next_page') {
-				var rememberTop = t.units.posts.$content.children()[0];
-				var more_height = t.units.posts.$showMore.offsetHeight();
-				//console.log('moreH=' + more_height);
-			}*/
+	parsePosts:function(postsList){
+		// управление отображением догрузочных кнопок
+		/*if (tProps.show_all) {
+		 t.units.posts.$showMore.hide();
+		 } else if (actionUsed == 'next_page' || actionUsed == 'load_pages') {
+		 t.units.posts.$showMore.show();
+		 }*/
 
-			// определяем, загружается ли тема с нуля
-			var firstLoad = this.isClear();
+		// если страница догружалась
+		/*if (actionUsed == 'next_page') {
+		 var rememberTop = t.units.posts.$content.children()[0];
+		 var more_height = t.units.posts.$showMore.offsetHeight();
+		 //console.log('moreH=' + more_height);
+		 }*/
 
-			// считываем инфу о ссылке на конкретное сообщение
-			var referedPost = t.address.get('post');
+		// определяем, загружается ли тема с нуля
+		var firstLoad = this.isClear();
 
-			// собственно, разбор пришедших сообщений
-			for (var i in feed.posts) {
-				var postData = feed.posts[i];
-				var existingPost = t.posts[postData.id];
+		// считываем инфу о ссылке на конкретное сообщение
+		var referedPost = t.address.get('post');
 
-				// обрабатываем информацию о непрочитанности
-				var modifier = parseInt(postData.modifier_id,10);
-				var author = parseInt(postData.author_id,10);
+		// была ли тема прокручена до низа перед парсингом?
+		var wasAtBottom = this.atBottom;
 
-				// если сообщение было изменено и юзер - его редактор - не показывать непрочитанным, кем бы не был создатель
-				if (!isNaN(modifier) && modifier > 0) {
-					if (modifier == t.user.id) postData.unread = '0';
-				} else if (author == t.user.id) {
-					// если сообщение не редактировалось - не показываем непрочитанность, если юзер - автор
-					 postData.unread = '0';
-				}
+		// собственно, разбор пришедших сообщений
+		for (var i in postsList) {
+			var postData = postsList[i];
+			var existingPost = t.posts[postData.id];
 
-				if (existingPost) {
+			// обрабатываем информацию о непрочитанности
+			var modifier = parseInt(postData.modifier_id,10);
+			var author = parseInt(postData.author_id,10);
+
+			// если сообщение было изменено и юзер - его редактор - не показывать непрочитанным, кем бы не был создатель
+			if (!isNaN(modifier) && modifier > 0) {
+				if (modifier == t.user.id) postData.unread = '0';
+			} else if (author == t.user.id) {
+				// если сообщение не редактировалось - не показываем непрочитанность, если юзер - автор
+				postData.unread = '0';
+			}
+
+			if (existingPost) {
 				// если в текущем массиве загруженных сообщений такое уже есть
 
-					if (postData.deleted) existingPost.remove();
-					else existingPost.fill(postData);
+				if (postData.deleted) existingPost.remove();
+				else existingPost.fill(postData);
 
-				} else if (!postData.deleted) {
+			} else if (!postData.deleted) {
 				// если в текущем массиве такого нет и пришедшее не удалено
 
-					var newPost = t.posts[postData.id] = new t.protos.PostNode(postData);
-					this.addNode(newPost);
+				var newPost = t.posts[postData.id] = new t.protos.PostNode(postData);
+				this.addNode(newPost);
 
-					// если это новым пришел пост, на который ссылались
-					if (referedPost && referedPost == postData.id) {
-						newPost.select();
-						newPost.show(false);
-						// todo - оставить тут, или запрограммировать на будущее прокрутку до него
-					}
+				// если это новым пришел пост, на который ссылались
+				if (referedPost && referedPost == postData.id) {
+					newPost.select();
+					newPost.show(false);
+					// todo - оставить тут, или запрограммировать на будущее прокрутку до него
 				}
 			}
-
-
-
-			/*if (actionUsed == 'next_page') {
-				rememberTop.scrollIntoView(true);
-				//console.log(t.units.posts.$scrollArea.scrollTop())
-				t.units.posts.$scrollArea.scrollTop(t.units.posts.$scrollArea.scrollTop() - more_height - 3);
-			} // todo - неправильно прокручивается, если до догрузки все сообщения помещались и прокрутка не появлялась*/
-
-			// если тема грузилась с нуля
-			if (firstLoad) {
-
-				// управляем автопрокруткой
-				if (/*tProps.date_read == 'firstRead'*/ false) {
-
-				} else {
-
-					// todo !! тут будет прокрутка до первого непрочитанного поста.
-					// todo - еще нужно отслеживать, читал ли юзер тему
-					// Сейчас - прокрутка просто до последнего сообщения в теме
-
-					//console.log('initial load - scrolling to bottom')
-
-					this.scrollToBottom();
-				}
-			}
-
-			// todo разобраться почему работает только через анонимную функцию
-			setTimeout(function () {
-				this.contentLoaded = 1
-			});
-
-			//this.setContentLoaded();
 		}
 
-		if (feed.topic_data) {
-
-			var topic = feed.topic_data;
-
-			this.setTopicName(topic.topic_name); //вывод названия темы
-
-			// todo - если введем автовысоту через css - убрать
-			// todo - эта хрень дергает editor.resize, а там происходит проверка на позицию в прокрутке и прокрутка до последнего
-			t.ui.winResize(); // потому что от размера названия темы может разнести хедер
-
-			// todo - в будущем тут будет проверка на наличие модулей, подписанных на список тем
-			if (t.topics && t.topics[topic.id]) {
-
-				// если тема есть, но она не выделена - значит тема грузилась не кликом по ней
-				if (!t.topics[topic.id].isSelected()) {
-					t.topics[topic.id].select(); // сделать актвной
-					t.topics[topic.id].show(false); // промотать до нее
-				}
-			}
-
-			//if (tProps.scrollto) t.posts[tProps.scrollto].show(false);
+		// прокрутка до конца
+		if (firstLoad || wasAtBottom) {
+			this.scrollToBottom();
 		}
+
+		/*if (actionUsed == 'next_page') {
+		 rememberTop.scrollIntoView(true);
+		 //console.log(t.units.posts.$scrollArea.scrollTop())
+		 t.units.posts.$scrollArea.scrollTop(t.units.posts.$scrollArea.scrollTop() - more_height - 3);
+		 } // todo - неправильно прокручивается, если до догрузки все сообщения помещались и прокрутка не появлялась*/
+
+		// если тема грузилась с нуля
+		/*if (firstLoad) {
+
+		 // управляем автопрокруткой
+		 if (*//*tProps.date_read == 'firstRead'*//* false) {
+
+		 } else {
+
+		 // todo !! тут будет прокрутка до первого непрочитанного поста.
+		 // todo - еще нужно отслеживать, читал ли юзер тему
+		 // Сейчас - прокрутка просто до последнего сообщения в теме
+
+		 //console.log('initial load - scrolling to bottom')
+
+		 this.scrollToBottom();
+		 }
+
+		 } else if (wasAtBottom) { // если апдейт или догрузка и тема была прокручена вниз
+
+		 this.scrollToBottom();
+
+		 }*/
+
+		// todo разобраться почему работает только через анонимную функцию
+		setTimeout(function () {
+			this.contentLoaded = 1
+		});
+
+		//this.setContentLoaded();
+	},
+
+	parseTopicData:function(topicData){
+
+		// todo - сдалеть чтобы данные возвращались только если тема грузится с нуля, или обновлена, а не каждый раз
+		this.setTopicName(topicData.topic_name); //вывод названия темы
+
+		// todo - если введем автовысоту через css - убрать
+		// todo - эта хрень дергает editor.resize, а там происходит проверка на позицию в прокрутке и прокрутка до последнего
+		t.ui.winResize(); // потому что от размера названия темы может разнести хедер
+
+		// todo - в будущем тут будет проверка на наличие модулей, подписанных на список тем
+		if (t.topics && t.topics[topicData.id]) {
+
+			// если тема есть, но она не выделена - значит тема грузилась не кликом по ней
+			if (!t.topics[topicData.id].isSelected()) {
+				t.topics[topicData.id].select(); // сделать актвной
+				// todo - изменить везде show на scrollTo или что-то подобное
+				t.topics[topicData.id].show(false); // промотать до нее
+			}
+		}
+
+		//if (tProps.scrollto) t.posts[tProps.scrollto].show(false);
 	}
 });
 
