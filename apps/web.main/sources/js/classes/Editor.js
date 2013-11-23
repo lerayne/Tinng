@@ -90,7 +90,7 @@ tinng.protos.Editor.prototype = {
     },
 
 	resize:function(){
-		console.log('editor resize');
+		//console.log('editor resize');
 		var posts = t.units.posts;
 		this.$body.width(posts.$content.width());
 

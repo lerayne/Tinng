@@ -68,7 +68,7 @@ tinng.protos.Unit = Class({
 	},
 
 	scrollToBottom:function () {
-		console.log('scroll to bottom');
+		//console.log('scroll to bottom');
 		this.$contentWrap[0].scrollIntoView(false);
 	},
 
@@ -476,7 +476,7 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 
 	parseFeed:function(feed) {
 
-		console.log('parse posts')
+		//console.log('parse posts')
 
 		// разбираем посты
 		if (feed.posts) {
