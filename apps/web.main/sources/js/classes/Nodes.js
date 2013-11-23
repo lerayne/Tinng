@@ -156,13 +156,13 @@ tinng.protos.TopicNode = Class(tinng.protos.Node, {
         //t.rotor.start('load_pages');
 
 		// todo - возможно, стоит и установку адреса возложить на connection
-		t.address.set({topic:this.id, plimit:t.sync.plimit});
+		t.address.set({topic:this.id});
 
-		t.connection.unscribe([
-			{subscriber:t.units.posts, feedName:'posts'},
-			{subscriber:t.units.posts, feedName:'topic_data'}
-		]);
+		// отписываемся от старой темы
+		t.connection.unscribe(t.units.posts, 'posts');
+		t.connection.unscribe(t.units.posts, 'topic_data');
 
+		// подписываемся на новую
 		t.connection.subscribe([
 			{
 				subscriber:t.units.posts,
@@ -348,6 +348,8 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 
 	// прокручивает список до данного сообщения
 	show:function (start) {
+
+		console.log('post show:', this.data.id);
 
 		t.protos
 			.Node.prototype

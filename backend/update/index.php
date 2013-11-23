@@ -213,7 +213,7 @@ class Feed {
 				GREATEST(IFNULL(msg.modified, msg.created), IFNULL(IFNULL(mlast.modified, mlast.created),0)) as totalmaxd,
 				IFNULL(lma.display_name, lma.login) AS lastauthor,
 				lma.id AS lastauthor_id,
-				(SELECT COUNT(mcount.id) FROM ?_messages mcount WHERE mcount.topic_id = msg.id AND mcount.deleted <=> NULL) AS postsquant,
+				(SELECT COUNT(mcount.id) FROM ?_messages mcount WHERE IF(mcount.topic_id = 0, mcount.id, mcount.topic_id) = msg.id AND mcount.deleted IS NULL) AS postsquant,
 				IF(unr.timestamp < GREATEST(IFNULL(msg.modified, msg.created), IFNULL(IFNULL(mlast.modified, mlast.created),0)), 1, 0) AS unread
 			FROM ?_messages msg
 
@@ -338,6 +338,7 @@ class Feed {
 
 		// используем для того, чтобы отсечь ненужные условия в запросе
 		if ($posts['limit']) {
+
 			// всего постов в теме
 			$postcount = $db->selectCell('
 				SELECT COUNT(id)
@@ -347,6 +348,8 @@ class Feed {
 				'
 				, $posts['topic']
 			);
+
+			// todo - идея: сбрасывать лимит на 0 (грузить всё) если юзер еще не читал тему
 
 			// если кол-во сообщений в теме меньше, чем ограничение - сбросить ограничение
 			if ($postcount <= $posts['limit']) $posts['limit'] = 0;

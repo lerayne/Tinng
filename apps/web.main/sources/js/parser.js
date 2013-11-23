@@ -10,6 +10,8 @@
 
 tinng.funcs.parser = function (result, actionUsed) {
 
+	console.log('old_parser!');
+
 	if (!result) return false;
 
 //	console.log('actionUsed: ', actionUsed)

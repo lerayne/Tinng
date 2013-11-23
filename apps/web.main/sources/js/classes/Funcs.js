@@ -79,10 +79,11 @@ Funcs.prototype = {
 
 		if (t.state.selectedPost) t.state.selectedPost.deselect('full');
 		t.units.posts.clear();
-		t.posts = {};
+
 		t.sync.curTopic = 0;
 		t.sync.pglimdateTS = 0;
 		t.sync.plimit = 1;
+
 		t.units.posts.contentLoaded = 0;
 		t.units.posts.header.topicRename.hide(); // todo - сделать нормальный инициализатор и вызывать его здесь и в начале, вместо unloadTopic
 	},
@@ -178,6 +179,13 @@ Funcs.prototype = {
 
 	stopPropagation:function(e){
 		e.stopPropagation();
+	},
+
+	isEmptyObject:function(object){
+		for (var key in object) {
+			if (object.propertyIsEnumerable(key)) return false;
+		}
+		return true;
 	}
 }
 

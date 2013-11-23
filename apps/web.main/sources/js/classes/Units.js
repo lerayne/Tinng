@@ -68,6 +68,7 @@ tinng.protos.Unit = Class({
 	},
 
 	scrollToBottom:function () {
+		console.log('scroll to bottom');
 		this.$contentWrap[0].scrollIntoView(false);
 	},
 
@@ -82,6 +83,10 @@ tinng.protos.Unit = Class({
 		//todo проверить полное удаление из памяти
 		this.$content.children().remove();
 		this.stopWaitIndication();
+	},
+
+	isClear:function(){
+		return !this.$content.children().size();
 	},
 
 	startWaitIndication:function(){
@@ -180,32 +185,36 @@ tinng.protos.TopicsUnit = Class(tinng.protos.Unit, {
 		t.topics = {};
 	},
 
+	isClear:function(){
+		return t.funcs.isEmptyObject(t.topics);
+	},
+
 	parseFeed:function(feed) {
 		if (feed.topics){
 
 			this.stopWaitIndication();
 
 			for (var i in feed.topics) {
-				var entry = feed.topics[i];
-				var existingTopic = t.topics[entry.id];
+				var topicData = feed.topics[i];
+				var existingTopic = t.topics[topicData.id];
 
 				// обрабатываем информацию о непрочитанности
 
 				// Эта логика потребовала размышлений, так что с подробными комментами:
 				// если присутсвует последнее сообщение...
-				if (entry.last_id) {
+				if (topicData.last_id) {
 					// и юзер - его автор - не показывать непрочитанным, кем бы не были остальные создатели/редакторы
-					if (parseInt(entry.lastauthor_id,10) == t.user.id) entry.unread = '0';
+					if (parseInt(topicData.lastauthor_id,10) == t.user.id) topicData.unread = '0';
 
 					// иначе, если есть только первое сообщение и оно было изменено...
-				} else if (entry.modifier_id && parseInt(entry.modifier_id,10) > 0) {
+				} else if (topicData.modifier_id && parseInt(topicData.modifier_id,10) > 0) {
 					// и юзер - его редактор - не показывать непрочитанным, кем бы не были остальные создатели/редакторы
-					if (parseInt(entry.modifier_id,10) == t.user.id) entry.unread = '0';
+					if (parseInt(topicData.modifier_id,10) == t.user.id) topicData.unread = '0';
 
 					// иначе (есть только первое неотредактированное сообщение)
 				} else {
 					// не показываем непрочитанность, если юзер - автор.
-					if (parseInt(entry.author_id,10) == t.user.id) entry.unread = '0';
+					if (parseInt(topicData.author_id,10) == t.user.id) topicData.unread = '0';
 				}
 				// todo - внимание! в таком случае своё сообщение _отмечается_ непрочитанным, если юзер отредактировал
 				// первое сообщение темы и при этом есть последнее сообщение, которое написал не он, даже если оно уже прочитано
@@ -215,24 +224,24 @@ tinng.protos.TopicsUnit = Class(tinng.protos.Unit, {
 				// если в текущем массиве загруженных тем такая уже есть - обновляем существующую
 				if (existingTopic) {
 
-					if (entry.deleted) {
+					if (topicData.deleted) {
 
 						existingTopic.remove('fast');
-						//if (entry.id == t.sync.curTopic) t.funcs.unloadTopic();
+						//if (topicData.id == t.sync.curTopic) t.funcs.unloadTopic();
 						delete(existingTopic);
 
 					} else {
-						existingTopic.fill(entry);
+						existingTopic.fill(topicData);
 						existingTopic.bump();
 					}
 
 					// если же в текущем массиве тем такой нет и пришедшая не удалена, создаем новую
-				} else if (!entry.deleted) {
+				} else if (!topicData.deleted) {
 
-					var topic = t.topics[entry.id] = new t.protos.TopicNode(entry);
+					var topic = t.topics[topicData.id] = new t.protos.TopicNode(topicData);
 					this.addNode(topic);
 					//if (tProps['new']) topic.loadPosts();
-					//ifblur_notify('New Topic: '+entry.topic_name, entry.message);
+					//ifblur_notify('New Topic: '+topicData.topic_name, topicData.message);
 				}
 			}
 
@@ -291,17 +300,28 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 
 		var posts = this.$content.children();
 
+		// если id поста меньше, чем id одного из уже загруженных - вставляем раньше ...
 		if (posts.size()) for (var i = 0; i < posts.length; i++) {
 			var $post = $(posts[i]);
 			if (node.id < parseInt($post.attr('data-number'))) {
 				node.$body.insertBefore($post);
-				return;
+				// .. и завершаем работу метода
+				return true;
 			}
 		}
 
-		t.protos
-			.Unit.prototype
-			.addNode.call(this, node);
+		// если не завеошили выше - пользуемся дефолтом из класса-предка
+		t.protos.Unit.prototype['addNode'].call(this, node);
+	},
+
+	clear:function(){
+		t.protos.Unit.prototype['clear'].apply(this, arguments);
+
+		t.posts = {};
+	},
+
+	isClear:function(){
+		return t.funcs.isEmptyObject(t.posts);
 	},
 
 	setInvitation:function(){
@@ -368,7 +388,6 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 			this.nameBackup = this.header.topicName.$body.html();
 			this.header.save.show();
 			this.header.cancel.show();
-
 
 			this.header.topicName.$body.attr('contenteditable', true);
 			this.header.topicName.$body.focus();
@@ -457,14 +476,10 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 
 	parseFeed:function(feed) {
 
+		console.log('parse posts')
+
 		// разбираем посты
 		if (feed.posts) {
-
-			// наличие id означает что тема загружается в первый раз, а не догружается.
-			// todo - исправить фиговое опредление!
-			/*if (tProps.id) {
-				t.units.posts.clear();
-			}*/
 
 			// управление отображением догрузочных кнопок
 			/*if (tProps.show_all) {
@@ -480,6 +495,13 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 				//console.log('moreH=' + more_height);
 			}*/
 
+			// определяем, загружается ли тема с нуля
+			var firstLoad = this.isClear();
+
+			// считываем инфу о ссылке на конкретное сообщение
+			var referedPost = t.address.get('post');
+
+			// собственно, разбор пришедших сообщений
 			for (var i in feed.posts) {
 				var postData = feed.posts[i];
 				var existingPost = t.posts[postData.id];
@@ -507,6 +529,13 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 
 					var newPost = t.posts[postData.id] = new t.protos.PostNode(postData);
 					this.addNode(newPost);
+
+					// если это новым пришел пост, на который ссылались
+					if (referedPost && referedPost == postData.id) {
+						newPost.select();
+						newPost.show(false);
+						// todo - оставить тут, или запрограммировать на будущее прокрутку до него
+					}
 				}
 			}
 
@@ -518,28 +547,23 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 				t.units.posts.$scrollArea.scrollTop(t.units.posts.$scrollArea.scrollTop() - more_height - 3);
 			} // todo - неправильно прокручивается, если до догрузки все сообщения помещались и прокрутка не появлялась*/
 
-			// наличие id означает что тема загружается в первый раз, а не догружается.
-			// todo - исправить фиговое опредление!
-			/*if (tProps.id) {
+			// если тема грузилась с нуля
+			if (firstLoad) {
 
 				// управляем автопрокруткой
-				// Если целевой пост задан в адресе и загружен в теме - проматываем до него
-				var refPost = t.address.get('post');
+				if (/*tProps.date_read == 'firstRead'*/ false) {
 
-				if (t.posts[refPost]) {
+				} else {
 
-					t.posts[refPost].select();
-					t.posts[refPost].show(false);
-
-				} else if (tProps.date_read != 'firstRead') {
 					// todo !! тут будет прокрутка до первого непрочитанного поста.
-					// Сейчас - прокрутка просто до последнего сообщения в теме, если юзер уже читал эту тему
-					t.units.posts.scrollToBottom();
-				}
-			}*/
+					// todo - еще нужно отслеживать, читал ли юзер тему
+					// Сейчас - прокрутка просто до последнего сообщения в теме
 
-			// это вроде уже не надо
-			//if (tProps.pglimit_date) t.sync.pglimdateTS = t.funcs.sql2stamp(tProps.pglimit_date);
+					//console.log('initial load - scrolling to bottom')
+
+					this.scrollToBottom();
+				}
+			}
 
 			// todo разобраться почему работает только через анонимную функцию
 			setTimeout(function () {
@@ -556,6 +580,7 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 			this.setTopicName(topic.topic_name); //вывод названия темы
 
 			// todo - если введем автовысоту через css - убрать
+			// todo - эта хрень дергает editor.resize, а там происходит проверка на позицию в прокрутке и прокрутка до последнего
 			t.ui.winResize(); // потому что от размера названия темы может разнести хедер
 
 			// todo - в будущем тут будет проверка на наличие модулей, подписанных на список тем
