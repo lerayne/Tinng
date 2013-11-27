@@ -10,17 +10,19 @@
 
 tinng.protos.Unit = Class({
 
-	initialize:function (data) {
+	initialize: function (data) {
 		this.construct(data);
 	},
 
-	construct:function (data) {
+	construct: function (data) {
 
 		/* СБОР */
 
 		this.data = data;
 
 		this.contentLoaded = 0;
+
+		this.subscriptions = {};
 
 		// todo - переделать под чанки
 		var $body = this.$body = t.chunks.get('unit');
@@ -49,56 +51,56 @@ tinng.protos.Unit = Class({
 		this.$scrollArea.scroll();
 	},
 
-	setHeight:function (num) {
+	setHeight: function (num) {
 		var height = num - this.$header.offsetHeight() - this.$footer.offsetHeight();
 		this.scrollAreaH = height;
 		this.$scrollArea.height(height);
 	},
 
-	addNode:function (node) {
+	addNode: function (node) {
 		this.$content.append(node.$body);
 	},
 
-	addNodeOnTop:function (node) {
+	addNodeOnTop: function (node) {
 		this.$content.prepend(node.$body);
 	},
 
-	scrollToTop:function () {
+	scrollToTop: function () {
 		this.$contentWrap[0].scrollIntoView(true);
 	},
 
-	scrollToBottom:function () {
+	scrollToBottom: function () {
 		//console.log('scroll to bottom');
 		this.$contentWrap[0].scrollIntoView(false);
 	},
 
-	onScroll:function () {
+	onScroll: function () {
 		this.scrolledBy = this.$scrollArea.scrollTop();
 
 		this.atBottom = this.scrollAreaH + this.scrolledBy - this.$contentWrap.offsetHeight() >= 0;
 		this.atTop = this.scrolledBy == 0;
 	},
 
-	clear:function(){
+	clear: function () {
 		//todo проверить полное удаление из памяти
 		this.$content.children().remove();
 		this.stopWaitIndication();
 	},
 
-	isClear:function(){
+	isClear: function () {
 		return !this.$content.children().size();
 	},
 
-	startWaitIndication:function(){
+	startWaitIndication: function () {
 		this.clear();
 		this.$scrollArea.addClass('loading');
 	},
 
-	stopWaitIndication:function(){
+	stopWaitIndication: function () {
 		this.$scrollArea.removeClass('loading');
 	},
 
-	parseFeed:function(feed) {
+	parseFeed: function (feed) {
 		console.log('this is only a placeholder for "parseFeed". Feeds are: ', feed)
 	}
 });
@@ -106,7 +108,7 @@ tinng.protos.Unit = Class({
 
 tinng.protos.TopicsUnit = Class(tinng.protos.Unit, {
 
-	construct:function () {
+	construct: function () {
 		var that = this;
 
 		t.protos
@@ -116,10 +118,10 @@ tinng.protos.TopicsUnit = Class(tinng.protos.Unit, {
 		// панель поиска
 		this.searchBox = new t.protos.ui.SearchBox({
 			placeholder: t.txt.filter_by_tags,
-			css:{
-				float:'left'
+			css: {
+				float: 'left'
 			},
-			onConfirm:function(tagSet) {
+			onConfirm: function (tagSet) {
 				that.setFilterQuery(tagSet);
 			}
 		});
@@ -129,17 +131,17 @@ tinng.protos.TopicsUnit = Class(tinng.protos.Unit, {
 
 		this.header.newTopic.on('click', this.newTopic);
 
-        if (!t.user.hasRight('createTopic')) this.header.newTopic.block();
+		if (!t.user.hasRight('createTopic')) this.header.newTopic.block();
 	},
 
-	newTopic:function () {
+	newTopic: function () {
 		this.header.newTopic.block();
 		t.units.posts.newTopic();
 
 		return false;
 	},
 
-	addNode:function(node){
+	addNode: function (node) {
 		//todo - реализация похожа на node.bump - подумать что с этим можно сделать
 
 		switch (t.sync.topicSort) {
@@ -159,12 +161,12 @@ tinng.protos.TopicsUnit = Class(tinng.protos.Unit, {
 		return false;
 	},
 
-	setFilterQuery:function(tagSet){
+	setFilterQuery: function (tagSet) {
 		var newQuery = [];
 
 		console.log('tagSet: ', tagSet)
 
-		for (var i in tagSet){
+		for (var i in tagSet) {
 			newQuery.push(tagSet[i].id);
 		}
 
@@ -179,22 +181,23 @@ tinng.protos.TopicsUnit = Class(tinng.protos.Unit, {
 		//t.rotor.start('load_pages');
 	},
 
-	clear:function(){
+	clear: function () {
 		t.protos.Unit.prototype['clear'].apply(this, arguments);
 
 		t.topics = {};
 	},
 
-	isClear:function(){
+	isClear: function () {
 		return t.funcs.isEmptyObject(t.topics);
 	},
 
-	parseFeed:function(feed) {
+	parseFeed: function (feed) {
+		this.stopWaitIndication();
+
 		if (feed.topics) this.parseTopics(feed.topics);
 	},
 
-	parseTopics:function(topicsList){
-		this.stopWaitIndication();
+	parseTopics: function (topicsList) {
 
 		for (var i in topicsList) {
 			var topicData = topicsList[i];
@@ -206,17 +209,17 @@ tinng.protos.TopicsUnit = Class(tinng.protos.Unit, {
 			// если присутсвует последнее сообщение...
 			if (topicData.last_id) {
 				// и юзер - его автор - не показывать непрочитанным, кем бы не были остальные создатели/редакторы
-				if (parseInt(topicData.lastauthor_id,10) == t.user.id) topicData.unread = '0';
+				if (parseInt(topicData.lastauthor_id, 10) == t.user.id) topicData.unread = '0';
 
 				// иначе, если есть только первое сообщение и оно было изменено...
-			} else if (topicData.modifier_id && parseInt(topicData.modifier_id,10) > 0) {
+			} else if (topicData.modifier_id && parseInt(topicData.modifier_id, 10) > 0) {
 				// и юзер - его редактор - не показывать непрочитанным, кем бы не были остальные создатели/редакторы
-				if (parseInt(topicData.modifier_id,10) == t.user.id) topicData.unread = '0';
+				if (parseInt(topicData.modifier_id, 10) == t.user.id) topicData.unread = '0';
 
 				// иначе (есть только первое неотредактированное сообщение)
 			} else {
 				// не показываем непрочитанность, если юзер - автор.
-				if (parseInt(topicData.author_id,10) == t.user.id) topicData.unread = '0';
+				if (parseInt(topicData.author_id, 10) == t.user.id) topicData.unread = '0';
 			}
 			// todo - внимание! в таком случае своё сообщение _отмечается_ непрочитанным, если юзер отредактировал
 			// первое сообщение темы и при этом есть последнее сообщение, которое написал не он, даже если оно уже прочитано
@@ -256,7 +259,7 @@ tinng.protos.TopicsUnit = Class(tinng.protos.Unit, {
 
 tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 
-	construct:function () {
+	construct: function () {
 
 		t.protos.Unit.prototype
 			.construct.apply(this, arguments);
@@ -269,18 +272,18 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 		this.saveName = $.proxy(this, 'saveName');
 		this.cancelNewTopic = $.proxy(this, 'cancelNewTopic');
 
-        // прячем ненужные пока контролы
+		// прячем ненужные пока контролы
 		this.header.save.hide();
 		this.header.cancel.hide();
 		this.header.cancelNewTopic.hide();
 
-        // расстановка событий
+		// расстановка событий
 		this.header.topicRename.on('click', this.topicRename);
 		this.header.cancel.on('click', this.cancelRename);
 		this.header.save.on('click', this.saveName);
 		this.header.cancelNewTopic.on('click', this.cancelNewTopic);
 
-        // проверка прав
+		// проверка прав
 		this.header.topicRename.hide();
 
 		this.$showMore = $('<div class="showmore"/>');
@@ -297,7 +300,7 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 		this.$showMore.append(showNext, showAll);
 	},
 
-	addNode:function (node) {
+	addNode: function (node) {
 
 		var posts = this.$content.children();
 
@@ -315,27 +318,27 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 		t.protos.Unit.prototype['addNode'].call(this, node);
 	},
 
-	clear:function(){
+	clear: function () {
 		t.protos.Unit.prototype['clear'].apply(this, arguments);
 
 		t.posts = {};
 	},
 
-	isClear:function(){
+	isClear: function () {
 		return t.funcs.isEmptyObject(t.posts);
 	},
 
-	setInvitation:function(){
+	setInvitation: function () {
 		this.clear();
 		this.$content.append(t.chunks.get('posts-default'));
 	},
 
 	/*startWaitIndication:function(){
-		this.clear();
-		this.$scrollArea.addClass('loading');
-	},*/
+	 this.clear();
+	 this.$scrollArea.addClass('loading');
+	 },*/
 
-	onScroll:function () {
+	onScroll: function () {
 
 		t.protos
 			.Unit.prototype
@@ -353,24 +356,24 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 		}
 	},
 
-	showNext:function () {
+	showNext: function () {
 		t.funcs.loadMore(t.sync.plimit + 1);
 	},
 
-	showAll:function () {
+	showAll: function () {
 		t.funcs.loadMore(0);
 	},
 
-	topicRename:function () {
+	topicRename: function () {
 		JsHttpRequest.query('backend/service.php', { // аргументы:
-			action:'check_n_lock',
-			id:t.sync.curTopic
+			action: 'check_n_lock',
+			id: t.sync.curTopic
 		}, this.enterRenameMode, true);
 
 		return false;
 	},
 
-	enterRenameMode:function (result, errors) {
+	enterRenameMode: function (result, errors) {
 
 		if (result.locked !== null) {
 
@@ -395,7 +398,7 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 		}
 	},
 
-	exitRenameMode:function () {
+	exitRenameMode: function () {
 		this.header.topicRename.show();
 		this.header.save.hide();
 		this.header.cancel.hide();
@@ -403,7 +406,7 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 		this.header.topicName.$body.removeAttr('contenteditable');
 	},
 
-	cancelRename:function () {
+	cancelRename: function () {
 
 		this.exitRenameMode();
 		this.unlock();
@@ -413,11 +416,11 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 		return false;
 	},
 
-	saveName:function () {
+	saveName: function () {
 
 		t.rotor.start('update_message', {
-			id:t.sync.curTopic,
-			topic_name:this.header.topicName.$body.html()
+			id: t.sync.curTopic,
+			topic_name: this.header.topicName.$body.html()
 		});
 
 		this.exitRenameMode();
@@ -425,10 +428,10 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 		return false; // preventDefault + stopPropagation
 	},
 
-	unlock:function () {
+	unlock: function () {
 		JsHttpRequest.query('backend/service.php', { // аргументы:
-			action:'unlock_message',
-			id:t.sync.curTopic
+			action: 'unlock_message',
+			id: t.sync.curTopic
 		}, function () {
 		}, true);
 
@@ -437,7 +440,7 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 		return false; // preventDefault + stopPropagation
 	},
 
-	newTopic:function () {
+	newTopic: function () {
 
 		t.funcs.unloadTopic();
 
@@ -446,14 +449,14 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 		this.$showMore.hide();
 		this.header.topicName.$body.html('');
 		this.header.topicName.$body.attr('contenteditable', true);
-        this.header.topicName.$body.focus();
+		this.header.topicName.$body.focus();
 
 		this.newTopicMode = true;
 
 		return false;
 	},
 
-	exitNewTopicMode:function(){
+	exitNewTopicMode: function () {
 		this.header.topicRename.show();
 		this.header.cancelNewTopic.hide();
 		this.header.topicName.$body.removeAttr('contenteditable');
@@ -462,7 +465,7 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 		this.newTopicMode = false;
 	},
 
-	cancelNewTopic:function(){
+	cancelNewTopic: function () {
 
 		t.funcs.unloadTopic();
 		this.header.topicName.$body.html('');
@@ -471,11 +474,12 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 		return false;
 	},
 
-	setTopicName:function(name){
+	setTopicName: function (name) {
 		this.header.topicName.$body.html(name)
 	},
 
-	parseFeed:function(feed) {
+	parseFeed: function (feed) {
+		this.stopWaitIndication();
 
 		// разбираем посты
 		if (feed.posts) this.parsePosts(feed.posts);
@@ -484,13 +488,7 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 		if (feed.topic_data) this.parseTopicData(feed.topic_data);
 	},
 
-	parsePosts:function(postsList){
-		// управление отображением догрузочных кнопок
-		/*if (tProps.show_all) {
-		 t.units.posts.$showMore.hide();
-		 } else if (actionUsed == 'next_page' || actionUsed == 'load_pages') {
-		 t.units.posts.$showMore.show();
-		 }*/
+	parsePosts: function (postsList) {
 
 		// если страница догружалась
 		/*if (actionUsed == 'next_page') {
@@ -514,8 +512,8 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 			var existingPost = t.posts[postData.id];
 
 			// обрабатываем информацию о непрочитанности
-			var modifier = parseInt(postData.modifier_id,10);
-			var author = parseInt(postData.author_id,10);
+			var modifier = parseInt(postData.modifier_id, 10);
+			var author = parseInt(postData.author_id, 10);
 
 			// если сообщение было изменено и юзер - его редактор - не показывать непрочитанным, кем бы не был создатель
 			if (!isNaN(modifier) && modifier > 0) {
@@ -525,30 +523,46 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 				postData.unread = '0';
 			}
 
-			if (existingPost) {
-				// если в текущем массиве загруженных сообщений такое уже есть
+			if (existingPost) { // если в текущем массиве загруженных сообщений такое уже есть
 
 				if (postData.deleted) existingPost.remove();
 				else existingPost.fill(postData);
 
-			} else if (!postData.deleted) {
-				// если в текущем массиве такого нет и пришедшее не удалено
+			} else if (!postData.deleted) { // если такого нет и пришедшее не удалено
 
 				var newPost = t.posts[postData.id] = new t.protos.PostNode(postData);
 				this.addNode(newPost);
 
-				// если это новым пришел пост, на который ссылались
-				if (referedPost && referedPost == postData.id) {
+				if (referedPost && referedPost == postData.id) { // если это новым пришел пост, на который ссылались
 					newPost.select();
 					newPost.show(false);
 					// todo - оставить тут, или запрограммировать на будущее прокрутку до него
 				}
+
+				// если id поста совпадает с id темы - значит тема догрузилась до начала
+				if (postData.id == this.subscriptions['posts'].topic) var topicHeadLoaded = true;
 			}
 		}
 
-		// прокрутка до конца
-		if (firstLoad || wasAtBottom) {
+		// если тема грузилась с нуля
+		if (firstLoad) {
+
+			if (false) {
+				// todo - если юзер читает тему в первый раз - выполнить особые условия
+			} else {
+				//todo - cделать прокрутку до первого непрочитанного поста.
+				this.scrollToBottom();
+			}
+
+		} else if (wasAtBottom) { // если апдейт или догрузка и тема была прокручена вниз
 			this.scrollToBottom();
+		}
+
+		// управление отображением догрузочных кнопок
+		if (typeof topicHeadLoaded != 'undefined' && topicHeadLoaded) {
+			t.units.posts.$showMore.hide();
+		} else {
+			t.units.posts.$showMore.show();
 		}
 
 		/*if (actionUsed == 'next_page') {
@@ -557,28 +571,7 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 		 t.units.posts.$scrollArea.scrollTop(t.units.posts.$scrollArea.scrollTop() - more_height - 3);
 		 } // todo - неправильно прокручивается, если до догрузки все сообщения помещались и прокрутка не появлялась*/
 
-		// если тема грузилась с нуля
-		/*if (firstLoad) {
 
-		 // управляем автопрокруткой
-		 if (*//*tProps.date_read == 'firstRead'*//* false) {
-
-		 } else {
-
-		 // todo !! тут будет прокрутка до первого непрочитанного поста.
-		 // todo - еще нужно отслеживать, читал ли юзер тему
-		 // Сейчас - прокрутка просто до последнего сообщения в теме
-
-		 //console.log('initial load - scrolling to bottom')
-
-		 this.scrollToBottom();
-		 }
-
-		 } else if (wasAtBottom) { // если апдейт или догрузка и тема была прокручена вниз
-
-		 this.scrollToBottom();
-
-		 }*/
 
 		// todo разобраться почему работает только через анонимную функцию
 		setTimeout(function () {
@@ -588,7 +581,7 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 		//this.setContentLoaded();
 	},
 
-	parseTopicData:function(topicData){
+	parseTopicData: function (topicData) {
 
 		// todo - сдалеть чтобы данные возвращались только если тема грузится с нуля, или обновлена, а не каждый раз
 		this.setTopicName(topicData.topic_name); //вывод названия темы

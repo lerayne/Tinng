@@ -22,8 +22,8 @@ tinng.protos.Connection = function (config) {
 	if (true) {
 		this.wrappedClass = tinng.protos.strategic.XHRShortPoll;
 		this.wrappedClassName = 'tinng.protos.strategic.XHRShortPoll';
-		var wrapped = this.engine = new this.wrappedClass(this.conf.server, this.conf.callback);
 	}
+	var wrapped = this.engine = new this.wrappedClass(this.conf.server, this.conf.callback);
 
 	// проверка встроенного класса на совместимость
 
@@ -114,21 +114,57 @@ tinng.protos.Connection.prototype = {
 		if (args.length > 1) {
 			args[0] = this.subscriberId(args[0]);
 
+			this['copy_'+funcName].apply(this, args);
 			return object[funcName].apply(object, args);
 
 		} else if (args[0] instanceof Array) {
 			for (var i = 0; i < args[0].length; i++) {
 
 				var params = args[0][i];
+				var subscriberId = this.subscriberId(params.subscriber);
 
-				object[funcName].call(object, this.subscriberId(params.subscriber), params.feedName, params.feed);
+				this['copy_'+funcName](subscriberId, params.feedName, params.feed);
+				object[funcName].call(object, subscriberId, params.feedName, params.feed);
 			}
 
 		} else if (args[0] instanceof Object) {
 
 			var params = args[0];
+			var subscriberId = this.subscriberId(params.subscriber);
 
-			object[funcName].call(object, this.subscriberId(params.subscriber), params.feedName, params.feed);
+			this['copy_'+funcName](subscriberId, params.feedName, params.feed);
+			object[funcName].call(object, subscriberId, params.feedName, params.feed);
 		}
+	},
+
+	// создает копию подписки в объекте-подписчике
+	copy_subscribe:function(subscriberId, feedName, feed){
+
+		var subscriberFeeds = this.subscribers[subscriberId].subscriptions;
+
+		// если такой подписчик уже есть
+		if (subscriberFeeds) {
+
+			if (subscriberFeeds[feedName]) for (var key in feed) subscriberFeeds[feedName][key] = feed[key];
+			else subscriberFeeds[feedName] = feed;
+
+		} else { // иначе создаем подписчика и подписку у него
+			this.subscribers[subscriberId].subscriptions = {};
+			this.subscribers[subscriberId].subscriptions[feedName] = feed;
+		}
+	},
+
+	copy_rescribe:function(){
+		this.copy_subscribe.apply(this, arguments);
+	},
+
+	// удаляет копию подписки в объекте-подписчике
+	copy_unscribe:function(subscriberId, feedName){
+		var subscriber = this.subscribers[subscriberId];
+
+		if (subscriber.subscriptions && subscriber.subscriptions[feedName])
+			delete this.subscribers[subscriberId].subscriptions[feedName];
+
 	}
+
 }

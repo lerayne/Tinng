@@ -25,6 +25,9 @@ tinng.protos.strategic.XHRShortPoll = function(server, callback){
 }
 
 tinng.protos.strategic.XHRShortPoll.prototype = {
+
+	// интерфейсные методы
+
 	refresh:function(){
 		this.start();
 	},
@@ -54,8 +57,7 @@ tinng.protos.strategic.XHRShortPoll.prototype = {
 				// иначе создаем новую подписку
 			} else subscriberFeeds[feedName] = feed;
 
-			// иначе создаем подписчика и подписку у него
-		} else {
+		} else { // иначе создаем подписчика и подписку у него
 			this.subscriptions[subscriberId] = {};
 			this.subscriptions[subscriberId][feedName] = feed;
 		}
