@@ -180,7 +180,7 @@ class Feed {
 			{JOIN ?_tagmap map ON map.message = msg.id AND map.tag IN(?a)}
 
 			WHERE msg.topic_id = 0
-			{ AND GREATEST(IFNULL(msg.modified, msg.created), IFNULL(mupd.modified, mupd.created)) > ?}
+			{AND GREATEST(IFNULL(msg.modified, msg.created), IFNULL(mupd.modified, mupd.created)) > ?}
 			'
 			, $tag_array // при пустом массиве скип автоматический
 			, ($meta['updates_since'] ? $meta['updates_since'] : DBSIMPLE_SKIP));
@@ -675,9 +675,9 @@ function parse_request($request) {
 
 					$upd_id = $write['id'];
 					unset($write['id']);
-					$params['modified'] = now('sql'); // при любом обновлении пишем дату,
-					$params['modifier'] = $user->id; // пользователя, отредактировавшего сообщение
-					$params['locked'] = null; // и убираем блокировку
+					$write['modified'] = now('sql'); // при любом обновлении пишем дату,
+					$write['modifier'] = $user->id; // пользователя, отредактировавшего сообщение
+					$write['locked'] = null; // и убираем блокировку
 
 					$db->query('UPDATE ?_messages SET ?a WHERE id = ?d', $write, $upd_id);
 

@@ -501,6 +501,8 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 		// определяем, загружается ли тема с нуля
 		var firstLoad = this.isClear();
 
+
+
 		// считываем инфу о ссылке на конкретное сообщение
 		var referedPost = t.address.get('post');
 
@@ -550,11 +552,11 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 				}
 
 				// если id поста совпадает с id темы - значит тема догрузилась до начала
-				if (postData.id == this.subscriptions['posts'].topic) var topicHeadLoaded = true;
+				if (!topicHeadLoaded && postData.id == this.subscriptions['posts'].topic) var topicHeadLoaded = true;
 			}
 		}
 
-		// если тема грузилась с нуля
+		// управление прокруткой
 		if (firstLoad) {
 
 			if (false) {
@@ -575,10 +577,13 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 			t.units.posts.$scrollArea.scrollTop(t.units.posts.$scrollArea.scrollTop() - topPostOffset);
 		}
 
-		// управление отображением догрузочных кнопок
-		if (typeof topicHeadLoaded != 'undefined' && topicHeadLoaded) {
+		// если в списке есть заглавный пост - скрываем догрузочные кнопки
+		var topicHeadLoaded = typeof t.posts[this.subscriptions['posts'].topic] != 'undefined';
+
+		if (topicHeadLoaded) {
 			t.units.posts.$showMore.hide();
 		} else {
+			console.log('show more buttons')
 			t.units.posts.$showMore.show();
 		}
 
@@ -589,6 +594,8 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 
 		//this.setContentLoaded();
 	},
+
+
 
 	parseTopicData: function (topicData) {
 
