@@ -357,11 +357,18 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 	},
 
 	showNext: function () {
-		t.funcs.loadMore(t.sync.plimit + 1);
+		this.loadMore(t.funcs.objectSize(t.posts) + t.cfg.posts_per_page);
 	},
 
 	showAll: function () {
-		t.funcs.loadMore(0);
+		this.loadMore(0);
+	},
+
+	loadMore: function(newLimit){
+		t.address.set('plimit', newLimit)
+		t.connection.rescribe(this, 'posts', {
+			limit: newLimit
+		})
 	},
 
 	topicRename: function () {
@@ -418,8 +425,9 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 
 	saveName: function () {
 
-		t.rotor.start('update_message', {
-			id: t.sync.curTopic,
+		t.connection.write({
+			action:'update_message',
+			id: this.subscriptions['posts'].topic,
 			topic_name: this.header.topicName.$body.html()
 		});
 
@@ -490,21 +498,21 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 
 	parsePosts: function (postsList) {
 
-		// если страница догружалась
-		/*if (actionUsed == 'next_page') {
-		 var rememberTop = t.units.posts.$content.children()[0];
-		 var more_height = t.units.posts.$showMore.offsetHeight();
-		 //console.log('moreH=' + more_height);
-		 }*/
-
 		// определяем, загружается ли тема с нуля
 		var firstLoad = this.isClear();
 
 		// считываем инфу о ссылке на конкретное сообщение
 		var referedPost = t.address.get('post');
 
-		// была ли тема прокручена до низа перед парсингом?
+		// какова была позиция прокрутки перед парсингом?
 		var wasAtBottom = this.atBottom;
+		var wasAtTop = this.atTop;
+
+		// нужно для догрузки
+		if (!firstLoad && wasAtTop) {
+			var topPost = t.units.posts.$content.children().eq(0);
+			var topPostOffset = topPost.position().top;
+		}
 
 		// собственно, разбор пришедших сообщений
 		for (var i in postsList) {
@@ -525,8 +533,10 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 
 			if (existingPost) { // если в текущем массиве загруженных сообщений такое уже есть
 
-				if (postData.deleted) existingPost.remove();
-				else existingPost.fill(postData);
+				if (postData.deleted) {
+					existingPost.remove();
+					delete t.posts[postData.id];
+				} else existingPost.fill(postData);
 
 			} else if (!postData.deleted) { // если такого нет и пришедшее не удалено
 
@@ -555,7 +565,14 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 			}
 
 		} else if (wasAtBottom) { // если апдейт или догрузка и тема была прокручена вниз
+
 			this.scrollToBottom();
+
+		} else if (wasAtTop) { // если догрузка и тема была прокручена до верха
+
+			// todo - неправильно прокручивается, если до догрузки все сообщения помещались и прокрутка не появлялась*/
+			topPost[0].scrollIntoView(true);
+			t.units.posts.$scrollArea.scrollTop(t.units.posts.$scrollArea.scrollTop() - topPostOffset);
 		}
 
 		// управление отображением догрузочных кнопок
@@ -564,14 +581,6 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 		} else {
 			t.units.posts.$showMore.show();
 		}
-
-		/*if (actionUsed == 'next_page') {
-		 rememberTop.scrollIntoView(true);
-		 //console.log(t.units.posts.$scrollArea.scrollTop())
-		 t.units.posts.$scrollArea.scrollTop(t.units.posts.$scrollArea.scrollTop() - more_height - 3);
-		 } // todo - неправильно прокручивается, если до догрузки все сообщения помещались и прокрутка не появлялась*/
-
-
 
 		// todo разобраться почему работает только через анонимную функцию
 		setTimeout(function () {

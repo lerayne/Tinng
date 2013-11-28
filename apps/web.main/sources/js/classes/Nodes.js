@@ -156,7 +156,7 @@ tinng.protos.TopicNode = Class(tinng.protos.Node, {
         //t.rotor.start('load_pages');
 
 		// todo - возможно, стоит и установку адреса возложить на connection
-		t.address.set({topic:this.id});
+		t.address.set({topic:this.id, plimit: t.cfg.posts_per_page});
 
 		// отписываемся от старой темы
 		t.connection.unscribe(t.units.posts, 'posts');
@@ -170,7 +170,7 @@ tinng.protos.TopicNode = Class(tinng.protos.Node, {
 				feed: {
 					feed:'posts',
 					topic: this.id,
-					limit: 1 * parseInt(t.cfg.posts_per_page, 10)
+					limit: t.address.get('plimit') || t.cfg.posts_per_page
 				}
 			},{
 				subscriber:t.units.posts,
@@ -424,7 +424,8 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 	// срабатывает при нажатии кнопки "сохранить" в режиме редактирования
 	save:function () {
 
-		t.rotor.start('update_message', {
+		t.connection.write({
+			action: 'update_message',
 			id:this.id,
 			message:this.cells.$message.html()
 		});
@@ -437,7 +438,7 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 	erase:function () {
 
 		if (confirm(t.txt.msg_del_confirm)) {
-			t.rotor.start('delete_message', {id:this.id});
+			t.connection.write({action: 'delete_message', id:this.id});
 		}
 
 		return false; // preventDefault + stopPropagation

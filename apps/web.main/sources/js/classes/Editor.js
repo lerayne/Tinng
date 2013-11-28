@@ -48,22 +48,20 @@ tinng.protos.Editor.prototype = {
 
         if (this.checkMessage()) {
 
-			switch (t.units.posts.newTopicMode) {
-				case true:
-
-					t.rotor.start('add_topic', {
-						message: this.preparedMessage(),
-						title: t.units.posts.header.topicName.$body.text()
-					});
-
-				break;
-				default:
-
-					t.rotor.start('add_post', {
-						message:this.preparedMessage(),
-						title:''
-					});
+			var writeObject = {
+				message: this.preparedMessage()
 			}
+
+			if (t.units.posts.newTopicMode) {
+				writeObject.action = 'add_topic';
+				writeObject.title = t.units.posts.header.topicName.$body.text()
+
+			} else {
+				writeObject.action = 'add_post';
+				writeObject.topic = t.units.posts.subscriptions['posts'].topic
+			}
+
+			t.connection.write(writeObject);
 
             this.$messageBody.html(''); // todo - сделать затенение кнопки, если сообщение пустое
             this.$messageTitle.val('');

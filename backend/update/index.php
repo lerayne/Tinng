@@ -517,23 +517,6 @@ class Feed {
 		// Если указано ограничение
 		if ($posts['limit'] != 0) {
 
-			// Если при этом еще не определена дата
-			if ($meta['page_start'] == $meta_defaults['page_start']) {
-
-
-				//todo - вычисление даты с учетом указания на сообщение
-				//todo - как мы узнаем на клиенте что загружена первая страница? очень просто - в ней есть сообщение, id которого совпадает с id темы
-			}
-
-			// Определение самого раннего сообщения, с которого нужно грузить страницу (исключительно)
-			// todo - вспоминаем, почему исключительно!
-			$meta['page_start'] = $db->selectCell('
-				SELECT created FROM ?_messages
-				WHERE (topic_id = ?d OR id = ?d)
-					AND ISNULL(deleted)
-				ORDER BY created DESC
-				LIMIT 1 OFFSET ?d', $posts['topic'], $posts['topic'], $posts['limit']);
-
 			// Если сообщение переданное по ссылке - за пределами текущих страниц
 			if ($posts['directMsg']) {
 				$direct_dateSQL = $db->select('
@@ -550,13 +533,6 @@ class Feed {
 				$pglimit_dateSQL = $direct_dateSQL[1]['newdate'];
 			}
 		}
-
-		if (!$_REQUEST['plimit'] || $show_all) {
-			$result['topic_prop']['show_all'] = 1;
-			$pglimit_dateSQL = jsts2sql('0');
-		}
-
-		$result['topic_prop']['pglimit_date'] = $pglimit_dateSQL;
 
 		if ($action == 'load_pages') { // если загружаем новую тему
 
@@ -583,50 +559,6 @@ class Feed {
 				$result['topic_prop']['date_read'] = $date_read; // вывести в клиент
 			}
 		}
-
-		// выбираем ВСЕ сообщения с более новой датой (даже удаленные)
-		$result['posts'] = make_tree($db->select('SELECT
-				msg.id,
-				msg.message,
-				msg.author_id,
-				msg.parent_id,
-				msg.topic_id,
-				msg.topic_name,
-				msg.created,
-				msg.modified,
-				msg.deleted,
-				msg.modifier,
-				usr.email AS author_email,
-				IFNULL(usr.display_name, usr.login) AS author,
-				IF(unr.timestamp < IFNULL(msg.modified, msg.created) && IFNULL(msg.modifier, msg.author_id) != ?d, 1, 0) AS unread,
-				moder.login AS modifier_name,
-				(SELECT starter.author_id FROM ?_messages starter WHERE starter.id = msg.topic_id ) AS topicstarter,
-				uset.param_value as author_avatar
-			FROM ?_messages msg
-
-			LEFT JOIN ?_users usr
-				ON msg.author_id = usr.id
-			LEFT JOIN ?_unread unr
-				ON unr.topic = IF(msg.topic_id = 0, msg.id, msg.topic_id) AND unr.user = ?d
-			LEFT JOIN ?_users moder
-				ON msg.modifier = moder.id
-			LEFT JOIN ?_user_settings uset
-				ON msg.author_id = uset.user_id AND uset.param_key = "avatar"
-
-			WHERE
-				(msg.topic_id = ?d OR msg.id = ?d) AND
-				((IFNULL(msg.modified, msg.created) > ? AND msg.created > ?)' . ($action == 'next_page' ? ' OR (msg.created <= ? AND msg.created > ?)' : '') . ')
-			ORDER BY msg.created ASC'
-
-			, $user->id
-			, $user->id
-			, $posts['topic']
-			, $posts['topic']
-			, $maxdateSQL
-			, $pglimit_dateSQL
-			, jsts2sql($old_pglimdateTS)
-			, $pglimit_dateSQL)
-		);
 	}
 
 	///////////////
@@ -720,26 +652,26 @@ function parse_request($request) {
 				case 'add_topic':
 
 					$new_row['topic_name'] = $write['title'];
-					$result['topic_prop']['new'] = 1;
 
 				// вставляем новое сообщение (адаптировать для старта темы!)
 				case 'add_post':
 
+					$write['topic'] = $write['topic'] ? $write['topic'] : 0;
+
 					$new_row['author_id'] = $user->id;
-					$new_row['parent_id'] = $write['parent'] ? $write['parent'] : $_REQUEST['curTopic'];
-					$new_row['topic_id'] = $_REQUEST['curTopic'];
+					$new_row['parent_id'] = $write['parent'] ? $write['parent'] : $write['topic'];
+					$new_row['topic_id'] = $write['topic'];
 					$new_row['message'] = $write['message'];
 					$new_row['created'] = now('sql');
 
 					$new_id = $db->query('INSERT INTO ?_messages (?#) VALUES (?a)', array_keys($new_row), array_values($new_row));
-
-					$result['topic_prop']['scrollto'] = $new_id;
 
 					break;
 
 
 				// обновляет запись в ?_messages
 				case 'update_message':
+					unset ($write['action']);
 
 					$upd_id = $write['id'];
 					unset($write['id']);
@@ -754,6 +686,7 @@ function parse_request($request) {
 
 				// удаляем сообщение
 				case 'delete_message':
+					unset ($write['action']);
 
 					// проверка блокировки сообщения
 					$locked = $db->selectCell('SELECT locked FROM ?_messages WHERE id = ?d', $write['id']);
@@ -777,8 +710,6 @@ function parse_request($request) {
 
 				// убираем тег с темы
 				case 'tag_remove':
-
-					$date = now('sql');
 
 					$msgupd['modified'] = now('sql');
 					$msgupd['modifier'] = $user->id;
@@ -809,10 +740,14 @@ function parse_request($request) {
 			foreach ($subscribers as $subscriberId => $subscriptions) {
 
 				foreach ($subscriptions as $feedName => $params) {
+
 					// вызываем метод get_[имя фида]
 					$method_name = 'get_' . $params['feed'];
+
 					// тут в конце страшная магия - передача параметра в функцию по ссылке
 					$feed_result = $feed->$method_name($params, $meta[$subscriberId][$feedName]);
+
+					// записываем подписку в вывод, если она имеет какие-либо данные
 					if (count($feed_result)) $result['feeds'][$subscriberId][$feedName] = $feed_result;
 				}
 			}

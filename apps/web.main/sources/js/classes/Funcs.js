@@ -68,13 +68,6 @@ Funcs.prototype = {
 //		e.stopPropagation ? e.stopPropagation() : (e.cancelBubble=true);
 	},
 
-	loadMore:function (pageLimit) {
-
-		t.sync.plimit = pageLimit;
-		t.address.set('plimit', pageLimit);
-		t.rotor.start('next_page');
-	},
-
 	unloadTopic:function () {
 
 		if (t.state.selectedPost) t.state.selectedPost.deselect('full');
@@ -186,6 +179,15 @@ Funcs.prototype = {
 			if (object.propertyIsEnumerable(key)) return false;
 		}
 		return true;
+	},
+
+	objectSize:function(object){
+		var i = 0
+
+		for (var key in object) {
+			if (object.propertyIsEnumerable(key)) i++;
+		}
+		return i;
 	}
 }
 

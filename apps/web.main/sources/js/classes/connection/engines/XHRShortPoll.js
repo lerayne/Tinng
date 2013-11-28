@@ -29,14 +29,15 @@ tinng.protos.strategic.XHRShortPoll.prototype = {
 	// интерфейсные методы
 
 	refresh:function(){
+		//console.log('refresh');
 		this.start();
 	},
 
 	write:function(params){
 
-		this.actions = params;
+		if (params instanceof Array) this.actions = params;
+		else this.actions[0] = params;
 
-		this.start();
 	},
 
 	_subscribe:function(subscriberId, feedName, feed, soft){
@@ -127,6 +128,8 @@ tinng.protos.strategic.XHRShortPoll.prototype = {
 			write: this.actions,
 			meta: this.meta
 		});
+
+//		console.log('request', {subscribe: this.subscriptions,write: this.actions,meta: this.meta});
 
 		t.funcs.log('Launching query with timeout ' + this.waitTime);
 	},

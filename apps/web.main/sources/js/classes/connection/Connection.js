@@ -23,7 +23,8 @@ tinng.protos.Connection = function (config) {
 		this.wrappedClass = tinng.protos.strategic.XHRShortPoll;
 		this.wrappedClassName = 'tinng.protos.strategic.XHRShortPoll';
 	}
-	var wrapped = this.engine = new this.wrappedClass(this.conf.server, this.conf.callback);
+	var wrapped = new this.wrappedClass(this.conf.server, this.conf.callback);
+	//this.engine = wrapped;
 
 	// проверка встроенного класса на совместимость
 
@@ -57,9 +58,9 @@ tinng.protos.Connection = function (config) {
 
 	// осуществляет запись данных на сервер
 	this.write = function(){
-		return wrapped.write.apply(wrapped, arguments);
+		wrapped.write.apply(wrapped, arguments);
 
-		this.refresh();
+		return this.refresh();
 	}
 
 	// подписывает объект на новый фид, или редактирует значение существующего, сбрасывая внутренее состояние подписки

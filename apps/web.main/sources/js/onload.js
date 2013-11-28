@@ -15,11 +15,11 @@ tinng.funcs.onWindowLoad = function(){
 		callback:t.funcs.parser2
 	})
 
-    t.rotor = new t.protos.Rotor(
+   /* t.rotor = new t.protos.Rotor(
         'backend/update.php',
         t.sync,
         t.funcs.parser
-    );
+    );*/
 
 	t.stateService = new t.protos.StateService();
 
@@ -41,7 +41,7 @@ tinng.funcs.onWindowLoad = function(){
     t.sync.plimit = (loadedLimit === false) ? t.sync.plimit : parseInt(loadedLimit);
 
     // запуск соединения с сервером
-    t.rotor.start('load_pages');
+    //t.rotor.start('load_pages');
 
 	var initialSubscriptions = [];
 
@@ -63,7 +63,7 @@ tinng.funcs.onWindowLoad = function(){
 			feed:{
 				feed:'posts',
 				topic: curTopic,
-				limit: 1 * parseInt(t.cfg.posts_per_page, 10)
+				limit: t.address.get('plimit') || t.cfg.posts_per_page
 			}
 		});
 
