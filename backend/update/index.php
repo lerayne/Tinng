@@ -173,17 +173,19 @@ class Feed {
 		// проверяем простым запросом, есть ли что на вывод вообще, прежде чем отправлять следующего "монстра"))
 		// todo - удалось избавиться от подзапроса для вычисления даты последнего поста темы. Может удастся и в монстре?
 		$updates_since = $db->selectCell('
-			SELECT GREATEST(MAX(msg.created), IFNULL(MAX(msg.modified), 0), MAX(mupd.created), IFNULL(MAX(mupd.modified), 0))
+			SELECT GREATEST(MAX(msg.created), IFNULL(MAX(msg.modified), 0), IFNULL(MAX(mupd.created), 0), IFNULL(MAX(mupd.modified), 0))
 			FROM ?_messages msg
 			LEFT JOIN ?_messages mupd ON mupd.topic_id = msg.id
 
 			{JOIN ?_tagmap map ON map.message = msg.id AND map.tag IN(?a)}
 
 			WHERE msg.topic_id = 0
-			{AND GREATEST(IFNULL(msg.modified, msg.created), IFNULL(mupd.modified, mupd.created)) > ?}
+			{AND (IFNULL(msg.modified, msg.created) > ? OR IFNULL(mupd.modified, mupd.created) > ?)}
 			'
 			, $tag_array // при пустом массиве скип автоматический
-			, ($meta['updates_since'] ? $meta['updates_since'] : DBSIMPLE_SKIP));
+			, ($meta['updates_since'] ? $meta['updates_since'] : DBSIMPLE_SKIP)
+			, ($meta['updates_since'] ? $meta['updates_since'] : DBSIMPLE_SKIP)
+		);
 
 		// если нет - возвращаем пустой массив и прерываем функцию
 		if (!$updates_since) return Array();
@@ -323,6 +325,38 @@ class Feed {
 			'slice_start' => '0' // работает как false, а в SQL-запросах по дате - как 0
 		));
 
+		$topic_exists = $db->selectCell('
+			SELECT id
+			FROM ?_messages
+			WHERE id = ?d AND deleted IS NULL
+			'
+			, $posts['topic']
+		);
+
+		// если заглавного сообщения не существует, или оно было удалено
+		if (!$topic_exists) return Array();
+
+
+		// если загружаем тему с нуля и есть авторизованный юзер
+		if (!$meta['updates_since'] && $user->id != 0) {
+
+			$date_read = $db->selectCell(
+				'SELECT timestamp FROM ?_unread WHERE user = ?d AND topic = ?d'
+				, $user->id
+				, $posts['topic']
+			);
+
+			// ой, ни разу! Установить ее прочитанной в этот момент!
+			if (!$date_read) {
+
+				$values = Array('user' => $user->id, 'topic' => $posts['topic'], 'timestamp' => now('sql'));
+				$db->query('INSERT INTO ?_unread (?#) VALUES (?a)', array_keys($values), array_values($values));
+
+				$posts['show_post'] = $posts['topic']; // установить указатель на первое сообщение
+				$posts['limit'] = 0; // загрузить все сообщения
+			}
+		}
+
 
 		// секция установки слайсов ////////////////////////////////////////////////////////////////////////////////////
 
@@ -344,12 +378,10 @@ class Feed {
 				SELECT COUNT(id)
 				FROM ?_messages
 				WHERE IF(topic_id = 0, id, topic_id) = ?d
-					AND deleted IS NULL
+				AND deleted IS NULL
 				'
 				, $posts['topic']
 			);
-
-			// todo - идея: сбрасывать лимит на 0 (грузить всё) если юзер еще не читал тему
 
 			// если кол-во сообщений в теме меньше, чем ограничение - сбросить ограничение
 			if ($postcount <= $posts['limit']) $posts['limit'] = 0;
@@ -391,12 +423,17 @@ class Feed {
 
 			// если передан номер конкретного поста - проверяем, не выходит ли он за слайс-"от" и если да - возвращаем новый слайс-"от"
 			// это только для передачи номера поста по параметру из адрессной строки, поэтому в догрузке не используется
-			// todo - сделать!
 			if ($posts['show_post']) {
-				$slice_start = $db->selectCell(''
+				$post_start = $db->selectCell('
+					SELECT IF(created < ?, created, ?)
+					FROM ?_messages
+					WHERE id = ?d AND deleted IS NULL
+					'
+					, $slice_start, $slice_start
 					, $posts['show_post']
-					, $slice_start
 				);
+
+				if ($post_start) $slice_start = $post_start;
 			}
 
 			// если в мете слайс-от уже был и он не равен новому - устанавливаем слайс-до в значение из меты
@@ -427,15 +464,12 @@ class Feed {
 		// todo - возможно нужно что-то сделать со $slice_satrt
 		if (!$slice_end && !$new_updates_since) return Array();
 
-
-		// todo - логика отметок прочитанности
-
 		////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 		// наконец, запрашиваем посты!
-
 		$query = '
 			SELECT
+				msg.id AS ARRAY_KEY,
 				msg.id,
 				msg.message,
 				msg.author_id,
@@ -505,6 +539,14 @@ class Feed {
 				, ($meta['updates_since'] ? $meta['updates_since'] : DBSIMPLE_SKIP)
 			));
 		}
+		// да, можно было не ставить условие и объединить два варианта подачи запроса в один, но в таком случае либо
+		// условия по плейсхолдерам слишком сложные, либо БД всегда сравнивает даты, даже если они равны 0
+
+		// вставляем в сам пост указание. Сейчас не используется для ссылки и выделения, используется только для
+		// прокрутки до первого поста, если тема читается впервые
+		if ($posts['show_post']) {
+			$output_posts[$posts['show_post']]['refered'] = 1;
+		}
 
 
 		$meta['slice_start'] = $slice_start;
@@ -512,53 +554,6 @@ class Feed {
 
 		return $output_posts;
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-		// Если указано ограничение
-		if ($posts['limit'] != 0) {
-
-			// Если сообщение переданное по ссылке - за пределами текущих страниц
-			if ($posts['directMsg']) {
-				$direct_dateSQL = $db->select('
-				SELECT
-					t.created,
-					t.id,
-					IF(t.created <= ?, t.created, ?) AS newdate
-				FROM ?_messages AS t
-				WHERE t.id <= ?d AND (t.topic_id = ?d OR t.id = ?d)
-				ORDER BY t.id desc
-				LIMIT 2
-				', $pglimit_dateSQL, $pglimit_dateSQL, $posts['directMsg'], $posts['topic'], $posts['topic']);
-
-				$pglimit_dateSQL = $direct_dateSQL[1]['newdate'];
-			}
-		}
-
-		if ($action == 'load_pages') { // если загружаем новую тему
-
-			$maxdateSQL = $pglimit_dateSQL;
-			$result['topic_prop']['manual'] = true; // указываем что тема грузилась вручную (пока только для прокрутки) todo - не работает
-
-			// выводим номер темы для подсветки ее в колонке тем
-			$result['topic_prop']['id'] = $posts['topic'];
-
-			// хотим узнать, когда пользователь отмечал эту тему прочитанной
-			if ($user->id != 0) {
-				$date_read = $db->selectCell('SELECT timestamp FROM ?_unread WHERE user = ?d AND topic = ?d', $user->id, $posts['topic']);
-
-				// ой, ни разу! Установить ее прочитанной в этот момент!
-				if (!$date_read) {
-
-					$date_read = now('sql');
-					$values = Array('user' => $user->id, 'topic' => $posts['topic'], 'timestamp' => $date_read);
-					$db->query('INSERT INTO ?_unread (?#) VALUES (?a)', array_keys($values), array_values($values));
-
-					$date_read = 'firstRead'; // клиентская часть должна знать!
-				}
-
-				$result['topic_prop']['date_read'] = $date_read; // вывести в клиент
-			}
-		}
 	}
 
 	///////////////
@@ -645,7 +640,7 @@ function parse_request($request) {
 
 		$writes = $request['write'];
 
-		foreach ($writes as $write) {
+		foreach ($writes as $write_index => $write) {
 			switch ($write['action']) {
 
 				// добавляем новую тему (тут нет брейка, так и надо)
@@ -665,6 +660,10 @@ function parse_request($request) {
 					$new_row['created'] = now('sql');
 
 					$new_id = $db->query('INSERT INTO ?_messages (?#) VALUES (?a)', array_keys($new_row), array_values($new_row));
+
+					if ($write['action'] == 'add_topic') {
+						$result['actions'][$write_index] = Array('action' => $write['action'],'id' => $new_id);
+					}
 
 					break;
 
@@ -735,7 +734,7 @@ function parse_request($request) {
 		if ($request['meta']) $meta = $request['meta'];
 
 		// есть ли подписчики и хоть что-то обновленное на сервере?
-		if (count($subscribers) /*&& $feed->any_new()*/) { // отменил, потому что сейчас не преедается глобальная дата
+		if (count($subscribers)) {
 
 			foreach ($subscribers as $subscriberId => $subscriptions) {
 
@@ -745,10 +744,8 @@ function parse_request($request) {
 					$method_name = 'get_' . $params['feed'];
 
 					// тут в конце страшная магия - передача параметра в функцию по ссылке
-					$feed_result = $feed->$method_name($params, $meta[$subscriberId][$feedName]);
-
-					// записываем подписку в вывод, если она имеет какие-либо данные
-					if (count($feed_result)) $result['feeds'][$subscriberId][$feedName] = $feed_result;
+					$feed_data =  $feed->$method_name($params, $meta[$subscriberId][$feedName]);
+					if (count($feed_data)) $result['feeds'][$subscriberId][$feedName] = $feed_data;
 				}
 			}
 		}

@@ -71,11 +71,8 @@ Funcs.prototype = {
 	unloadTopic:function () {
 
 		if (t.state.selectedPost) t.state.selectedPost.deselect('full');
-		t.units.posts.clear();
 
-		t.sync.curTopic = 0;
-		t.sync.pglimdateTS = 0;
-		t.sync.plimit = 1;
+		t.units.posts.unscribe();
 
 		t.units.posts.contentLoaded = 0;
 		t.units.posts.header.topicRename.hide(); // todo - сделать нормальный инициализатор и вызывать его здесь и в начале, вместо unloadTopic

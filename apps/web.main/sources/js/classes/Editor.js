@@ -16,7 +16,6 @@ tinng.protos.Editor = function () {
 
         this.$submit = $body.find('.submit.button');
         this.$messageBody = $body.find('.textarea');
-        this.$messageTitle = $body.find('.title');
 
         this.submitNew = $.proxy(this, 'submitNew');
 
@@ -54,7 +53,7 @@ tinng.protos.Editor.prototype = {
 
 			if (t.units.posts.newTopicMode) {
 				writeObject.action = 'add_topic';
-				writeObject.title = t.units.posts.header.topicName.$body.text()
+				writeObject.title = t.units.posts.header.topicName.$body.text();
 
 			} else {
 				writeObject.action = 'add_post';
@@ -63,8 +62,11 @@ tinng.protos.Editor.prototype = {
 
 			t.connection.write(writeObject);
 
+			if (t.units.posts.newTopicMode){
+				t.units.posts.exitNewTopicMode();
+			}
+
             this.$messageBody.html(''); // todo - сделать затенение кнопки, если сообщение пустое
-            this.$messageTitle.val('');
         }
     },
 

@@ -63,6 +63,7 @@ tinng.funcs.onWindowLoad = function(){
 			feed:{
 				feed:'posts',
 				topic: curTopic,
+				show_post: t.address.get('post') || 0,
 				limit: t.address.get('plimit') || t.cfg.posts_per_page
 			}
 		});

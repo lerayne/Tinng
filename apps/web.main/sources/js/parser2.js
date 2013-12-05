@@ -12,6 +12,21 @@ tinng.funcs.parser2 = function (result, actions) {
 
 	if (!result) return false;
 
+	if (result.actions) {
+		for (var actionId in result.actions){
+			var actionResponse = result.actions[actionId];
+
+			switch (actionResponse.action) {
+				case 'add_topic':
+
+					// todo - проверка существования ВСЕХ модулей, которые может заинтересовать такая инфа
+					if (t.units.posts) t.units.posts.subscribe(actionResponse.id, t.cfg.posts_per_page);
+
+				break;
+			}
+		}
+	}
+
 	if (result.feeds) {
 		for (var subscriberId in result.feeds) {
 			if (t.connection.subscribers[subscriberId] && t.connection.subscribers[subscriberId].parseFeed) {

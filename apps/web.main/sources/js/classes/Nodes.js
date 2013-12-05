@@ -153,35 +153,9 @@ tinng.protos.TopicNode = Class(tinng.protos.Node, {
 		this.select(); // делаем тему в столбце тем активной
 		t.sync.curTopic = this.id;
 		if (t.user.hasRight('editMessage', t.topics[this.id])) t.units.posts.header.topicRename.show();
-        //t.rotor.start('load_pages');
 
-		// todo - возможно, стоит и установку адреса возложить на connection
-		t.address.set({topic:this.id, plimit: t.cfg.posts_per_page});
-
-		// отписываемся от старой темы
-		t.connection.unscribe(t.units.posts, 'posts');
-		t.connection.unscribe(t.units.posts, 'topic_data');
-
-		// подписываемся на новую
-		t.connection.subscribe([
-			{
-				subscriber:t.units.posts,
-				feedName:'posts',
-				feed: {
-					feed:'posts',
-					topic: this.id,
-					limit: t.address.get('plimit') || t.cfg.posts_per_page
-				}
-			},{
-				subscriber:t.units.posts,
-				feedName:'topic_data',
-				feed: {
-					feed:'topic'
-					,id: this.id
-					//,fields:['id', 'date_read', 'name', 'post_count'] // пока не работает
-				}
-			}
-		]);
+		t.units.posts.unscribe();
+		t.units.posts.subscribe(this.id, t.cfg.posts_per_page)
 
 		t.units.posts.startWaitIndication();
 	},

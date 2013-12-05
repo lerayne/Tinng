@@ -191,8 +191,10 @@ tinng.protos.TopicsUnit = Class(tinng.protos.Unit, {
 		return t.funcs.isEmptyObject(t.topics);
 	},
 
-	parseFeed: function (feed) {
+	parseFeed: function (feed, actionsUsed) {
 		this.stopWaitIndication();
+
+		//console.log('actionsUsed (topics parser):', actionsUsed);
 
 		if (feed.topics) this.parseTopics(feed.topics);
 	},
@@ -321,6 +323,7 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 	clear: function () {
 		t.protos.Unit.prototype['clear'].apply(this, arguments);
 
+		this.$showMore.hide();
 		t.posts = {};
 	},
 
@@ -455,6 +458,7 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 		this.header.topicRename.hide();
 		this.header.cancelNewTopic.show();
 		this.$showMore.hide();
+
 		this.header.topicName.$body.html('');
 		this.header.topicName.$body.attr('contenteditable', true);
 		this.header.topicName.$body.focus();
@@ -467,7 +471,7 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 	exitNewTopicMode: function () {
 		this.header.topicRename.show();
 		this.header.cancelNewTopic.hide();
-		this.header.topicName.$body.removeAttr('contenteditable');
+		this.header.topicName.$body.removeAttr('contenteditable').html('');
 		t.units.topics.header.newTopic.unblock();
 
 		this.newTopicMode = false;
@@ -475,8 +479,8 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 
 	cancelNewTopic: function () {
 
+		// todo - убрать эту хрень с unloadTopic и разобраться в алгоритмах загрузки и выгрузки, подписки-отписки
 		t.funcs.unloadTopic();
-		this.header.topicName.$body.html('');
 		this.exitNewTopicMode();
 
 		return false;
@@ -486,8 +490,51 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 		this.header.topicName.$body.html(name)
 	},
 
-	parseFeed: function (feed) {
+	unscribe:function(){
+		// отписываемся от старой темы
+		t.connection.unscribe(this, 'posts');
+		t.connection.unscribe(this, 'topic_data');
+
+		t.address.del('topic');
+		t.address.del('plimit');
+		t.address.del('post');
+
+		this.clear();
+		// todo - заменить на единую функцию инициализации интерфейса
+		this.exitNewTopicMode();
+		this.exitRenameMode();
+	},
+
+	subscribe:function(id, limit){
+
+		// подписываемся на новую
+		t.connection.subscribe([
+			{
+				subscriber:this,
+				feedName:'posts',
+				feed: {
+					feed:'posts',
+					topic: id,
+					limit: limit
+				}
+			},{
+				subscriber:this,
+				feedName:'topic_data',
+				feed: {
+					feed:'topic'
+					,id: id
+					//,fields:['id', 'date_read', 'name', 'post_count'] // пока не работает
+				}
+			}
+		]);
+
+		t.address.set({topic:id, plimit: limit});
+	},
+
+	parseFeed: function (feed, actionsUsed) {
 		this.stopWaitIndication();
+
+		//console.log('actionsUsed (posts parser):', actionsUsed);
 
 		// разбираем посты
 		if (feed.posts) this.parsePosts(feed.posts);
@@ -498,20 +545,22 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 
 	parsePosts: function (postsList) {
 
+		var thisParse = {};
+
 		// определяем, загружается ли тема с нуля
 		var firstLoad = this.isClear();
 
-
-
-		// считываем инфу о ссылке на конкретное сообщение
+		// считываем инфу о ссылке на конкретное сообщение и достаем тему из подписки
 		var referedPost = t.address.get('post');
+		var referedTopic = t.address.get('topic')
+		var currentTopic = this.subscriptions['posts'].topic;
 
 		// какова была позиция прокрутки перед парсингом?
 		var wasAtBottom = this.atBottom;
 		var wasAtTop = this.atTop;
 
-		// нужно для догрузки
-		if (!firstLoad && wasAtTop) {
+		if (!firstLoad && wasAtTop) { // нужно для догрузки
+
 			var topPost = t.units.posts.$content.children().eq(0);
 			var topPostOffset = topPost.position().top;
 		}
@@ -545,24 +594,35 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 				var newPost = t.posts[postData.id] = new t.protos.PostNode(postData);
 				this.addNode(newPost);
 
-				if (referedPost && referedPost == postData.id) { // если это новым пришел пост, на который ссылались
-					newPost.select();
-					newPost.show(false);
-					// todo - оставить тут, или запрограммировать на будущее прокрутку до него
+				// этот флаг может означать не только указание на выделение, поэтому выделение тянем из адрессной строки
+				if (postData.refered) {
+					thisParse.scrollTo = newPost;
 				}
-
-				// если id поста совпадает с id темы - значит тема догрузилась до начала
-				if (!topicHeadLoaded && postData.id == this.subscriptions['posts'].topic) var topicHeadLoaded = true;
 			}
+		}
+
+		// смотрим, загружено ли уже стартовое сообщение
+		var topicHeadLoaded = !!t.posts[currentTopic];
+
+		// если есть (или будет) заглавный пост - скрываем догрузочные кнопки
+		if (topicHeadLoaded) {
+			this.$showMore.hide();
+		} else {
+			this.$showMore.show();
 		}
 
 		// управление прокруткой
 		if (firstLoad) {
 
-			if (false) {
-				// todo - если юзер читает тему в первый раз - выполнить особые условия
+			if (thisParse.scrollTo) {
+				thisParse.scrollTo.show(true); //todo - тут же можно cделать и прокрутку до первого непрочитанного поста.
+
+			} else if (referedPost && t.posts[referedPost] && currentTopic == referedTopic) {
+				t.posts[referedPost].select();
+				t.posts[referedPost].show(true);
+
 			} else {
-				//todo - cделать прокрутку до первого непрочитанного поста.
+
 				this.scrollToBottom();
 			}
 
@@ -572,20 +632,12 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 
 		} else if (wasAtTop) { // если догрузка и тема была прокручена до верха
 
-			// todo - неправильно прокручивается, если до догрузки все сообщения помещались и прокрутка не появлялась*/
+			// todo - неправильно прокручивается, если до догрузки все сообщения помещались и прокрутка не появлялась
 			topPost[0].scrollIntoView(true);
 			t.units.posts.$scrollArea.scrollTop(t.units.posts.$scrollArea.scrollTop() - topPostOffset);
 		}
 
-		// если в списке есть заглавный пост - скрываем догрузочные кнопки
-		var topicHeadLoaded = typeof t.posts[this.subscriptions['posts'].topic] != 'undefined';
 
-		if (topicHeadLoaded) {
-			t.units.posts.$showMore.hide();
-		} else {
-			console.log('show more buttons')
-			t.units.posts.$showMore.show();
-		}
 
 		// todo разобраться почему работает только через анонимную функцию
 		setTimeout(function () {
@@ -599,12 +651,12 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 
 	parseTopicData: function (topicData) {
 
-		// todo - сдалеть чтобы данные возвращались только если тема грузится с нуля, или обновлена, а не каждый раз
 		this.setTopicName(topicData.topic_name); //вывод названия темы
 
 		// todo - если введем автовысоту через css - убрать
-		// todo - эта хрень дергает editor.resize, а там происходит проверка на позицию в прокрутке и прокрутка до последнего
 		t.ui.winResize(); // потому что от размера названия темы может разнести хедер
+
+		if (topicData.deleted) t.funcs.unloadTopic();
 
 		// todo - в будущем тут будет проверка на наличие модулей, подписанных на список тем
 		if (t.topics && t.topics[topicData.id]) {
@@ -616,8 +668,6 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 				t.topics[topicData.id].show(false); // промотать до нее
 			}
 		}
-
-		//if (tProps.scrollto) t.posts[tProps.scrollto].show(false);
 	}
 });
 

@@ -164,6 +164,8 @@ tinng.protos.strategic.XHRShortPoll.prototype = {
 				console.log('PHP backtrace:\n==============\n' + this.request.responseText)
 			}
 
+			//console.log('XHRShortPoll actions:', this.actions)
+
 			// разбираем пришедший пакет и выполняем обновления
 			t.sync.maxdateTS = this.parseCallback(this.request.responseJS, this.actions);
 
