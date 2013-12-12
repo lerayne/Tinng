@@ -340,6 +340,7 @@ class Feed {
 		// если загружаем тему с нуля и есть авторизованный юзер
 		if (!$meta['updates_since'] && $user->id != 0) {
 
+			// проверяем, когда пользователь отмечал тему прочитанной
 			$date_read = $db->selectCell(
 				'SELECT timestamp FROM ?_unread WHERE user = ?d AND topic = ?d'
 				, $user->id
@@ -349,11 +350,29 @@ class Feed {
 			// ой, ни разу! Установить ее прочитанной в этот момент!
 			if (!$date_read) {
 
-				$values = Array('user' => $user->id, 'topic' => $posts['topic'], 'timestamp' => now('sql'));
+				// пробуем сходу отмечать прочитанным только первое сообщение
+				$first_post_date = $db->selectCell('SELECT IFNULL(modified, created) AS updated FROM ?_messages WHERE id = ?d ', $posts['topic']);
+
+				$values = Array('user' => $user->id, 'topic' => $posts['topic'], 'timestamp' => $first_post_date);
 				$db->query('INSERT INTO ?_unread (?#) VALUES (?a)', array_keys($values), array_values($values));
 
 				$posts['show_post'] = $posts['topic']; // установить указатель на первое сообщение
 				$posts['limit'] = 0; // загрузить все сообщения
+
+			} else {
+
+				// todo - устанавливать первое непрочитанное как референсное (с которого грузится и до которого проматывается)
+				// НО - нужно учитывать автора (не является ли читатель автором, или редактором непрочитанного поста)
+
+				$first_unread = $db->selectCell('
+					SELECT id FROM ?_messages
+					WHERE IFNULL(modified, created) > ? AND topic_id = ?d
+					ORDER BY created ASC
+					LIMIT 1
+					'
+					, $date_read
+					, $posts['topic']
+				);
 			}
 		}
 
