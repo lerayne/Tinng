@@ -365,7 +365,7 @@ class Feed {
 				// определить первое непрочитанное сообщение (не учитывать мои и отредактированные мной)
 				$first_unread = $db->selectCell('
 					SELECT id FROM ?_messages
-					WHERE IFNULL(modified, created) > ? AND topic_id = ?d
+					WHERE IFNULL(modified, created) > ? AND topic_id = ?d AND deleted IS NULL
 						AND IF(modified IS NULL, author_id, modifier) != ?d
 					ORDER BY created ASC
 					LIMIT 1
@@ -569,7 +569,7 @@ class Feed {
 
 		// вставляем в сам пост указание. Сейчас не используется для ссылки и выделения, используется только для
 		// прокрутки до первого поста, если тема читается впервые
-		if ($posts['show_post']) {
+		if ($posts['show_post'] && $output_posts[$posts['show_post']]) {
 			$output_posts[$posts['show_post']]['refered'] = 1;
 		}
 

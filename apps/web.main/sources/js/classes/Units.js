@@ -614,24 +614,23 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 		// управление прокруткой
 		if (firstLoad) {
 
-            //console.log('thisParse:', thisParse)
-
 			if (thisParse.scrollTo) {
-                //console.log('scroll to', thisParse)
-				thisParse.scrollTo.show(true); //todo - тут же можно cделать и прокрутку до первого непрочитанного поста.
+                // прокрутка до поста, указанного в фиде как референсный
+				thisParse.scrollTo.show(true);
 
 			} else if (referedPost && t.posts[referedPost] && currentTopic == referedTopic) {
-				t.posts[referedPost].select();
+				// прокрутка до поста, вычитанного из адреса
+                t.posts[referedPost].select();
 				t.posts[referedPost].show(true);
 
 			} else {
 
+                // иначе прокрутить до низа
 				this.scrollToBottom();
 			}
 
 		} else if (wasAtBottom) { // если апдейт или догрузка и тема была прокручена вниз
 
-            console.log('scroll to bottom')
 			this.scrollToBottom();
 
 		} else if (wasAtTop) { // если догрузка и тема была прокручена до верха
