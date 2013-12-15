@@ -33,12 +33,17 @@ tinng.protos.Node = Class({
 			'author',
 			'id',
 			'message',
-			'controls'
+			'controls',
+            'menuBtn'
 
 		].concat(addCells || []);
 
 		this.cells = {};
 		for (var i in cells) this.cells['$' + cells[i]] = this.$body.find('[data-cell="' + cells[i] + '"]');
+
+        // универсальные управления событиями
+        this.cells.$menuBtn.on('click', this.showMenu)
+
 
 		// заполняем неизменные данные, присваеваемые единожды
 		this.$body.attr('id', chunkName + '_' + data.id);
@@ -65,7 +70,11 @@ tinng.protos.Node = Class({
 	markRead:function(){
 		this.$body.removeClass('unread');
 		this.data.unread = '0';
-	}
+	},
+
+    showMenu:function(){
+        return false;
+    }
 });
 
 

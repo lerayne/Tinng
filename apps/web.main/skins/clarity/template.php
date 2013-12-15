@@ -109,6 +109,7 @@
 	<div data-chunk-name="topic" class="node topic revealer">
 		<div class="data_cell">
 			<div data-cell="infobar" class="infobar">
+				<div data-cell="menuBtn" class="menuBtn right reveal control">menu</div>
 				<div data-cell="created" class="created right reveal"></div>
 				<div data-cell="parent" class="parent"></div>
 				<div data-cell="author" class="author left"></div>
@@ -131,6 +132,7 @@
 	<div data-chunk-name="post" class="node post revealer">
 		<div class="data_cell">
 			<div data-cell="infobar" class="infobar">
+				<div data-cell="menuBtn" class="menuBtn right reveal control">menu</div>
 				<div class="avatar"><img data-cell="avatar"></div>
 				<div data-cell="created" class="created right reveal"></div>
 				<div data-cell="parent" class="parent"></div>

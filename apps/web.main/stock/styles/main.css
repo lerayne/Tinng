@@ -92,6 +92,10 @@ img 	{border:0;}
     -webkit-box-shadow:none;
 }
 
+.control {
+	cursor:pointer;
+}
+
 /* дебаг и консоль */
 #debug_console { height:140px; }
 
