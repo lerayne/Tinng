@@ -22,7 +22,9 @@ tinng.protos.Editor = function () {
         this.$submit.click(this.submitNew);
         this.visible = true;
 
-		this.$messageBody.on('keypress', this.onKeyPress)
+        this.currentHeight = 0;
+
+		this.$messageBody.on('keyup', this.onKeyPress)
 
 		// todo - мой кейлистенер - полное Г. Переделать.
 //		tinng.keyListener.register('ctrl+enter', this, this.submitNew);
@@ -41,6 +43,11 @@ tinng.protos.Editor.prototype = {
 		if (e.keyCode == 10 || ( e.keyCode == 13 && (e.altKey || e.ctrlKey) )){
 			this.submitNew();
 		}
+
+        if (this.currentHeight != this.$body.height()) {
+            this.currentHeight = this.$body.height();
+            this.resize();
+        }
 	},
 
     submitNew:function () {
@@ -96,7 +103,7 @@ tinng.protos.Editor.prototype = {
 
 		var wasAtBottom = posts.atBottom; // не убирать! строка ниже меняет значение этого вызова!
 		posts.$contentWrap.css('padding-bottom', this.$body.offsetHeight());
-		if (wasAtBottom) posts.scrollToBottom();
+		if (wasAtBottom && !posts.atTop) posts.scrollToBottom();
 	},
 
 	hide:function(){

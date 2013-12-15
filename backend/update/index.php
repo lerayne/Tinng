@@ -359,20 +359,26 @@ class Feed {
 				$posts['show_post'] = $posts['topic']; // установить указатель на первое сообщение
 				$posts['limit'] = 0; // загрузить все сообщения
 
+			// уже читали
 			} else {
 
-				// todo - устанавливать первое непрочитанное как референсное (с которого грузится и до которого проматывается)
-				// НО - нужно учитывать автора (не является ли читатель автором, или редактором непрочитанного поста)
-
+				// определить первое непрочитанное сообщение (не учитывать мои и отредактированные мной)
 				$first_unread = $db->selectCell('
 					SELECT id FROM ?_messages
 					WHERE IFNULL(modified, created) > ? AND topic_id = ?d
+						AND IF(modified IS NULL, author_id, modifier) != ?d
 					ORDER BY created ASC
 					LIMIT 1
 					'
 					, $date_read
 					, $posts['topic']
+					, $user->id
 				);
+
+				// если такие есть - установить его как то, до которого нужно прокрутить
+				if ($first_unread) {
+					$posts['show_post'] = $first_unread;
+				}
 			}
 		}
 

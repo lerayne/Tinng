@@ -323,7 +323,7 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 	// прокручивает список до данного сообщения
 	show:function (start) {
 
-		console.log('post show:', this.data.id);
+		//console.log('post show:', this.data.id);
 
 		t.protos
 			.Node.prototype

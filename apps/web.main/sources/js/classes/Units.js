@@ -614,7 +614,10 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 		// управление прокруткой
 		if (firstLoad) {
 
+            //console.log('thisParse:', thisParse)
+
 			if (thisParse.scrollTo) {
+                //console.log('scroll to', thisParse)
 				thisParse.scrollTo.show(true); //todo - тут же можно cделать и прокрутку до первого непрочитанного поста.
 
 			} else if (referedPost && t.posts[referedPost] && currentTopic == referedTopic) {
@@ -628,6 +631,7 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 
 		} else if (wasAtBottom) { // если апдейт или догрузка и тема была прокручена вниз
 
+            console.log('scroll to bottom')
 			this.scrollToBottom();
 
 		} else if (wasAtTop) { // если догрузка и тема была прокручена до верха
