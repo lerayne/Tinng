@@ -8,7 +8,7 @@ $cfg['cut_length'] = 256;
 $cfg['posts_per_page'] = 20;
 
 // адрес базы данных
-$safecfg['db'] = 'mysql://tinng_main:maedanaena884@localhost/tinng';
+$safecfg['db'] = 'mysql://tinng_main:tinng_demo@localhost/tinng';
 
 // префикс базы даных
 $safecfg['db_prefix'] = 'tinng'; // знак "_" вставляется автоматически, указывать его здесь не нужно

@@ -47,6 +47,8 @@ function incl_css() {
 	// Если такого файла нет - создаем
 	if (!file_exists($filename)) {
 
+		if (!file_exists($env['appdir'] . 'data/compiled')) mkdir($env['appdir'] . 'data/compiled');
+
 		// для начала чистим директорию
 		$compiled_path = $env['appdir'] . 'data/compiled/';
 		if (file_exists($compiled_path)) {
