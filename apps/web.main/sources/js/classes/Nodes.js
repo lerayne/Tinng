@@ -17,7 +17,7 @@ tinng.protos.Node = Class({
 
 	construct:function (data, chunkName, addCells) {
 		var that = this;
-		t.funcs.bind(this, ['markRead', 'pushReadState']);
+		t.funcs.bind(this, ['markRead', 'pushReadState', 'toggleMenu', 'hideMenu']);
 
 		this.$body = t.chunks.get(chunkName || 'node');
 
@@ -34,6 +34,7 @@ tinng.protos.Node = Class({
 			'id',
 			'message',
 			'controls',
+			'controls2',
             'menuBtn'
 
 		].concat(addCells || []);
@@ -42,7 +43,13 @@ tinng.protos.Node = Class({
 		for (var i in cells) this.cells['$' + cells[i]] = this.$body.find('[data-cell="' + cells[i] + '"]');
 
         // универсальные управления событиями
-        this.cells.$menuBtn.on('click', this.showMenu)
+		// todo - закончить
+		this.cells.$controls.on('click', '.button', function(){
+			console.log('hide')
+		});
+		this.cells.$menuBtn.on('click', this.toggleMenu);
+		this.$body.on('click mouseleave', this.hideMenu);
+
 
 
 		// заполняем неизменные данные, присваеваемые единожды
@@ -72,9 +79,17 @@ tinng.protos.Node = Class({
 		this.data.unread = '0';
 	},
 
-    showMenu:function(){
+    toggleMenu:function(){
+		if (this.cells.$controls.children().size()){
+			this.cells.$controls.toggle();
+		}
         return false;
-    }
+    },
+
+	hideMenu:function(){
+		this.cells.$controls.hide();
+		return false;
+	}
 });
 
 
@@ -101,6 +116,8 @@ tinng.protos.TopicNode = Class(tinng.protos.Node, {
 
 		// вешаем обработчики событий
 		this.$body.on('click', this.loadPosts);
+
+		if (!this.cells.$controls.children().size()) this.cells.$menuBtn.hide();
 	},
 
 	// заполнить данными
@@ -213,8 +230,7 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 			.Node.prototype
 			.construct.call(this, data, 'post',
 			[
-				'avatar',
-				'controls'
+				'avatar'
 			]
 		);
 
@@ -229,9 +245,9 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 		// todo - каждую кнопку формировать и навешивать на нее действие отдельно, в зависимости от прав
 
 		this.mainPanel = new t.protos.ui.Panel([
-			{type:'Button', label:'delete', cssClass:'right', icon:'doc_delete.png', tip:t.txt['delete']},
-			{type:'Button', label:'edit', cssClass:'right', icon:'doc_edit.png', tip:t.txt.edit},
-			{type:'Button', label:'unlock', cssClass:'right', icon:'padlock_open.png', text:t.txt.unblock}
+			{type:'Button', label:'edit', icon:'doc_edit.png', text:t.txt.edit},
+			{type:'Button', label:'delete', icon:'doc_delete.png', text:t.txt['delete']},
+			{type:'Button', label:'unlock', icon:'padlock_open.png', text:t.txt.unblock}
 		]);
 
 		this.mainPanel.unlock.$body.hide();
@@ -243,6 +259,7 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 		this.unlock = $.proxy(this, 'unlock');
 
 		this.mainPanel.edit.on('click', this.edit);
+		this.mainPanel.edit.on('click', this.hideMenu);
 		//this.cells.$message.on('dblclick', this.edit);
 		//this.mainPanel.edit.on('click', t.funcs.stopProp);
 		this.mainPanel['delete'].on('click', this.erase);
@@ -257,7 +274,7 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 		]);
 
 		this.editorPanel.$body.hide();
-		if (t.user.hasRight('editMessage', this)) this.cells.$controls.append(this.editorPanel.$body);
+		if (t.user.hasRight('editMessage', this)) this.cells.$controls2.append(this.editorPanel.$body);
 
 		this.save = $.proxy(this, 'save');
 		this.cancelEdit = $.proxy(this, 'cancelEdit');
@@ -273,6 +290,8 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 		this.$body.mouseleave(function(){
 			clearTimeout(this.mousetimer);
 		});
+
+		if (!this.cells.$controls.children().size()) this.cells.$menuBtn.hide();
 	},
 
 	// заполнить сообщение данными
@@ -377,7 +396,7 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 
 			this.messageBackup = this.cells.$message.html();
 
-			this.mainPanel.$body.hide();
+			this.hideMenu();
 			this.editorPanel.$body.show();
 
 			this.cells.$message.attr('contenteditable', true);
@@ -400,7 +419,7 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 	// выходит из режима редактирования
 	exitEditMode:function () {
 		this.editorPanel.$body.hide();
-		this.mainPanel.$body.show();
+		//this.mainPanel.$body.show();
 		this.cells.$message.removeAttr('contenteditable');
 	},
 

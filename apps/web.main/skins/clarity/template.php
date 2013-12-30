@@ -95,6 +95,7 @@
 <!-- шаблоны, обрабатываемые скриптом (скрыты) -->
 <div id="tinng-chunks" class="none">
 
+
 	<div data-chunk-name="unit" class="unit">
 		<header></header>
 		<div class="scroll-area">
@@ -105,11 +106,16 @@
 		<footer></footer>
 	</div>
 
+
+
 	<!-- Элемент столбца тем -->
 	<div data-chunk-name="topic" class="node topic revealer">
 		<div class="data_cell">
 			<div data-cell="infobar" class="infobar">
-				<div data-cell="menuBtn" class="menuBtn right reveal control">menu</div>
+				<div data-cell="menuBtn" class="menuBtn right reveal control">
+					<span>&nbsp;</span>
+					<div class="dropmenu" style="display:none" data-cell="controls"></div>
+				</div>
 				<div data-cell="created" class="created right reveal"></div>
 				<div data-cell="parent" class="parent"></div>
 				<div data-cell="author" class="author left"></div>
@@ -123,16 +129,21 @@
 			</div>
 			<div data-cell="lastmessage" class="lastmessage"></div>
 			<div data-cell="tags" class="tags"></div>
-			<div data-cell="controls" class="controls reveal"></div>
+			<div data-cell="controls2" class="controls2 reveal"></div>
 			<div class="clearboth"></div>
 		</div>
 	</div>
+
+
 
 	<!-- Элемент столбца сообщений -->
 	<div data-chunk-name="post" class="node post revealer">
 		<div class="data_cell">
 			<div data-cell="infobar" class="infobar">
-				<div data-cell="menuBtn" class="menuBtn right reveal control">menu</div>
+				<div data-cell="menuBtn" class="menuBtn right reveal control">
+					<span>&nbsp;</span>
+					<div class="dropmenu bodyclickhide" style="display:none" data-cell="controls"></div>
+				</div>
 				<div class="avatar"><img data-cell="avatar"></div>
 				<div data-cell="created" class="created right reveal"></div>
 				<div data-cell="parent" class="parent"></div>
@@ -144,10 +155,12 @@
 				<!-- основное сообщение -->
 			</div>
 			<div class="tags"></div>
-			<div data-cell="controls" class="controls reveal"></div>
+			<div data-cell="controls2" class="controls2 reveal"></div>
 			<div class="clearboth"></div>
 		</div>
 	</div>
+
+
 
 	<!-- Редактор -->
 	<div data-chunk-name="editor" class="editor">
@@ -163,12 +176,15 @@
 		</div>
 	</div>
 
+
+
 	<!-- Редактор (закрытый, для анонимуса) -->
 	<div data-chunk-name="editor-disabled" class="editor">
 		<div class="editor-inner">
 			<?= $txt['login_to_write'] ?>
 		</div>
 	</div>
+
 
 
 	<div data-chunk-name="login-form">
@@ -322,6 +338,12 @@
 
 	<div data-chunk-name="posts-default" class="posts-default">
 		<?= $txtp['posts_default'] ?>
+	</div>
+
+
+	<div data-chunk-name="tag" class="tag">
+		<span data-cell="text"></span>
+		<span data-cell="close" style="display:none" class="close">&times;</span>
 	</div>
 
 </div>

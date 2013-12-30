@@ -83,6 +83,11 @@ tinng.protos.UserInterface = function (targetWindow) {
 		this.showMessage(serverMessage);
 		t.funcs.deleteCookie('message');
 	}
+
+	//скрытие некоторых элементов по клику на body
+	$('body').click(function(){
+		$('.bodyclickhide').hide();
+	})
 };
 
 tinng.protos.UserInterface.prototype = {

@@ -47,8 +47,8 @@ tinng.protos.ui.Button = function (data) {
         this.showTip = $.proxy(this, 'showTip');
         this.hideTip = $.proxy(this, 'hideTip');
 
-        this.$button.on('mouseover', this.waitTip);
-        this.$button.on('mouseout', this.hideTip);
+        this.$button.on('mouseenter', this.waitTip);
+        this.$button.on('mouseleave', this.hideTip);
         this.$button.on('click', this.hideTip);
     }
 }
@@ -106,10 +106,20 @@ tinng.protos.ui.Button.prototype = {
 }
 
 // тег (визуальное представление)
-tinng.protos.ui.Tag = function (data) {
+tinng.protos.ui.Tag = function (data, closeCallback) {
 	this.data = data;
 	this.$body = t.chunks.get('tag');
-	this.$body.text(data.name);
+	//console.log(this.$body)
+
+	var textContainer = this.$body.find('[data-cell="text"]');
+	var closeButton = this.$body.find('[data-cell="close"]');
+
+	textContainer.text(data.name);
+
+	if (typeof closeCallback != 'undefined') {
+		closeButton.show();
+		closeButton.click(closeCallback)
+	}
 }
 
 tinng.protos.ui.Tag.prototype = {
@@ -162,7 +172,7 @@ tinng.protos.ui.SearchBox = function(config){
 	/* привязка событий *//////////////////
 	this.$input.on('keyup', this.onType);
 
-	// по этому событию по факту отправляется предудущее значение, благодаря чему тег не удаляется с удалением последней буквы
+	// по этому событию по факту отправляется предыдущее значение, благодаря чему тег не удаляется с удалением последней буквы
 	this.$input.on('keydown', this.tryBS);
 
 	this.$input.on('paste', this.suggest);
@@ -246,7 +256,7 @@ tinng.protos.ui.SearchBox.prototype = {
 
 			this.request = new JsHttpRequest();
 			this.request.onreadystatechange = this.onResponse;
-			this.request.open(null, '/backend/suggest.php', true);
+			this.request.open(null, './backend/suggest.php', true);
 			this.request.send({
 				suggest: this.conf.suggest,
 				subject: query
@@ -313,11 +323,15 @@ tinng.protos.ui.SearchBox.prototype = {
 	},
 
 	addTagToFilter:function(data){
+		var that = this;
+
 		if (typeof this.tagSet[data.id] == 'undefined') {
-//			console.log('add tag')
+			//console.log('add tag')
 			this.tagSet[data.id] = data;
 
-			var smartAreaTag = new t.protos.ui.Tag(data);
+			var smartAreaTag = new t.protos.ui.Tag(data, function(){
+				that.removeTagFromFilter(data);
+			});
 			this.$smartArea.append(smartAreaTag.$body);
 			this.tagList.push(smartAreaTag);
 

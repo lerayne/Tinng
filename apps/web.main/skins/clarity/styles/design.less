@@ -353,13 +353,26 @@ body {
 	}
 
 	.menuBtn {
-//		width:16px;
-//		height:16px;
+		width:16px;
+		height:16px;
 		margin-left:5px;
-		background-color: #eee;
+		background:url(../../skins/clarity/images/menu_drop.png);
+		position: relative;
 
 		&:hover {
-			background-color: #ddd;
+			background-color: #eee;
+		}
+	}
+
+	.dropmenu {
+		position: absolute;
+		background: #fff;
+		border: 1px #ccc solid;
+		z-index: 100;
+		right: 0;
+
+		.button {
+			display:block;
 		}
 	}
 
@@ -497,6 +510,15 @@ body {
 	background-color: #007bb7;
 	padding: 2px 4px;
 	border-radius: 0;
+
+	.close {
+		cursor:pointer;
+		opacity:0.5;
+
+		&:hover {
+			opacity:1;
+		}
+	}
 }
 
 
