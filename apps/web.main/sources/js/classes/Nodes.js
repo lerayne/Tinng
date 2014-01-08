@@ -173,7 +173,7 @@ tinng.protos.TopicNode = Class(tinng.protos.Node, {
 	// загрузить тему
 	loadPosts:function () {
 
-//        console.log('loadPosts:', this.data.topic_name, this.data.id);
+		//console.log('loadPosts:', this.data.topic_name, this.data.id);
 
 		t.funcs.unloadTopic();
 		this.select(); // делаем тему в столбце тем активной

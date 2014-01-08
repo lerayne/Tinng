@@ -89,6 +89,19 @@ function extract_tag_array($string) {
 	return $arr;
 }
 
+function tags_to_ids($string) {
+	global $db;
+
+	$tags = explode('|', $string);
+	$arr = array();
+
+	if (count($tags) && $tags[0] != '') {
+		$arr = $db->selectCol('SELECT id FROM ?_tags WHERE name IN (?a)', $tags);
+	}
+
+	return $arr;
+}
+
 function strip_nulls($array) {
 
 	foreach ($array as $key => $val) {
@@ -167,7 +180,7 @@ class Feed {
 		$update_mode = !!$meta['updates_since'];
 
 		// есть фильтрация по тегам?
-		$tag_array = extract_tag_array($topics['filter']);
+		$tag_array = tags_to_ids($topics['filter']);
 
 
 		// проверяем простым запросом, есть ли что на вывод вообще, прежде чем отправлять следующего "монстра"))

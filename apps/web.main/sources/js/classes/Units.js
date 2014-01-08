@@ -167,7 +167,7 @@ tinng.protos.TopicsUnit = Class(tinng.protos.Unit, {
 		console.log('tagSet: ', tagSet)
 
 		for (var i in tagSet) {
-			newQuery.push(tagSet[i].id);
+			newQuery.push(tagSet[i].name);
 		}
 
 		this.clear();

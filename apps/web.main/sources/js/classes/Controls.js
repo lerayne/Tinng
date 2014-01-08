@@ -106,7 +106,7 @@ tinng.protos.ui.Button.prototype = {
 }
 
 // тег (визуальное представление)
-tinng.protos.ui.Tag = function (data, closeCallback) {
+tinng.protos.ui.Tag = function (data, callbacks) {
 	this.data = data;
 	this.$body = t.chunks.get('tag');
 	//console.log(this.$body)
@@ -116,9 +116,14 @@ tinng.protos.ui.Tag = function (data, closeCallback) {
 
 	textContainer.text(data.name);
 
-	if (typeof closeCallback != 'undefined') {
-		closeButton.show();
-		closeButton.click(closeCallback)
+	if (typeof callbacks != 'undefined'){
+		if (callbacks.bodyClick) {
+			this.$body.click(callbacks.bodyClick)
+		}
+		if (callbacks.closeClick) {
+			closeButton.show();
+			closeButton.click(callbacks.closeClick)
+		}
 	}
 }
 
@@ -290,21 +295,29 @@ tinng.protos.ui.SearchBox.prototype = {
 		// если есть результаты - строим новую
 		if (data.length > 0) {
 
-			for (var i in data) {
-				var suggestItem = $('<div class="item" data-tag-id="'+ data[i].id +'">').appendTo(this.$suggestBox);
-				var tag = this.currentSuggest[data[i].id] = new t.protos.ui.Tag(data[i]);
-				suggestItem.append(tag.$body);
-
-				tag.$body.on('click', function(){
-					that.addTagToFilter(tag.data)
-				})
-			}
-
+			data.forEach(this.createSuggestedItem);
 			this.$suggestBox.show();
 
 		// иначе убираем бокс
 		} else {
 			this.hideSuggested();
+		}
+	},
+
+	createSuggestedItem:function(el, i){
+		var that = this;
+
+		if (!this.tagSet[el.id]) {
+
+			var suggestItem = $('<div class="item" data-tag-id="'+ el.id +'">').appendTo(that.$suggestBox);
+
+			var tag = this.currentSuggest[el.id] = new t.protos.ui.Tag(el, {
+				bodyClick:function(){
+					that.addTagToFilter(el);
+				}
+			});
+
+			suggestItem.append(tag.$body);
 		}
 	},
 
@@ -325,12 +338,14 @@ tinng.protos.ui.SearchBox.prototype = {
 	addTagToFilter:function(data){
 		var that = this;
 
-		if (typeof this.tagSet[data.id] == 'undefined') {
-			//console.log('add tag')
+		if (!this.tagSet[data.id]) {
+
 			this.tagSet[data.id] = data;
 
-			var smartAreaTag = new t.protos.ui.Tag(data, function(){
-				that.removeTagFromFilter(data);
+			var smartAreaTag = new t.protos.ui.Tag(data, {
+				closeClick:function(){
+					that.removeTagFromFilter(data);
+				}
 			});
 			this.$smartArea.append(smartAreaTag.$body);
 			this.tagList.push(smartAreaTag);
