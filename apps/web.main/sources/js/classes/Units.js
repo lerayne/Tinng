@@ -164,17 +164,23 @@ tinng.protos.TopicsUnit = Class(tinng.protos.Unit, {
 	setFilterQuery: function (tagSet) {
 		var newQuery = [];
 
-		console.log('tagSet: ', tagSet)
-
 		for (var i in tagSet) {
 			newQuery.push(tagSet[i].name);
 		}
 
 		this.clear();
 
+		var searchString = newQuery.join('|');
+
 		t.connection.subscribe(this, 'topics', {
-			filter: newQuery.join('|')
+			filter: searchString
 		});
+
+		if (searchString) {
+			t.address.set('search', searchString);
+		} else {
+			t.address.del('search');
+		}
 
 		//t.sync.filterQuery = newQuery.join('|');
 		//console.log('query: ', t.sync.filterQuery)

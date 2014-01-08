@@ -49,7 +49,8 @@ tinng.funcs.onWindowLoad = function(){
 		subscriber: t.units.topics,
 		feedName: 'topics',
 		feed:{
-			feed:'topics'
+			feed:'topics',
+			filter: t.address.get('search') || ''
 		}
 	});
 
