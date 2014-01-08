@@ -116,7 +116,19 @@ tinng.protos.TopicsUnit = Class(tinng.protos.Unit, {
 			.construct.apply(this, arguments);
 
 		// панель поиска
-		this.searchBox = new t.protos.ui.SearchBox({
+		this.createSearchBox();
+
+		this.newTopic = $.proxy(this, 'newTopic');
+
+		this.header.newTopic.on('click', this.newTopic);
+
+		if (!t.user.hasRight('createTopic')) this.header.newTopic.block();
+	},
+
+	createSearchBox:function(){
+		var that = this;
+
+		var searchBoxParams = {
 			placeholder: t.txt.filter_by_tags,
 			css: {
 				float: 'left'
@@ -124,14 +136,29 @@ tinng.protos.TopicsUnit = Class(tinng.protos.Unit, {
 			onConfirm: function (tagSet) {
 				that.setFilterQuery(tagSet);
 			}
-		});
-		this.header.$body.prepend(this.searchBox.$body);
+		}
 
-		this.newTopic = $.proxy(this, 'newTopic');
+		if (t.address.get('search')) {
 
-		this.header.newTopic.on('click', this.newTopic);
+			JsHttpRequest.query(
+				'./backend/service.php',
+				{
+					action:'get_tags',
+					tags:t.address.get('search')
+				}, function(result, errors){
 
-		if (!t.user.hasRight('createTopic')) this.header.newTopic.block();
+					console.log('createSearchBox:', result)
+
+					searchBoxParams.tags = result;
+					that.searchBox = new t.protos.ui.SearchBox(searchBoxParams);
+					that.header.$body.prepend(that.searchBox.$body);
+				}
+			);
+
+		} else {
+			this.searchBox = new t.protos.ui.SearchBox(searchBoxParams);
+			this.header.$body.prepend(this.searchBox.$body);
+		}
 	},
 
 	newTopic: function () {

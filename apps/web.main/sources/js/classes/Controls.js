@@ -143,6 +143,7 @@ tinng.protos.ui.SearchBox = function(config){
 
 	// настройки по умолчанию и их перегрузка
 	this.conf = t.funcs.objectConfig(config, this.defaultConf = {
+		tags:[],
 		css:'',
 		cssClass:'',
 		placeholder:'Search...',
@@ -190,6 +191,13 @@ tinng.protos.ui.SearchBox = function(config){
 	this.$body.on('click', t.funcs.stopPropagation);
 
 	$('body').on('click', this.hideSuggested);
+
+	if (this.conf.tags.length) {
+		for (var i = 0; i < this.conf.tags.length; i++) {
+			var tag = this.conf.tags[i];
+			this.addTagToFilter(tag, 'uiOnly');
+		}
+	}
 }
 
 tinng.protos.ui.SearchBox.prototype = {
@@ -335,7 +343,7 @@ tinng.protos.ui.SearchBox.prototype = {
 		this.$suggestBox.children().removeClass('active');
 	},
 
-	addTagToFilter:function(data){
+	addTagToFilter:function(data, uiOnly){
 		var that = this;
 
 		if (!this.tagSet[data.id]) {
@@ -361,12 +369,14 @@ tinng.protos.ui.SearchBox.prototype = {
 				if (!this.$suggestBox.children().size()) this.hideSuggested();
 			}
 
+			console.log('ui', arguments)
+
 			//передаем выбранные теги в коллбек
-			this.conf.onConfirm(this.tagSet)
+			if (typeof uiOnly == 'undefined') this.conf.onConfirm(this.tagSet)
 		}
 	},
 
-	removeTagFromFilter:function(data) {
+	removeTagFromFilter:function(data, uiOnly) {
 
 		// удаляем из списка, а заодно и из DOM
 		var newTagList = []
@@ -380,7 +390,7 @@ tinng.protos.ui.SearchBox.prototype = {
 		delete(this.tagSet[data.id]);
 
 		//передаем выбранные теги в коллбек
-		this.conf.onConfirm(this.tagSet)
+		if (typeof uiOnly == 'undefined') this.conf.onConfirm(this.tagSet)
 	}
 }
 
