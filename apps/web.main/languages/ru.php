@@ -40,6 +40,7 @@ $txt['save'] = 'Сохранить';
 $txt['answer'] = 'Ответить';
 $txt['rename'] = 'Переименовать';
 $txt['rename_topic'] = 'Переименовать тему';
+$txt['new_topic_title'] = 'Создание новой темы';
 
 $txt['error_missing_msg_body'] = 'Ошибка! Сообщение не может быть пустым';
 $txt['no_topic_name'] = '<span class="subtext">Без названия</span>';

@@ -44,7 +44,7 @@ tinng.data = {
         {name:'posts', css:{width:'60%'},
             header:[
                 {type:'Button', label:'topicRename', cssClass:'right reveal3', icon:'pencil_w.png', tip:tinng.txt.rename_topic},
-                {type:'Field', label:'topicName', cssClass:'left topicname'},
+                {type:'Field', label:'topicName', cssClass:'topicname'},
                 {type:'Button', label:'cancel', cssClass:'right', icon:'cancel_w.png', tip:tinng.txt.cancel},
                 {type:'Button', label:'save', cssClass:'right', icon:'round_checkmark_w.png', tip:tinng.txt.save},
 				{type:'Button', label:'cancelNewTopic', cssClass:'right', icon:'cancel_w.png', tip:tinng.txt.cancel_new_topic}

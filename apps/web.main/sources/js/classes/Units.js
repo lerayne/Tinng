@@ -110,6 +110,7 @@ tinng.protos.TopicsUnit = Class(tinng.protos.Unit, {
 
 	construct: function () {
 		var that = this;
+		t.funcs.bind(this, ['newTopic'])
 
 		t.protos
 			.Unit.prototype
@@ -117,8 +118,6 @@ tinng.protos.TopicsUnit = Class(tinng.protos.Unit, {
 
 		// панель поиска
 		this.createSearchBox();
-
-		this.newTopic = $.proxy(this, 'newTopic');
 
 		this.header.newTopic.on('click', this.newTopic);
 
@@ -296,16 +295,20 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 
 	construct: function () {
 
+		t.funcs.bind(this, [
+			'topicRename',
+			'enterRenameMode',
+			'cancelRename',
+			'saveName',
+			'cancelNewTopic',
+			'showNext',
+			'showAll'
+		]);
+
 		t.protos.Unit.prototype
 			.construct.apply(this, arguments);
 
 		this.newTopicMode = false;
-
-		this.topicRename = $.proxy(this, 'topicRename');
-		this.enterRenameMode = $.proxy(this, 'enterRenameMode');
-		this.cancelRename = $.proxy(this, 'cancelRename');
-		this.saveName = $.proxy(this, 'saveName');
-		this.cancelNewTopic = $.proxy(this, 'cancelNewTopic');
 
 		// прячем ненужные пока контролы
 		this.header.save.hide();
@@ -327,8 +330,6 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 		var showNext = $('<a>' + t.txt.show_more + '</a>');
 		var showAll = $('<a>' + t.txt.show_all + '</a>');
 
-		this.showNext = $.proxy(this, 'showNext');
-		this.showAll = $.proxy(this, 'showAll');
 		showNext.click(this.showNext);
 		showAll.click(this.showAll);
 
@@ -492,9 +493,11 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 		this.header.cancelNewTopic.show();
 		this.$showMore.hide();
 
-		this.header.topicName.$body.html('');
-		this.header.topicName.$body.attr('contenteditable', true);
-		this.header.topicName.$body.focus();
+		this.header.topicName.$body.html(t.txt.new_topic_title);
+		//this.header.topicName.$body.attr('contenteditable', true);
+		//this.header.topicName.$body.focus();
+
+		t.ui.editor.hide();
 
 		this.newTopicMode = true;
 
@@ -506,6 +509,7 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 		this.header.cancelNewTopic.hide();
 		this.header.topicName.$body.removeAttr('contenteditable').html('');
 		t.units.topics.header.newTopic.unblock();
+		t.ui.editor.show();
 
 		this.newTopicMode = false;
 	},
