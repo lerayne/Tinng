@@ -313,13 +313,13 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 		// прячем ненужные пока контролы
 		this.header.save.hide();
 		this.header.cancel.hide();
-		this.header.cancelNewTopic.hide();
+		//this.header.cancelNewTopic.hide();
 
 		// расстановка событий
 		this.header.topicRename.on('click', this.topicRename);
 		this.header.cancel.on('click', this.cancelRename);
 		this.header.save.on('click', this.saveName);
-		this.header.cancelNewTopic.on('click', this.cancelNewTopic);
+		//this.header.cancelNewTopic.on('click', this.cancelNewTopic);
 
 		// проверка прав
 		this.header.topicRename.hide();
@@ -490,26 +490,55 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 		t.funcs.unloadTopic();
 
 		this.header.topicRename.hide();
-		this.header.cancelNewTopic.show();
+		//this.header.cancelNewTopic.show();
 		this.$showMore.hide();
 
 		this.header.topicName.$body.html(t.txt.new_topic_title);
 		//this.header.topicName.$body.attr('contenteditable', true);
 		//this.header.topicName.$body.focus();
 
-		t.ui.editor.hide();
+		this.addNode(this.createTopicEditNode())
 
 		this.newTopicMode = true;
 
 		return false;
 	},
 
+	createTopicEditNode:function(topic){
+		var that = this;
+
+		var node = t.chunks.get('topic-edit');
+
+		var title = node.find('[data-cell="input_title"]');
+		var body = node.find('[data-cell="input_body"]');
+		var save = node.find('[data-cell="button_save"]');
+		var cancel = node.find('[data-cell="button_cancel"]');
+		var tagbox = node.find('[data-cell="tagbox"]');
+
+		cancel.click(this.cancelNewTopic);
+
+		var searchBoxParams = {
+			placeholder: t.txt.enter_tags,
+			onConfirm: function (tagSet) {
+				console.log('addTags:', tagSet)
+			}
+		}
+
+		if (typeof topic == 'undefined') {
+			save.val('Create');
+
+			this.searchBox = new t.protos.ui.SearchBox(searchBoxParams);
+			tagbox.append(this.searchBox.$body);
+		}
+
+		return {$body: node};
+	},
+
 	exitNewTopicMode: function () {
 		this.header.topicRename.show();
-		this.header.cancelNewTopic.hide();
+		//this.header.cancelNewTopic.hide();
 		this.header.topicName.$body.removeAttr('contenteditable').html('');
 		t.units.topics.header.newTopic.unblock();
-		t.ui.editor.show();
 
 		this.newTopicMode = false;
 	},
@@ -650,6 +679,8 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 
 		// управление прокруткой
 		if (firstLoad) {
+
+			t.ui.editor.show();
 
 			if (thisParse.scrollTo) {
                 // прокрутка до поста, указанного в фиде как референсный

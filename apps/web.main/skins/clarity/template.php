@@ -346,6 +346,31 @@
 		<span data-cell="close" style="display:none" class="close">&times;</span>
 	</div>
 
+	<div data-chunk-name="topic-edit" class="topic-edit">
+		<div class="row">
+			<label>
+				<span>Title:</span><br>
+				<input class="title" type="text" data-cell="input_title">
+			</label>
+		</div>
+		<div class="row">
+			<label>
+				<span>Body:</span><br>
+				<textarea data-cell="input_body"></textarea>
+			</label>
+		</div>
+		<div class="row">
+			<label><span>Tags:</span></label>
+			<div data-cell="tagbox">
+
+			</div>
+		</div>
+		<div class="row">
+			<input type="submit" class="button submit" data-cell="button_save">
+			<input type="button" class="button" data-cell="button_cancel" value="Cancel">
+		</div>
+	</div>
+
 </div>
 </body>
 </html>

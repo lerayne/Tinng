@@ -73,6 +73,7 @@ Funcs.prototype = {
 		if (t.state.selectedPost) t.state.selectedPost.deselect('full');
 
 		t.units.posts.unscribe();
+		t.ui.editor.hide();
 
 		t.units.posts.contentLoaded = 0;
 		t.units.posts.header.topicRename.hide(); // todo - сделать нормальный инициализатор и вызывать его здесь и в начале, вместо unloadTopic
