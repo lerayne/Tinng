@@ -320,7 +320,7 @@ tinng.protos.ui.SearchBox.prototype = {
 	tagManualInput:function(tagName){
 
 		if (tagName.replace(this.prefix[this.conf.tagType], '').length >= 3) {
-			this.addTagToSelection(tagName);
+			this.addTagToSelection( tagName );
 		} else {
 			alert('tag too short!');
 		}
