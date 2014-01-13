@@ -182,20 +182,27 @@ class Feed {
 		// есть фильтрация по тегам?
 		$tag_array = tags_to_ids($topics['filter']);
 
+		// составляем джойны для пересечений по тегам
+		// поскольку id тегов приходят не от клиента, а вычисляются здесь из имен тегов, использование прямых sql-иньекций относительно безопасно
+		$tags_joins = '';
+		foreach ($tag_array as $i => $tag_id) {
+			$tags_joins .= "/*sql*/ JOIN ?_tagmap tagmap{$i} ON tagmap{$i}.message = msg.id AND tagmap{$i}.tag = {$tag_id} \n";
+		}
 
 		// проверяем простым запросом, есть ли что на вывод вообще, прежде чем отправлять следующего "монстра"))
 		// todo - удалось избавиться от подзапроса для вычисления даты последнего поста темы. Может удастся и в монстре?
-		$updates_since = $db->selectCell('
+		$updates_since = $db->selectCell("
 			SELECT GREATEST(MAX(msg.created), IFNULL(MAX(msg.modified), 0), IFNULL(MAX(mupd.created), 0), IFNULL(MAX(mupd.modified), 0))
 			FROM ?_messages msg
 			LEFT JOIN ?_messages mupd ON mupd.topic_id = msg.id
 
-			{JOIN ?_tagmap map ON map.message = msg.id AND map.tag IN(?a)}
+			{$tags_joins}
+			/*{JOIN ?_tagmap map ON map.message = msg.id AND map.tag IN(?a)}*/
 
 			WHERE msg.topic_id = 0
 			{AND (IFNULL(msg.modified, msg.created) > ? OR IFNULL(mupd.modified, mupd.created) > ?)}
-			'
-			, $tag_array // при пустом массиве скип автоматический
+			"
+			//, $tag_array // при пустом массиве скип автоматический
 			, ($meta['updates_since'] ? $meta['updates_since'] : DBSIMPLE_SKIP)
 			, ($meta['updates_since'] ? $meta['updates_since'] : DBSIMPLE_SKIP)
 		);
@@ -207,6 +214,7 @@ class Feed {
 		// todo - рано или поздно с этим монстром надо что-то делать. Оптимизация архитектуры бд...
 		// в данный момент база оптимизирована на скорость записи. Но вообще чтение происходит чаще. Немного спасают
 		// проверочные предварительные запросы, но значит ли это, что стоит оставлять этого монстра с кучей подзапросов?
+
 		$query = "
 			SELECT
 				msg.id AS ARRAY_KEY,
@@ -249,9 +257,11 @@ class Feed {
 				ON unr.topic = msg.id
 				AND unr.user = ?d
 
-			{JOIN ?_tagmap tagmap
+			{$tags_joins}
+
+			/*{JOIN ?_tagmap tagmap
 				ON tagmap.message = msg.id
-				AND tagmap.tag IN (?a)}
+				AND tagmap.tag IN (?a)}*/
 
 			WHERE msg.topic_id = 0
 				/* пробовал через GREATEST - сокращает вывод до одной строки */
@@ -264,7 +274,8 @@ class Feed {
 		$output_topics = make_tree($db->select($query
 
 			, $cfg['cut_length'], $cfg['cut_length'] // ограничение выборки первого поста
-			, $user->id, $tag_array // при пустом массиве скип автоматический
+			, $user->id
+			//, $tag_array // при пустом массиве скип автоматический
 			, ($meta['updates_since'] ? $meta['updates_since'] : DBSIMPLE_SKIP) // зачем ставить условия, если выбираем всё?
 			, ($meta['updates_since'] ? $meta['updates_since'] : DBSIMPLE_SKIP)
 			, (!$update_mode ? 1 : DBSIMPLE_SKIP) // достаем удаленные только если мы в режиме обновления, а не начальной загрузки
