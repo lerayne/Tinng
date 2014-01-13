@@ -586,6 +586,24 @@ class Feed {
 			$output_posts[$posts['show_post']]['refered'] = 1;
 		}
 
+		// показываем теги заглавного сообщения
+		if ($output_posts[$posts['topic']]) {
+
+			$tags = $db->select('
+				SELECT
+					tag.id,
+					tag.name,
+					tag.type
+				FROM ?_tagmap map
+				LEFT JOIN ?_tags tag ON map.tag = tag.id
+				WHERE map.message = ?d
+				'
+				, $posts['topic']
+			);
+
+			$output_posts[$posts['topic']]['tags'] = $tags;
+		}
+
 
 		$meta['slice_start'] = $slice_start;
 		if ($new_updates_since) $meta['updates_since'] = $new_updates_since;

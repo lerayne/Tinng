@@ -154,7 +154,7 @@
 			<div data-cell="message" class="message">
 				<!-- основное сообщение -->
 			</div>
-			<div class="tags"></div>
+			<div data-cell="tags" class="tags"></div>
 			<div data-cell="controls2" class="controls2 reveal"></div>
 			<div class="clearboth"></div>
 		</div>

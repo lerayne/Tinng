@@ -35,7 +35,8 @@ tinng.protos.Node = Class({
 			'message',
 			'controls',
 			'controls2',
-            'menuBtn'
+            'menuBtn',
+			'tags'
 
 		].concat(addCells || []);
 
@@ -68,6 +69,15 @@ tinng.protos.Node = Class({
 		this.cells.$message.html(data.message);
 		this.cells.$created.text(data.modified ? t.txt.modified + data.modified : data.created);
 		this.cells.$author.text(data.author);
+
+		// вбиваем теги
+		//todo: сейчас теги при каждом филле обнуляются и вбиваются заново. непорядок
+		if (data.tags) {
+			this.cells.$tags.children().remove();
+			for (var i in data.tags) {
+				this.cells.$tags.append(new t.protos.ui.Tag(data.tags[i]).$body);
+			}
+		}
 	},
 
 	show:function (start) {
@@ -103,7 +113,6 @@ tinng.protos.TopicNode = Class(tinng.protos.Node, {
 			.Node.prototype
 			.construct.call(this, data, 'topic',
 			[
-				'tags',
 				'lastmessage',
 				'topicname',
 				'postsquant'
@@ -135,15 +144,6 @@ tinng.protos.TopicNode = Class(tinng.protos.Node, {
 			this.cells.$lastmessage.html(
 				'<div>' + t.txt.lastpost + '<b>' + data.lastauthor + '</b> (' + data.lastdate + ') ' + data.lastpost + '</div>'
 			);
-		}
-
-		// вбиваем теги
-		//todo: сейчас теги при каждом филле обнуляются и вбиваются заново. непорядок
-		if (data.tags) {
-			this.cells.$tags.text('');
-			for (var i in data.tags) {
-				this.cells.$tags.append(new t.protos.ui.Tag(data.tags[i]).$body);
-			}
 		}
 
 		// отмечаем темы непрочитанными
