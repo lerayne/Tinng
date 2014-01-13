@@ -41,8 +41,15 @@ $txt['answer'] = 'Ответить';
 $txt['rename'] = 'Переименовать';
 $txt['rename_topic'] = 'Переименовать тему';
 
-$txt['new_topic_title'] = 'Создание новой темы';
+$txt['new_topic_creation'] = 'Создание новой темы';
+$txt['new_topic_title'] = 'Название темы';
+$txt['new_topic_body'] = 'Заглавное сообщение';
+$txt['new_topic_tags'] = 'Теги';
 $txt['enter_tags'] = 'Введите тег';
+$txt['new_topic_btn_create'] = 'Создать';
+$txt['new_topic_tags_att'] = 'Внимание! Теги - на данный момент единственный способ упорядочивания тем в Tinng.
+	Убедительная просьба <b>не пренебрегать их вводом</b>, а также, по возможности, не создавать похожих друг на друга
+	дубликатов';
 
 $txt['error_missing_msg_body'] = 'Ошибка! Сообщение не может быть пустым';
 $txt['no_topic_name'] = '<span class="subtext">Без названия</span>';

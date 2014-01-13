@@ -1,136 +1,6 @@
 /**
- * Created with JetBrains PhpStorm.
- * User: Michael Yegorov
- * Date: 7/11/12
- * Time: 2:52 PM
- * To change this template use File | Settings | File Templates.
+ * Created by M. Yegorov on 1/13/14.
  */
-
-// Поле
-tinng.protos.ui.Field = function (data) {
-    this.$body = $('<div/>');
-
-    if (data.label) this.label = data.label;
-
-    if (data.id) this.$body.attr('id', data.id);
-    if (data.cell) this.$body.attr('data-cell', data.cell);
-    if (data.cssClass) this.$body.addClass(data.cssClass);
-    if (data.css) this.$body.css(data.css);
-}
-
-// Кнопка
-tinng.protos.ui.Button = function (data) {
-
-    this.$body = $('<div class="button-body">');
-    this.$button = $('<div class="button">');
-    this.$body.append(this.$button);
-
-    if (data.label) this.label = data.label;
-
-    if (data.id) this.$button.attr('id', data.id);
-    if (data.cell) this.$button.attr('data-cell', data.cell);
-    if (data.cssClass) this.$button.addClass(data.cssClass);
-    if (data.css) this.$button.css(data.css);
-
-    if (data.text) this.$button.html('<span>' + data.text + '</span>');
-
-    if (data.icon) {
-        this.$button.css('background-image', 'url("'+ t.cfg.appdir+'skins/clarity/images/icons/' + data.icon + '")');
-        this.$button.addClass('with-icon');
-    }
-
-    if (data.tip) {
-        this.$tip = $('<div class="tip"><div class="body">' + data.tip + '</div><div class="tail"></div></div>')
-            .hide().appendTo(this.$button);
-
-        this.waitTip = $.proxy(this, 'waitTip');
-        this.showTip = $.proxy(this, 'showTip');
-        this.hideTip = $.proxy(this, 'hideTip');
-
-        this.$button.on('mouseenter', this.waitTip);
-        this.$button.on('mouseleave', this.hideTip);
-        this.$button.on('click', this.hideTip);
-    }
-}
-
-tinng.protos.ui.Button.prototype = {
-
-    on:function (action, callback) {
-        this.$button.on(action, callback);
-    },
-
-    show:function () {
-        this.$body.show();
-    },
-
-    hide:function () {
-        this.$body.hide();
-    },
-
-    waitTip:function () {
-        this.timeout = setTimeout(this.showTip, 800);
-
-        return false;
-    },
-
-    showTip:function () {
-        var targetOpacity = this.$tip.css('opacity');
-        //var leftOffset = (this.$body.offsetWidth() / 2) - (this.$tip.width() / 2);
-        this.$tip.css({
-            opacity:0,
-            bottom:10//,
-            //	left:leftOffset
-        }).show();
-        this.$tip.animate({opacity:targetOpacity, bottom:20}, 150);
-    },
-
-    hideTip:function (e) {
-        if (this.timeout) clearTimeout(this.timeout);
-        this.$tip.hide();
-
-        return false;
-    },
-
-    block:function () {
-        if (this.$clone) this.$clone.show();
-        else this.$clone = this.$button.clone().addClass('blocked').appendTo(this.$body);
-        this.$button.hide();
-    },
-
-    unblock:function () {
-        if (this.$clone) {
-            this.$clone.hide();
-            this.$button.show();
-        }
-    }
-}
-
-// тег (визуальное представление)
-tinng.protos.ui.Tag = function (data, callbacks) {
-	this.data = data;
-	this.$body = t.chunks.get('tag');
-	//console.log(this.$body)
-
-	var textContainer = this.$body.find('[data-cell="text"]');
-	var closeButton = this.$body.find('[data-cell="close"]');
-
-	textContainer.text(data.name);
-
-	if (typeof callbacks != 'undefined'){
-		if (callbacks.bodyClick) {
-			this.$body.click(callbacks.bodyClick)
-		}
-		if (callbacks.closeClick) {
-			closeButton.show();
-			closeButton.click(callbacks.closeClick)
-		}
-	}
-}
-
-tinng.protos.ui.Tag.prototype = {
-
-}
-
 
 // todo - что-то тут не так. в большинстве случаев используется разделенная модель данных и представления, но в управлени
 // клавишами - используются свойства ДОМа и траверсинг для управления данными. Во-первых медленнее, во вторых думаю нужна
@@ -144,15 +14,23 @@ tinng.protos.ui.SearchBox = function(config){
 	// настройки по умолчанию и их перегрузка
 	this.conf = t.funcs.objectConfig(config, this.defaultConf = {
 		tags:[],
+		tagType:'user',
 		css:'',
 		cssClass:'',
 		placeholder:'Search...',
-		suggest:'on_topics',
+		suggest:'tags',
 		clearOnConfirm:true,
+		tagsOnly:false,
 
 		// вызывается когда объект поиска подтверждается тем или иным способом
 		onConfirm:function(){}
 	});
+
+	this.prefix = {
+		'user':'#',
+		'personal':'@',
+		'admin':'$'
+	}
 
 	// внутренние данные
 	// клавиши, по нажатию которых запрос на подсказку НЕ отправляется (управляющие клавиши, кроме backspace и delete)
@@ -160,9 +38,11 @@ tinng.protos.ui.SearchBox = function(config){
 	this.nonTextButtons = [9,10,13,16,17,18,19,20,27,33,34,35,36,37,38,39,40,45,91,92,93,112,113,114,115,116,117,118,
 		119,120,121,122,123,144,145];
 
-	this.tagSet = {};
-	this.tagList = [];
-	this.currentSuggest = {};
+	// символы, которые не могут быть частью тега в режиме ввода только тегов
+	this.nonTagSymbols = [',', ';', ' ', '?', '=', '"', "'"];
+
+	this.tagSelection = [];
+	this.tagList = {};
 
 	// сборка объекта
 	this.$body = $('<div class="smart-search"/>');
@@ -195,13 +75,22 @@ tinng.protos.ui.SearchBox = function(config){
 	if (this.conf.tags.length) {
 		for (var i = 0; i < this.conf.tags.length; i++) {
 			var tag = this.conf.tags[i];
-			this.addTagToFilter(tag, 'uiOnly');
+			this.addTagToSelection(tag, 'uiOnly');
 		}
 	}
 }
 
 tinng.protos.ui.SearchBox.prototype = {
 	onType:function(e){
+
+		var curVal = this.$input.val();
+		var lastChar = curVal ? curVal[curVal.length-1] : null;
+
+		if (this.conf.tagsOnly) {
+			if (this.nonTagSymbols.indexOf(lastChar) != -1) {
+				this.$input.val(curVal.slice(0, curVal.length-1))
+			}
+		}
 
 		// если нажата кнопка, вводящая что-либо, а не управляющая (допускаются также backspace и delete) -
 		if (this.nonTextButtons.indexOf(e.keyCode) == -1) {
@@ -220,36 +109,58 @@ tinng.protos.ui.SearchBox.prototype = {
 			this.timeout = setTimeout(this.suggest, t.cfg.xhr_suggest);
 		}
 
-		// если бокс виден, и нажата одна из вертикальных стрелок - обработать как перемещение по меню
-		if (this.$suggestBox.is(':visible') && (e.keyCode == 38 || e.keyCode == 40 || e.keyCode == 13)) {
-			var suggests = this.$suggestBox.children();
-			var active = suggests.filter('.active');
+		// если нажата одна из вертикальных стрелок, или enter
+		if ([38,40].indexOf(e.keyCode) != -1) {
 
-			if (e.keyCode == 40) {
-				active = active.next()
-				if (!active.size()) active = suggests.first();
+			//Если виден результат саджеста
+			if (this.$suggestBox.is(':visible')) {
+				var suggests = this.$suggestBox.children();
+				var active = suggests.filter('.active');
+
+				switch (e.keyCode) {
+					case 40:
+						active = active.next()
+						if (!active.size()) active = suggests.first();
+						break;
+
+					case 38:
+						active = active.prev()
+						if (!active.size()) active = suggests.last();
+						break;
+				}
+
+				suggests.removeClass('active');
+				active.addClass('active');
 			}
+		}
 
-			if (e.keyCode == 38) {
-				active = active.prev()
-				if (!active.size()) active = suggests.last();
-			}
+		// что делаем по enter-у
+		if (e.keyCode == 13) this.onEnter();
+	},
 
-			if (e.keyCode == 13 && active.size()) {
-				this.addTagToFilter(this.currentSuggest[active.attr('data-tag-id')].data)
-			}
+	onEnter:function(){
+		var active = this.$suggestBox.find('.active');
 
-			suggests.removeClass('active');
-			active.addClass('active');
+		if (this.$suggestBox.is(':visible') && active.size()) {
+
+			this.addTagToSelection(active.attr('data-tag'));
+
+		} else if (this.conf.tagsOnly) {
+
+			this.tagManualInput(this.$input.val());
+
+			//this.addTagToSelection(this.$input.val())
+
+		} else {
+
 		}
 	},
 
 	tryBS:function(e){
-//		console.log('code:',e.keyCode)
 		// если нажат бекспейс, строка пуста, а теги в смарт-зоне есть - удалить последний
-		if (e.keyCode == 8 && this.$input.val() == '' && this.tagList.length > 0) {
-			var lastTag = this.tagList[this.tagList.length-1];
-			this.removeTagFromFilter(lastTag.data);
+		if (e.keyCode == 8 && this.$input.val() == '' && this.tagSelection.length > 0) {
+			var lastTag = this.$smartArea.children().last().attr('data-tag');
+			this.removeTagFromSelection(lastTag);
 		}
 	},
 
@@ -298,7 +209,13 @@ tinng.protos.ui.SearchBox.prototype = {
 
 		// очищаем выдачу
 		this.$suggestBox.children().remove();
-		this.currentSuggest = {};
+		
+		//превращаем список объектов в список текстовых тегов
+		var tags = [];
+		for (var i in data) {
+			tags.push(data[i].name);
+		}
+		data = tags;
 
 		// если есть результаты - строим новую
 		if (data.length > 0) {
@@ -306,25 +223,29 @@ tinng.protos.ui.SearchBox.prototype = {
 			data.forEach(this.createSuggestedItem);
 			this.$suggestBox.show();
 
-		// иначе убираем бокс
+			// иначе убираем бокс
 		} else {
 			this.hideSuggested();
 		}
 	},
 
-	createSuggestedItem:function(el, i){
+	createSuggestedItem:function(tagName, i){
 		var that = this;
 
-		if (!this.tagSet[el.id]) {
+		if (this.tagSelection.indexOf(tagName) == -1) {
 
-			var suggestItem = $('<div class="item" data-tag-id="'+ el.id +'">').appendTo(that.$suggestBox);
+			var suggestItem = $('<div class="item" data-tag="'+ tagName +'">').appendTo(that.$suggestBox);
 
-			var tag = this.currentSuggest[el.id] = new t.protos.ui.Tag(el, {
+			var tag = new t.protos.ui.Tag({
+				name:tagName,
+				type:this.conf.tagType
+			}, {
 				bodyClick:function(){
-					that.addTagToFilter(el);
+					that.addTagToSelection(tagName);
 				}
 			});
 
+			suggestItem.append(tag.$body);
 			suggestItem.append(tag.$body);
 		}
 	},
@@ -343,20 +264,28 @@ tinng.protos.ui.SearchBox.prototype = {
 		this.$suggestBox.children().removeClass('active');
 	},
 
-	addTagToFilter:function(data, uiOnly){
+	addTagToSelection:function(tagName, uiOnly) {
 		var that = this;
 
-		if (!this.tagSet[data.id]) {
+		if (this.tagSelection.indexOf(tagName) == -1) {
 
-			this.tagSet[data.id] = data;
+			var prefix = this.prefix[this.conf.tagType];
 
-			var smartAreaTag = new t.protos.ui.Tag(data, {
+			if (tagName.charAt(0) != prefix) tagName = prefix + tagName;
+
+
+
+			this.tagSelection.push(tagName);
+
+			var smartAreaTag = this.tagList[tagName] = new t.protos.ui.Tag({
+				name:tagName,
+				type:this.conf.tagType
+			}, {
 				closeClick:function(){
-					that.removeTagFromFilter(data);
+					that.removeTagFromSelection(tagName);
 				}
 			});
 			this.$smartArea.append(smartAreaTag.$body);
-			this.tagList.push(smartAreaTag);
 
 			// сбрасываем интерфейс в начальное положение
 
@@ -365,54 +294,36 @@ tinng.protos.ui.SearchBox.prototype = {
 				this.$suggestBox.children().remove();
 				this.hideSuggested();
 			} else {
-				this.$suggestBox.find('[data-tag-id="'+ data.id +'"]').remove();
+				this.$suggestBox.find('[data-tag="'+ tagName +'"]').remove();
 				if (!this.$suggestBox.children().size()) this.hideSuggested();
 			}
 
-			console.log('ui', arguments)
-
 			//передаем выбранные теги в коллбек
-			if (typeof uiOnly == 'undefined') this.conf.onConfirm(this.tagSet)
+			if (typeof uiOnly == 'undefined') this.conf.onConfirm(this.tagSelection)
 		}
 	},
 
-	removeTagFromFilter:function(data, uiOnly) {
+	removeTagFromSelection:function(tagName, uiOnly) {
 
-		// удаляем из списка, а заодно и из DOM
-		var newTagList = []
-		for (var i = 0; i < this.tagList.length; i++) {
-			var tag = this.tagList[i];
-			if (tag.data.id == data.id) tag.$body.remove(); else newTagList.push(tag);
+		// удаляем из списка и из DOM
+		if (this.tagList[tagName]) {
+			this.tagList[tagName].$body.remove();
+			delete this.tagList[tagName];
 		}
-		this.tagList = newTagList;
 
-		//удаляем из объекта
-		delete(this.tagSet[data.id]);
+		this.tagSelection.splice(this.tagSelection.indexOf(tagName),1);
 
 		//передаем выбранные теги в коллбек
-		if (typeof uiOnly == 'undefined') this.conf.onConfirm(this.tagSet)
+		if (typeof uiOnly == 'undefined') this.conf.onConfirm(this.tagSelection)
+	},
+
+	tagManualInput:function(tagName){
+
+		if (tagName.replace(this.prefix[this.conf.tagType], '').length >= 3) {
+			this.addTagToSelection(tagName.toLowerCase());
+		} else {
+			alert('tag too short!');
+		}
+		//todo - здесь будут умные подсказки по созданию новых тегов
 	}
-}
-
-
-
-tinng.protos.ui.Panel = function (dataArray) {
-
-    this.$body = $('<div class="panel revealer3">');
-
-    for (var i = 0; i < dataArray.length; i++) {
-        var data = dataArray[i];
-
-        if (typeof t.protos.ui[data.type] == 'function') {
-            var control = new t.protos.ui[data.type](data);
-            this.$body.append(control.$body);
-            if (control.label) this[control.label] = control;
-        }
-    }
-
-    this.$body.append(t.chunks.get('clearfix'));
-}
-
-tinng.protos.ui.Panel.prototype = {
-
 }

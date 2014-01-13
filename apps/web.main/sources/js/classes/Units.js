@@ -148,7 +148,12 @@ tinng.protos.TopicsUnit = Class(tinng.protos.Unit, {
 
 					console.log('createSearchBox:', result)
 
-					searchBoxParams.tags = result;
+					var tags = [];
+					for (var i = 0; i < result.length; i++) {
+						tags.push(result[i].name);
+					}
+
+					searchBoxParams.tags = tags;
 					that.searchBox = new t.protos.ui.SearchBox(searchBoxParams);
 					that.header.$body.prepend(that.searchBox.$body);
 				}
@@ -188,15 +193,9 @@ tinng.protos.TopicsUnit = Class(tinng.protos.Unit, {
 	},
 
 	setFilterQuery: function (tagSet) {
-		var newQuery = [];
-
-		for (var i in tagSet) {
-			newQuery.push(tagSet[i].name);
-		}
-
 		this.clear();
 
-		var searchString = newQuery.join('|');
+		var searchString = tagSet.join('|');
 
 		t.connection.subscribe(this, 'topics', {
 			filter: searchString
@@ -207,10 +206,6 @@ tinng.protos.TopicsUnit = Class(tinng.protos.Unit, {
 		} else {
 			t.address.del('search');
 		}
-
-		//t.sync.filterQuery = newQuery.join('|');
-		//console.log('query: ', t.sync.filterQuery)
-		//t.rotor.start('load_pages');
 	},
 
 	clear: function () {
@@ -493,7 +488,7 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 		//this.header.cancelNewTopic.show();
 		this.$showMore.hide();
 
-		this.header.topicName.$body.html(t.txt.new_topic_title);
+		this.header.topicName.$body.html(t.txt.new_topic_creation);
 		//this.header.topicName.$body.attr('contenteditable', true);
 		//this.header.topicName.$body.focus();
 
@@ -519,13 +514,14 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 
 		var searchBoxParams = {
 			placeholder: t.txt.enter_tags,
+			tagsOnly:true,
 			onConfirm: function (tagSet) {
 				console.log('addTags:', tagSet)
 			}
 		}
 
 		if (typeof topic == 'undefined') {
-			save.val('Create');
+			save.val(t.txt.new_topic_btn_create);
 
 			this.searchBox = new t.protos.ui.SearchBox(searchBoxParams);
 			tagbox.append(this.searchBox.$body);

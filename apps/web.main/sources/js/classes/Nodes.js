@@ -142,7 +142,7 @@ tinng.protos.TopicNode = Class(tinng.protos.Node, {
 		if (data.tags) {
 			this.cells.$tags.text('');
 			for (var i in data.tags) {
-				this.cells.$tags.append(new t.protos.Tag(data.tags[i]).$body);
+				this.cells.$tags.append(new t.protos.ui.Tag(data.tags[i]).$body);
 			}
 		}
 

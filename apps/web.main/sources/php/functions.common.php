@@ -77,7 +77,7 @@ function incl_scripts() {
 		// Собираем содержимое всех поданых js-файлов в переменную
 		$script = '';
 		foreach ($arr as $val):
-			$script .= "\n" . file_get_contents($val);
+			if (file_exists($val)) $script .= "\n" . file_get_contents($val);
 		endforeach;
 
 		// Объявляем имя файла

@@ -349,25 +349,26 @@
 	<div data-chunk-name="topic-edit" class="topic-edit">
 		<div class="row">
 			<label>
-				<span>Title:</span><br>
+				<span><?= $txt['new_topic_title'] ?>:</span><br>
 				<input class="title" type="text" data-cell="input_title">
 			</label>
 		</div>
 		<div class="row">
 			<label>
-				<span>Body:</span><br>
+				<span><?= $txt['new_topic_body'] ?>:</span><br>
 				<textarea data-cell="input_body"></textarea>
 			</label>
 		</div>
 		<div class="row">
-			<label><span>Tags:</span></label>
+			<label><span><?= $txt['new_topic_tags'] ?>:</span></label>
+			<div class="tag-attention"><?= $txt['new_topic_tags_att'] ?></div>
 			<div data-cell="tagbox">
 
 			</div>
 		</div>
 		<div class="row">
 			<input type="submit" class="button submit" data-cell="button_save">
-			<input type="button" class="button" data-cell="button_cancel" value="Cancel">
+			<input type="button" class="button" data-cell="button_cancel" value="<?= $txt['cancel'] ?>">
 		</div>
 	</div>
 

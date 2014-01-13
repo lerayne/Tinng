@@ -6,7 +6,7 @@ $subject = $_REQUEST['subject'];
 
 switch ($suggest):
 	
-	case 'on_topics':
+	case 'tags':
 
 		$subjects = explode(' ', trim($subject));
 

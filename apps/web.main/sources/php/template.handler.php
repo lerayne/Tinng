@@ -15,6 +15,14 @@ function path($file) {
 	return (file_exists($skinned_path)) ? $skinned_path : $stock_path;
 }
 
+function import_php_str($str) {
+
+	$str = str_replace("\r", '', $str);
+	$str = str_replace("\n", ' ', $str);
+
+	return $str;
+}
+
 function template_head() {
 
 	global $env, $cfg, $user, $txt, $rex, $e;
@@ -51,7 +59,7 @@ function template_head() {
 		var txt = {}, cfg = {}, rex = {};
 	';
 
-	foreach ($txt as $key => $val) echo "txt['" . $key . "'] = '" . $val . "';\n";
+	foreach ($txt as $key => $val) echo "txt['" . $key . "'] = '" . import_php_str($val) . "';\n";
 	echo "\n";
 
 	foreach ($cfg as $key => $val) echo "cfg['" . $key . "'] = " . (is_int($val) || is_float($val) ? $val . ";\n" : "'" . $val . "';\n");
@@ -82,7 +90,14 @@ function template_head() {
         $env['appdir'] . 'sources/js/classes/User.js',			// пользователь
         $env['appdir'] . 'sources/js/classes/Address.js',		// работа с хешем адресной строки
 		$env['appdir'] . 'sources/js/classes/Chunks.js',		// движок подшаблонов, встроенных в базовый шаблон
-		$env['appdir'] . 'sources/js/classes/Controls.js',		// абстракция элементов управления
+
+		// абстракция элементов управления
+		$env['appdir'] . 'sources/js/classes/controls/Button.js',
+		$env['appdir'] . 'sources/js/classes/controls/Field.js',
+		$env['appdir'] . 'sources/js/classes/controls/Panel.js',
+		$env['appdir'] . 'sources/js/classes/controls/SearchBox.js',
+		$env['appdir'] . 'sources/js/classes/controls/Tag.js',
+
 		$env['appdir'] . 'sources/js/classes/Units.js',			// "вьюпорты", или секции основного интерфейса
 		$env['appdir'] . 'sources/js/classes/Editor.js',		// редактор сообщений
 		$env['appdir'] . 'sources/js/classes/UserInterface.js', // основной интерфейс
