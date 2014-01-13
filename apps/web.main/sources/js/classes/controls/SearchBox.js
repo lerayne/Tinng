@@ -57,6 +57,7 @@ tinng.protos.ui.SearchBox = function(config){
 
 	/* привязка событий *//////////////////
 	this.$input.on('keyup', this.onType);
+	this.$input.on('blur', this.onEnter)
 
 	// по этому событию по факту отправляется предыдущее значение, благодаря чему тег не удаляется с удалением последней буквы
 	this.$input.on('keydown', this.tryBS);
@@ -147,7 +148,7 @@ tinng.protos.ui.SearchBox.prototype = {
 
 		} else if (this.conf.tagsOnly) {
 
-			this.tagManualInput(this.$input.val());
+			if (this.$input.val().length) this.tagManualInput(this.$input.val());
 
 			//this.addTagToSelection(this.$input.val())
 
