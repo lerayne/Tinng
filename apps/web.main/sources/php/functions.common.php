@@ -70,9 +70,9 @@ function incl_css() {
 function incl_scripts() {
 	$arr = func_get_args();
 
-	global $safecfg, $env;
+	global $cfg, $env;
 
-	if ($safecfg['production']) {
+	if ($cfg['production']) {
 
 		// Собираем содержимое всех поданых js-файлов в переменную
 		$script = '';

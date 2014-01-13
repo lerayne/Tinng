@@ -510,22 +510,42 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 		var cancel = node.find('[data-cell="button_cancel"]');
 		var tagbox = node.find('[data-cell="tagbox"]');
 
-		cancel.click(this.cancelNewTopic);
+		this.newTags = [];
 
 		var searchBoxParams = {
 			placeholder: t.txt.enter_tags,
 			tagsOnly:true,
 			onConfirm: function (tagSet) {
-				console.log('addTags:', tagSet)
+				that.newTags = tagSet
 			}
 		}
 
 		if (typeof topic == 'undefined') {
 			save.val(t.txt.new_topic_btn_create);
-
-			this.searchBox = new t.protos.ui.SearchBox(searchBoxParams);
-			tagbox.append(this.searchBox.$body);
 		}
+
+		this.searchBox = new t.protos.ui.SearchBox(searchBoxParams);
+		tagbox.append(this.searchBox.$body);
+
+		cancel.click(this.cancelNewTopic);
+
+		save.click(function(){
+
+			if (!title.val().match(t.rex.empty) && !body.val().match(t.rex.empty)) {
+
+				that.clear();
+
+				t.connection.write({
+					action:'add_topic',
+					title: title.val(),
+					message: body.val(),
+					tags:that.newTags
+				})
+
+			} else {
+				alert('title and body can not be empty')
+			}
+		})
 
 		return {$body: node};
 	},

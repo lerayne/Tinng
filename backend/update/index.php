@@ -726,10 +726,33 @@ function parse_request($request) {
 					$new_row['message'] = $write['message'];
 					$new_row['created'] = now('sql');
 
-					$new_id = $db->query('INSERT INTO ?_messages (?#) VALUES (?a)', array_keys($new_row), array_values($new_row));
+					$new_node_id = $db->query('INSERT INTO ?_messages (?#) VALUES (?a)', array_keys($new_row), array_values($new_row));
 
 					if ($write['action'] == 'add_topic') {
-						$result['actions'][$write_index] = Array('action' => $write['action'],'id' => $new_id);
+						$result['actions'][$write_index] = Array('action' => $write['action'],'id' => $new_node_id);
+
+						if (count($write['tags'])) {
+							foreach ($write['tags'] as $tag) {
+								$tag_id = $db->selectCell('SELECT id FROM ?_tags WHERE name = ?', $tag);
+
+								if (!$tag_id) {
+
+									$new_tag = array(
+										'name' => $tag,
+										'type' => 'user'
+									);
+
+									$tag_id = $db->query('INSERT INTO ?_tags (?#) VALUES (?a)', array_keys($new_tag), array_values($new_tag));
+								}
+
+								$new_tagbind = array(
+									'message' => $new_node_id,
+									'tag' => $tag_id
+								);
+
+								$db->query('INSERT INTO ?_tagmap (?#) VALUES (?a)', array_keys($new_tagbind), array_values($new_tagbind));
+							}
+						}
 					}
 
 					break;

@@ -57,7 +57,7 @@ tinng.protos.Node = Class({
 		this.$body.attr('id', chunkName + '_' + data.id);
 		this.$body.attr('data-number', data.id);
 		this.cells.$message.addClass('message_' + data.id);
-		this.cells.$id.text(data.id);
+		if (!t.cfg.production) this.cells.$id.text(data.id);
 	},
 
 	// заполнить данными
