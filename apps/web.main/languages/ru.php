@@ -123,7 +123,7 @@ $txtp['reg_email_expalin'] = 'email должен быть реальным. На
 	аватар к данному email-адресу. Другого способа залить аватар у нас пока нет, sorry :)';
 
 
-$txtp['posts_default'] = 'Выберите тему в столбце слева';
+$txtp['posts_default'] = 'Выберите тему в столбце слева<br><br>или<br><br><a href="#" onclick="t.units.posts.newTopic()">создайте новую</a>';
 
 $txtp['reg_approve_subject'] = 'Подтверждение аккаунта «'. $cfg['instance_name'] .'»';
 $txtp['reg_approve_message'] = ', Вы успешно зарегистрировались на сайте «'. $cfg['instance_name'] .'».
