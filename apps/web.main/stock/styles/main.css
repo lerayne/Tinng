@@ -60,6 +60,7 @@ img 	{border:0;}
 .none		{ display: none; }
 .invis, .invisible		{ visibility: hidden; }
 .clearboth, .clearfix	{ clear:both; }
+.clickable {cursor:pointer}
 
 .reveal, .reveal2, .reveal3 { visibility: hidden; }
 .revealer:hover .reveal, .revealer2:hover .reveal2, .revealer3:hover .reveal3 { visibility: visible; }

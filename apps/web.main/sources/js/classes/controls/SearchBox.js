@@ -319,13 +319,15 @@ tinng.protos.ui.SearchBox.prototype = {
 
 	removeTagFromSelection:function(tagName, uiOnly) {
 
+		// удаляем из выделения
+		this.tagSelection.splice(this.tagSelection.indexOf(tagName),1);
+
 		// удаляем из списка и из DOM
 		if (this.tagList[tagName]) {
 			this.tagList[tagName].$body.remove();
+			if (this.tagSelection.length > 0) this.tagList[this.tagSelection[0]].removeOperation()
 			delete this.tagList[tagName];
 		}
-
-		this.tagSelection.splice(this.tagSelection.indexOf(tagName),1);
 
 		//передаем выбранные теги в коллбек
 		if (typeof uiOnly == 'undefined') this.conf.onConfirm(this.tagSelection)

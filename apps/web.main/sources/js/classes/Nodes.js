@@ -62,6 +62,7 @@ tinng.protos.Node = Class({
 
 	// заполнить данными
 	fill:function (data) {
+		var that = this;
 
 		this.data = data;
 
@@ -74,9 +75,18 @@ tinng.protos.Node = Class({
 		//todo: сейчас теги при каждом филле обнуляются и вбиваются заново. непорядок
 		if (data.tags) {
 			this.cells.$tags.children().remove();
-			for (var i in data.tags) {
-				this.cells.$tags.append(new t.protos.ui.Tag(data.tags[i]).$body);
-			}
+
+			data.tags.forEach(function(val, i){
+
+				var tag = new t.protos.ui.Tag(val, {
+					bodyClick:function(){
+						t.units.topics.searchBox.addTagToSelection(val.name)
+					}
+				})
+				that.cells.$tags.append(tag.$body);
+			})
+
+			this.cells.$tags.show();
 		}
 	},
 
@@ -431,6 +441,7 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 	cancelEdit:function () {
 
 		this.exitEditMode();
+		this.cells.$tags.show();
 
 		this.unlock();
 		this.cells.$message.html(this.messageBackup);
@@ -442,7 +453,6 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 	// выходит из режима редактирования
 	exitEditMode:function () {
 		this.cells.$menuBtn.show();
-		this.cells.$tags.show();
 		this.cells.$tags_edit.hide().children().remove();
 		this.editorPanel.$body.hide();
 		//this.mainPanel.$body.show();

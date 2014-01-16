@@ -6,14 +6,14 @@
 tinng.protos.ui.Tag = function (data, callbacks) {
 	this.data = data;
 	this.$body = t.chunks.get('tag');
+	this.$operation = this.$body.find('[data-cell="operation"]');
 
 	var textContainer = this.$body.find('[data-cell="text"]');
 	var closeButton = this.$body.find('[data-cell="close"]');
 
 	if (this.data.operation) {
 		this.$body.addClass('operational')
-		var opArea = this.$body.find('[data-cell="operation"]');
-		opArea.text(this.data.operation).show();
+		this.$operation.text(this.data.operation).show();
 	}
 
 	textContainer.text(data.name);
@@ -21,7 +21,8 @@ tinng.protos.ui.Tag = function (data, callbacks) {
 
 	if (typeof callbacks != 'undefined'){
 		if (callbacks.bodyClick) {
-			this.$body.click(callbacks.bodyClick)
+			this.$body.click(callbacks.bodyClick);
+			this.$body.addClass('clickable');
 		}
 		if (callbacks.closeClick) {
 			closeButton.show();
@@ -31,5 +32,8 @@ tinng.protos.ui.Tag = function (data, callbacks) {
 }
 
 tinng.protos.ui.Tag.prototype = {
-
+	removeOperation:function(){
+		this.$body.removeClass('operational')
+		this.$operation.hide();
+	}
 }
