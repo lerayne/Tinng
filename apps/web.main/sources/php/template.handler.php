@@ -103,7 +103,6 @@ function template_head() {
 		$env['appdir'] . 'sources/js/classes/UserInterface.js', // основной интерфейс
 		$env['appdir'] . 'sources/js/classes/Rotor.js', 		// соединение с сервером данных
 		$env['appdir'] . 'sources/js/parser.js', 				// обработка пришедших от сервера данных
-		$env['appdir'] . 'sources/js/classes/Tag.js', 			// тег
 		$env['appdir'] . 'sources/js/classes/Nodes.js', 		// блоки (ноды) сообщений
 
 		$env['appdir'] . 'sources/js/classes/connection/Connection.js', 				// враппер соединения

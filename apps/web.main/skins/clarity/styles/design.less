@@ -321,11 +321,41 @@ body {
 	padding-top:3px;
 	background-color: #ddd;
 
+	.tags {
+		.tag {
+			margin: 7px 4px 0 0;
+		}
+	}
+
 	.node {
 		border:0px solid transparent;
 		margin-bottom:4px;
 		background-color: white;
 		position: relative;
+
+		.smart-search {
+
+			margin: 0;
+
+			input[type="text"] {
+				border: 1px solid #ccc;
+				width: 100px;
+				margin: 6px 0 0;
+			}
+
+			.smart-area {
+				.tag {
+					margin: 7px 4px 0 0;
+					padding: 2px 4px;
+				}
+			}
+
+			.suggest-box {
+				.tag {
+					float:none;
+				}
+			}
+		}
 	}
 
 	.data_cell {
@@ -350,6 +380,10 @@ body {
 			width:48px;
 			height:48px;
 		}
+	}
+
+	.tags-edit {
+		display: none;
 	}
 
 	.menuBtn {
@@ -560,12 +594,13 @@ body {
 
 /* tags */
 .tag {
-	margin:7px 4px 0 0;
+	margin:1px 4px 1px 0;
 	border-radius: 2px;
 	display:inline-block;
 	background-color: #007bb7;
 	padding: 2px 4px;
 	border-radius: 0;
+	position: relative;
 
 	.close {
 		cursor:pointer;
@@ -574,6 +609,21 @@ body {
 		&:hover {
 			opacity:1;
 		}
+	}
+
+	&.operational .name {
+		padding-left: 12px;
+	}
+
+	.operation {
+		background: white;
+		color: #777;
+		position: absolute;
+		top: 0;
+		left: 0;
+		height: 100%;
+		width: 11px;
+		text-align: left;
 	}
 }
 

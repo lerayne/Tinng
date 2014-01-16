@@ -155,8 +155,8 @@
 				<!-- основное сообщение -->
 			</div>
 			<div data-cell="tags" class="tags"></div>
-			<div data-cell="controls2" class="controls2 reveal"></div>
-			<div class="clearboth"></div>
+			<div data-cell="tags_edit" class="tags tags-edit"></div>
+			<div data-cell="controls2" class="controls2 clearboth"></div>
 		</div>
 	</div>
 
@@ -342,9 +342,11 @@
 
 
 	<div data-chunk-name="tag" class="tag">
-		<span data-cell="text"></span>
+		<span data-cell="operation" style="display:none" class="operation"></span>
+		<span data-cell="text" class="name"></span>
 		<span data-cell="close" style="display:none" class="close">&times;</span>
 	</div>
+
 
 	<div data-chunk-name="topic-edit" class="topic-edit">
 		<div class="row">

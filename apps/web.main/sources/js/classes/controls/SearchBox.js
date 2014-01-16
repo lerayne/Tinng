@@ -15,6 +15,7 @@ tinng.protos.ui.SearchBox = function(config){
 	this.conf = t.funcs.objectConfig(config, this.defaultConf = {
 		tags:[],
 		tagType:'user',
+		searchMode:'AND',
 		css:'',
 		cssClass:'',
 		placeholder:'Search...',
@@ -25,6 +26,8 @@ tinng.protos.ui.SearchBox = function(config){
 		// вызывается когда объект поиска подтверждается тем или иным способом
 		onConfirm:function(){}
 	});
+
+	if (this.conf.tagsOnly) this.conf.searchMode = 'OR';
 
 	this.prefix = {
 		'user':'#',
@@ -39,7 +42,7 @@ tinng.protos.ui.SearchBox = function(config){
 		119,120,121,122,123,144,145];
 
 	// символы, которые не могут быть частью тега в режиме ввода только тегов
-	this.nonTagSymbols = [',', ';', ' ', '?', '=', '"', "'"];
+	this.nonTagSymbols = [',', ';', ' ', '?', '=', '+', '"', "'"];
 
 	this.tagSelection = [];
 	this.tagList = {};
@@ -76,7 +79,7 @@ tinng.protos.ui.SearchBox = function(config){
 	if (this.conf.tags.length) {
 		for (var i = 0; i < this.conf.tags.length; i++) {
 			var tag = this.conf.tags[i];
-			this.addTagToSelection(tag, 'uiOnly');
+			this.addTagToSelection(typeof tag == 'object' ? tag.name : tag, 'uiOnly');
 		}
 	}
 }
@@ -278,14 +281,24 @@ tinng.protos.ui.SearchBox.prototype = {
 
 			this.tagSelection.push(tagName);
 
+			var operation = false;
+
+			if (this.tagSelection.length > 1) {
+				if (this.conf.searchMode == 'AND') {
+					operation = '+';
+				}
+			}
+
 			var smartAreaTag = this.tagList[tagName] = new t.protos.ui.Tag({
 				name:tagName,
-				type:this.conf.tagType
+				type:this.conf.tagType,
+				operation: operation
 			}, {
 				closeClick:function(){
 					that.removeTagFromSelection(tagName);
 				}
 			});
+
 			this.$smartArea.append(smartAreaTag.$body);
 
 			// сбрасываем интерфейс в начальное положение

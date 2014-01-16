@@ -10,6 +10,12 @@ tinng.protos.ui.Tag = function (data, callbacks) {
 	var textContainer = this.$body.find('[data-cell="text"]');
 	var closeButton = this.$body.find('[data-cell="close"]');
 
+	if (this.data.operation) {
+		this.$body.addClass('operational')
+		var opArea = this.$body.find('[data-cell="operation"]');
+		opArea.text(this.data.operation).show();
+	}
+
 	textContainer.text(data.name);
 	this.$body.attr('data-tag', data.name);
 

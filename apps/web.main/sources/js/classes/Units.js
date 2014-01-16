@@ -146,12 +146,7 @@ tinng.protos.TopicsUnit = Class(tinng.protos.Unit, {
 					tags:t.address.get('search')
 				}, function(result, errors){
 
-					console.log('createSearchBox:', result)
-
-					var tags = [];
-					for (var i = 0; i < result.length; i++) {
-						tags.push(result[i].name);
-					}
+					var tags = result.map(function(val){return val.name});
 
 					searchBoxParams.tags = tags;
 					that.searchBox = new t.protos.ui.SearchBox(searchBoxParams);
@@ -195,7 +190,7 @@ tinng.protos.TopicsUnit = Class(tinng.protos.Unit, {
 	setFilterQuery: function (tagSet) {
 		this.clear();
 
-		var searchString = tagSet.join('|');
+		var searchString = tagSet.join('+');
 
 		t.connection.subscribe(this, 'topics', {
 			filter: searchString

@@ -152,7 +152,7 @@ switch ($action):
 	// принимает текстовую строку с тэгами и отдает параметры этих тегов
 	case 'get_tags':
 
-		$tags = explode('|', $_REQUEST['tags']);
+		$tags = explode('+', $_REQUEST['tags']);
 		$arr = array();
 
 		if (count($tags) && $tags[0] != '') {

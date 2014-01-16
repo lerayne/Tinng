@@ -230,7 +230,8 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 			.Node.prototype
 			.construct.call(this, data, 'post',
 			[
-				'avatar'
+				'avatar',
+				'tags_edit'
 			]
 		);
 
@@ -381,6 +382,7 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 
 	// демонстрирует блокировку, или входит в режим редактирования
 	enterEditMode:function (result, errors) {
+		var that = this;
 
 		if (result.locked !== null) {
 
@@ -397,6 +399,27 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 			this.messageBackup = this.cells.$message.html();
 
 			this.hideMenu();
+			this.cells.$menuBtn.hide();
+
+			if (this.data.head) {
+				this.cells.$tags.hide();
+
+				this.data.newTags = this.data.tags ? this.data.tags.map(function(val){return val.name}) : [];
+
+				this.tagEditBox = new t.protos.ui.SearchBox({
+					tags:this.data.tags,
+					tagsOnly:true,
+					placeholder:t.txt.enter_tags,
+					onConfirm:function(tags){
+						that.data.newTags = tags;
+					}
+				});
+
+				this.tagEditBox.$body.appendTo(this.cells.$tags_edit)
+
+				this.cells.$tags_edit.show();
+			}
+
 			this.editorPanel.$body.show();
 
 			this.cells.$message.attr('contenteditable', true);
@@ -418,6 +441,9 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 
 	// выходит из режима редактирования
 	exitEditMode:function () {
+		this.cells.$menuBtn.show();
+		this.cells.$tags.show();
+		this.cells.$tags_edit.hide().children().remove();
 		this.editorPanel.$body.hide();
 		//this.mainPanel.$body.show();
 		this.cells.$message.removeAttr('contenteditable');
@@ -426,10 +452,13 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 	// срабатывает при нажатии кнопки "сохранить" в режиме редактирования
 	save:function () {
 
+		console.log('write tags:', this.data.newTags)
+
 		t.connection.write({
 			action: 'update_message',
 			id:this.id,
-			message:this.cells.$message.html()
+			message:this.cells.$message.html(),
+			tags:this.data.newTags
 		});
 		this.exitEditMode();
 

@@ -79,7 +79,7 @@ function sort_by_field($array, $field, $reverse) {
 /////////////////////////////////
 
 function extract_tag_array($string) {
-	$chunks = explode('|', $string);
+	$chunks = explode('+', $string);
 	$arr = array();
 	if (count($chunks) && $chunks[0] != '') {
 		foreach ($chunks as $val) {
@@ -92,7 +92,7 @@ function extract_tag_array($string) {
 function tags_to_ids($string) {
 	global $db;
 
-	$tags = explode('|', $string);
+	$tags = explode('+', $string);
 	$arr = array();
 
 	if (count($tags) && $tags[0] != '') {
@@ -100,6 +100,37 @@ function tags_to_ids($string) {
 	}
 
 	return $arr;
+}
+
+function add_tags($tags, $message_id){
+	if (count($tags)) {
+
+		global $db;
+
+		foreach ($tags as $tag) {
+
+			if (!is_array($tag)) {
+				$tag = array(
+					'name' => $tag,
+					'type' => 'user'
+				);
+			}
+
+			$tag_id = $db->selectCell('SELECT id FROM ?_tags WHERE name = ?', $tag['name']);
+
+			if (!$tag_id) {
+
+				$tag_id = $db->query('INSERT INTO ?_tags (?#) VALUES (?a)', array_keys($tag), array_values($tag));
+			}
+
+			$new_tagbind = array(
+				'message' => $message_id,
+				'tag' => $tag_id
+			);
+
+			$db->query('INSERT INTO ?_tagmap (?#) VALUES (?a)', array_keys($new_tagbind), array_values($new_tagbind));
+		}
+	}
 }
 
 function strip_nulls($array) {
@@ -600,6 +631,8 @@ class Feed {
 		// показываем теги заглавного сообщения
 		if ($output_posts[$posts['topic']]) {
 
+			$output_posts[$posts['topic']]['head'] = true;
+
 			$tags = $db->select('
 				SELECT
 					tag.id,
@@ -731,28 +764,7 @@ function parse_request($request) {
 					if ($write['action'] == 'add_topic') {
 						$result['actions'][$write_index] = Array('action' => $write['action'],'id' => $new_node_id);
 
-						if (count($write['tags'])) {
-							foreach ($write['tags'] as $tag) {
-								$tag_id = $db->selectCell('SELECT id FROM ?_tags WHERE name = ?', $tag);
-
-								if (!$tag_id) {
-
-									$new_tag = array(
-										'name' => $tag,
-										'type' => 'user'
-									);
-
-									$tag_id = $db->query('INSERT INTO ?_tags (?#) VALUES (?a)', array_keys($new_tag), array_values($new_tag));
-								}
-
-								$new_tagbind = array(
-									'message' => $new_node_id,
-									'tag' => $tag_id
-								);
-
-								$db->query('INSERT INTO ?_tagmap (?#) VALUES (?a)', array_keys($new_tagbind), array_values($new_tagbind));
-							}
-						}
+						add_tags($write['tags'], $new_node_id);
 					}
 
 					break;
@@ -763,7 +775,37 @@ function parse_request($request) {
 					unset ($write['action']);
 
 					$upd_id = $write['id'];
-					unset($write['id']);
+					$new_tags = $write['tags'];
+					unset($write['id'], $write['tags']);
+
+					// занимаемся тегами
+					$current_tags = $db->selectCol('
+						SELECT tag.id AS ARRAY_KEY, tag.name FROM ?_tagmap map
+						LEFT JOIN ?_tags tag ON map.tag = tag.id
+						WHERE map.message = ?d
+						'
+						, $upd_id
+					);
+
+					$tags_to_add = array();
+					$tags_to_remove = array();
+
+					foreach ($new_tags as $tag) if (!in_array($tag, $current_tags)) $tags_to_add[] = $tag;
+					foreach ($current_tags as $id => $tag) if (!in_array($tag, $new_tags)) $tags_to_remove[$id] = $tag;
+
+					if (count($tags_to_remove)) {
+						$db->query('DELETE FROM ?_tagmap WHERE message = ?d AND tag IN (?a)', $upd_id, array_keys($tags_to_remove));
+					}
+
+					if (count($tags_to_add)) {
+						add_tags($tags_to_add, $upd_id);
+					}
+
+					/*$GLOBALS['debug']['$new_tags'] = $new_tags;
+					$GLOBALS['debug']['$current_tags'] = $current_tags;
+					$GLOBALS['debug']['$tags_to_add'] = $tags_to_add;
+					$GLOBALS['debug']['$tags_to_remove'] = array_keys($tags_to_remove);*/
+
 					$write['modified'] = now('sql'); // при любом обновлении пишем дату,
 					$write['modifier'] = $user->id; // пользователя, отредактировавшего сообщение
 					$write['locked'] = null; // и убираем блокировку
@@ -850,5 +892,5 @@ function parse_request($request) {
 $GLOBALS['_RESULT'] = parse_request($_REQUEST);
 
 
-//print_r($GLOBALS['debug']);
+if (count($GLOBALS['debug'])) print_r($GLOBALS['debug']);
 ?>
