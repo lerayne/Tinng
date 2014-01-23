@@ -1,6 +1,9 @@
 <?php
 //sleep(1); // в целях отладки
 
+$GLOBALS['_RESULT'] = '';
+exit();
+
 require_once './includes/backend_initial.php';
 
 $result['xhr'] = $xhr_id;
@@ -87,6 +90,8 @@ $old_pglimdateTS = $_REQUEST['pglimdateTS'];
 $action = $_REQUEST['action']; // указывает что именно пишем, если не false
 $params = $_REQUEST['params']; // прочие передаваемые данные (например новые данные для записи)
 $topic = $_REQUEST['curTopic'];
+$filter_query = $_REQUEST['filterQuery']; // строка фильтрации списка тем
+$test = $_REQUEST['test'];
 
 
 $result['old_maxdate'] = $maxdateSQL;
@@ -185,7 +190,7 @@ endswitch;
 
 $result['new_maxdate'] = $db->selectCell(
 	'SELECT GREATEST(MAX(created), IFNULL(MAX(modified), 0))
-	FROM ?_messages WHERE IFNULL(modified, created) > ?' . ($condition ? ' AND ' . $condition : '')
+	FROM ?_messages WHERE IFNULL(modified, created) > ?' . ($condition ? (' AND ('.$condition.')') : '')
 	, ($action == 'load_pages' || $action == 'next_page') ? 0 : $maxdateSQL
 );
 
@@ -206,6 +211,19 @@ if (!$result['new_maxdate']) {
 // Импорт переменных
 $sort = $_REQUEST['topicSort'] ? $_REQUEST['topicSort'] : 'updated';
 $reverse = $_REQUEST['tsReverse'];
+
+function extractTagArray ($string) {
+	$chunks = explode('|', $string);
+	$arr = array();
+	if (count($chunks) && $chunks[0] != ''){
+		foreach ($chunks as $val) {
+			$arr[] = (int) $val;
+		}
+	}
+	return $arr;
+}
+
+$tag_array = extractTagArray($filter_query);
 
 // выбираем обновленные темы (втч удаленные)
 $result['topics'] = make_tree($db->select(
@@ -249,13 +267,20 @@ $result['topics'] = make_tree($db->select(
 	LEFT JOIN ?_unread unr
 		ON unr.topic = msg.id
 		AND unr.user = ?d
+	{JOIN ?_tagmap tagmap
+		ON tagmap.message = msg.id
+		AND tagmap.tag IN (?a)}
 
 	WHERE msg.topic_id = 0
 		AND (IFNULL(msg.modified, msg.created) > ? OR IFNULL(mupd.modified, mupd.created) > ?)
-		' . ($condition ? ' AND ' . $condition : '')
+		' . ($condition ? (' AND ('.$condition.')') : '') . '
+
+	GROUP BY msg.id
+	'
 
 	, $cfg['cut_length'], $cfg['cut_length'] // ограничение выборки первого поста
 	, $user->id
+	, (count($tag_array) ? $tag_array : DBSIMPLE_SKIP)
 	, $maxdateSQL, $maxdateSQL
 ));
 
@@ -469,4 +494,7 @@ if ($topic) {
 
 $GLOBALS['_RESULT'] = $result;
 
+print_r(json_decode($test, true));
+echo "\n";
+print_r($tag_array);
 ?>

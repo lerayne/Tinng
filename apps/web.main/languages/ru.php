@@ -41,6 +41,16 @@ $txt['answer'] = 'Ответить';
 $txt['rename'] = 'Переименовать';
 $txt['rename_topic'] = 'Переименовать тему';
 
+$txt['new_topic_creation'] = 'Создание новой темы';
+$txt['new_topic_title'] = 'Название темы';
+$txt['new_topic_body'] = 'Заглавное сообщение';
+$txt['new_topic_tags'] = 'Теги';
+$txt['enter_tags'] = 'Введите тег';
+$txt['new_topic_btn_create'] = 'Создать';
+$txt['new_topic_tags_att'] = 'Внимание! Теги - на данный момент единственный способ упорядочивания тем в Tinng.
+	Убедительная просьба <b>не пренебрегать их вводом</b>, а также, по возможности, не создавать похожих друг на друга
+	дубликатов';
+
 $txt['error_missing_msg_body'] = 'Ошибка! Сообщение не может быть пустым';
 $txt['no_topic_name'] = '<span class="subtext">Без названия</span>';
 
@@ -114,6 +124,7 @@ $txtp['reg_email_expalin'] = 'email должен быть реальным. На
 
 
 $txtp['posts_default'] = 'Выберите тему в столбце слева';
+$txtp['create_new_topic'] = '<br><br>или<br><br><a href="#" onclick="t.units.posts.newTopic()">создайте новую</a>';
 
 $txtp['reg_approve_subject'] = 'Подтверждение аккаунта «'. $cfg['instance_name'] .'»';
 $txtp['reg_approve_message'] = ', Вы успешно зарегистрировались на сайте «'. $cfg['instance_name'] .'».

@@ -85,14 +85,16 @@
 
 	</footer>
 
+	
 	<!-- масштабируемый бекграунд -->
-	<img id="scaled-bg" src="<?= path('images/bg1.jpg') ?>">
+	<img id="scaled-bg" src="<?= path('images/bg4.jpg') ?>">
 
 </div>
 
 
 <!-- шаблоны, обрабатываемые скриптом (скрыты) -->
 <div id="tinng-chunks" class="none">
+
 
 	<div data-chunk-name="unit" class="unit">
 		<header></header>
@@ -104,10 +106,16 @@
 		<footer></footer>
 	</div>
 
+
+
 	<!-- Элемент столбца тем -->
 	<div data-chunk-name="topic" class="node topic revealer">
 		<div class="data_cell">
 			<div data-cell="infobar" class="infobar">
+				<div data-cell="menuBtn" class="menuBtn right reveal control">
+					<span>&nbsp;</span>
+					<div class="dropmenu" style="display:none" data-cell="controls"></div>
+				</div>
 				<div data-cell="created" class="created right reveal"></div>
 				<div data-cell="parent" class="parent"></div>
 				<div data-cell="author" class="author left"></div>
@@ -121,15 +129,21 @@
 			</div>
 			<div data-cell="lastmessage" class="lastmessage"></div>
 			<div data-cell="tags" class="tags"></div>
-			<div data-cell="controls" class="controls reveal"></div>
+			<div data-cell="controls2" class="controls2 reveal"></div>
 			<div class="clearboth"></div>
 		</div>
 	</div>
+
+
 
 	<!-- Элемент столбца сообщений -->
 	<div data-chunk-name="post" class="node post revealer">
 		<div class="data_cell">
 			<div data-cell="infobar" class="infobar">
+				<div data-cell="menuBtn" class="menuBtn right reveal control">
+					<span>&nbsp;</span>
+					<div class="dropmenu bodyclickhide" style="display:none" data-cell="controls"></div>
+				</div>
 				<div class="avatar"><img data-cell="avatar"></div>
 				<div data-cell="created" class="created right reveal"></div>
 				<div data-cell="parent" class="parent"></div>
@@ -140,11 +154,13 @@
 			<div data-cell="message" class="message">
 				<!-- основное сообщение -->
 			</div>
-			<div class="tags"></div>
-			<div data-cell="controls" class="controls reveal"></div>
-			<div class="clearboth"></div>
+			<div data-cell="tags" class="tags"></div>
+			<div data-cell="tags_edit" class="tags tags-edit"></div>
+			<div data-cell="controls2" class="controls2 clearboth"></div>
 		</div>
 	</div>
+
+
 
 	<!-- Редактор -->
 	<div data-chunk-name="editor" class="editor">
@@ -160,12 +176,15 @@
 		</div>
 	</div>
 
+
+
 	<!-- Редактор (закрытый, для анонимуса) -->
 	<div data-chunk-name="editor-disabled" class="editor">
 		<div class="editor-inner">
 			<?= $txt['login_to_write'] ?>
 		</div>
 	</div>
+
 
 
 	<div data-chunk-name="login-form">
@@ -318,7 +337,47 @@
 	</div>
 
 	<div data-chunk-name="posts-default" class="posts-default">
-		<?= $txtp['posts_default'] ?>
+		<?
+			echo $txtp['posts_default'];
+
+			if ($user->id != 0) {
+				echo $txtp['create_new_topic'];
+			}
+		?>
+	</div>
+
+
+	<div data-chunk-name="tag" class="tag">
+		<span data-cell="operation" style="display:none" class="operation"></span>
+		<span data-cell="text" class="name"></span>
+		<span data-cell="close" style="display:none" class="close">&times;</span>
+	</div>
+
+
+	<div data-chunk-name="topic-edit" class="topic-edit">
+		<div class="row">
+			<label>
+				<span><?= $txt['new_topic_title'] ?>:</span><br>
+				<input class="title" type="text" data-cell="input_title">
+			</label>
+		</div>
+		<div class="row">
+			<label>
+				<span><?= $txt['new_topic_body'] ?>:</span><br>
+				<textarea data-cell="input_body"></textarea>
+			</label>
+		</div>
+		<div class="row">
+			<label><span><?= $txt['new_topic_tags'] ?>:</span></label>
+			<div class="tag-attention"><?= $txt['new_topic_tags_att'] ?></div>
+			<div data-cell="tagbox">
+
+			</div>
+		</div>
+		<div class="row">
+			<input type="submit" class="button submit" data-cell="button_save">
+			<input type="button" class="button" data-cell="button_cancel" value="<?= $txt['cancel'] ?>">
+		</div>
 	</div>
 
 </div>

@@ -16,14 +16,15 @@ tinng.protos.Editor = function () {
 
         this.$submit = $body.find('.submit.button');
         this.$messageBody = $body.find('.textarea');
-        this.$messageTitle = $body.find('.title');
 
         this.submitNew = $.proxy(this, 'submitNew');
 
         this.$submit.click(this.submitNew);
         this.visible = true;
 
-		this.$messageBody.on('keypress', this.onKeyPress)
+        this.currentHeight = 0;
+
+		this.$messageBody.on('keyup', this.onKeyPress)
 
 		// todo - мой кейлистенер - полное Г. Переделать.
 //		tinng.keyListener.register('ctrl+enter', this, this.submitNew);
@@ -42,31 +43,37 @@ tinng.protos.Editor.prototype = {
 		if (e.keyCode == 10 || ( e.keyCode == 13 && (e.altKey || e.ctrlKey) )){
 			this.submitNew();
 		}
+
+        if (this.currentHeight != this.$body.height()) {
+            this.currentHeight = this.$body.height();
+            this.resize();
+        }
 	},
 
     submitNew:function () {
 
         if (this.checkMessage()) {
 
-			switch (t.units.posts.newTopicMode) {
-				case true:
+			var writeObject = {
+				message: this.preparedMessage()
+			}
 
-					t.rotor.start('add_topic', {
-						message: this.preparedMessage(),
-						title: t.units.posts.header.topicName.$body.text()
-					});
+			if (t.units.posts.newTopicMode) {
+				writeObject.action = 'add_topic';
+				writeObject.title = t.units.posts.header.topicName.$body.text();
 
-				break;
-				default:
+			} else {
+				writeObject.action = 'add_post';
+				writeObject.topic = t.units.posts.subscriptions['posts'].topic
+			}
 
-					t.rotor.start('add_post', {
-						message:this.preparedMessage(),
-						title:''
-					});
+			t.connection.write(writeObject);
+
+			if (t.units.posts.newTopicMode){
+				t.units.posts.exitNewTopicMode();
 			}
 
             this.$messageBody.html(''); // todo - сделать затенение кнопки, если сообщение пустое
-            this.$messageTitle.val('');
         }
     },
 
@@ -90,12 +97,13 @@ tinng.protos.Editor.prototype = {
     },
 
 	resize:function(){
+		//console.log('editor resize');
 		var posts = t.units.posts;
 		this.$body.width(posts.$content.width());
 
 		var wasAtBottom = posts.atBottom; // не убирать! строка ниже меняет значение этого вызова!
 		posts.$contentWrap.css('padding-bottom', this.$body.offsetHeight());
-		if (wasAtBottom) posts.scrollToBottom();
+		if (wasAtBottom && !posts.atTop) posts.scrollToBottom();
 	},
 
 	hide:function(){

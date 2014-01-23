@@ -10,6 +10,10 @@
 
 tinng.funcs.parser = function (result, actionUsed) {
 
+	console.log('old_parser!');
+
+	if (!result) return false;
+
 //	console.log('actionUsed: ', actionUsed)
 
 	if (result && result.error) alert(t.txt.post_locked);
@@ -86,7 +90,6 @@ tinng.funcs.parser = function (result, actionUsed) {
 		// todo - исправить фиговое опредление!
 		if (tProps.id) {
 			t.units.posts.clear();
-			t.units.topics.markActive(tProps.id); // делаем тему в столбце тем активной
 		}
 
 		t.units.posts.setTopicName(tProps.name); //вывод названия темы

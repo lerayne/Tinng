@@ -72,6 +72,8 @@ tinng.protos.UserInterface = function (targetWindow) {
 	this.editor.$body.on('keyup', this.editorResize);
 	t.units.posts.$scrollArea.append(this.editor.$body);
 
+	this.editor.hide();
+
 	// вешаем событие на ресайз окна
 	this.$window.resize(this.winResize).resize();
 	t.units.posts.header.topicName.$body.on('keyup', this.winResize);
@@ -83,6 +85,11 @@ tinng.protos.UserInterface = function (targetWindow) {
 		this.showMessage(serverMessage);
 		t.funcs.deleteCookie('message');
 	}
+
+	//скрытие некоторых элементов по клику на body
+	$('body').click(function(){
+		$('.bodyclickhide').hide();
+	})
 };
 
 tinng.protos.UserInterface.prototype = {

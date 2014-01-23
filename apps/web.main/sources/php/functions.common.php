@@ -47,6 +47,8 @@ function incl_css() {
 	// Если такого файла нет - создаем
 	if (!file_exists($filename)) {
 
+		if (!file_exists($env['appdir'] . 'data/compiled')) mkdir($env['appdir'] . 'data/compiled');
+
 		// для начала чистим директорию
 		$compiled_path = $env['appdir'] . 'data/compiled/';
 		if (file_exists($compiled_path)) {
@@ -68,14 +70,14 @@ function incl_css() {
 function incl_scripts() {
 	$arr = func_get_args();
 
-	global $safecfg, $env;
+	global $cfg, $env;
 
-	if ($safecfg['production']) {
+	if ($cfg['production']) {
 
 		// Собираем содержимое всех поданых js-файлов в переменную
 		$script = '';
 		foreach ($arr as $val):
-			$script .= "\n" . file_get_contents($val);
+			if (file_exists($val)) $script .= "\n" . file_get_contents($val);
 		endforeach;
 
 		// Объявляем имя файла

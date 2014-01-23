@@ -149,6 +149,20 @@ switch ($action):
 
 	break;
 
+	// принимает текстовую строку с тэгами и отдает параметры этих тегов
+	case 'get_tags':
+
+		$tags = explode('+', $_REQUEST['tags']);
+		$arr = array();
+
+		if (count($tags) && $tags[0] != '') {
+			$arr = $db->select('SELECT * FROM ?_tags WHERE name IN (?a)', $tags);
+		}
+
+		$result = $arr;
+
+	break;
+
 	default:
 
 		$result = 'command not found';

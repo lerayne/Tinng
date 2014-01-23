@@ -35,9 +35,9 @@ tinng.protos.Rotor.prototype = {
 	// главная функция ротора
 	start:function (action, params) {
 	    var that = this;
-        setTimeout(function(){
-            that.wrappedStart(action, params)
-        })
+        /*setTimeout(function(){
+			that.wrappedStart(action, params)
+		},0);*/
 	},
 
     // todo: этот враппер-таймаут нужен из-за несовершенства обертки XHR, баг вылазит во время создания новой темы -
@@ -86,8 +86,13 @@ tinng.protos.Rotor.prototype = {
 
     	if (this.request.readyState == 4) {
 
+			if (this.request.responseText) {
+				console.log('PHP backtrace:\n==============\n'+this.request.responseText)
+			}
+
 			// разбираем пришедший пакет и выполняем обновления
 			t.sync.maxdateTS = this.parseCallback(this.request.responseJS, this.action, t);
+
 
 			this.stopIndication(); // индикация ожидания откл
 			this.request = false;

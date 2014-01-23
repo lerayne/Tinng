@@ -28,10 +28,12 @@ tinng = {
     funcs:null, // независимые от движка функции
 
     protos:{ // прототипные классы
-        ui:{} // ..контролов и интерфейсных элементов
+        ui:{}, // ..контролов и интерфейсных элементов
+		strategic:{} // классы, которые не используются напрямую, а являются исходниками для стратегических врапперов
     }
 }
 
+// todo - убрать отсюда конфигурацию контролов, ей здесь не место
 // Данные о сборке интерфейса
 tinng.data = {
     units:[
@@ -43,10 +45,10 @@ tinng.data = {
         {name:'posts', css:{width:'60%'},
             header:[
                 {type:'Button', label:'topicRename', cssClass:'right reveal3', icon:'pencil_w.png', tip:tinng.txt.rename_topic},
-                {type:'Field', label:'topicName', cssClass:'left topicname'},
                 {type:'Button', label:'cancel', cssClass:'right', icon:'cancel_w.png', tip:tinng.txt.cancel},
                 {type:'Button', label:'save', cssClass:'right', icon:'round_checkmark_w.png', tip:tinng.txt.save},
-				{type:'Button', label:'cancelNewTopic', cssClass:'right', icon:'cancel_w.png', tip:tinng.txt.cancel_new_topic}
+				//{type:'Button', label:'cancelNewTopic', cssClass:'right', icon:'cancel_w.png', tip:tinng.txt.cancel_new_topic},
+				{type:'Field', label:'topicName', cssClass:'topicname'}
             ]
         }
     ]
@@ -61,6 +63,7 @@ tinng.sync = {
     pglimdateTS:0,
     topicSort:'updated',
     tsReverse:true,
+	filterQuery:'',
     params:{}
 }
 

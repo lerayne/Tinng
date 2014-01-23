@@ -17,7 +17,7 @@ tinng.protos.Node = Class({
 
 	construct:function (data, chunkName, addCells) {
 		var that = this;
-		t.funcs.bind(this, ['markRead', 'pushReadState']);
+		t.funcs.bind(this, ['markRead', 'pushReadState', 'toggleMenu', 'hideMenu']);
 
 		this.$body = t.chunks.get(chunkName || 'node');
 
@@ -33,22 +33,36 @@ tinng.protos.Node = Class({
 			'author',
 			'id',
 			'message',
-			'controls'
+			'controls',
+			'controls2',
+            'menuBtn',
+			'tags'
 
 		].concat(addCells || []);
 
 		this.cells = {};
 		for (var i in cells) this.cells['$' + cells[i]] = this.$body.find('[data-cell="' + cells[i] + '"]');
 
+        // универсальные управления событиями
+		// todo - закончить
+		this.cells.$controls.on('click', '.button', function(){
+			console.log('hide')
+		});
+		this.cells.$menuBtn.on('click', this.toggleMenu);
+		this.$body.on('click mouseleave', this.hideMenu);
+
+
+
 		// заполняем неизменные данные, присваеваемые единожды
 		this.$body.attr('id', chunkName + '_' + data.id);
 		this.$body.attr('data-number', data.id);
 		this.cells.$message.addClass('message_' + data.id);
-		this.cells.$id.text(data.id);
+		if (!t.cfg.production) this.cells.$id.text(data.id);
 	},
 
 	// заполнить данными
 	fill:function (data) {
+		var that = this;
 
 		this.data = data;
 
@@ -56,6 +70,24 @@ tinng.protos.Node = Class({
 		this.cells.$message.html(data.message);
 		this.cells.$created.text(data.modified ? t.txt.modified + data.modified : data.created);
 		this.cells.$author.text(data.author);
+
+		// вбиваем теги
+		//todo: сейчас теги при каждом филле обнуляются и вбиваются заново. непорядок
+		if (data.tags) {
+			this.cells.$tags.children().remove();
+
+			data.tags.forEach(function(val, i){
+
+				var tag = new t.protos.ui.Tag(val, {
+					bodyClick:function(){
+						t.units.topics.searchBox.addTagToSelection(val.name)
+					}
+				})
+				that.cells.$tags.append(tag.$body);
+			})
+
+			this.cells.$tags.show();
+		}
 	},
 
 	show:function (start) {
@@ -65,6 +97,18 @@ tinng.protos.Node = Class({
 	markRead:function(){
 		this.$body.removeClass('unread');
 		this.data.unread = '0';
+	},
+
+    toggleMenu:function(){
+		if (this.cells.$controls.children().size()){
+			this.cells.$controls.toggle();
+		}
+        return false;
+    },
+
+	hideMenu:function(){
+		this.cells.$controls.hide();
+		return false;
 	}
 });
 
@@ -79,7 +123,6 @@ tinng.protos.TopicNode = Class(tinng.protos.Node, {
 			.Node.prototype
 			.construct.call(this, data, 'topic',
 			[
-				'tags',
 				'lastmessage',
 				'topicname',
 				'postsquant'
@@ -92,6 +135,8 @@ tinng.protos.TopicNode = Class(tinng.protos.Node, {
 
 		// вешаем обработчики событий
 		this.$body.on('click', this.loadPosts);
+
+		if (!this.cells.$controls.children().size()) this.cells.$menuBtn.hide();
 	},
 
 	// заполнить данными
@@ -109,15 +154,6 @@ tinng.protos.TopicNode = Class(tinng.protos.Node, {
 			this.cells.$lastmessage.html(
 				'<div>' + t.txt.lastpost + '<b>' + data.lastauthor + '</b> (' + data.lastdate + ') ' + data.lastpost + '</div>'
 			);
-		}
-
-		// вбиваем теги
-		//todo: сейчас теги при каждом филле обнуляются и вбиваются заново. непорядок
-		if (data.tags) {
-			this.cells.$tags.text('');
-			for (var i in data.tags) {
-				this.cells.$tags.append(new t.protos.Tag(data.tags[i]).$body);
-			}
 		}
 
 		// отмечаем темы непрочитанными
@@ -147,14 +183,15 @@ tinng.protos.TopicNode = Class(tinng.protos.Node, {
 	// загрузить тему
 	loadPosts:function () {
 
-//        console.log('loadPosts:', this.data.topic_name, this.data.id);
+		//console.log('loadPosts:', this.data.topic_name, this.data.id);
 
 		t.funcs.unloadTopic();
 		this.select(); // делаем тему в столбце тем активной
 		t.sync.curTopic = this.id;
 		if (t.user.hasRight('editMessage', t.topics[this.id])) t.units.posts.header.topicRename.show();
-		t.address.set({topic:this.id, plimit:t.sync.plimit});
-        t.rotor.start('load_pages');
+
+		t.units.posts.unscribe();
+		t.units.posts.subscribe(this.id, t.cfg.posts_per_page)
 
 		t.units.posts.startWaitIndication();
 	},
@@ -166,6 +203,10 @@ tinng.protos.TopicNode = Class(tinng.protos.Node, {
 
 	deselect:function () {
 		t.funcs.topicDeselect();
+	},
+
+	isSelected:function(){
+		return this.$body.hasClass('active');
 	},
 
 	// демонстрирует удаление ноды в интерфейсе и вызывает окончательное удаление
@@ -200,7 +241,7 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 			.construct.call(this, data, 'post',
 			[
 				'avatar',
-				'controls'
+				'tags_edit'
 			]
 		);
 
@@ -215,9 +256,9 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 		// todo - каждую кнопку формировать и навешивать на нее действие отдельно, в зависимости от прав
 
 		this.mainPanel = new t.protos.ui.Panel([
-			{type:'Button', label:'delete', cssClass:'right', icon:'doc_delete.png', tip:t.txt['delete']},
-			{type:'Button', label:'edit', cssClass:'right', icon:'doc_edit.png', tip:t.txt.edit},
-			{type:'Button', label:'unlock', cssClass:'right', icon:'padlock_open.png', text:t.txt.unblock}
+			{type:'Button', label:'edit', icon:'doc_edit.png', text:t.txt.edit},
+			{type:'Button', label:'delete', icon:'doc_delete.png', text:t.txt['delete']},
+			{type:'Button', label:'unlock', icon:'padlock_open.png', text:t.txt.unblock}
 		]);
 
 		this.mainPanel.unlock.$body.hide();
@@ -229,6 +270,7 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 		this.unlock = $.proxy(this, 'unlock');
 
 		this.mainPanel.edit.on('click', this.edit);
+		this.mainPanel.edit.on('click', this.hideMenu);
 		//this.cells.$message.on('dblclick', this.edit);
 		//this.mainPanel.edit.on('click', t.funcs.stopProp);
 		this.mainPanel['delete'].on('click', this.erase);
@@ -243,7 +285,7 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 		]);
 
 		this.editorPanel.$body.hide();
-		if (t.user.hasRight('editMessage', this)) this.cells.$controls.append(this.editorPanel.$body);
+		if (t.user.hasRight('editMessage', this)) this.cells.$controls2.append(this.editorPanel.$body);
 
 		this.save = $.proxy(this, 'save');
 		this.cancelEdit = $.proxy(this, 'cancelEdit');
@@ -259,6 +301,8 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 		this.$body.mouseleave(function(){
 			clearTimeout(this.mousetimer);
 		});
+
+		if (!this.cells.$controls.children().size()) this.cells.$menuBtn.hide();
 	},
 
 	// заполнить сообщение данными
@@ -318,6 +362,8 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 	// прокручивает список до данного сообщения
 	show:function (start) {
 
+		//console.log('post show:', this.data.id);
+
 		t.protos
 			.Node.prototype
 			.show.apply(this, arguments);
@@ -346,6 +392,7 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 
 	// демонстрирует блокировку, или входит в режим редактирования
 	enterEditMode:function (result, errors) {
+		var that = this;
 
 		if (result.locked !== null) {
 
@@ -361,7 +408,28 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 
 			this.messageBackup = this.cells.$message.html();
 
-			this.mainPanel.$body.hide();
+			this.hideMenu();
+			this.cells.$menuBtn.hide();
+
+			if (this.data.head) {
+				this.cells.$tags.hide();
+
+				this.data.newTags = this.data.tags ? this.data.tags.map(function(val){return val.name}) : [];
+
+				this.tagEditBox = new t.protos.ui.SearchBox({
+					tags:this.data.tags,
+					tagsOnly:true,
+					placeholder:t.txt.enter_tags,
+					onConfirm:function(tags){
+						that.data.newTags = tags;
+					}
+				});
+
+				this.tagEditBox.$body.appendTo(this.cells.$tags_edit)
+
+				this.cells.$tags_edit.show();
+			}
+
 			this.editorPanel.$body.show();
 
 			this.cells.$message.attr('contenteditable', true);
@@ -373,6 +441,7 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 	cancelEdit:function () {
 
 		this.exitEditMode();
+		this.cells.$tags.show();
 
 		this.unlock();
 		this.cells.$message.html(this.messageBackup);
@@ -383,17 +452,23 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 
 	// выходит из режима редактирования
 	exitEditMode:function () {
+		this.cells.$menuBtn.show();
+		this.cells.$tags_edit.hide().children().remove();
 		this.editorPanel.$body.hide();
-		this.mainPanel.$body.show();
+		//this.mainPanel.$body.show();
 		this.cells.$message.removeAttr('contenteditable');
 	},
 
 	// срабатывает при нажатии кнопки "сохранить" в режиме редактирования
 	save:function () {
 
-		t.rotor.start('update_message', {
+		console.log('write tags:', this.data.newTags)
+
+		t.connection.write({
+			action: 'update_message',
 			id:this.id,
-			message:this.cells.$message.html()
+			message:this.cells.$message.html(),
+			tags:this.data.newTags
 		});
 		this.exitEditMode();
 
@@ -404,7 +479,7 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 	erase:function () {
 
 		if (confirm(t.txt.msg_del_confirm)) {
-			t.rotor.start('delete_message', {id:this.id});
+			t.connection.write({action: 'delete_message', id:this.id});
 		}
 
 		return false; // preventDefault + stopPropagation

@@ -15,6 +15,14 @@ function path($file) {
 	return (file_exists($skinned_path)) ? $skinned_path : $stock_path;
 }
 
+function import_php_str($str) {
+
+	$str = str_replace("\r", '', $str);
+	$str = str_replace("\n", ' ', $str);
+
+	return $str;
+}
+
 function template_head() {
 
 	global $env, $cfg, $user, $txt, $rex, $e;
@@ -31,7 +39,14 @@ function template_head() {
 	);
 
 	echo '<link rel="stylesheet" id="lowres_css" type="text/css" href="">';
-	echo '<script type="text/javascript" language="JavaScript" src="' . $env['rootdir'] . 'libraries/jquery-1.7.2.min.js"></script>';
+
+	$agent = $_SERVER['HTTP_USER_AGENT'];
+
+	if (strpos('MSIE 8.0', $agent) || strpos('MSIE 7.0', $agent) || strpos('MSIE 6.0', $agent)) {
+		echo '<script type="text/javascript" language="JavaScript" src="' . $env['rootdir'] . 'libraries/jquery-1.x.js"></script>';
+	} else {
+		echo '<script type="text/javascript" language="JavaScript" src="' . $env['rootdir'] . 'libraries/jquery-2.x.js"></script>';
+	}
 
 	// импорт переменных из PHP
 	echo '
@@ -44,7 +59,7 @@ function template_head() {
 		var txt = {}, cfg = {}, rex = {};
 	';
 
-	foreach ($txt as $key => $val) echo "txt['" . $key . "'] = '" . $val . "';\n";
+	foreach ($txt as $key => $val) echo "txt['" . $key . "'] = '" . import_php_str($val) . "';\n";
 	echo "\n";
 
 	foreach ($cfg as $key => $val) echo "cfg['" . $key . "'] = " . (is_int($val) || is_float($val) ? $val . ";\n" : "'" . $val . "';\n");
@@ -66,22 +81,33 @@ function template_head() {
 		$env['appdir'] . 'sources/js/tinng_init.js',			// главный объект-контейнер
 		$env['appdir'] . 'sources/js/classes/Funcs.js',			// простые функции (иногда расширяются ниже)
 
-		$env['appdir'] . 'sources/js/classes/KeyListener.js',	// обработка горячих клавиш
+		//$env['appdir'] . 'sources/js/classes/KeyListener.js',	// обработка горячих клавиш
 
+		// todo - придумать механизм реквайринга js-исходников
 		//порядок загрузки этих классов непринципиален
 		$env['appdir'] . 'sources/js/classes/StateService.js',	// служба второчтепенной связи с сервером
 		$env['appdir'] . 'sources/js/classes/Validator.js',		// проверка данных форм (из anrom)
         $env['appdir'] . 'sources/js/classes/User.js',			// пользователь
         $env['appdir'] . 'sources/js/classes/Address.js',		// работа с хешем адресной строки
 		$env['appdir'] . 'sources/js/classes/Chunks.js',		// движок подшаблонов, встроенных в базовый шаблон
-		$env['appdir'] . 'sources/js/classes/Controls.js',		// абстракция элементов управления
+
+		// абстракция элементов управления
+		$env['appdir'] . 'sources/js/classes/controls/Button.js',
+		$env['appdir'] . 'sources/js/classes/controls/Field.js',
+		$env['appdir'] . 'sources/js/classes/controls/Panel.js',
+		$env['appdir'] . 'sources/js/classes/controls/SearchBox.js',
+		$env['appdir'] . 'sources/js/classes/controls/Tag.js',
+
 		$env['appdir'] . 'sources/js/classes/Units.js',			// "вьюпорты", или секции основного интерфейса
 		$env['appdir'] . 'sources/js/classes/Editor.js',		// редактор сообщений
 		$env['appdir'] . 'sources/js/classes/UserInterface.js', // основной интерфейс
-		$env['appdir'] . 'sources/js/classes/Connection.js', 	// соединение с сервером данных
+		$env['appdir'] . 'sources/js/classes/Rotor.js', 		// соединение с сервером данных
 		$env['appdir'] . 'sources/js/parser.js', 				// обработка пришедших от сервера данных
-		$env['appdir'] . 'sources/js/classes/Tag.js', 			// тег
 		$env['appdir'] . 'sources/js/classes/Nodes.js', 		// блоки (ноды) сообщений
+
+		$env['appdir'] . 'sources/js/classes/connection/Connection.js', 				// враппер соединения
+		$env['appdir'] . 'sources/js/classes/connection/engines/XHRShortPoll.js', 		// враппер соединения
+		$env['appdir'] . 'sources/js/parser2.js', 										// обработка пришедших от сервера данных
 
 		// этот файл всегда подгружается последним
 		$env['appdir'] . 'sources/js/onload.js'
