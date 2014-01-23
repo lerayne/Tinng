@@ -88,6 +88,7 @@ function template_head() {
 		$env['appdir'] . 'sources/js/classes/StateService.js',	// служба второчтепенной связи с сервером
 		$env['appdir'] . 'sources/js/classes/Validator.js',		// проверка данных форм (из anrom)
         $env['appdir'] . 'sources/js/classes/User.js',			// пользователь
+		$env['appdir'] . 'sources/js/classes/UserWatcher.js',	// управление онлайн-статусом
         $env['appdir'] . 'sources/js/classes/Address.js',		// работа с хешем адресной строки
 		$env['appdir'] . 'sources/js/classes/Chunks.js',		// движок подшаблонов, встроенных в базовый шаблон
 

@@ -13,7 +13,9 @@ tinng.funcs.onWindowLoad = function(){
 	t.connection = new t.protos.Connection({
 		server:'backend/update/',
 		callback:t.funcs.parser2
-	})
+	});
+
+	t.userWatcher = new t.protos.UserWatcher();
 
    /* t.rotor = new t.protos.Rotor(
         'backend/update.php',

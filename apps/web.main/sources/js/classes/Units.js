@@ -671,6 +671,12 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 				var newPost = t.posts[postData.id] = new t.protos.PostNode(postData);
 				this.addNode(newPost);
 
+				var now = new Date();
+
+				if (now.getTime() - t.funcs.sql2stamp(postData.created) < t.cfg.online_threshold * 1000) {
+					t.userWatcher.forceToOnline(postData.author_id)
+				}
+
 				// этот флаг может означать не только указание на выделение, поэтому выделение тянем из адрессной строки
 				if (postData.refered) {
 					thisParse.scrollTo = newPost;

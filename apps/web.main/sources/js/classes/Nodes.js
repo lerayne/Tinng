@@ -236,11 +236,19 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 	construct:function (data) {
 		var that = this;
 
+		t.funcs.bind(this, [
+			'edit',
+			'enterEditMode',
+			'erase',
+			'unlock'
+		])
+
 		t.protos
 			.Node.prototype
 			.construct.call(this, data, 'post',
 			[
 				'avatar',
+				'avatar_box',
 				'tags_edit'
 			]
 		);
@@ -263,11 +271,6 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 
 		this.mainPanel.unlock.$body.hide();
 		if (t.user.hasRight('editMessage', this)) this.cells.$controls.append(this.mainPanel.$body);
-
-		this.edit = $.proxy(this, 'edit');
-		this.enterEditMode = $.proxy(this, 'enterEditMode');
-		this.erase = $.proxy(this, 'erase');
-		this.unlock = $.proxy(this, 'unlock');
 
 		this.mainPanel.edit.on('click', this.edit);
 		this.mainPanel.edit.on('click', this.hideMenu);
@@ -312,6 +315,7 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 			.fill.apply(this, arguments);
 
 		this.cells.$avatar.attr('src', data.author_avatar);
+		this.cells.$avatar_box.addClass('user-'+data.author_id);
 
 		// отмечаем сообщения непрочитанными
 		if (this.data.unread == '1') this.$body.addClass('unread');

@@ -157,35 +157,8 @@ function load_defaults($params, $defaults) {
 // класс чтения обновлений сервера
 class Feed {
 
-	function __construct($maxdate) {
+	function __construct() {
 
-		$this->maxdate = $maxdate;
-		$this->sql_maxdate = jsts2sql($this->maxdate);
-		$this->new_sql_maxdate = $this->sql_maxdate;
-	}
-
-
-	///////////////////////
-	// есть ли вообще новые
-	///////////////////////
-
-	// todo - возможно - убрать совсем, так как сейчас она фактически ни с чем не сравнивается
-	function any_new() {
-		global $db;
-
-		// с этой переменной ничего не сравнивается. Ее наличие говорит о необходимости выгрести какие-то новые данные,
-		// а потом она просто передается в клиент для установки там новой отсчетной даты.
-		$new_sql_maxdate = $db->selectCell('
-			SELECT GREATEST(MAX(created), IFNULL(MAX(modified), 0))
-			FROM ?_messages WHERE IFNULL(modified, created) > ?
-			'
-
-			, /*($action == 'load_pages' || $action == 'next_page') ? 0 :*/
-			$this->sql_maxdate);
-
-		if ($new_sql_maxdate) {
-			return true;
-		} else return false;
 	}
 
 
@@ -716,6 +689,22 @@ class Feed {
 
 		return $topic;
 	}
+
+	///////////////
+	// users data
+	///////////////
+
+	function get_users($users) {
+		global $db, $cfg;
+
+		$ids = explode(',', $users['ids']);
+		$threshold_away = date('Y-m-d H:i:s', now() - $cfg['online_threshold']);
+
+		$online = $db->selectCol('SELECT id FROM ?_users WHERE id IN (?a) AND last_read > ?', $ids, $threshold_away);
+
+		return $online;
+
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -729,8 +718,11 @@ function parse_request($request) {
 
 	$result = array();
 
-	$feed = new Feed($request['later_than']);
+	if ($user->id > 0) {
+		$db->query('UPDATE ?_users SET last_read = ? WHERE id = ?d', now('sql'), $user->id);
+	}
 
+	$feed = new Feed();
 
 	///////////////////////////////
 	// Записываем в базу обновления

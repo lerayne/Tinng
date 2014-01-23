@@ -144,7 +144,7 @@
 					<span>&nbsp;</span>
 					<div class="dropmenu bodyclickhide" style="display:none" data-cell="controls"></div>
 				</div>
-				<div class="avatar"><img data-cell="avatar"></div>
+				<div class="avatar" data-cell="avatar_box"><img data-cell="avatar"><div class="isOnline"></div></div>
 				<div data-cell="created" class="created right reveal"></div>
 				<div data-cell="parent" class="parent"></div>
 				<div data-cell="author" class="author left"></div>
