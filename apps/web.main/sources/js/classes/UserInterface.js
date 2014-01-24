@@ -26,6 +26,7 @@ tinng.protos.UserInterface = function (targetWindow) {
 
 	this.$mainFrame = $('#tinng-main');
 	this.$unitsArea = $('#tinng-units-area');
+	this.$sidePanels = $('#tinng-main-content .unit-panel');
 	this.$mainHeader = $('#tinng-main-header');
 	this.$mainFooter = $('#tinng-main-footer');
 	this.$screenBg = $('#scaled-bg');
@@ -56,6 +57,10 @@ tinng.protos.UserInterface = function (targetWindow) {
 		});
 		this.$regBtn = this.$loginForm.find('#regBtn').click(this.showRegForm);
 	}
+
+
+	//управление боковыми панелями
+	this.$sidePanels.each(this.createSidePanel);
 
 	// размещение юнитов
 
@@ -123,6 +128,23 @@ tinng.protos.UserInterface.prototype = {
 		for (var key in t.units) t.units[key].setHeight(mainH);
 
 		this.editor.resize();
+	},
+
+	createSidePanel:function(){
+		var panel = $(this);
+		var label = panel.find('.label');
+		var side = panel.hasClass('panel-left') ? 'left' : 'right';
+		var width = panel.width();
+
+
+		label.click(function(){
+			console.log(side)
+
+			var params = {};
+			params[side] = 0 - width;
+
+			panel.animate(params, 400)
+		})
 	},
 
 	// Подгоняет внешний вид редактора под окно

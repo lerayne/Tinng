@@ -194,6 +194,51 @@ body {
 	}
 }
 
+#tinng-main-content {
+	position: relative;
+
+	.unit-panel {
+		position: absolute;
+		height: 100%;
+		width: 250px;
+		z-index: 100;
+
+		.unit-portal {
+			height: 100%;
+			background-color: white;
+		}
+
+		.label {
+			position: absolute;
+			top:0;
+			background-color: black;
+			color:white;
+			opacity: 0.7;
+			width: 20px;
+			height:100px;
+			cursor: pointer;
+		}
+	}
+
+	#unit-panel-left {
+		left:0;
+		box-shadow: 2px 0 40px #000;
+
+		.label {
+			right:-20px;
+		}
+	}
+
+	#unit-panel-right {
+		right:0;
+		box-shadow: -2px 0 40px #000;
+
+		.label {
+			left:-20px;
+		}
+	}
+}
+
 #tinng-units-area {
 	.width-scheme();
 	background-color: white;
