@@ -42,8 +42,10 @@ function template_head() {
 
 	$agent = $_SERVER['HTTP_USER_AGENT'];
 
-	if (strpos('MSIE 8.0', $agent) || strpos('MSIE 7.0', $agent) || strpos('MSIE 6.0', $agent)) {
+	if (strpos($agent, 'MSIE 8.0') || strpos($agent, 'MSIE 7.0') || strpos($agent, 'MSIE 6.0')) {
+		echo '<script type="text/javascript" language="JavaScript" src="' . $env['rootdir'] . 'libraries/modernizr.js"></script>';
 		echo '<script type="text/javascript" language="JavaScript" src="' . $env['rootdir'] . 'libraries/jquery-1.x.js"></script>';
+		echo '<script type="text/javascript" language="JavaScript" src="' . $env['rootdir'] . 'libraries/es5-shim.min.js"></script>';
 	} else {
 		echo '<script type="text/javascript" language="JavaScript" src="' . $env['rootdir'] . 'libraries/jquery-2.x.js"></script>';
 	}
