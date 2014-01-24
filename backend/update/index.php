@@ -534,6 +534,7 @@ class Feed {
 				msg.deleted,
 				msg.modifier,
 				usr.email AS author_email,
+				UNIX_TIMESTAMP(usr.last_read) AS author_seen_online,
 				IFNULL(usr.display_name, usr.login) AS author,
 				IF(unr.timestamp < IFNULL(msg.modified, msg.created) && IFNULL(msg.modifier, msg.author_id) != ?d, 1, 0) AS unread,
 				moder.login AS modifier_name,
@@ -700,7 +701,7 @@ class Feed {
 		$ids = explode(',', $users['ids']);
 		$threshold_away = date('Y-m-d H:i:s', now() - $cfg['online_threshold']);
 
-		$online = $db->selectCol('SELECT id FROM ?_users WHERE id IN (?a) AND last_read > ?', $ids, $threshold_away);
+		$online = $db->selectCol('SELECT id FROM ?_users WHERE id IN (?a) AND last_read > ? AND status != "offline"', $ids, $threshold_away);
 
 		return $online;
 
@@ -718,8 +719,13 @@ function parse_request($request) {
 
 	$result = array();
 
+	$data = array(
+		'last_read' => now('sql'),
+		'status' => 'online'
+	);
+
 	if ($user->id > 0) {
-		$db->query('UPDATE ?_users SET last_read = ? WHERE id = ?d', now('sql'), $user->id);
+		$db->query('UPDATE ?_users SET ?a WHERE id = ?d', $data, $user->id);
 	}
 
 	$feed = new Feed();

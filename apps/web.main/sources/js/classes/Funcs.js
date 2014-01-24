@@ -62,6 +62,11 @@ Funcs.prototype = {
 		return new Date(dates[0], dates[1] - 1, dates[2], times[0], times[1], times[2]).getTime();
 	},
 
+	phpts2date:function(str) {
+		var jsts = parseInt(str, 10) * 1000;
+		return new Date(jsts);
+	},
+
 	stopProp:function (e) {
 		e.stopPropagation();
 //		var e = e || window.event;
@@ -74,6 +79,8 @@ Funcs.prototype = {
 
 		t.units.posts.unscribe();
 		t.ui.editor.hide();
+
+		t.userWatcher.unwatch(t.units.posts);
 
 		t.units.posts.contentLoaded = 0;
 		t.units.posts.header.topicRename.hide(); // todo - сделать нормальный инициализатор и вызывать его здесь и в начале, вместо unloadTopic

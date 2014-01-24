@@ -79,6 +79,14 @@ tinng.protos.Connection = function (config) {
 		return this.refresh();
 	}
 
+	this.softSubscribe = function(){
+		this.callScribe(wrapped, 'subscribe', arguments);
+	}
+
+	this.softRescribe = function(){
+		this.callScribe(wrapped, 'rescribe', arguments);
+	}
+
 	// todo - возможно, стоит сделать отдельно мягкую подписку и переподписку, чтобы принудительно очищать вспомогатьельные и необязательные парамтеры
 	// ну и вообще подумать о назначении и правилах действия методов
 

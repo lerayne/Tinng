@@ -623,6 +623,7 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 	parsePosts: function (postsList) {
 
 		var thisParse = {};
+		var now = new Date();
 
 		// определяем, загружается ли тема с нуля
 		var firstLoad = this.isClear();
@@ -664,16 +665,22 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 				if (postData.deleted) {
 					existingPost.remove();
 					delete t.posts[postData.id];
-				} else existingPost.fill(postData);
+				} else {
+					existingPost.fill(postData);
 
-			} else if (!postData.deleted) { // если такого нет и пришедшее не удалено
+					// сообщение о модификации может прийти только от пользователя, который сейчас онлайн
+					t.userWatcher.forceToOnline(postData.modifier)
+				}
+
+			} else if (!postData.deleted) { // если такого нет и пришедшее не удалено - создаем новый
 
 				var newPost = t.posts[postData.id] = new t.protos.PostNode(postData);
 				this.addNode(newPost);
 
-				var now = new Date();
+				t.userWatcher.watch(this, postData.author_id);
 
-				if (now.getTime() - t.funcs.sql2stamp(postData.created) < t.cfg.online_threshold * 1000) {
+				// если сообщение создано недавно - значит автор сейчас онлайн
+				if (now.getTime() - t.funcs.phpts2date(postData.author_seen_online) < t.cfg.online_threshold * 1000) {
 					t.userWatcher.forceToOnline(postData.author_id)
 				}
 

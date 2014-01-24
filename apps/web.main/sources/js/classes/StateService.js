@@ -60,8 +60,8 @@ t.protos.StateService.prototype = {
 
 					var topicMaxTime = topic.data.lastdate ? topic.data.lastdate : topic.data.modified ? topic.data.modified : topic.data.created;
 
-					console.log('readTime:',readTime);
-					console.log('topicMaxTime:',topicMaxTime, t.funcs.sql2stamp(topicMaxTime), (t.funcs.sql2stamp(topicMaxTime) >= readTime));
+					//console.log('readTime:',readTime);
+					//console.log('topicMaxTime:',topicMaxTime, t.funcs.sql2stamp(topicMaxTime), (t.funcs.sql2stamp(topicMaxTime) >= readTime));
 
 					if (t.funcs.sql2stamp(topicMaxTime) <= readTime) topic.markRead();
 				}
