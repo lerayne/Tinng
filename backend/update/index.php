@@ -874,6 +874,47 @@ class Feed {
 
 		return $userlist;
 	}
+
+
+	///////////////
+	// tags
+	///////////////
+
+	function get_tags ($tags, &$meta = Array()) {
+		global $db;
+
+		$meta = load_defaults($meta, $meta_defaults = Array(
+			'updated' => '0' // работает как false, а в SQL-запросах по дате - как 0
+		));
+
+		$latest_tag = $db->selectCell("
+			SELECT MAX(updated) FROM ?_tags WHERE updated > ?
+			",$meta['updated']
+		);
+
+		if (!$latest_tag) return Array();
+
+
+
+		$tags_list = $db->select("
+			SELECT
+				tag.id,
+				tag.name,
+				tag.type,
+				IF(map.message IS NOT NULL AND msg.deleted IS NULL, true, false) AS used
+			FROM ?_tags tag
+			LEFT JOIN ?_tagmap map ON map.tag = tag.id
+			LEFT JOIN ?_messages msg ON map.message = msg.id
+			WHERE tag.updated > ?
+			",$meta['updated']
+		);
+
+		$meta['updated'] = $latest_tag;
+
+		$tags_list = sort_by_field($tags_list, 'name');
+
+		return $tags_list;
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

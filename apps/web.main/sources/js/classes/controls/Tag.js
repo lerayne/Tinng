@@ -16,6 +16,10 @@ tinng.protos.ui.Tag = function (data, callbacks) {
 		this.$operation.text(this.data.operation).show();
 	}
 
+	if (this.data.used === '0') {
+		this.$body.addClass('unused');
+	}
+
 	textContainer.text(data.name);
 	this.$body.attr('data-tag', data.name);
 
