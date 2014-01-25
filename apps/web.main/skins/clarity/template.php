@@ -78,12 +78,12 @@
 	<div id="tinng-main-content">
 
 		<div id="unit-panel-left" class="unit-panel panel-left">
-			<div class="label"></div>
+			<div class="label"><div class="text">Navigation</div></div>
 			<div class="unit-portal"></div>
 		</div>
 
 		<div id="unit-panel-right" class="unit-panel panel-right">
-			<div class="label"></div>
+			<div class="label"><div class="text">Users</div></div>
 			<div class="unit-portal"></div>
 		</div>
 

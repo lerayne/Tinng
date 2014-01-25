@@ -16,9 +16,16 @@ tinng.protos.Unit = Class({
 
 	construct: function (data) {
 
+		t.funcs.bind(this, [
+			'onScroll',
+			'toggleActive'
+		])
+
 		/* СБОР */
 
 		this.data = data;
+
+		this.active = true;
 
 		this.contentLoaded = 0;
 
@@ -32,23 +39,38 @@ tinng.protos.Unit = Class({
 		this.$header = $body.find('header');
 		this.$footer = $body.find('footer');
 
-		this.onScroll = $.proxy(this, 'onScroll');
-
 		/* ОБРАБОТКА */
 
 		$body.addClass(data.name);
-		$body.css(data.css);
+		if (data.css) $body.css(data.css);
 
-		// todo - переделать систему сбора контролов. Конфигурация через тинг-объект это плохо
-		// создание панелей управления
-		if (data.header) {
-			this.header = new t.protos.ui.Panel(data.header);
-			this.$header.append(this.header.$body);
-		}
+		if (data.minimizeButton) data.minimizeButton.click(this.toggleActive)
 
 		// привязка событий прокрутки
 		this.$scrollArea.on('scroll', this.onScroll);
 		this.$scrollArea.scroll();
+	},
+
+	placeTo:function(container){
+		// todo - здесь можно также инициализировать юнит
+		container.append(this.$body);
+	},
+
+	toggleActive:function(){
+		if (this.active) this.deactivate();
+		else this.activate();
+	},
+
+	activate:function(){
+		this.active = true;
+
+		if (this.data.activateCallback) this.data.activateCallback();
+	},
+
+	deactivate:function(){
+		this.active = false;
+
+		if (this.data.deactivateCallback) this.data.deactivateCallback();
 	},
 
 	setHeight: function (num) {
@@ -116,6 +138,11 @@ tinng.protos.TopicsUnit = Class(tinng.protos.Unit, {
 			.Unit.prototype
 			.construct.apply(this, arguments);
 
+		this.header = new t.protos.ui.Panel([
+			{type:'Button', label:'newTopic', cssClass:'right', icon:'doc_plus_w.png', text:tinng.txt.new_topic}
+		]);
+		this.$header.append(this.header.$body);
+
 		// панель поиска
 		this.createSearchBox();
 
@@ -146,9 +173,8 @@ tinng.protos.TopicsUnit = Class(tinng.protos.Unit, {
 					tags:t.address.get('search')
 				}, function(result, errors){
 
-					var tags = result.map(function(val){return val.name});
+					searchBoxParams.tags = result.map(function(val){return val.name});
 
-					searchBoxParams.tags = tags;
 					that.searchBox = new t.protos.ui.SearchBox(searchBoxParams);
 					that.header.$body.prepend(that.searchBox.$body);
 				}
@@ -281,6 +307,16 @@ tinng.protos.TopicsUnit = Class(tinng.protos.Unit, {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+
+
+
+
+
+
+
+
+
+
 tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 
 	construct: function () {
@@ -297,6 +333,15 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 
 		t.protos.Unit.prototype
 			.construct.apply(this, arguments);
+
+		this.header = new t.protos.ui.Panel([
+			{type:'Button', label:'topicRename', cssClass:'right reveal3', icon:'pencil_w.png', tip:tinng.txt.rename_topic},
+			{type:'Button', label:'cancel', cssClass:'right', icon:'cancel_w.png', tip:tinng.txt.cancel},
+			{type:'Button', label:'save', cssClass:'right', icon:'round_checkmark_w.png', tip:tinng.txt.save},
+			//{type:'Button', label:'cancelNewTopic', cssClass:'right', icon:'cancel_w.png', tip:tinng.txt.cancel_new_topic},
+			{type:'Field', label:'topicName', cssClass:'topicname'}
+		]);
+		this.$header.append(this.header.$body);
 
 		this.newTopicMode = false;
 
@@ -766,3 +811,44 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 	}
 });
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+
+
+
+
+
+
+tinng.protos.UsersUnit = Class(tinng.protos.Unit, {
+
+	construct: function () {
+		t.protos.Unit.prototype
+			.construct.apply(this, arguments);
+
+	}
+})
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+
+
+
+
+
+
+tinng.protos.NavUnit = Class(tinng.protos.Unit, {
+
+	construct: function () {
+		t.protos.Unit.prototype
+			.construct.apply(this, arguments);
+
+	}
+})

@@ -47,6 +47,13 @@
 	filter: progid:DXImageTransform.Microsoft.Alpha(opacity=(@decimal*100));
 }
 
+.rotation(@deg){
+	-ms-transform:rotate(@deg); /* IE 9 */
+	-moz-transform:rotate(@deg); /* Firefox */
+	-webkit-transform:rotate(@deg); /* Safari and Chrome */
+	-o-transform:rotate(@deg); /* Opera */
+}
+
 .width-scheme(){
 	max-width: 1210px;
 	min-width: 900px;
@@ -194,14 +201,41 @@ body {
 	}
 }
 
+@labelWidth: 24px;
+
 #tinng-main-content {
 	position: relative;
+	overflow-x: hidden;
 
 	.unit-panel {
 		position: absolute;
 		height: 100%;
 		width: 250px;
 		z-index: 100;
+
+		&.panel-left {
+			left:0;
+			box-shadow: 2px 0 40px #000;
+
+			.label {
+				right:-@labelWidth;
+				.text {
+					.rotation(270deg)
+				}
+			}
+		}
+
+		&.panel-right {
+			right:0;
+			box-shadow: -2px 0 40px #000;
+
+			.label {
+				left:-@labelWidth;
+				.text {
+					.rotation(90deg)
+				}
+			}
+		}
 
 		.unit-portal {
 			height: 100%;
@@ -210,40 +244,25 @@ body {
 
 		.label {
 			position: absolute;
-			top:0;
+			top:30px;
 			background-color: black;
 			color:white;
 			opacity: 0.7;
-			width: 20px;
+			width: @labelWidth;
 			height:100px;
 			cursor: pointer;
+			overflow: hidden;
+
+			.text {
+				position: absolute;
+				top:40px;
+				text-transform: uppercase;
+				font-size: 14px;
+				font-weight: bold;
+				font-family: sans-serif;
+			}
 		}
 	}
-
-	#unit-panel-left {
-		left:0;
-		box-shadow: 2px 0 40px #000;
-
-		.label {
-			right:-20px;
-		}
-	}
-
-	#unit-panel-right {
-		right:0;
-		box-shadow: -2px 0 40px #000;
-
-		.label {
-			left:-20px;
-		}
-	}
-}
-
-#tinng-units-area {
-	.width-scheme();
-	background-color: white;
-	margin:0 auto;
-	height:100%;
 
 	.scroll-area {
 		height:100%;
@@ -257,7 +276,6 @@ body {
 	}
 
 	.unit {
-		float:left;
 		height:100%;
 		position: relative;
 
@@ -303,6 +321,17 @@ body {
 				border:none;
 			}
 		}
+	}
+}
+
+#tinng-units-area {
+	.width-scheme();
+	background-color: white;
+	margin:0 auto;
+	height:100%;
+
+	.unit {
+		float: left;
 	}
 }
 

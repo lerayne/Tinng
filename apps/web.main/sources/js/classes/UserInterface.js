@@ -62,17 +62,32 @@ tinng.protos.UserInterface = function (targetWindow) {
 	//управление боковыми панелями
 	this.$sidePanels.each(this.createSidePanel);
 
+	// создание юнитов
+	t.units.topics = new t.protos.TopicsUnit({
+		name:'topics',
+		css:{width:'40%'}
+	});
+	t.units.posts = new t.protos.PostsUnit({
+		name:'posts',
+		css:{width:'60%'}
+	});
+	t.units.navigation = new t.protos.NavUnit({
+		name:'navigation'
+	});
+	t.units.users = new t.protos.UsersUnit({
+		name:'users'
+	});
+
 	// размещение юнитов
+	t.units.topics.placeTo(this.$unitsArea);
+	t.units.posts.placeTo(this.$unitsArea);
+	t.units.navigation.placeTo(this.$sidePanels.eq(0).find('.unit-portal'));
+	t.units.users.placeTo(this.$sidePanels.eq(1).find('.unit-portal'));
 
-	t.units.topics = new t.protos.TopicsUnit(t.data.units[0]);
-	t.units.posts = new t.protos.PostsUnit(t.data.units[1]);
-	this.$unitsArea.append(
-		t.units.topics.$body,
-		t.units.posts.$body,
-		t.chunks.get('clearfix')
-	);
+	this.$unitsArea.append(t.chunks.get('clearfix'));
 
 
+	// редактор
 	this.editor = new t.protos.Editor();
 	this.editor.$body.on('keyup', this.editorResize);
 	t.units.posts.$scrollArea.append(this.editor.$body);
@@ -133,18 +148,24 @@ tinng.protos.UserInterface.prototype = {
 	createSidePanel:function(){
 		var panel = $(this);
 		var label = panel.find('.label');
+		var text = label.find('.text');
 		var side = panel.hasClass('panel-left') ? 'left' : 'right';
 		var width = panel.width();
 
+		panel.addClass('closed').css(side, 0 - width);
+		var textOffset = (text.width()-label.width())/2;
+		text.css(side, 0 - textOffset);
 
 		label.click(function(){
 			console.log(side)
 
 			var params = {};
-			params[side] = 0 - width;
+			params[side] = panel.hasClass('closed') ? 0 : 0 - width;
 
-			panel.animate(params, 400)
-		})
+			panel.animate(params, 300, function(){
+				panel.toggleClass('closed');
+			});
+		});
 	},
 
 	// Подгоняет внешний вид редактора под окно
