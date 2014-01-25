@@ -78,12 +78,12 @@
 	<div id="tinng-main-content">
 
 		<div id="unit-panel-left" class="unit-panel panel-left">
-			<div class="label"><div class="text">Navigation</div></div>
+			<div class="label"><div class="text"><?= $txt['panel_nav']?></div></div>
 			<div class="unit-portal"></div>
 		</div>
 
 		<div id="unit-panel-right" class="unit-panel panel-right">
-			<div class="label"><div class="text">Users</div></div>
+			<div class="label"><div class="text"><?= $txt['panel_users']?></div></div>
 			<div class="unit-portal"></div>
 		</div>
 
@@ -364,6 +364,13 @@
 		<span data-cell="operation" style="display:none" class="operation"></span>
 		<span data-cell="text" class="name"></span>
 		<span data-cell="close" style="display:none" class="close">&times;</span>
+	</div>
+
+
+	<div data-chunk-name="userListItem" class="user">
+		<img data-cell="avatar" class="avatar">
+		<div data-cell="name" class="name"></div>
+		<div class="clearfix"></div>
 	</div>
 
 

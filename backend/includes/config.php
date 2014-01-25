@@ -11,7 +11,7 @@ $cfg['posts_per_page'] = 20;
 $safecfg['db'] = 'mysql://tinng_main:tinng_demo@localhost/tinng';
 
 // в течении какого времени с момента последней активности юзер считается онлайн (сек)
-$cfg['online_threshold'] = 60*1;
+$cfg['online_threshold'] = 15;
 
 // префикс базы даных
 $safecfg['db_prefix'] = 'tinng'; // знак "_" вставляется автоматически, указывать его здесь не нужно

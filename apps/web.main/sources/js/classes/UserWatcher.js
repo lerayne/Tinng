@@ -51,7 +51,8 @@ t.protos.UserWatcher.prototype = {
 
 		t.connection.softRescribe(this, 'online_users', {
 			feed:'users',
-			fields:['online'], // пока не работает
+			fielter:'online',
+			fields:['id'],
 			ids:this.watchesUnique.join(',')
 		})
 	},
@@ -62,20 +63,6 @@ t.protos.UserWatcher.prototype = {
 
 			this.rewriteRule();
 		}
-	},
-
-	rewriteRule:function(newList){
-
-		if (typeof newList != 'undefined') {
-			this.localOnlineList = newList;
-		}
-
-		var selectors = this.localOnlineList.map(function(val){ return '.user-'+ val +' .isOnline' });
-		var rule = selectors.join(',\n') + '{display:block}';
-
-		this.stylesheet.text(rule);
-
-		console.log('rewriting online rule');
 	},
 
 	parseFeed: function(users){
@@ -104,6 +91,26 @@ t.protos.UserWatcher.prototype = {
 
 		if (changes) {
 			this.rewriteRule(users);
+
+			for (var i = 0; i < this.subscribers.length; i++) {
+				var subscriber = this.subscribers[i];
+
+				if (subscriber.parseOnlineStates) subscriber.parseOnlineStates(users)
+			}
 		}
+	},
+
+	rewriteRule:function(newList){
+
+		if (typeof newList != 'undefined') {
+			this.localOnlineList = newList;
+		}
+
+		var selectors = this.localOnlineList.map(function(val){ return '.user-'+ val +' .isOnline' });
+		var rule = selectors.join(',\n') + '{display:block}';
+
+		this.stylesheet.text(rule);
+
+		console.log('rewriting online rule');
 	}
 }

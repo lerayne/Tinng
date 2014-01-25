@@ -128,6 +128,16 @@ tinng.protos.Unit = Class({
 });
 
 
+
+
+
+
+
+
+
+
+
+
 tinng.protos.TopicsUnit = Class(tinng.protos.Unit, {
 
 	construct: function () {
@@ -339,7 +349,8 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 			{type:'Button', label:'cancel', cssClass:'right', icon:'cancel_w.png', tip:tinng.txt.cancel},
 			{type:'Button', label:'save', cssClass:'right', icon:'round_checkmark_w.png', tip:tinng.txt.save},
 			//{type:'Button', label:'cancelNewTopic', cssClass:'right', icon:'cancel_w.png', tip:tinng.txt.cancel_new_topic},
-			{type:'Field', label:'topicName', cssClass:'topicname'}
+			{type:'Field', label:'topicName', cssClass:'topicname'},
+			{type:'Field', label:'allowedUsers', cssClass:'allowedUsers', css:{display:'none'}}
 		]);
 		this.$header.append(this.header.$body);
 
@@ -393,6 +404,7 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 		t.protos.Unit.prototype['clear'].apply(this, arguments);
 
 		this.$showMore.hide();
+		this.header.allowedUsers.$body.hide().children().remove()
 		t.posts = {};
 	},
 
@@ -793,6 +805,16 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 
 		this.setTopicName(topicData.topic_name); //вывод названия темы
 
+		if (typeof topicData.private == 'object' && topicData.private.length) {
+			this.header.allowedUsers.$body.show();
+
+			for (var i = 0; i < topicData.private.length; i++) {
+				var userData = topicData.private[i];
+				var user = this.createUserElement(userData);
+				user.appendTo(this.header.allowedUsers.$body);
+			}
+		}
+
 		// todo - если введем автовысоту через css - убрать
 		t.ui.winResize(); // потому что от размера названия темы может разнести хедер
 
@@ -808,6 +830,19 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 				t.topics[topicData.id].show(false); // промотать до нее
 			}
 		}
+	},
+
+	// todo - сделано наспех, сделать нормальный класс!
+	createUserElement:function(userData) {
+		var body = t.chunks.get('userListItem');
+
+		var name = body.find('[data-cell="name"]');
+		var avatar = body.find('[data-cell="avatar"]');
+
+		name.hide();
+		avatar.prop('src', userData.avatar);
+
+		return body;
 	}
 });
 
@@ -822,14 +857,110 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 
 
 
-
+//todo - класс и особоенно парсинг сделан на скорую руку - переделать! Как минимум не учитывается сортировка при обновлении
 tinng.protos.UsersUnit = Class(tinng.protos.Unit, {
 
 	construct: function () {
 		t.protos.Unit.prototype
 			.construct.apply(this, arguments);
 
+
+		this.objectsList = {};
+		this.currentOnlineList = [];
+
+		this.header = new t.protos.ui.Panel([
+			{type:'Field', label:'title', cssClass:'title'}
+		]);
+
+		this.header.title.$body.text(t.txt.title_all_users);
+		this.$header.append(this.header.$body);
+
+		this.$onlineList = t.chunks.get('onlineList');
+		this.$offlineList = t.chunks.get('offlineList');
+
+		this.$content.append(this.$onlineList);
+		this.$content.append(this.$offlineList);
+
+		this.activate();
+	},
+
+	activate:function(){
+		t.protos.Unit.prototype
+			.activate.apply(this, arguments);
+
+		t.connection.subscribe(this, 'userlist', {
+			feed:'users',
+			fields:[
+				'id',
+				'login',
+				'display_name',
+				'last_read',
+				'last_read_ts',
+				'avatar'
+			]
+		});
+	},
+
+	parseFeed:function(data){
+		if (data.userlist) this.parseUserlist(data.userlist);
+	},
+
+	parseUserlist:function(userlist){
+		console.log('userlist:', userlist)
+
+		var now = new Date();
+
+		for (var i = 0; i < userlist.length; i++) {
+			var user = userlist[i];
+
+			if (!this.objectsList[user.id]){
+				this.objectsList[user.id] = this.createUserElement(user);
+
+				if (now.getTime() - user.last_read_ts * 1000 < t.cfg.online_threshold * 1000) {
+					this.$onlineList.append(this.objectsList[user.id]);
+					this.currentOnlineList.push(user.id)
+				} else {
+					this.$offlineList.append(this.objectsList[user.id]);
+				}
+
+				t.userWatcher.watch(this, user.id);
+			}
+		}
+	},
+
+	createUserElement:function(data){
+		var body = t.chunks.get('userListItem');
+
+		var name = body.find('[data-cell="name"]');
+		var avatar = body.find('[data-cell="avatar"]');
+
+		name.text(data.display_name);
+		avatar.prop('src', data.avatar);
+
+		return body;
+	},
+
+	parseOnlineStates:function(userlist) {
+
+		for (var i = 0; i < userlist.length; i++) {
+			var user = userlist[i];
+
+			if (this.currentOnlineList.indexOf(user) == -1) {
+				this.objectsList[user].appendTo(this.$onlineList)
+			}
+		}
+
+		for (var i = 0; i < this.currentOnlineList.length; i++) {
+			var user = this.currentOnlineList[i];
+
+			if (userlist.indexOf(user) == -1) {
+				this.objectsList[user].appendTo(this.$offlineList)
+			}
+		}
+
+		this.currentOnlineList = userlist;
 	}
+
 })
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

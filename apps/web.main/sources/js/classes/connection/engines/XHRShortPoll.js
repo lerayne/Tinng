@@ -53,7 +53,7 @@ tinng.protos.strategic.XHRShortPoll.prototype = {
 				}
 
 				// сбрасываем ее мету
-				if (!soft) this.meta[subscriberId][feedName] = {};
+				if (!soft && this.meta[subscriberId]) this.meta[subscriberId][feedName] = {};
 
 				// иначе создаем новую подписку
 			} else subscriberFeeds[feedName] = feed;

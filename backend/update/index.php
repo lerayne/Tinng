@@ -36,7 +36,7 @@ function ready_row($row) {
 	} else { // Если работаем не с отчетом об удалении 
 
 		if ($row['author_avatar'] == 'gravatar') {
-			$row['author_avatar'] = 'http://www.gravatar.com/avatar/' . md5(strtolower($row['author_email'])) . '?s=48';
+			$row['author_avatar'] = 'http://www.gravatar.com/avatar/' . md5(strtolower($row['author_email'])) . '?s=50';
 		}
 
 		unset($row['author_email']); // не выводим мыло в аякс-переписке
@@ -61,7 +61,7 @@ function make_tree($raw) {
 
 // сортировка двумерного массива по указанному полю field. Работает даже с неуникальными ключами
 // внимание! возвращает нумерованный массив, а не хеш-таблицу!
-function sort_by_field($array, $field, $reverse) {
+function sort_by_field($array, $field, $reverse = false) {
 
 	$afs = Array(); // array for sort
 	$out = Array();
@@ -199,14 +199,17 @@ class Feed {
 			SELECT GREATEST(MAX(msg.created), IFNULL(MAX(msg.modified), 0), IFNULL(MAX(mupd.created), 0), IFNULL(MAX(mupd.modified), 0))
 			FROM ?_messages msg
 			LEFT JOIN ?_messages mupd ON mupd.topic_id = msg.id
+			LEFT JOIN ?_private_topics priv ON priv.message = msg.id
 
 			{$tags_joins}
 			/*{JOIN ?_tagmap map ON map.message = msg.id AND map.tag IN(?a)}*/
 
 			WHERE msg.topic_id = 0
+			AND (priv.user IS NULL OR priv.user = ?d)
 			{AND (IFNULL(msg.modified, msg.created) > ? OR IFNULL(mupd.modified, mupd.created) > ?)}
 			"
 			//, $tag_array // при пустом массиве скип автоматический
+			, $user->id
 			, ($meta['updates_since'] ? $meta['updates_since'] : DBSIMPLE_SKIP)
 			, ($meta['updates_since'] ? $meta['updates_since'] : DBSIMPLE_SKIP)
 		);
@@ -241,7 +244,8 @@ class Feed {
 				IFNULL(lma.display_name, lma.login) AS lastauthor,
 				lma.id AS lastauthor_id,
 				(SELECT COUNT(mcount.id) FROM ?_messages mcount WHERE IF(mcount.topic_id = 0, mcount.id, mcount.topic_id) = msg.id AND mcount.deleted IS NULL) AS postsquant,
-				IF(unr.timestamp < GREATEST(IFNULL(msg.modified, msg.created), IFNULL(IFNULL(mlast.modified, mlast.created),0)), 1, 0) AS unread
+				IF(unr.timestamp < GREATEST(IFNULL(msg.modified, msg.created), IFNULL(IFNULL(mlast.modified, mlast.created),0)), 1, 0) AS unread,
+				IF(priv.user IS NULL, false, true) AS private
 			FROM ?_messages msg
 
 			LEFT JOIN ?_users usr
@@ -261,6 +265,9 @@ class Feed {
 				ON unr.topic = msg.id
 				AND unr.user = ?d
 
+			LEFT JOIN ?_private_topics priv
+				ON priv.message = msg.id
+
 			{$tags_joins}
 
 			/*{JOIN ?_tagmap tagmap
@@ -268,6 +275,7 @@ class Feed {
 				AND tagmap.tag IN (?a)}*/
 
 			WHERE msg.topic_id = 0
+				AND (priv.user IS NULL OR priv.user = ?d)
 				/* пробовал через GREATEST - сокращает вывод до одной строки */
 				{AND (IFNULL(msg.modified, msg.created) > ?}{ OR IFNULL(mupd.modified, mupd.created) > ?)}
 				{AND msg.deleted IS NULL AND 1 = ?d}
@@ -278,6 +286,7 @@ class Feed {
 		$output_topics = make_tree($db->select($query
 
 			, $cfg['cut_length'], $cfg['cut_length'] // ограничение выборки первого поста
+			, $user->id
 			, $user->id
 			//, $tag_array // при пустом массиве скип автоматический
 			, ($meta['updates_since'] ? $meta['updates_since'] : DBSIMPLE_SKIP) // зачем ставить условия, если выбираем всё?
@@ -354,11 +363,13 @@ class Feed {
 		));
 
 		$topic_exists = $db->selectCell('
-			SELECT id
-			FROM ?_messages
-			WHERE id = ?d AND deleted IS NULL
+			SELECT msg.id
+			FROM ?_messages msg
+			LEFT JOIN ?_private_topics priv ON msg.id = priv.message
+			WHERE id = ?d AND deleted IS NULL AND (priv.user IS NULL OR priv.user = ?d)
 			'
 			, $posts['topic']
+			, $user->id
 		);
 
 		// если заглавного сообщения не существует, или оно было удалено
@@ -635,7 +646,7 @@ class Feed {
 	///////////////
 
 	function get_topic($topic, &$meta = Array()) {
-		global $db;
+		global $db, $user;
 
 		// defaults
 		$topic = load_defaults($topic, $topic_defaults = Array(
@@ -645,6 +656,19 @@ class Feed {
 		$meta = load_defaults($meta, $meta_defaults = Array(
 			'updated_at' => '0', // определяем
 		));
+
+		$topic_exists = $db->selectCell('
+			SELECT msg.id
+			FROM ?_messages msg
+			LEFT JOIN ?_private_topics priv ON msg.id = priv.message
+			WHERE id = ?d AND deleted IS NULL AND (priv.user IS NULL OR priv.user = ?d)
+			'
+			, $topic['id']
+			, $user->id
+		);
+
+		// если заглавного сообщения не существует, или оно было удалено
+		if (!$topic_exists) return Array();
 
 		// изменялось ли заглавное сообщение темы?
 		$new_updated_at = $db->selectCell('
@@ -659,7 +683,7 @@ class Feed {
 
 		if ($new_updated_at) {
 
-			$topic = $db->selectRow('
+			$topic_props = $db->selectRow('
 			SELECT
 				msg.id,
 				msg.message,
@@ -671,40 +695,184 @@ class Feed {
 				msg.modified,
 				msg.deleted,
 				msg.modifier,
-				(SELECT COUNT(id) FROM ?_messages msgq WHERE IF(msgq.topic_id = 0, msgq.id, msgq.topic_id) = ?d AND deleted IS NULL) AS post_count
+				(SELECT COUNT(id) FROM ?_messages msgq WHERE IF(msgq.topic_id = 0, msgq.id, msgq.topic_id) = ?d AND deleted IS NULL) AS post_count,
+				IF(priv.user IS NULL, false, true) AS private
 
 			FROM ?_messages msg
+			LEFT JOIN ?_private_topics priv ON msg.id = priv.message
 
 			WHERE msg.id = ?d AND msg.topic_id = 0
+
+			GROUP BY msg.id
 			'
 				, $topic['id']
 				, $topic['id']
 			);
 
+			if ($topic_props['private']) {
+				$allowed_users = $db->select("
+					SELECT
+						usr.id AS user_id,
+						usr.login,
+						usr.email,
+						usr.display_name,
+						avatar.param_value AS avatar
+					FROM ?_private_topics priv
+					LEFT JOIN ?_users usr ON priv.user = usr.id
+					LEFT JOIN ?_user_settings avatar ON avatar.user_id = usr.id AND avatar.param_key = 'avatar'
+					WHERE priv.message = ?d
+					GROUP BY priv.link_id
+					"
+					, $topic['id']
+				);
+
+				foreach ($allowed_users as $key => $val) {
+
+					if ($val['avatar'] == 'gravatar') {
+						$allowed_users[$key]['avatar'] = 'http://www.gravatar.com/avatar/' . md5(strtolower($val['email'])) . '?s=50';
+					}
+
+					if ($val['display_name'] == null) $allowed_users[$key]['display_name'] = $val['login'];
+
+					unset($allowed_users[$key]['email']);
+				}
+
+				$topic_props['private'] = $allowed_users;
+			}
+
 			$meta['updated_at'] = $new_updated_at;
 
 		} else {
 
-			$topic = Array();
+			$topic_props = Array();
 		}
 
-		return $topic;
+		return $topic_props;
 	}
 
 	///////////////
 	// users data
 	///////////////
 
-	function get_users($users) {
+	function get_users($users, &$meta = Array()) {
 		global $db, $cfg;
 
-		$ids = explode(',', $users['ids']);
+		$meta = load_defaults($meta, $meta_defaults = Array(
+			'latest_user' => '0' // работает как false, а в SQL-запросах по дате - как 0
+		));
+
+		// есть ли юзеры, зареганные позже опорной даты?
+		$users_to_return = $db->selectCell("
+			SELECT COUNT(id) FROM ?_users WHERE approved = 1
+			{AND reg_date > ?}
+			"
+			, ($meta['latest_user'] ? $meta['latest_user'] : DBSIMPLE_SKIP)
+		);
+
+		// если нам нужна фильтрация по какому-либо признаку
+		switch ($users['fielter']){
+			case 'online':
+				$online_only = true;
+				break;
+		}
+
+		// если нет - возвращаем пустышку (но если нам нужны уведомления об онлайн-статусе - всегда возвращаем всё)
+		if ($users_to_return*1 <= 0 && !$online_only) return Array();
+
+
+
+		// дата последнего зареганного юзера
+		$latest_user = $db->selectCell('SELECT MAX(reg_date) FROM ?_users WHERE approved = 1');
+
+		// по умолчанию - выбираем древовидный массив
+		$method = 'select';
+
+		// текущая дата минус период подразумеваемой активности
 		$threshold_away = date('Y-m-d H:i:s', now() - $cfg['online_threshold']);
 
-		$online = $db->selectCol('SELECT id FROM ?_users WHERE id IN (?a) AND last_read > ? AND status != "offline"', $ids, $threshold_away);
+		// если нам нужен четкий список юзеров
+		if ($users['ids']) {
+			$ids = explode(',', $users['ids']);
+		}
 
-		return $online;
+		// фильтрация по полям:
 
+		// сборка полей
+		$fields_map = Array(
+			'id'			=> 'usr.id',
+			'login'			=> 'usr.login',
+			'display_name'	=> 'usr.display_name',
+			'email'			=> 'usr.email',
+			'reg_date'		=> 'usr.reg_date',
+			'approved'		=> 'usr.approved',
+			'source'		=> 'usr.source',
+			'last_read'		=> 'usr.last_read',
+			'last_read_ts'	=> 'UNIX_TIMESTAMP(usr.last_read)',
+			'status'		=> 'usr.status',
+			'avatar'		=> 'avatar.param_value'
+		);
+
+		if (in_array('avatar', $users['fields']) && !in_array('email', $users['fields'])) {
+			$users['fields'][] = 'email';
+			$delete_email_after = true;
+		}
+
+		$sql_fields = Array();
+
+		foreach ($fields_map as $key => $val) {
+			if (!$users['fields'] || in_array($key, $users['fields'])) $sql_fields[$key] = $val.' AS '.$key;
+		}
+
+		$fields_to_select = join(",\n", $sql_fields);
+
+		// сборка джойнов
+		$joins_map = Array(
+			'avatar' => "/*SQL*/ LEFT JOIN ?_user_settings avatar ON usr.id = avatar.user_id AND param_key = 'avatar'"
+		);
+
+		$sql_joins = Array();
+
+		foreach ($joins_map as $key => $val) {
+			if (!$users['fields'] || in_array($key, $users['fields'])) $sql_joins[$key] = $val;
+		}
+
+		$joins_to_select = join("\n", $sql_joins);
+
+		if (count($users['fields']) == 1) $method = 'selectCol';
+
+		$raw_userlist = $db->$method("
+			SELECT
+				{$fields_to_select}
+			FROM ?_users usr
+			{$joins_to_select}
+			WHERE approved = 1
+				{AND id IN (?a)}
+				{AND last_read > ? AND status != 'offline'}
+			"
+			, ($ids ? $ids : DBSIMPLE_SKIP)
+			, ($online_only ? $threshold_away : DBSIMPLE_SKIP)
+		);
+
+		$userlist = Array();
+
+		// постобработка юзеров
+		foreach ($raw_userlist as $val) {
+			if ($val['avatar'] == 'gravatar') {
+				$val['avatar'] = 'http://www.gravatar.com/avatar/' . md5(strtolower($val['email'])) . '?s=50';
+			}
+
+			if ($val['display_name'] == null) $val['display_name'] = $val['login'];
+
+			if ($delete_email_after) unset($val['email']);
+			$userlist[] = $val;
+		}
+
+		// sorting
+		if (in_array('display_name', $users['fields'])) $userlist = sort_by_field($userlist, 'display_name');
+
+		$meta['latest_user'] = $latest_user;
+
+		return $userlist;
 	}
 }
 

@@ -274,51 +274,110 @@ body {
 			background-position: center center;
 		}
 	}
+}
 
-	.unit {
-		height:100%;
+.unit {
+	height:100%;
+	position: relative;
+
+	header {
+		min-height: 28px;
+		background-color:#0e5a91;
+		border-right:1px solid;
+		border-color:#1a69a8;
 		position: relative;
+		color:white;
 
-		header {
-			min-height: 28px;
-			background-color:#0e5a91;
-			border-right:1px solid;
-			border-color:#1a69a8;
-			position: relative;
+		.title {
+			font-size:110%;
+			padding:2px 4px;
+			font-weight: bold;
+		}
+
+		.button {
+			border-radius: 0;
+			border:none;
 			color:white;
+			margin:1px;
 
-			.button {
-				border-radius: 0;
-				border:none;
-				color:white;
-				margin:1px;
-
-				&:hover {
-					background-color: #2b7cbd;
-				}
-			}
-
-			.topicname {
-				font-size:110%;
-				padding:2px 4px;
-				border:1px dotted transparent;
-				min-width: 200px;
-				max-height: 100%;
-				margin-left:2px;
-				margin-right:30px;
-
-				&[contenteditable="true"] {
-					background-color: white;
-					color:#444;
-					border-color: #aaa;
-					min-height: 18px;
-				}
+			&:hover {
+				background-color: #2b7cbd;
 			}
 		}
 
-		&.posts {
-			header {
-				border:none;
+		.topicname {
+			font-size:110%;
+			padding:2px 4px;
+			border:1px dotted transparent;
+			min-width: 200px;
+			max-height: 100%;
+			margin-left:2px;
+			margin-right:30px;
+
+			&[contenteditable="true"] {
+				background-color: white;
+				color:#444;
+				border-color: #aaa;
+				min-height: 18px;
+			}
+		}
+
+		.allowedUsers {
+			min-height: 25px;
+			background-color: #fff;
+			clear:both;
+			margin-top: 3px;
+			overflow-x: hidden;
+
+			.user {
+				float:left;
+				padding: 2px;
+				cursor:pointer;
+
+				.avatar {
+					display: block;
+					width: 25px;
+					height: 25px;
+				}
+			}
+		}
+	}
+
+	&.posts {
+		header {
+			border:none;
+		}
+	}
+
+	&.users {
+		.user {
+			background-color: #fff;
+			cursor: pointer;
+			padding: 1px 3px;
+
+			.name {
+				padding: 3px 6px;
+				font-weight: bold;
+				color:#1a69a8;
+				float:left;
+			}
+
+			.avatar {
+				width: 25px;
+				height: 25px;
+				float:left;
+			}
+		}
+
+		.offlineList {
+			.user {
+				.name {
+					color:#999;
+				}
+
+				.avatar {
+					.opacity(0.5)
+				}
 			}
 		}
 	}
@@ -445,18 +504,6 @@ body {
 		margin-right:5px;
 	}
 
-	.avatar {
-		position:absolute;
-		top:0;
-		left:0;
-
-		img {
-			width:48px;
-			height:48px;
-			display: block;
-		}
-	}
-
 	.tags-edit {
 		display: none;
 	}
@@ -541,6 +588,18 @@ body {
 			border-bottom:1px solid #ddd;
 			margin-bottom: 6px;
 			padding-bottom: 3px;
+
+			.avatar {
+				position:absolute;
+				top:0;
+				left:0;
+
+				img {
+					width:50px;
+					height:50px;
+					display: block;
+				}
+			}
 		}
 
 		.controls {

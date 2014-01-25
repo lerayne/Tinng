@@ -157,8 +157,6 @@ tinng.protos.UserInterface.prototype = {
 		text.css(side, 0 - textOffset);
 
 		label.click(function(){
-			console.log(side)
-
 			var params = {};
 			params[side] = panel.hasClass('closed') ? 0 : 0 - width;
 

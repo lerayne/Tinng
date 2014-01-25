@@ -6,14 +6,14 @@
 
 tinng.funcs.onWindowLoad = function(){
 
-    // создание машин, использующих селекторы
-    t.chunks = new t.protos.ChunksEngine('tinng-chunks', 'data-chunk-name');
-    t.ui = new t.protos.UserInterface(window);
-
 	t.connection = new t.protos.Connection({
 		server:'backend/update/',
 		callback:t.funcs.parser2
 	});
+
+    // создание машин, использующих селекторы
+    t.chunks = new t.protos.ChunksEngine('tinng-chunks', 'data-chunk-name');
+    t.ui = new t.protos.UserInterface(window);
 
 	t.userWatcher = new t.protos.UserWatcher();
 

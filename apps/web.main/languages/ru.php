@@ -110,6 +110,15 @@ $txt['ret_message_17'] = $txt['ret_message_activation_wrong_token'] = 'Ключ 
 $txt['ret_message_20'] = $txt['ret_message_registration_success'] = 'Регистрация прошла успешно. На ваш e-mail отправлено письмо, с активационной ссылкой';
 $txt['ret_message_21'] =  $txt['ret_message_activation_success'] = 'Аккаунт успешно активирован. Поздравляем, вы авторизированы в системе';
 
+// Users unit
+
+$txt['title_all_users'] = 'Все пользователи';
+
+// Basic GUI
+
+$txt['panel_users'] = 'Участники';
+$txt['panel_nav'] = 'Навигация';
+
 $txtp['reg_login_expalin'] = 'Логин может содержать только латинские буквы, цифры, точку и знак "_". Длина логина -
 	от 4 до 24 символов';
 
