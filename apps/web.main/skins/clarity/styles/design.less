@@ -203,6 +203,8 @@ body {
 
 @labelWidth: 24px;
 
+@toggleBarWidth: 10px;
+
 #tinng-main-content {
 	position: relative;
 	overflow-x: hidden;
@@ -212,6 +214,61 @@ body {
 		height: 100%;
 		width: 250px;
 		z-index: 100;
+		background-color: #ddd;
+
+		.unit-portal {
+			height: 100%;
+			background-color: white;
+		}
+
+		.label {
+			position: absolute;
+			top:30px;
+			background-color: #222;
+			color:#ddd;
+			width: @labelWidth;
+			height:100px;
+			cursor: pointer;
+			overflow: hidden;
+			z-index: 150;
+
+			.text {
+				position: absolute;
+				top:40px;
+				text-transform: uppercase;
+				font-size: 14px;
+				font-weight: bold;
+				font-family: sans-serif;
+			}
+		}
+
+		.close {
+			cursor: pointer;
+			position: absolute;
+			top:0;
+			height: 100%;
+			width: @toggleBarWidth;
+			background-repeat: no-repeat;
+			background-position: center center;
+
+			&:hover {
+				background-color: #999;
+			}
+		}
+		
+		.open {
+			position: absolute;
+			top:0;
+			width: @toggleBarWidth;
+			height: 100%;
+			cursor: pointer;
+			background-color: #fff;
+			.opacity(0);
+
+			&:hover {
+				.opacity(0.1);
+			}
+		}
 
 		&.panel-left {
 			left:0;
@@ -222,6 +279,19 @@ body {
 				.text {
 					.rotation(270deg)
 				}
+			}
+
+			.close {
+				left:0;
+				background-image: url(../../skins/clarity/images/collapse_bar_left.png);
+			}
+
+			.open {
+				right: -@toggleBarWidth;
+			}
+
+			.unit-portal {
+				margin-left:@toggleBarWidth;
 			}
 		}
 
@@ -235,31 +305,18 @@ body {
 					.rotation(90deg)
 				}
 			}
-		}
 
-		.unit-portal {
-			height: 100%;
-			background-color: white;
-		}
+			.close {
+				right:0;
+				background-image: url(../../skins/clarity/images/collapse_bar_right.png);
+			}
 
-		.label {
-			position: absolute;
-			top:30px;
-			background-color: black;
-			color:white;
-			opacity: 0.7;
-			width: @labelWidth;
-			height:100px;
-			cursor: pointer;
-			overflow: hidden;
+			.open {
+				left: -@toggleBarWidth;
+			}
 
-			.text {
-				position: absolute;
-				top:40px;
-				text-transform: uppercase;
-				font-size: 14px;
-				font-weight: bold;
-				font-family: sans-serif;
+			.unit-portal {
+				margin-right:@toggleBarWidth;
 			}
 		}
 	}

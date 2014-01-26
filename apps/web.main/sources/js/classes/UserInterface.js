@@ -148,6 +148,7 @@ tinng.protos.UserInterface.prototype = {
 	createSidePanel:function(){
 		var panel = $(this);
 		var label = panel.find('.label');
+		var toggles = panel.find('.label, .close, .open');
 		var text = label.find('.text');
 		var side = panel.hasClass('panel-left') ? 'left' : 'right';
 		var width = panel.width();
@@ -156,7 +157,7 @@ tinng.protos.UserInterface.prototype = {
 		var textOffset = (text.width()-label.width())/2;
 		text.css(side, 0 - textOffset);
 
-		label.click(function(){
+		toggles.click(function(){
 			var params = {};
 			params[side] = panel.hasClass('closed') ? 0 : 0 - width;
 

@@ -79,11 +79,15 @@
 
 		<div id="unit-panel-left" class="unit-panel panel-left">
 			<div class="label"><div class="text"><?= $txt['panel_nav']?></div></div>
+			<div class="close"></div>
+			<div class="open"></div>
 			<div class="unit-portal"></div>
 		</div>
 
 		<div id="unit-panel-right" class="unit-panel panel-right">
 			<div class="label"><div class="text"><?= $txt['panel_users']?></div></div>
+			<div class="close"></div>
+			<div class="open"></div>
 			<div class="unit-portal"></div>
 		</div>
 
