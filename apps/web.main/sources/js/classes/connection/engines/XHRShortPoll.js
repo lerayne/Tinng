@@ -120,15 +120,19 @@ tinng.protos.strategic.XHRShortPoll.prototype = {
 
 		this.startIndication(); // показываем, что запрос начался
 
-		// Отправляем запрос
-		this.request = new JsHttpRequest();
-		this.request.onreadystatechange = this.onResponse;
-		this.request.open(null, this.backendURL, true);
-		this.request.send({
-			subscribe: this.subscriptions,
-			write: this.actions,
-			meta: this.meta
-		});
+		try {
+			// Отправляем запрос
+			this.request = new JsHttpRequest();
+			this.request.onreadystatechange = this.onResponse;
+			this.request.open(null, this.backendURL, true);
+			this.request.send({
+				subscribe: this.subscriptions,
+				write: this.actions,
+				meta: this.meta
+			});
+		} catch (e) {
+			console.log('error:', e);
+		}
 
 		this.connectionLossTO = setTimeout(this.restart, 10000);
 
@@ -136,6 +140,7 @@ tinng.protos.strategic.XHRShortPoll.prototype = {
 	},
 
 	restart:function(){
+		t.ui.showMessage(t.txt.connection_error);
 		console.warn('Registered connection loss. Trying to restart')
 		this.stop();
 		this.start();
