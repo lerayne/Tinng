@@ -116,6 +116,10 @@ $txt['ret_message_21'] =  $txt['ret_message_activation_success'] = 'Аккаун
 
 $txt['title_all_users'] = 'Все пользователи';
 
+// Nav unit
+
+$txt['title_all_tags'] = 'Все теги';
+
 // Basic GUI
 
 $txt['panel_users'] = 'Участники';

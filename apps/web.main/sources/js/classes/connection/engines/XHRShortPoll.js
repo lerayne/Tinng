@@ -15,6 +15,7 @@ tinng.protos.strategic.XHRShortPoll = function(server, callback){
 	this.waitTime = t.state.blurred ? t.cfg['poll_timer_blurred'] : t.cfg['poll_timer'];
 	this.request = false; // запрос
 	this.timeout = false; // текущий таймаут
+	this.connectionLossTO = false; // таймаут обрыва связи
 
 	this.$stateIndicator = $('.state-ind');
 
@@ -129,15 +130,23 @@ tinng.protos.strategic.XHRShortPoll.prototype = {
 			meta: this.meta
 		});
 
-//		console.log('request', {subscribe: this.subscriptions,write: this.actions,meta: this.meta});
+		this.connectionLossTO = setTimeout(this.restart, 10000);
 
 		t.funcs.log('Launching query with timeout ' + this.waitTime);
+	},
+
+	restart:function(){
+		console.warn('Registered connection loss. Trying to restart')
+		this.stop();
+		this.start();
 	},
 
 	// Останавливает ротор
 	stop:function () {
 
 		this.timeout = t.funcs.advClearTimeout(this.timeout);
+
+		clearTimeout(this.connectionLossTO);
 
 		if (this.request) {
 			// переопределяем, иначе rotor воспринимает экстренную остановку как полноценное завершение запроса
@@ -159,6 +168,8 @@ tinng.protos.strategic.XHRShortPoll.prototype = {
 	onResponse:function () {
 
 		if (this.request.readyState == 4) {
+
+			clearTimeout(this.connectionLossTO);
 
 			if (this.request.responseText) {
 				console.log('PHP backtrace:\n==============\n' + this.request.responseText)
