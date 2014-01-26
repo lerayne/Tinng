@@ -338,7 +338,8 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 			'saveName',
 			'cancelNewTopic',
 			'showNext',
-			'showAll'
+			'showAll',
+			'addUserToPrivate'
 		]);
 
 		t.protos.Unit.prototype
@@ -355,6 +356,13 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 		this.$header.append(this.header.$body);
 
 		this.newTopicMode = false;
+
+		this.header.allowedUsers.$body.droppable({
+			accept:'.userItem',
+			activeClass:'acceptable',
+			hoverClass:'ready',
+			drop:this.addUserToPrivate
+		})
 
 		// прячем ненужные пока контролы
 		this.header.save.hide();
@@ -380,6 +388,12 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 		showAll.click(this.showAll);
 
 		this.$showMore.append(showNext, showAll);
+	},
+
+	addUserToPrivate: function(e, ui){
+		console.log('new user:',ui.draggable.attr('data-user'));
+
+		//this.header.allowedUsers.$body.append(ui.draggable)
 	},
 
 	addNode: function (node) {
@@ -932,8 +946,16 @@ tinng.protos.UsersUnit = Class(tinng.protos.Unit, {
 		var name = body.find('[data-cell="name"]');
 		var avatar = body.find('[data-cell="avatar"]');
 
+		body.addClass('user-'+data.id).attr('data-user', data.id);
 		name.text(data.display_name);
 		avatar.prop('src', data.avatar);
+
+		body.draggable({
+			helper:"clone",
+			appendTo:"#tinng-main-content",
+			distance:5,
+			scroll:false
+		})
 
 		return body;
 	},

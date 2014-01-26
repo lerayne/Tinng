@@ -383,13 +383,23 @@ body {
 			min-height: 25px;
 			background-color: #fff;
 			clear:both;
+			border:2px dashed transparent;
 			margin-top: 3px;
 			overflow-x: hidden;
 
-			.user {
+			&.acceptable {
+				border-color: #ffbc1c;
+			}
+
+			&.ready {
+				border-style: solid;
+			}
+
+			.userItem {
 				float:left;
-				padding: 2px;
+				margin-right:1px;
 				cursor:pointer;
+				padding:1px;
 
 				.avatar {
 					display: block;
@@ -407,27 +417,9 @@ body {
 	}
 
 	&.users {
-		.user {
-			background-color: #fff;
-			cursor: pointer;
-			padding: 1px 3px;
-
-			.name {
-				padding: 3px 6px;
-				font-weight: bold;
-				color:#1a69a8;
-				float:left;
-			}
-
-			.avatar {
-				width: 25px;
-				height: 25px;
-				float:left;
-			}
-		}
 
 		.offlineList {
-			.user {
+			.userItem {
 				.name {
 					color:#999;
 				}
@@ -446,6 +438,33 @@ body {
 		}
 	}
 }
+
+
+.userItem {
+	background-color: #fff;
+	cursor: pointer;
+	padding: 1px 3px;
+
+	.name {
+		padding: 3px 6px;
+		font-weight: bold;
+		color:#1a69a8;
+		float:left;
+	}
+
+	.avatar {
+		width: 25px;
+		height: 25px;
+		float:left;
+	}
+
+	&.ui-draggable-dragging {
+		z-index: 1000;
+		border:1px solid #1a69a8;
+		padding: 3px;
+	}
+}
+
 
 #tinng-units-area {
 	.width-scheme();

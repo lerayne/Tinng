@@ -79,6 +79,7 @@ function template_head() {
 		// тут важен порядок
 		$env['appdir'] . 'sources/js/jqextend.js', 				// мои расширения jq (в основном самопис)
 		$env['rootdir'] . 'libraries/JsHttpRequest.js',			// сторонняя библиотека работы с XHR
+		$env['rootdir'] . 'libraries/jquery-ui-1.10.4.custom.min.js',			// драг-дроп
 		$env['appdir'] . 'sources/js/classes/Class.js',			// наследователь для классов + кроссбраузерный bind
 		$env['appdir'] . 'sources/js/tinng_init.js',			// главный объект-контейнер
 		$env['appdir'] . 'sources/js/classes/Funcs.js',			// простые функции (иногда расширяются ниже)

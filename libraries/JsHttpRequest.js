@@ -396,7 +396,11 @@ JsHttpRequest.LOADERS.xml = {loader: function (req) {
 			}
 			xr.setRequestHeader("Content-Type", "application/octet-stream");
 		}
-		xr.send(this.queryText);
+		try{
+			xr.send(this.queryText);
+		} catch (e) {
+			console.warn('error:', e)
+		}
 		this.span = null;
 		this.xr = xr;
 		return null;
