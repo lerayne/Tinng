@@ -357,6 +357,13 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 		this.$body.mouseleave(function(){
 			clearTimeout(this.mousetimer);
 		});
+
+		/*this.$body.draggable({
+			helper:'clone',
+			handle:this.cells.$infobar,
+			appendTo:'#tinng-main-content',
+			scroll:false
+		})*/
 	},
 
 	// заполнить сообщение данными

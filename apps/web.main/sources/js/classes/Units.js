@@ -351,7 +351,7 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 			{type:'Button', label:'save', cssClass:'right', icon:'round_checkmark_w.png', tip:tinng.txt.save},
 			//{type:'Button', label:'cancelNewTopic', cssClass:'right', icon:'cancel_w.png', tip:tinng.txt.cancel_new_topic},
 			{type:'Field', label:'topicName', cssClass:'topicname'},
-			{type:'Field', label:'allowedUsers', cssClass:'allowedUsers', css:{display:'none'}}
+			{type:'Field', label:'allowedUsers', cssClass:'allowedUsers none'}
 		]);
 		this.$header.append(this.header.$body);
 
@@ -393,7 +393,7 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 	addUserToPrivate: function(e, ui){
 		console.log('new user:',ui.draggable.attr('data-user'));
 
-		//this.header.allowedUsers.$body.append(ui.draggable)
+		this.header.allowedUsers.$body.append(ui.draggable.clone())
 	},
 
 	addNode: function (node) {
@@ -418,7 +418,7 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 		t.protos.Unit.prototype['clear'].apply(this, arguments);
 
 		this.$showMore.hide();
-		this.header.allowedUsers.$body.hide().children().remove()
+		this.header.allowedUsers.$body.addClass('none').children().remove()
 		t.posts = {};
 	},
 
@@ -820,7 +820,7 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 		this.setTopicName(topicData.topic_name); //вывод названия темы
 
 		if (typeof topicData.private == 'object' && topicData.private.length) {
-			this.header.allowedUsers.$body.show();
+			this.header.allowedUsers.$body.removeClass('none');
 
 			for (var i = 0; i < topicData.private.length; i++) {
 				var userData = topicData.private[i];
@@ -853,7 +853,6 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 		var name = body.find('[data-cell="name"]');
 		var avatar = body.find('[data-cell="avatar"]');
 
-		name.hide();
 		avatar.prop('src', userData.avatar);
 
 		return body;
