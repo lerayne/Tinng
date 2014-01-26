@@ -90,6 +90,12 @@ tinng.protos.Node = Class({
 		}
 	},
 
+	updateMenu:function(){
+		// если в меню нет кнопок - спрятать стрелочку
+		if (!this.cells.$controls.find('.button-body').not('.none').size()) this.cells.$menuBtn.hide();
+		else this.cells.$menuBtn.show();
+	},
+
 	show:function (start) {
 		this.$body[0].scrollIntoView(start);
 	},
@@ -97,6 +103,11 @@ tinng.protos.Node = Class({
 	markRead:function(){
 		this.$body.removeClass('unread');
 		this.data.unread = '0';
+	},
+
+	markUnread:function(){
+		this.$body.addClass('unread');
+		this.data.unread = '1';
 	},
 
     toggleMenu:function(){
@@ -118,6 +129,11 @@ tinng.protos.Node = Class({
 tinng.protos.TopicNode = Class(tinng.protos.Node, {
 
 	construct:function (data) {
+		t.funcs.bind(this, [
+			'loadPosts',
+			'kill',
+			'forceRead'
+		])
 
 		t.protos
 			.Node.prototype
@@ -129,14 +145,17 @@ tinng.protos.TopicNode = Class(tinng.protos.Node, {
 			]
 		);
 
-		// проксирование функций
-		this.loadPosts = $.proxy(this, 'loadPosts');
-        this.kill = $.proxy(this, 'kill');
-
 		// вешаем обработчики событий
 		this.$body.on('click', this.loadPosts);
 
-		if (!this.cells.$controls.children().size()) this.cells.$menuBtn.hide();
+		this.mainPanel = new t.protos.ui.Panel([
+			{type:'Button', label:'mark_read', icon:'message_read.png', text: t.txt.mark_read}
+		]);
+
+		this.mainPanel.mark_read.$body.addClass('none');
+		this.mainPanel.mark_read.on('click', this.forceRead);
+
+		this.cells.$controls.append(this.mainPanel.$body);
 	},
 
 	// заполнить данными
@@ -152,12 +171,26 @@ tinng.protos.TopicNode = Class(tinng.protos.Node, {
 		// последнее сообщение
 		if (data.last_id) {
 			this.cells.$lastmessage.html(
-				'<div>' + t.txt.lastpost + '<b>' + data.lastauthor + '</b> (' + data.lastdate + ') ' + data.lastpost + '</div>'
+				'<div><b>' + data.lastauthor + ':</b> ' + data.lastpost + '</div>'
 			);
 		}
 
 		// отмечаем темы непрочитанными
-		if (this.data.unread == '1') this.$body.addClass('unread');
+		if (this.data.unread == '1') {
+			this.markUnread();
+			this.mainPanel.mark_read.$body.removeClass('none');
+		}
+
+		this.updateMenu();
+	},
+
+	markRead:function(){
+		t.protos.Node.prototype
+			.markRead.apply(this, arguments);
+
+		this.mainPanel.mark_read.$body.addClass('none');
+
+		this.updateMenu();
 	},
 
 	// изменить положение в списке при обновлении
@@ -222,9 +255,18 @@ tinng.protos.TopicNode = Class(tinng.protos.Node, {
 		delete(t.topics[this.id]);
 	},
 
-	//todo - при данной реализации с ноды слетают все события! использование функции отключено
-	detach:function () {
-		this.$body.remove();
+	forceRead:function(){
+		var now = new Date();
+
+		t.stateService.push({
+			action:'read_topic',
+			id: this.data.id,
+			time: now.getTime()
+		});
+
+		t.stateService.flushState();
+
+		this.markRead();
 	}
 });
 
@@ -240,7 +282,10 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 			'edit',
 			'enterEditMode',
 			'erase',
-			'unlock'
+			'unlock',
+			'save',
+			'cancelEdit',
+			'forceUnread'
 		])
 
 		t.protos
@@ -266,11 +311,13 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 		this.mainPanel = new t.protos.ui.Panel([
 			{type:'Button', label:'edit', icon:'doc_edit.png', text:t.txt.edit},
 			{type:'Button', label:'delete', icon:'doc_delete.png', text:t.txt['delete']},
-			{type:'Button', label:'unlock', icon:'padlock_open.png', text:t.txt.unblock}
+			{type:'Button', label:'unlock', icon:'padlock_open.png', text:t.txt.unblock},
+			{type:'Button', label:'mark_unread', icon:'message_unread.png', text: t.txt.mark_next_unread}
 		]);
 
+		this.cells.$controls.append(this.mainPanel.$body);
+
 		this.mainPanel.unlock.$body.hide();
-		if (t.user.hasRight('editMessage', this)) this.cells.$controls.append(this.mainPanel.$body);
 
 		this.mainPanel.edit.on('click', this.edit);
 		this.mainPanel.edit.on('click', this.hideMenu);
@@ -279,6 +326,15 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 		this.mainPanel['delete'].on('click', this.erase);
 		//this.mainPanel['delete'].on('click', t.funcs.stopProp);
 		this.mainPanel.unlock.on('click', this.unlock);
+		this.mainPanel.mark_unread.on('click', this.forceUnread);
+
+
+		// права (todo - сделать наоборот!)
+		if (!t.user.hasRight('editMessage', this)) this.mainPanel.edit.$body.remove();
+		if (!t.user.hasRight('deleteMessage', this)) this.mainPanel['delete'].$body.remove();
+		if (!t.user.hasRight('admin', this)) this.mainPanel.unlock.$body.remove();
+		// todo - тема, вручную отмеченная непрочитанной не отмечается таковой в списке тем, если последний пост в ней - текущего юзера
+		if (!t.user.hasRight('readMessage', this)) this.mainPanel.mark_unread.$body.remove();
 
 		/* панель редактирования */
 
@@ -289,9 +345,6 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 
 		this.editorPanel.$body.hide();
 		if (t.user.hasRight('editMessage', this)) this.cells.$controls2.append(this.editorPanel.$body);
-
-		this.save = $.proxy(this, 'save');
-		this.cancelEdit = $.proxy(this, 'cancelEdit');
 
 		this.editorPanel.save.on('click', this.save);
 		this.editorPanel.cancel.on('click', this.cancelEdit);
@@ -304,8 +357,6 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 		this.$body.mouseleave(function(){
 			clearTimeout(this.mousetimer);
 		});
-
-		if (!this.cells.$controls.children().size()) this.cells.$menuBtn.hide();
 	},
 
 	// заполнить сообщение данными
@@ -318,7 +369,9 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 		this.cells.$avatar_box.addClass('user-'+data.author_id);
 
 		// отмечаем сообщения непрочитанными
-		if (this.data.unread == '1') this.$body.addClass('unread');
+		if (this.data.unread == '1') this.markUnread();
+
+		this.updateMenu();
 	},
 
 	// пометить сообщение выделенным
@@ -368,8 +421,7 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 
 		//console.log('post show:', this.data.id);
 
-		t.protos
-			.Node.prototype
+		t.protos.Node.prototype
 			.show.apply(this, arguments);
 
 		var thisLast = this.$body.next().size() == 0;
@@ -502,18 +554,53 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 		return false; // preventDefault + stopPropagation
 	},
 
+	markUnreadNext:function(){
+		for (var key in t.posts) {
+			if (key >= this.data.id && t.posts[key].data.author_id != t.user.id) {
+				t.posts[key].markUnread();
+			}
+}
+	},
+
+	markReadPrev:function(){
+		for (var key in t.posts) {
+			if (key <= this.data.id && t.posts[key].data.author_id != t.user.id) {
+				t.posts[key].markRead();
+			}
+		}
+	},
+
 	pushReadState:function(){
 		if (this.data.unread == '1') {
 
-			this.latestReadTS = this.data.modified ? t.funcs.sql2stamp(this.data.modified) : t.funcs.sql2stamp(this.data.created);
+			var latestReadTS = this.data.modified ? t.funcs.sql2stamp(this.data.modified) : t.funcs.sql2stamp(this.data.created);
 
 			t.stateService.push({
 				action:'read_topic',
 				id: this.data.topic_id == 0 ? this.data.id : this.data.topic_id,
-				time:this.latestReadTS
+				time: latestReadTS
 			});
 
-			this.markRead();
+			this.markReadPrev();
 		}
+	},
+
+	forceUnread:function(){
+		var latestReadTS = t.funcs.sql2stamp(this.data.created);
+
+		t.stateService.push({
+			action:'read_topic',
+			id: this.data.topic_id == 0 ? this.data.id : this.data.topic_id,
+			time: latestReadTS - 2000
+		});
+
+		t.stateService.flushState();
+
+		// todo - второе условие введено, чтобы не обманывать пользователя из-за ошибки
+		if (t.topics[this.data.topic_id] && t.topics[this.data.topic_id].data.lastauthor_id != t.user.id) {
+			t.topics[this.data.topic_id].markUnread();
+		}
+
+		this.markUnreadNext();
 	}
 });

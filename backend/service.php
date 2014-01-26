@@ -14,7 +14,7 @@ switch ($action):
 			foreach ($read_topics as $topic_id => $new_TS):
 
 				$newDate = new DateTime(date('Y-m-d H:i:s', jsts2phpts($new_TS)));
-				$new_TS = $newDate->format('U')+0;
+				$new_TS = $newDate->format('U')*1;
 				$new_sqldate = $newDate->format('Y-m-d H:i:s');
 
 				// Выясняем, отмечал ли когда-либо пользователь эту тему прочитанной
@@ -30,7 +30,7 @@ switch ($action):
 					$old_TS = $oldDate->format('U')+0;
 
 					// Если новая дата позднее предыдущей
-					if ($new_TS > $old_TS):
+					//if ($new_TS > $old_TS):
 						$db->query(
 							'UPDATE ?_unread SET timestamp = ? WHERE user = ?d AND topic = ?d'
 							, $new_sqldate
@@ -39,7 +39,7 @@ switch ($action):
 						);
 
 						$result['read_topic'][$topic_id] = $new_sqldate;
-					endif;
+					//endif;
 
 				} else {
 

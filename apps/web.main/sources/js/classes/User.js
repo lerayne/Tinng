@@ -21,18 +21,31 @@ tinng.protos.User.prototype = {
 
         switch (rightName){
 
-            case 'writeToTopic':
+			case 'admin':
+				if (this.id == 1) return true;
+				break;
+
+			case 'writeToTopic':
 				if (this.id > 0) return true;
-            break;
+            	break;
 
             case 'createTopic':
 				if (this.id > 0) return true;
-            break;
+            	break;
+
+			case 'readMessage':
+				if (this.id > 0) return true;
+				break;
 
             case 'editMessage':
                 var message = value;
                 if (this.id == 1 || this.id == message.data.author_id) return true;
-            break;
+            	break;
+
+			case 'deleteMessage':
+				var message = value;
+				if (this.id == 1 || this.id == message.data.author_id) return true;
+				break;
         }
 
 		// по умолчанию - отказать

@@ -906,8 +906,6 @@ tinng.protos.UsersUnit = Class(tinng.protos.Unit, {
 	},
 
 	parseUserlist:function(userlist){
-		console.log('userlist:', userlist)
-
 		var now = new Date();
 
 		for (var i = 0; i < userlist.length; i++) {

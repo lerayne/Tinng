@@ -76,8 +76,6 @@ t.protos.StateService.prototype = {
 						if (t.funcs.sql2stamp(postMaxTime) < readTime) post.markRead();
 					}
 				}
-
-
 			}
 		}
 	}
