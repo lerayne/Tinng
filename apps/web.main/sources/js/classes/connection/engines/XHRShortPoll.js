@@ -183,7 +183,7 @@ tinng.protos.strategic.XHRShortPoll.prototype = {
 			//console.log('XHRShortPoll actions:', this.actions)
 
 			// разбираем пришедший пакет и выполняем обновления
-			t.sync.maxdateTS = this.parseCallback(this.request.responseJS, this.actions);
+			this.parseCallback(this.request.responseJS, this.actions);
 
 			this.meta = this.request.responseJS.meta;
 

@@ -1,6 +1,6 @@
 /**
 * @include classes/*
-* @include parser2.js
+* @include parser.js
 *
 * */
 

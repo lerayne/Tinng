@@ -129,4 +129,4 @@ tinng.protos.KeyListener.prototype = {
 	}
 }
 
-tinng.keyListener = new tinng.protos.KeyListener();
+//tinng.keyListener = new tinng.protos.KeyListener();

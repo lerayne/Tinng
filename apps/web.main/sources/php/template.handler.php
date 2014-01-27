@@ -79,14 +79,18 @@ function template_head() {
 	$debug = !$cfg['production'];
 	$scripts = Array();
 
-	$scripts[] = get_script($env['appdir'].'sources/js', 'jqextend.js', $debug);
-	$scripts[] = get_script($env['rootdir'], 'libraries/JsHttpRequest.js', $debug);
-	$scripts[] = get_script($env['appdir'].'sources/js', 'tinng_init.js', $debug);
-	$scripts[] = get_script($env['appdir'].'sources/js', 'classes/Funcs.js', $debug);
 
-	$scripts[] = get_script($env['appdir'].'sources/js', 'onload.js', $debug);
+	// Загрузка скриптов (теперь зависимости прописываются в самих файлах!)
+	get_js(Array(
 
-	get_js($scripts, $debug);
+		get_script($env['appdir'].'sources/js', 'jqextend.js', $debug),
+		get_script($env['rootdir'], 'libraries/JsHttpRequest.js', $debug),
+		get_script($env['appdir'].'sources/js', 'tinng_init.js', $debug),
+		get_script($env['appdir'].'sources/js', 'classes/Funcs.js', $debug),
+
+		get_script($env['appdir'].'sources/js', 'onload.js', $debug),
+
+	), $debug);
 
 	echo '<meta property="og:image" content="'. $e->full_app_path .'stock/images/social_big.png">';
 }
