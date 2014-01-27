@@ -1,5 +1,7 @@
 /**
  * Created by M. Yegorov on 1/27/14.
+ *
+ * @include apps/web.main/sources/js/classes/Class.js
  */
 
 tinng.protos.Unit = Class({

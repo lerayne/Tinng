@@ -1,5 +1,7 @@
 /**
  * Created by M. Yegorov on 1/27/14.
+ *
+ * @include _Node.js
  */
 
 tinng.protos.TopicNode = Class(tinng.protos.Node, {

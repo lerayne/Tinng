@@ -39,6 +39,6 @@ tinng.funcs.parser2 = function (result, actions) {
 }
 
 
-tinng.funcs.parser.prototype = {
+tinng.funcs.parser2.prototype = {
 
 }

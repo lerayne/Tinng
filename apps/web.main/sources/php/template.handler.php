@@ -46,8 +46,10 @@ function template_head() {
 		echo '<script type="text/javascript" language="JavaScript" src="' . $env['rootdir'] . 'libraries/modernizr.js"></script>';
 		echo '<script type="text/javascript" language="JavaScript" src="' . $env['rootdir'] . 'libraries/jquery-1.x.js"></script>';
 		echo '<script type="text/javascript" language="JavaScript" src="' . $env['rootdir'] . 'libraries/es5-shim.min.js"></script>';
+		echo '<script type="text/javascript" language="JavaScript" src="' . $env['rootdir'] . 'libraries/jquery-ui-1.10.4.custom.min.js"></script>';
 	} else {
 		echo '<script type="text/javascript" language="JavaScript" src="' . $env['rootdir'] . 'libraries/jquery-2.x.js"></script>';
+		echo '<script type="text/javascript" language="JavaScript" src="' . $env['rootdir'] . 'libraries/jquery-ui-1.10.4.custom.min.js"></script>';
 	}
 
 	// импорт переменных из PHP
@@ -74,64 +76,17 @@ function template_head() {
 		</script>
 	';
 
-	// Подключение скриптов
-	incl_scripts(
-		// тут важен порядок
-		$env['appdir'] . 'sources/js/jqextend.js', 				// мои расширения jq (в основном самопис)
-		$env['rootdir'] . 'libraries/JsHttpRequest.js',			// сторонняя библиотека работы с XHR
-		$env['rootdir'] . 'libraries/jquery-ui-1.10.4.custom.min.js',			// драг-дроп
-		$env['appdir'] . 'sources/js/classes/Class.js',			// наследователь для классов + кроссбраузерный bind
-		$env['appdir'] . 'sources/js/tinng_init.js',			// главный объект-контейнер
-		$env['appdir'] . 'sources/js/classes/Funcs.js',			// простые функции (иногда расширяются ниже)
+	$debug = !$cfg['production'];
+	$scripts = Array();
 
-		// базовые классы (должны подключаться раньше наследников)
-		$env['appdir'] . 'sources/js/classes/units/_Unit.js',
-		$env['appdir'] . 'sources/js/classes/nodes/_Node.js',
+	$scripts[] = get_script($env['appdir'].'sources/js', 'jqextend.js', $debug);
+	$scripts[] = get_script($env['rootdir'], 'libraries/JsHttpRequest.js', $debug);
+	$scripts[] = get_script($env['appdir'].'sources/js', 'tinng_init.js', $debug);
+	$scripts[] = get_script($env['appdir'].'sources/js', 'classes/Funcs.js', $debug);
 
-		//$env['appdir'] . 'sources/js/classes/KeyListener.js',	// обработка горячих клавиш
+	$scripts[] = get_script($env['appdir'].'sources/js', 'onload.js', $debug);
 
-		// todo - придумать механизм реквайринга js-исходников
-		//порядок загрузки этих классов непринципиален
-
-
-		$env['appdir'] . 'sources/js/classes/StateService.js',	// служба второчтепенной связи с сервером
-		$env['appdir'] . 'sources/js/classes/Validator.js',		// проверка данных форм (из anrom)
-        $env['appdir'] . 'sources/js/classes/User.js',			// пользователь
-		$env['appdir'] . 'sources/js/classes/UserWatcher.js',	// управление онлайн-статусом
-        $env['appdir'] . 'sources/js/classes/Address.js',		// работа с хешем адресной строки
-		$env['appdir'] . 'sources/js/classes/Chunks.js',		// движок подшаблонов, встроенных в базовый шаблон
-
-		// абстракция элементов управления
-		$env['appdir'] . 'sources/js/classes/controls/Button.js',
-		$env['appdir'] . 'sources/js/classes/controls/Field.js',
-		$env['appdir'] . 'sources/js/classes/controls/Panel.js',
-		$env['appdir'] . 'sources/js/classes/controls/SearchBox.js',
-		$env['appdir'] . 'sources/js/classes/controls/Tag.js',
-
-		// основные интерфейсные модули
-		$env['appdir'] . 'sources/js/classes/units/TopicsUnit.js',
-		$env['appdir'] . 'sources/js/classes/units/PostsUnit.js',
-		$env['appdir'] . 'sources/js/classes/units/UsersUnit.js',
-		$env['appdir'] . 'sources/js/classes/units/NavUnit.js',
-
-		// множественные объеккты
-		$env['appdir'] . 'sources/js/classes/nodes/TopicNode.js',
-		$env['appdir'] . 'sources/js/classes/nodes/PostNode.js',
-
-
-		$env['appdir'] . 'sources/js/classes/Editor.js',		// редактор сообщений
-		$env['appdir'] . 'sources/js/classes/UserInterface.js', // основной интерфейс
-		$env['appdir'] . 'sources/js/classes/Rotor.js', 		// соединение с сервером данных
-		$env['appdir'] . 'sources/js/parser.js', 				// обработка пришедших от сервера данных
-		$env['appdir'] . 'sources/js/classes/Nodes.js', 		// блоки (ноды) сообщений
-
-		$env['appdir'] . 'sources/js/classes/connection/Connection.js', 				// враппер соединения
-		$env['appdir'] . 'sources/js/classes/connection/engines/XHRShortPoll.js', 		// враппер соединения
-		$env['appdir'] . 'sources/js/parser2.js', 										// обработка пришедших от сервера данных
-
-		// этот файл всегда подгружается последним
-		$env['appdir'] . 'sources/js/onload.js'
-	);
+	get_js($scripts, $debug);
 
 	echo '<meta property="og:image" content="'. $e->full_app_path .'stock/images/social_big.png">';
 }

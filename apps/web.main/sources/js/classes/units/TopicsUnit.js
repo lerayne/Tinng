@@ -1,5 +1,7 @@
 /**
  * Created by M. Yegorov on 1/27/14.
+ *
+ * @include _Unit.js
  */
 
 tinng.protos.TopicsUnit = Class(tinng.protos.Unit, {
