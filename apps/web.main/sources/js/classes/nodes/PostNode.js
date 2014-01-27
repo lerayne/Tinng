@@ -1,277 +1,6 @@
 /**
- * Created with JetBrains PhpStorm.
- * User: Michael Yegorov
- * Date: 7/11/12
- * Time: 4:47 PM
- * To change this template use File | Settings | File Templates.
+ * Created by M. Yegorov on 1/27/14.
  */
-
-/* КЛАССЫ НОДЫ, ТЕМЫ И ПОСТА */
-
-tinng.protos.Node = Class({
-
-	initialize:function (data, chunkName, addCells) {
-		this.construct(data, chunkName, addCells);
-		this.fill(data);
-	},
-
-	construct:function (data, chunkName, addCells) {
-		var that = this;
-		t.funcs.bind(this, ['markRead', 'pushReadState', 'toggleMenu', 'hideMenu']);
-
-		this.$body = t.chunks.get(chunkName || 'node');
-
-		// создаем поля главного объекта на основе данных
-		this.data = data;
-		this.id = parseInt(data.id);
-
-		// заполняем коллекцию cells на основе названий полей
-		var cells = [
-
-			'infobar',
-			'created',
-			'author',
-			'id',
-			'message',
-			'controls',
-			'controls2',
-            'menuBtn',
-			'tags'
-
-		].concat(addCells || []);
-
-		this.cells = {};
-		for (var i in cells) this.cells['$' + cells[i]] = this.$body.find('[data-cell="' + cells[i] + '"]');
-
-        // универсальные управления событиями
-		// todo - закончить
-		this.cells.$controls.on('click', '.button', function(){
-			console.log('hide')
-		});
-		this.cells.$menuBtn.on('click', this.toggleMenu);
-		this.$body.on('click mouseleave', this.hideMenu);
-
-
-
-		// заполняем неизменные данные, присваеваемые единожды
-		this.$body.attr('id', chunkName + '_' + data.id);
-		this.$body.attr('data-number', data.id);
-		this.cells.$message.addClass('message_' + data.id);
-		if (!t.cfg.production) this.cells.$id.text(data.id);
-	},
-
-	// заполнить данными
-	fill:function (data) {
-		var that = this;
-
-		this.data = data;
-
-		// общие поля
-		this.cells.$message.html(data.message);
-		this.cells.$created.text(data.modified ? t.txt.modified + data.modified : data.created);
-		this.cells.$author.text(data.author);
-
-		// вбиваем теги
-		//todo: сейчас теги при каждом филле обнуляются и вбиваются заново. непорядок
-		if (data.tags) {
-			this.cells.$tags.children().remove();
-
-			data.tags.forEach(function(val, i){
-
-				var tag = new t.protos.ui.Tag(val, {
-					bodyClick:function(){
-						t.units.topics.searchBox.addTagToSelection(val.name)
-					}
-				})
-				that.cells.$tags.append(tag.$body);
-			})
-
-			this.cells.$tags.show();
-		}
-	},
-
-	updateMenu:function(){
-		// если в меню нет кнопок - спрятать стрелочку
-		if (!this.cells.$controls.find('.button-body').not('.none').size()) this.cells.$menuBtn.hide();
-		else this.cells.$menuBtn.show();
-	},
-
-	show:function (start) {
-		this.$body[0].scrollIntoView(start);
-	},
-
-	markRead:function(){
-		this.$body.removeClass('unread');
-		this.data.unread = '0';
-	},
-
-	markUnread:function(){
-		this.$body.addClass('unread');
-		this.data.unread = '1';
-	},
-
-    toggleMenu:function(){
-		if (this.cells.$controls.children().size()){
-			this.cells.$controls.toggle();
-		}
-        return false;
-    },
-
-	hideMenu:function(){
-		this.cells.$controls.hide();
-		return false;
-	}
-});
-
-
-
-
-tinng.protos.TopicNode = Class(tinng.protos.Node, {
-
-	construct:function (data) {
-		t.funcs.bind(this, [
-			'loadPosts',
-			'kill',
-			'forceRead'
-		])
-
-		t.protos
-			.Node.prototype
-			.construct.call(this, data, 'topic',
-			[
-				'lastmessage',
-				'topicname',
-				'postsquant'
-			]
-		);
-
-		// вешаем обработчики событий
-		this.$body.on('click', this.loadPosts);
-
-		this.mainPanel = new t.protos.ui.Panel([
-			{type:'Button', label:'mark_read', icon:'message_read.png', text: t.txt.mark_read}
-		]);
-
-		this.mainPanel.mark_read.$body.addClass('none');
-		this.mainPanel.mark_read.on('click', this.forceRead);
-
-		this.cells.$controls.append(this.mainPanel.$body);
-	},
-
-	// заполнить данными
-	fill:function (data) {
-
-		t.protos
-			.Node.prototype
-			.fill.apply(this, arguments);
-
-		this.cells.$postsquant.text(data.postsquant + t.txt.msgs);
-		this.cells.$topicname.html(data.topic_name);
-
-		// последнее сообщение
-		if (data.last_id) {
-			this.cells.$lastmessage.html(
-				'<div><b>' + data.lastauthor + ':</b> ' + data.lastpost + '</div>'
-			);
-		}
-
-		// отмечаем темы непрочитанными
-		if (this.data.unread == '1') {
-			this.markUnread();
-			this.mainPanel.mark_read.$body.removeClass('none');
-		}
-
-		this.updateMenu();
-	},
-
-	markRead:function(){
-		t.protos.Node.prototype
-			.markRead.apply(this, arguments);
-
-		this.mainPanel.mark_read.$body.addClass('none');
-
-		this.updateMenu();
-	},
-
-	// изменить положение в списке при обновлении
-	bump:function () {
-		var topics = t.units.topics;
-
-		switch (t.sync.topicSort) {
-
-			// сортировка по последнему обновлению
-			case 'updated':
-				//this.detach(); // - нет необходимости
-
-				if (t.sync.tsReverse) {
-					topics.addNodeOnTop(this)
-				} else {
-					topics.addNode(this);
-				}
-
-				break;
-		}
-	},
-
-	// загрузить тему
-	loadPosts:function () {
-
-		//console.log('loadPosts:', this.data.topic_name, this.data.id);
-
-		t.funcs.unloadTopic();
-		this.select(); // делаем тему в столбце тем активной
-		t.sync.curTopic = this.id;
-		if (t.user.hasRight('editMessage', t.topics[this.id])) t.units.posts.header.topicRename.show();
-
-		t.units.posts.unscribe();
-		t.units.posts.subscribe(this.id, t.cfg.posts_per_page)
-
-		t.units.posts.startWaitIndication();
-	},
-
-	select:function () {
-		this.deselect();
-		this.$body.addClass('active');
-	},
-
-	deselect:function () {
-		t.funcs.topicDeselect();
-	},
-
-	isSelected:function(){
-		return this.$body.hasClass('active');
-	},
-
-	// демонстрирует удаление ноды в интерфейсе и вызывает окончательное удаление
-	remove:function () {
-		this.deselect();
-		this.$body.css({overflow:'hidden'});
-		this.$body.animate({opacity:0, height:0}, 400, this.kill);
-	},
-
-	// окончательно удаляет ноду
-	kill:function () {
-        this.$body.remove();
-		delete(t.topics[this.id]);
-	},
-
-	forceRead:function(){
-		var now = new Date();
-
-		t.stateService.push({
-			action:'read_topic',
-			id: this.data.id,
-			time: now.getTime()
-		});
-
-		t.stateService.flushState();
-
-		this.markRead();
-	}
-});
-
-
-
 
 tinng.protos.PostNode = Class(tinng.protos.Node, {
 
@@ -291,12 +20,12 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 		t.protos
 			.Node.prototype
 			.construct.call(this, data, 'post',
-			[
-				'avatar',
-				'avatar_box',
-				'tags_edit'
-			]
-		);
+				[
+					'avatar',
+					'avatar_box',
+					'tags_edit'
+				]
+			);
 
 		this.select = $.proxy(this, 'select');
 		this.kill = $.proxy(this, 'kill');
@@ -359,11 +88,11 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 		});
 
 		/*this.$body.draggable({
-			helper:'clone',
-			handle:this.cells.$infobar,
-			appendTo:'#tinng-main-content',
-			scroll:false
-		})*/
+		 helper:'clone',
+		 handle:this.cells.$infobar,
+		 appendTo:'#tinng-main-content',
+		 scroll:false
+		 })*/
 	},
 
 	// заполнить сообщение данными
@@ -566,7 +295,7 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 			if (key >= this.data.id && t.posts[key].data.author_id != t.user.id) {
 				t.posts[key].markUnread();
 			}
-}
+		}
 	},
 
 	markReadPrev:function(){

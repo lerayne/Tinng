@@ -366,7 +366,7 @@ class Feed {
 			SELECT msg.id
 			FROM ?_messages msg
 			LEFT JOIN ?_private_topics priv ON msg.id = priv.message
-			WHERE id = ?d AND deleted IS NULL AND (priv.user IS NULL OR priv.user = ?d)
+			WHERE id = ?d AND msg.deleted IS NULL AND (priv.user IS NULL OR priv.user = ?d)
 			'
 			, $posts['topic']
 			, $user->id
@@ -661,7 +661,7 @@ class Feed {
 			SELECT msg.id
 			FROM ?_messages msg
 			LEFT JOIN ?_private_topics priv ON msg.id = priv.message
-			WHERE id = ?d AND deleted IS NULL AND (priv.user IS NULL OR priv.user = ?d)
+			WHERE id = ?d AND msg.deleted IS NULL AND (priv.user IS NULL OR priv.user = ?d)
 			'
 			, $topic['id']
 			, $user->id

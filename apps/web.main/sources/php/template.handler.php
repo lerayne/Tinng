@@ -84,10 +84,16 @@ function template_head() {
 		$env['appdir'] . 'sources/js/tinng_init.js',			// главный объект-контейнер
 		$env['appdir'] . 'sources/js/classes/Funcs.js',			// простые функции (иногда расширяются ниже)
 
+		// базовые классы (должны подключаться раньше наследников)
+		$env['appdir'] . 'sources/js/classes/units/_Unit.js',
+		$env['appdir'] . 'sources/js/classes/nodes/_Node.js',
+
 		//$env['appdir'] . 'sources/js/classes/KeyListener.js',	// обработка горячих клавиш
 
 		// todo - придумать механизм реквайринга js-исходников
 		//порядок загрузки этих классов непринципиален
+
+
 		$env['appdir'] . 'sources/js/classes/StateService.js',	// служба второчтепенной связи с сервером
 		$env['appdir'] . 'sources/js/classes/Validator.js',		// проверка данных форм (из anrom)
         $env['appdir'] . 'sources/js/classes/User.js',			// пользователь
@@ -102,7 +108,17 @@ function template_head() {
 		$env['appdir'] . 'sources/js/classes/controls/SearchBox.js',
 		$env['appdir'] . 'sources/js/classes/controls/Tag.js',
 
-		$env['appdir'] . 'sources/js/classes/Units.js',			// "вьюпорты", или секции основного интерфейса
+		// основные интерфейсные модули
+		$env['appdir'] . 'sources/js/classes/units/TopicsUnit.js',
+		$env['appdir'] . 'sources/js/classes/units/PostsUnit.js',
+		$env['appdir'] . 'sources/js/classes/units/UsersUnit.js',
+		$env['appdir'] . 'sources/js/classes/units/NavUnit.js',
+
+		// множественные объеккты
+		$env['appdir'] . 'sources/js/classes/nodes/TopicNode.js',
+		$env['appdir'] . 'sources/js/classes/nodes/PostNode.js',
+
+
 		$env['appdir'] . 'sources/js/classes/Editor.js',		// редактор сообщений
 		$env['appdir'] . 'sources/js/classes/UserInterface.js', // основной интерфейс
 		$env['appdir'] . 'sources/js/classes/Rotor.js', 		// соединение с сервером данных
