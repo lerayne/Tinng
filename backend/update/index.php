@@ -205,7 +205,7 @@ class Feed {
 			/*{JOIN ?_tagmap map ON map.message = msg.id AND map.tag IN(?a)}*/
 
 			WHERE msg.topic_id = 0
-			AND (priv.user IS NULL OR priv.user = ?d)
+			AND (priv.user IS NULL OR (priv.user = ?d AND priv.deleted IS NULL))
 			{AND (IFNULL(msg.modified, msg.created) > ? OR IFNULL(mupd.modified, mupd.created) > ?)}
 			"
 			//, $tag_array // при пустом массиве скип автоматический
@@ -275,7 +275,7 @@ class Feed {
 				AND tagmap.tag IN (?a)}*/
 
 			WHERE msg.topic_id = 0
-				AND (priv.user IS NULL OR priv.user = ?d)
+				AND (priv.user IS NULL OR (priv.user = ?d AND priv.deleted IS NULL))
 				/* пробовал через GREATEST - сокращает вывод до одной строки */
 				{AND (IFNULL(msg.modified, msg.created) > ?}{ OR IFNULL(mupd.modified, mupd.created) > ?)}
 				{AND msg.deleted IS NULL AND 1 = ?d}
@@ -366,7 +366,9 @@ class Feed {
 			SELECT msg.id
 			FROM ?_messages msg
 			LEFT JOIN ?_private_topics priv ON msg.id = priv.message
-			WHERE id = ?d AND msg.deleted IS NULL AND (priv.user IS NULL OR priv.user = ?d)
+			WHERE id = ?d
+				AND msg.deleted IS NULL
+				AND (priv.user IS NULL OR (priv.user = ?d AND priv.deleted IS NULL))
 			'
 			, $posts['topic']
 			, $user->id
@@ -661,7 +663,9 @@ class Feed {
 			SELECT msg.id
 			FROM ?_messages msg
 			LEFT JOIN ?_private_topics priv ON msg.id = priv.message
-			WHERE id = ?d AND msg.deleted IS NULL AND (priv.user IS NULL OR priv.user = ?d)
+			WHERE id = ?d
+				AND msg.deleted IS NULL
+				AND (priv.user IS NULL OR (priv.user = ?d AND priv.deleted IS NULL))
 			'
 			, $topic['id']
 			, $user->id
