@@ -730,6 +730,7 @@ class Feed {
 					LEFT JOIN ?_users usr ON priv.user = usr.id
 					LEFT JOIN ?_user_settings avatar ON avatar.user_id = usr.id AND avatar.param_key = 'avatar'
 					WHERE priv.message = ?d
+						AND priv.deleted IS NULL
 					GROUP BY priv.link_id
 					"
 					, $topic['id']

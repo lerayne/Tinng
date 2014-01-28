@@ -379,6 +379,28 @@ body {
 			}
 		}
 
+		@binWidth: 60px;
+
+		.trashBin {
+			position: absolute;
+			right:0;
+			top:0;
+			width: 0;
+			height: 0;
+			background: #ccc url(../../skins/clarity/images/icons/trash.png) center center no-repeat;
+
+			&.acceptable {
+				border:2px dashed #777;
+				width: @binWidth;
+				height: 60px;
+				margin-bottom: 5px;
+			}
+
+			&.ready {
+				border-style:solid;
+			}
+		}
+
 		.allowedUsers {
 			min-height: 25px;
 			background-color: #fff;
@@ -386,6 +408,7 @@ body {
 			border:2px dashed transparent;
 			margin-top: 3px;
 			overflow-x: hidden;
+			padding-right:@binWidth;
 
 			&.acceptable {
 				border-color: #ffbc1c;

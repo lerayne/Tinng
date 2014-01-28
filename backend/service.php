@@ -187,41 +187,32 @@ switch ($action):
 		$allowed_now = Array();
 		foreach($allowed_users as $id => $val) if ($val['deleted'] == null) $allowed_now[] = $id;
 
-//		$GLOBALS['debug']['$user_id'] = $_REQUEST;
-//		$GLOBALS['debug']['$user->id'] = $user->id;
+		$users_to_add = Array();
+		$users_to_add[] = $user_id;
 
-//		break;
-
-		if (!count($allowed_now)) {
-			// мы впервые делаем тему приватной
+		if (!count($allowed_now)) { // мы впервые делаем тему приватной
 
 			// todo - сделать проверку на право юзера делать тему приватной
 
+			// если юзер не пытается добавить себя
 			if ($user->id != $user_id) {
 
-				$current_user = Array($topic_id, $user->id);
-				$target_user = Array($topic_id, $user_id);
+				// добавляем еще и себя в список
+				$users_to_add[] = $user->id;
+			} else break; // пока запрещаем добавлять "только себя"
+		}
 
-				$db->query(
-					'INSERT INTO ?_private_topics (message, user) VALUES (?a), (?a)', $current_user, $target_user
-				);
-			}
+		foreach ($users_to_add as $user_i) {
 
-		} else {
-			// тема уже приватна и раз юзер ее увидел - доступна ему
-
-			if ($allowed_users[$user_id]['deleted']) {
+			if ($allowed_users[$user_i]['deleted']) {
 				// юзер уже ранее был допущен, но был удален
 				$db->query(
-					'UPDATE ?_private_topics SET deleted = NULL WHERE message = ?d AND user = ?d',
-					$topic_id,
-					$user_id
+					'UPDATE ?_private_topics SET deleted = NULL WHERE message = ?d AND user = ?d', $topic_id, $user_i
 				);
 
-			} else {
-
+			} elseif (!$allowed_users[$user_i]) {
 				$db->query(
-					'INSERT INTO ?_private_topics (message, user) VALUES (?d, ?d)', $topic_id, $user_id
+					'INSERT INTO ?_private_topics (message, user) VALUES (?d, ?d)', $topic_id, $user_i
 				);
 			}
 		}
@@ -229,7 +220,8 @@ switch ($action):
 		// во всех случаях - помечаем тему обновленной!
 		$params = Array(
 			'modified' => now('sql'),
-			'modifier' => $user->id
+			'modifier' => $user->id,
+			'private' => 1
 		);
 
 		$db->query(
@@ -260,6 +252,66 @@ switch ($action):
 		unset($added_user['email']);
 
 		$result = $added_user;
+
+		break;
+
+
+
+
+	case 'remove_from_private':
+
+		$user_id = $_REQUEST['user_id'];
+		$topic_id = $_REQUEST['topic_id'];
+
+		// не пытается ли анонимный пользователь сделать это?
+		if ($user->id == 0) {
+			$result = 'restricted for anonymous';
+			break;
+		}
+
+		// если редактирует не админ - разрешаем только автору темы
+		if ($user->id != 1) {
+			$author = $db-selectCell('SELECT author_id FROM ?_messages WHERE id = ?d', $topic_id);
+			if ($author != $user->id) {
+				$result = 'access denied';
+				break;
+			}
+		}
+
+		// какие пользователи сейчас допущены к теме
+		$allowed = $db->selectCell(
+			'SELECT user FROM ?_private_topics WHERE message = ?d AND deleted IS NULL', $topic_id
+		);
+
+		$users_to_remove = Array();
+		$users_to_remove[] = $user_id;
+
+		// Если в теме всего двое и один из них - "я"
+		if (count($allowed) <= 2 && in_array($user->id, $allowed)) {
+			$users_to_remove[] = $user->id;
+			$make_public = true;
+		}
+
+		// Помечаем все указанные линки удаленными
+		foreach ($users_to_remove as $user_i) {
+			$db->query(
+				'UPDATE ?_private_topics SET deleted = 1 WHERE message = ?d AND user = ?d', $topic_id, $user_i
+			);
+		}
+
+		// во всех случаях - помечаем тему обновленной!
+		$params = Array(
+			'modified' => now('sql'),
+			'modifier' => $user->id
+		);
+
+		if ($make_public) $params['private'] = null;
+
+		$db->query(
+			'UPDATE ?_messages SET ?a WHERE id = ?d', $params, $topic_id
+		);
+
+		$result = $user_id;
 
 		break;
 

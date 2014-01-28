@@ -16,13 +16,14 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 			'cancelNewTopic',
 			'showNext',
 			'showAll',
-			'addUserToPrivate'
+			'addUserToPrivate',
+			'removeUserFromPrivate'
 		]);
 
 		t.protos.Unit.prototype
 			.construct.apply(this, arguments);
 
-		this.state.allowedUsers = [];
+		this.state.allowedUsers = {};
 
 		this.header = new t.protos.ui.Panel([
 			{type:'Button', label:'topicRename', cssClass:'right reveal3', icon:'pencil_w.png', tip:tinng.txt.rename_topic},
@@ -36,10 +37,25 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 
 		this.newTopicMode = false;
 
+		this.header.trashBin = $('<div class="trashBin"></div>');
+
+		if (t.user.id != 0) {
+			this.header.trashBin.droppable({
+				accept:'.allowedUsersItem',
+				activeClass:'acceptable',
+				hoverClass:'ready',
+				tolerance:'pointer',
+				drop:this.removeUserFromPrivate
+			});
+
+			this.header.trashBin.appendTo(this.header.$body);
+		}
+
 		this.header.allowedUsers.$body.droppable({
-			accept:'.userItem',
+			accept:'.userListItem',
 			activeClass:'acceptable',
 			hoverClass:'ready',
+			tolerance:'pointer',
 			drop:this.addUserToPrivate
 		})
 
@@ -73,12 +89,7 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 		var that = this;
 		var userId = ui.draggable.attr('data-user');
 
-		console.log('allowed:', this.state.allowedUsers);
-
-
-		if (this.state.allowedUsers.indexOf(userId) == -1) {
-
-			console.log('new user:', userId);
+		if (!this.state.allowedUsers[userId] && userId != t.user.id && userId != 0) {
 
 			JsHttpRequest.query('backend/service.php',
 				{
@@ -88,22 +99,45 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 				},
 				function(userData, error){
 
-					if (error) {
-						console.error(error);
-					}
-
-					if (userData) {
-						that.renderPrivateUser(userData);
-					}
+					if (userData) that.renderPrivateUser(userData);
 				}
 			);
 		}
 	},
 
+	removeUserFromPrivate:function(e, ui){
+		var that = this;
+		var userId = ui.draggable.attr('data-user');
+
+		console.log('trying to remove:', userId)
+
+		JsHttpRequest.query('backend/service.php',
+			{
+				action: 'remove_from_private',
+				user_id: userId,
+				topic_id: this.subscriptions.topic_data.id
+			},
+			function(userId, error){
+
+				if (error){
+					console.error(error)
+				}
+
+				console.log('remove user:', userId)
+
+				if (userId) that.unrenderPrivateUser(userId);
+			}
+		);
+	},
+
 	renderPrivateUser:function(userData){
-		this.state.allowedUsers.push(userData.id);
-		var user = this.createUserElement(userData);
+		var user = this.state.allowedUsers[userData.id] = this.createUserElement(userData);
 		user.appendTo(this.header.allowedUsers.$body);
+	},
+
+	unrenderPrivateUser:function(userId){
+		this.state.allowedUsers[userId].remove();
+		delete (this.state.allowedUsers[userId]);
 	},
 
 	addNode: function (node) {
@@ -531,7 +565,7 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 
 		if (typeof topicData.private == 'object' && topicData.private.length) {
 
-			this.state.allowedUsers = [];
+			this.state.allowedUsers = {};
 			this.header.allowedUsers.$body.children().remove();
 
 			this.header.allowedUsers.$body.removeClass('none');
@@ -567,7 +601,16 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 		var name = body.find('[data-cell="name"]');
 		var avatar = body.find('[data-cell="avatar"]');
 
+		body.addClass('allowedUsersItem user-'+userData.id).attr('data-user', userData.id);
 		avatar.prop('src', userData.avatar);
+		name.text(userData.display_name);
+
+		body.draggable({
+			helper:"clone",
+			appendTo:"#tinng-main-content",
+			distance:5,
+			scroll:false
+		});
 
 		return body;
 	}

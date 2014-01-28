@@ -79,7 +79,7 @@ tinng.protos.UsersUnit = Class(tinng.protos.Unit, {
 		var name = body.find('[data-cell="name"]');
 		var avatar = body.find('[data-cell="avatar"]');
 
-		body.addClass('user-'+data.id).attr('data-user', data.id);
+		body.addClass('userListItem user-'+data.id).attr('data-user', data.id);
 		name.text(data.display_name);
 		avatar.prop('src', data.avatar);
 
