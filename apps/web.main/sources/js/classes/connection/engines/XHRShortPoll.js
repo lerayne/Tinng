@@ -128,7 +128,7 @@ tinng.protos.strategic.XHRShortPoll.prototype = {
 			this.request.send({
 				subscribe: this.subscriptions,
 				write: this.actions,
-				meta: this.meta
+				meta:  this.meta
 			});
 		} catch (e) {
 			console.log('error:', e);

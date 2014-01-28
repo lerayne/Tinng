@@ -163,6 +163,106 @@ switch ($action):
 
 	break;
 
+
+	// добавляет пользователя в список имеющих доступ к теме
+	case 'add_to_private':
+
+		$user_id = $_REQUEST['user_id'];
+		$topic_id = $_REQUEST['topic_id'];
+
+		if ($user->id == 0) {
+			$result = 'restricted for anonymous';
+			break;
+		}
+
+		//Приватна ли эта тема сейчас и если да - то какие юзеры к ней были когда-либо допущены?
+		$allowed_users = $db->select('
+			SELECT pvt.user AS ARRAY_KEY, pvt.deleted
+			FROM ?_private_topics pvt
+			WHERE pvt.message = ?d
+			', $topic_id
+		);
+
+		// а какие допущены сейчас?
+		$allowed_now = Array();
+		foreach($allowed_users as $id => $val) if ($val['deleted'] == null) $allowed_now[] = $id;
+
+//		$GLOBALS['debug']['$user_id'] = $_REQUEST;
+//		$GLOBALS['debug']['$user->id'] = $user->id;
+
+//		break;
+
+		if (!count($allowed_now)) {
+			// мы впервые делаем тему приватной
+
+			// todo - сделать проверку на право юзера делать тему приватной
+
+			if ($user->id != $user_id) {
+
+				$current_user = Array($topic_id, $user->id);
+				$target_user = Array($topic_id, $user_id);
+
+				$db->query(
+					'INSERT INTO ?_private_topics (message, user) VALUES (?a), (?a)', $current_user, $target_user
+				);
+			}
+
+		} else {
+			// тема уже приватна и раз юзер ее увидел - доступна ему
+
+			if ($allowed_users[$user_id]['deleted']) {
+				// юзер уже ранее был допущен, но был удален
+				$db->query(
+					'UPDATE ?_private_topics SET deleted = NULL WHERE message = ?d AND user = ?d',
+					$topic_id,
+					$user_id
+				);
+
+			} else {
+
+				$db->query(
+					'INSERT INTO ?_private_topics (message, user) VALUES (?d, ?d)', $topic_id, $user_id
+				);
+			}
+		}
+
+		// во всех случаях - помечаем тему обновленной!
+		$params = Array(
+			'modified' => now('sql'),
+			'modifier' => $user->id
+		);
+
+		$db->query(
+			'UPDATE ?_messages SET ?a WHERE id = ?d', $params, $topic_id
+		);
+
+		// получаем данные по юзеру
+		$added_user = $db->selectRow('
+				SELECT
+					usr.id,
+					usr.login,
+					usr.email,
+					usr.display_name,
+					avatar.param_value AS avatar
+				FROM ?_users usr
+				LEFT JOIN ?_user_settings avatar ON avatar.user_id = usr.id AND avatar.param_key = "avatar"
+				WHERE usr.id = ?d
+				', $user_id
+		);
+
+		// todo - повторяю уже третий раз - объединить!
+		if ($added_user['avatar'] == 'gravatar') {
+			$added_user['avatar'] = 'http://www.gravatar.com/avatar/' . md5(strtolower($added_user['email'])) . '?s=50';
+		}
+
+		if ($added_user['display_name'] == null) $added_user['display_name'] = $added_user['login'];
+
+		unset($added_user['email']);
+
+		$result = $added_user;
+
+		break;
+
 	default:
 
 		$result = 'command not found';
@@ -171,4 +271,5 @@ endswitch;
 
 $GLOBALS['_RESULT'] = $result;
 
+if (count($GLOBALS['debug'])) var_dump($GLOBALS['debug']);
 ?>

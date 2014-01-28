@@ -24,7 +24,7 @@ $GLOBALS['debug'] = Array();
 function ready_row($row) {
 
 	// убираем из сообщений об удаленных рядах всю лишнюю инфу
-	if ($row['deleted']) {
+	if ($row['deleted'] || $row['noaccess']) {
 
 		$cutrow['deleted'] = 1;
 		$cutrow['id'] = $row['id'];
@@ -205,13 +205,16 @@ class Feed {
 			/*{JOIN ?_tagmap map ON map.message = msg.id AND map.tag IN(?a)}*/
 
 			WHERE msg.topic_id = 0
-			AND (priv.user IS NULL OR (priv.user = ?d AND priv.deleted IS NULL))
-			{AND (IFNULL(msg.modified, msg.created) > ? OR IFNULL(mupd.modified, mupd.created) > ?)}
+				AND (priv.user IS NULL OR (priv.user = ?d {AND priv.deleted IS NULL AND 1 = ?d}))
+				{AND (IFNULL(msg.modified, msg.created) > ?}{ OR IFNULL(mupd.modified, mupd.created) > ?)}
+				{AND msg.deleted IS NULL AND 1 = ?d}
 			"
 			//, $tag_array // при пустом массиве скип автоматический
 			, $user->id
+			, (!$update_mode ? 1 : DBSIMPLE_SKIP) // достаем удаленные из доступа только если мы в режиме обновления
 			, ($meta['updates_since'] ? $meta['updates_since'] : DBSIMPLE_SKIP)
 			, ($meta['updates_since'] ? $meta['updates_since'] : DBSIMPLE_SKIP)
+			, (!$update_mode ? 1 : DBSIMPLE_SKIP) // достаем удаленные только если мы в режиме обновления
 		);
 
 		// если нет - возвращаем пустой массив и прерываем функцию
@@ -245,7 +248,8 @@ class Feed {
 				lma.id AS lastauthor_id,
 				(SELECT COUNT(mcount.id) FROM ?_messages mcount WHERE IF(mcount.topic_id = 0, mcount.id, mcount.topic_id) = msg.id AND mcount.deleted IS NULL) AS postsquant,
 				IF(unr.timestamp < GREATEST(IFNULL(msg.modified, msg.created), IFNULL(IFNULL(mlast.modified, mlast.created),0)), 1, 0) AS unread,
-				IF(priv.user IS NULL, false, true) AS private
+				IF(priv.user IS NULL, false, true) AS private,
+				priv.deleted AS noaccess
 			FROM ?_messages msg
 
 			LEFT JOIN ?_users usr
@@ -275,7 +279,7 @@ class Feed {
 				AND tagmap.tag IN (?a)}*/
 
 			WHERE msg.topic_id = 0
-				AND (priv.user IS NULL OR (priv.user = ?d AND priv.deleted IS NULL))
+				AND (priv.user IS NULL OR (priv.user = ?d {AND priv.deleted IS NULL AND 1 = ?d}))
 				/* пробовал через GREATEST - сокращает вывод до одной строки */
 				{AND (IFNULL(msg.modified, msg.created) > ?}{ OR IFNULL(mupd.modified, mupd.created) > ?)}
 				{AND msg.deleted IS NULL AND 1 = ?d}
@@ -287,11 +291,12 @@ class Feed {
 
 			, $cfg['cut_length'], $cfg['cut_length'] // ограничение выборки первого поста
 			, $user->id
-			, $user->id
 			//, $tag_array // при пустом массиве скип автоматический
+			, $user->id
+			, (!$update_mode ? 1 : DBSIMPLE_SKIP) // достаем удаленные только если мы в режиме обновления
 			, ($meta['updates_since'] ? $meta['updates_since'] : DBSIMPLE_SKIP) // зачем ставить условия, если выбираем всё?
 			, ($meta['updates_since'] ? $meta['updates_since'] : DBSIMPLE_SKIP)
-			, (!$update_mode ? 1 : DBSIMPLE_SKIP) // достаем удаленные только если мы в режиме обновления, а не начальной загрузки
+			, (!$update_mode ? 1 : DBSIMPLE_SKIP) // достаем удаленные только если мы в режиме обновления
 		));
 
 
@@ -716,7 +721,7 @@ class Feed {
 			if ($topic_props['private']) {
 				$allowed_users = $db->select("
 					SELECT
-						usr.id AS user_id,
+						usr.id AS id,
 						usr.login,
 						usr.email,
 						usr.display_name,
@@ -753,6 +758,12 @@ class Feed {
 
 		return $topic_props;
 	}
+
+
+
+
+
+
 
 	///////////////
 	// users data

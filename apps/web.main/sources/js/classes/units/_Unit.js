@@ -26,6 +26,7 @@ tinng.protos.Unit = Class({
 		this.contentLoaded = 0;
 
 		this.subscriptions = {};
+		this.state = {};
 
 		// todo - переделать под чанки
 		var $body = this.$body = t.chunks.get('unit');

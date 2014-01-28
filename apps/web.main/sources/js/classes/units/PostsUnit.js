@@ -22,6 +22,8 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 		t.protos.Unit.prototype
 			.construct.apply(this, arguments);
 
+		this.state.allowedUsers = [];
+
 		this.header = new t.protos.ui.Panel([
 			{type:'Button', label:'topicRename', cssClass:'right reveal3', icon:'pencil_w.png', tip:tinng.txt.rename_topic},
 			{type:'Button', label:'cancel', cssClass:'right', icon:'cancel_w.png', tip:tinng.txt.cancel},
@@ -68,9 +70,40 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 	},
 
 	addUserToPrivate: function(e, ui){
-		console.log('new user:',ui.draggable.attr('data-user'));
+		var that = this;
+		var userId = ui.draggable.attr('data-user');
 
-		this.header.allowedUsers.$body.append(ui.draggable.clone())
+		console.log('allowed:', this.state.allowedUsers);
+
+
+		if (this.state.allowedUsers.indexOf(userId) == -1) {
+
+			console.log('new user:', userId);
+
+			JsHttpRequest.query('backend/service.php',
+				{
+					action: 'add_to_private',
+					user_id: userId,
+					topic_id: this.subscriptions.topic_data.id
+				},
+				function(userData, error){
+
+					if (error) {
+						console.error(error);
+					}
+
+					if (userData) {
+						that.renderPrivateUser(userData);
+					}
+				}
+			);
+		}
+	},
+
+	renderPrivateUser:function(userData){
+		this.state.allowedUsers.push(userData.id);
+		var user = this.createUserElement(userData);
+		user.appendTo(this.header.allowedUsers.$body);
 	},
 
 	addNode: function (node) {
@@ -497,13 +530,17 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 		this.setTopicName(topicData.topic_name); //вывод названия темы
 
 		if (typeof topicData.private == 'object' && topicData.private.length) {
+
+			this.state.allowedUsers = [];
+			this.header.allowedUsers.$body.children().remove();
+
 			this.header.allowedUsers.$body.removeClass('none');
 
 			for (var i = 0; i < topicData.private.length; i++) {
-				var userData = topicData.private[i];
-				var user = this.createUserElement(userData);
-				user.appendTo(this.header.allowedUsers.$body);
+				this.renderPrivateUser(topicData.private[i])
 			}
+
+			console.log('this.state.allowedUsers:', this.state.allowedUsers)
 		}
 
 		// todo - если введем автовысоту через css - убрать
