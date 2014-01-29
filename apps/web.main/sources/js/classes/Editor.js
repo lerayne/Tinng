@@ -12,12 +12,12 @@ tinng.protos.Editor = function () {
 
 	if (tinng.user.hasRight('writeToTopic', tinng.sync.curTopic)){
 
+		t.funcs.bind(this, ['submitNew']);
+
         var $body = this.$body = t.chunks.get('editor');
 
         this.$submit = $body.find('.submit.button');
         this.$messageBody = $body.find('.textarea');
-
-        this.submitNew = $.proxy(this, 'submitNew');
 
         this.$submit.click(this.submitNew);
         this.visible = true;
@@ -73,7 +73,7 @@ tinng.protos.Editor.prototype = {
 				t.units.posts.exitNewTopicMode();
 			}
 
-            this.$messageBody.html(''); // todo - сделать затенение кнопки, если сообщение пустое
+            this.$messageBody.html('').focus(); // todo - сделать затенение кнопки, если сообщение пустое
         }
     },
 
