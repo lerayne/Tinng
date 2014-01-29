@@ -57,5 +57,3 @@ tinng.protos.Address.prototype = {
         this.write();
     }
 }
-
-tinng.address = new tinng.protos.Address(';', ':');

@@ -57,7 +57,7 @@ function template_head() {
 		<script type="text/javascript" language="JavaScript">
 
 		// Убогая заглушка авторизации на клиенте
-		userID = ' . ($user ? $user->id : 'null') . '
+		importedUser = ' . json_encode($user) . ';
 		var appPath = "'. $env['appdir'] .'";
 		var rootPath = "'. $env['rootdir'] .'";
 		var txt = {}, cfg = {}, rex = {};
@@ -77,8 +77,6 @@ function template_head() {
 	';
 
 	$debug = !$cfg['production'];
-	$scripts = Array();
-
 
 	// Загрузка скриптов (теперь зависимости прописываются в самих файлах!)
 	get_js(Array(
@@ -86,7 +84,7 @@ function template_head() {
 		get_script($env['appdir'].'sources/js', 'jqextend.js', $debug),
 		get_script($env['rootdir'], 'libraries/JsHttpRequest.js', $debug),
 		get_script($env['appdir'].'sources/js', 'tinng_init.js', $debug),
-		get_script($env['appdir'].'sources/js', 'classes/Funcs.js', $debug),
+		get_script($env['appdir'].'sources/js', 'classes/Funcs.js', $debug), // todo - возможно стоит вынести в отдельный объект, чтобы не путать иерархию
 
 		get_script($env['appdir'].'sources/js', 'onload.js', $debug),
 

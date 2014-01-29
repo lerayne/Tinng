@@ -59,7 +59,7 @@
 
 				<form id="tinng-top-login" action="<?= $env['appdir'] . 'login.php' ?>" method="post">
 					<input type="hidden" name="action" value="logout">
-					<img src="<?= $user->portrait ?>" class="portrait">
+					<img src="<?= $user->avatar ?>" class="avatar">
 					<strong><?= $user->display_name ? $user->display_name : $user->login ?></strong>
 					<input type="hidden" name="lochash">
 					<a class="button-link" id="logoutBtn"><span><?= $txt['login_logout'] ?></span></a>

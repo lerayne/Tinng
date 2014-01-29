@@ -190,7 +190,7 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 
 		if (result.locked !== null) {
 
-			if (t.state.userID == '1') {
+			if (t.user.id == '1') {
 				if (confirm(t.txt.post_locked + '\n' + t.txt.post_locked_admin)) {
 					this.unlock()
 				} else {

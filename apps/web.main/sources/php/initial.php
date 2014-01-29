@@ -34,10 +34,10 @@ $raw_user = $db->selectRow('
 		usr.hash,
 		usr.reg_date,
 		usr.source,
-		portrait.param_value as portrait
+		avatar.param_value as avatar
 	FROM ?_users usr
 
-	LEFT JOIN ?_user_settings portrait ON usr.id = portrait.user_id AND portrait.param_key = "avatar"
+	LEFT JOIN ?_user_settings avatar ON usr.id = avatar.user_id AND avatar.param_key = "avatar"
 
 	WHERE usr.hash = ? AND (usr.login = ? OR usr.email = ?) AND usr.approved = 1
 	'

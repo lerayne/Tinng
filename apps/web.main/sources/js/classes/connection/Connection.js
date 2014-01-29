@@ -175,5 +175,4 @@ tinng.protos.Connection.prototype = {
 			delete this.subscribers[subscriberId].subscriptions[feedName];
 
 	}
-
 }

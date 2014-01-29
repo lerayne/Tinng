@@ -47,6 +47,5 @@ tinng.sync = {
 }
 
 tinng.state.blurred = false; //TODO: отслеживать активность окна
-tinng.state.userID = userID;
 
 t = tinng;

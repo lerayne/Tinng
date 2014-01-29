@@ -6,9 +6,10 @@
  * To change this template use File | Settings | File Templates.
  */
 
-tinng.protos.User = function(userID){
+tinng.protos.User = function(user){
 
-    this.id = userID;
+    this.id = user.id;
+	this.data = user;
 
 }
 
@@ -54,4 +55,3 @@ tinng.protos.User.prototype = {
 
 }
 
-tinng.user = new tinng.protos.User(userID);

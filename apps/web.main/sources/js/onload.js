@@ -12,6 +12,10 @@
 
 tinng.funcs.onWindowLoad = function(){
 
+	t.user = new tinng.protos.User(importedUser);
+	t.address = new tinng.protos.Address(';', ':');
+	//t.keyListener = new tinng.protos.KeyListener();
+
 	t.connection = new t.protos.Connection({
 		server:'backend/update/',
 		callback:t.funcs.parser2
@@ -22,12 +26,6 @@ tinng.funcs.onWindowLoad = function(){
     t.ui = new t.protos.UserInterface(window);
 
 	t.userWatcher = new t.protos.UserWatcher();
-
-   /* t.rotor = new t.protos.Rotor(
-        'backend/update.php',
-        t.sync,
-        t.funcs.parser
-    );*/
 
 	t.stateService = new t.protos.StateService();
 
@@ -47,9 +45,6 @@ tinng.funcs.onWindowLoad = function(){
     // такая конструкция нужна для того, чтобы 0 воспринимался как значение
     var loadedLimit = t.address.get('plimit');
     t.sync.plimit = (loadedLimit === false) ? t.sync.plimit : parseInt(loadedLimit);
-
-    // запуск соединения с сервером
-    //t.rotor.start('load_pages');
 
 	var initialSubscriptions = [];
 
