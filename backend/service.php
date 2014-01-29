@@ -279,7 +279,7 @@ switch ($action):
 		}
 
 		// какие пользователи сейчас допущены к теме
-		$allowed = $db->selectCell(
+		$allowed = $db->selectCol(
 			'SELECT user FROM ?_private_topics WHERE message = ?d AND deleted IS NULL', $topic_id
 		);
 
