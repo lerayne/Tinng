@@ -402,19 +402,28 @@ body {
 		}
 
 		.allowedUsers {
-			min-height: 25px;
-			background-color: #fff;
-			clear:both;
-			border:2px dashed transparent;
-			margin-top: 3px;
-			overflow-x: hidden;
-			padding-right:@binWidth;
 
-			&.acceptable {
-				border-color: #ffbc1c;
+			.allowedUsersContainer {
+				min-height: 27px;
+				background-color: #fff;
+				clear:both;
+				border:2px dashed transparent;
+				margin-top: 3px;
+				overflow-x: hidden;
+				padding-right:@binWidth;
+				display:none;
+
+				&.private {
+					display:block;
+				}
 			}
 
-			&.ready {
+			&.acceptable .allowedUsersContainer {
+				border-color: #ffbc1c;
+				display: block;
+			}
+
+			&.ready .allowedUsersContainer {
 				border-style: solid;
 			}
 

@@ -7,6 +7,7 @@
 tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 
 	construct: function () {
+		var that = this;
 
 		t.funcs.bind(this, [
 			'topicRename',
@@ -31,11 +32,13 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 			{type:'Button', label:'save', cssClass:'right', icon:'round_checkmark_w.png', tip:tinng.txt.save},
 			//{type:'Button', label:'cancelNewTopic', cssClass:'right', icon:'cancel_w.png', tip:tinng.txt.cancel_new_topic},
 			{type:'Field', label:'topicName', cssClass:'topicname'},
-			{type:'Field', label:'allowedUsers', cssClass:'allowedUsers none'}
+			{type:'Field', label:'allowedUsers', cssClass:'allowedUsers'}
 		]);
 		this.$header.append(this.header.$body);
 
 		this.newTopicMode = false;
+
+		this.header.allowedUsersContainer = $('<div class="allowedUsersContainer"></div>').appendTo(this.header.allowedUsers.$body);
 
 		this.header.trashBin = $('<div class="trashBin"></div>');
 
@@ -56,7 +59,13 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 			activeClass:'acceptable',
 			hoverClass:'ready',
 			tolerance:'pointer',
-			drop:this.addUserToPrivate
+			drop:this.addUserToPrivate,
+			activate: function(){
+				t.ui.winResize();
+			},
+			deactivate: function(){
+				t.ui.winResize();
+			}
 		})
 
 		// прячем ненужные пока контролы
@@ -89,7 +98,9 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 		var that = this;
 		var userId = ui.draggable.attr('data-user');
 
-		if (!this.state.allowedUsers[userId] && userId != t.user.id && userId != 0) {
+		if (!this.state.allowedUsers[userId] && t.user.id != 0) {
+
+			this.header.allowedUsersContainer.addClass('private');
 
 			JsHttpRequest.query('backend/service.php',
 				{
@@ -100,7 +111,15 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 				function(userData, error){
 
 					if (error) console.error(error)
-					if (userData) that.renderPrivateUser(userData);
+					if (userData) {
+
+						// если меня еще нет
+						if (!that.state.allowedUsers[t.user.id]){
+							that.renderPrivateUser(t.user.data)
+						}
+
+						that.renderPrivateUser(userData);
+					}
 				},
 				true // no cache
 			);
@@ -111,7 +130,16 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 		var that = this;
 		var userId = ui.draggable.attr('data-user');
 
-		console.log('trying to remove:', userId)
+		if (t.funcs.objectSize(this.state.allowedUsers) > 1 && userId == t.user.id && this.state.topicData.author_id == t.user.id) {
+			console.warn("you can only remove yourself from YOUR topic if you're the last person with access");
+			return false;
+		}
+
+		// если ты не админ, не автор темы и удалить пытаешься не себя - запретить
+		if (t.user.id != 1 && this.state.topicData.author_id != t.user.id && userId != t.user.id){
+			console.warn("you can't remove user from someone else's topic");
+			return false;
+		}
 
 		JsHttpRequest.query('backend/service.php',
 			{
@@ -120,10 +148,15 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 				topic_id: this.subscriptions.topic_data.id
 			},
 			function(userId, error){
-
 				if (error) console.error(error)
-				console.log('remove user:', userId)
-				if (userId) that.unrenderPrivateUser(userId);
+				if (userId) {
+					that.unrenderPrivateUser(userId);
+
+					// если ты удалил себя а в теме еще кто-то есть - закрыть у себя тему
+					if (userId == t.user.id && t.funcs.objectSize(that.state.allowedUsers) > 0) {
+						t.funcs.unloadTopic();
+					}
+				}
 			},
 			true // no cache
 		);
@@ -131,12 +164,14 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 
 	renderPrivateUser:function(userData){
 		var user = this.state.allowedUsers[userData.id] = this.createUserElement(userData);
-		user.appendTo(this.header.allowedUsers.$body);
+		this.header.allowedUsersContainer.addClass('private');
+		user.appendTo(this.header.allowedUsersContainer);
 	},
 
 	unrenderPrivateUser:function(userId){
 		this.state.allowedUsers[userId].remove();
 		delete (this.state.allowedUsers[userId]);
+		if (!t.funcs.objectSize(this.state.allowedUsers)) this.header.allowedUsersContainer.removeClass('private');
 	},
 
 	addNode: function (node) {
@@ -161,7 +196,7 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 		t.protos.Unit.prototype['clear'].apply(this, arguments);
 
 		this.$showMore.hide();
-		this.header.allowedUsers.$body.addClass('none').children().remove()
+		this.header.allowedUsersContainer.removeClass('private').children().remove()
 		t.posts = {};
 	},
 
@@ -560,18 +595,24 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 
 	parseTopicData: function (topicData) {
 
+		this.state.topicData = topicData;
+
 		this.setTopicName(topicData.topic_name); //вывод названия темы
 
 		if (typeof topicData.private == 'object' && topicData.private.length) {
 
-			this.state.allowedUsers = {};
-			this.header.allowedUsers.$body.children().remove();
+			this.header.allowedUsersContainer.addClass('private');
 
-			this.header.allowedUsers.$body.removeClass('none');
+			this.state.allowedUsers = {};
+			this.header.allowedUsersContainer.children().remove();
+
+			this.header.allowedUsersContainer.removeClass('none');
 
 			for (var i = 0; i < topicData.private.length; i++) {
 				this.renderPrivateUser(topicData.private[i])
 			}
+		} else {
+			this.header.allowedUsersContainer.removeClass('private');
 		}
 
 		// todo - если введем автовысоту через css - убрать

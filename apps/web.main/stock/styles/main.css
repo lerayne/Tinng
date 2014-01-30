@@ -58,6 +58,17 @@ img 	{border:0;}
 .left		{ float:left; }
 .right		{ float:right; }
 .none		{ display: none; }
+.virtual {
+	position: absolute !important;
+	overflow: hidden !important;
+	width: 0 !important;
+	min-width: 0 !important;
+	height: 0 !important;
+	min-height: 0 !important;
+	border:0 !important;
+	margin:0 !important;
+	padding:0 !important;
+}
 .invis, .invisible		{ visibility: hidden; }
 .clearboth, .clearfix	{ clear:both; }
 .clickable {cursor:pointer}

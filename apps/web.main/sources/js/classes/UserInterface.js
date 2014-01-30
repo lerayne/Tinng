@@ -11,12 +11,7 @@ tinng.protos.UserInterface = function (targetWindow) {
 	var that = this;
 
 	// проксирование методов
-	t.funcs.bind(this, ['hideMessage', 'showLoginForm', 'showRestoreForm', 'authVK']);
-
-	this.winResize = $.proxy(this, 'winResize');
-	this.editorResize = $.proxy(this, 'editorResize');
-	this.hideDialogue = $.proxy(this, 'hideDialogue');
-	this.showRegForm = $.proxy(this, 'showRegForm');
+	t.funcs.bind(this, ['winResize', 'editorResize', 'hideDialogue', 'showRegForm', 'hideMessage', 'showLoginForm', 'showRestoreForm', 'authVK']);
 
 	/// СБОР ///
 

@@ -194,12 +194,8 @@ switch ($action):
 
 			// todo - сделать проверку на право юзера делать тему приватной
 
-			// если юзер не пытается добавить себя
-			if ($user->id != $user_id) {
-
-				// добавляем еще и себя в список
-				$users_to_add[] = $user->id;
-			} else break; // пока запрещаем добавлять "только себя"
+			// если юзер не пытается добавить себя - добавляем еще и себя в список
+			if ($user->id != $user_id) $users_to_add[] = $user->id;
 		}
 
 		$now_sql = now('sql');
@@ -265,15 +261,15 @@ switch ($action):
 
 		// не пытается ли анонимный пользователь сделать это?
 		if ($user->id == 0) {
-			$result = 'restricted for anonymous';
+			$result = false;
 			break;
 		}
 
-		// если редактирует не админ - разрешаем только автору темы
+		// если редактирует не админ - разрешаем удалять всех только автору темы, а себя - любому юзеру
 		if ($user->id != 1) {
-			$author = $db-selectCell('SELECT author_id FROM ?_messages WHERE id = ?d', $topic_id);
-			if ($author != $user->id) {
-				$result = 'access denied';
+			$author = $db->selectCell('SELECT author_id FROM ?_messages WHERE id = ?d', $topic_id);
+			if ($author != $user->id && $user->id != $user_id) {
+				$result = false;
 				break;
 			}
 		}
@@ -286,12 +282,8 @@ switch ($action):
 		$users_to_remove = Array();
 		$users_to_remove[] = $user_id;
 
-		// Если в теме всего двое и один из них - "я"
-		if (count($allowed) <= 2 && in_array($user->id, $allowed)) {
-
-			$GLOBALS['debug']['action'] = 'remove me also';
-			$users_to_remove[] = $user->id;
-		}
+		// нельзя убирать себя из СВОЕЙ темы, если ты там не один
+		if (count($allowed) > 1 && $user_id == $user->id && $author == $user->id) break;
 
 		$now_sql = now('sql');
 
@@ -301,7 +293,7 @@ switch ($action):
 				'UPDATE ?_private_topics SET level = NULL, updated = ? WHERE message = ?d AND user = ?d', $now_sql, $topic_id, $user_i
 			);
 
-			$GLOBALS['debug']['results'][] = $res;
+			//$GLOBALS['debug']['results'][] = $res;
 		}
 
 		// во всех случаях - помечаем тему обновленной!
