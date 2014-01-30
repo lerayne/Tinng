@@ -19,7 +19,8 @@ tinng.protos.TopicNode = Class(tinng.protos.Node, {
 				[
 					'lastmessage',
 					'topicname',
-					'postsquant'
+					'postsquant',
+					'private'
 				]
 			);
 
@@ -57,6 +58,12 @@ tinng.protos.TopicNode = Class(tinng.protos.Node, {
 		if (this.data.unread == '1') {
 			this.markUnread();
 			this.mainPanel.mark_read.$body.removeClass('none');
+		}
+
+		if (this.data.private == 1) {
+			this.cells.$private.show();
+		} else {
+			this.cells.$private.hide();
 		}
 
 		this.updateMenu();

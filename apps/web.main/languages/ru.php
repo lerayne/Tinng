@@ -9,6 +9,7 @@ $txt['postsquant'] = ' сообщ.';
 $txt['new_topic'] = 'Новая тема';
 $txt['lastpost'] = 'Последнее: ';
 $txt['msgs'] = ' сообщ.';
+$txt['topic_private'] = 'Приватная';
 
 $txt['from'] = '';
 $txt['topicstarter'] = 'автор темы';

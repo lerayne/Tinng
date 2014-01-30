@@ -198,22 +198,32 @@ class Feed {
 		$updates_since = $db->selectCell("
 			SELECT GREATEST(MAX(msg.created), IFNULL(MAX(msg.modified), 0), IFNULL(MAX(mupd.created), 0), IFNULL(MAX(mupd.modified), 0))
 			FROM ?_messages msg
-			LEFT JOIN ?_messages mupd ON mupd.topic_id = msg.id
-			LEFT JOIN ?_private_topics priv ON priv.message = msg.id
+			LEFT JOIN ?_messages mupd
+				ON mupd.topic_id = msg.id
+			LEFT JOIN ?_private_topics my_access
+				ON my_access.message = msg.id AND my_access.user = ?d
+			LEFT JOIN ?_private_topics elses_access
+				ON elses_access.message = msg.id AND elses_access.user != ?d AND elses_access.level IS NOT NULL
 
 			{$tags_joins}
 			/*{JOIN ?_tagmap map ON map.message = msg.id AND map.tag IN(?a)}*/
 
 			WHERE msg.topic_id = 0
-				AND (priv.user IS NULL OR (priv.user = ?d {AND priv.deleted IS NULL AND 1 = ?d}))
-				{AND (IFNULL(msg.modified, msg.created) > ?}{ OR IFNULL(mupd.modified, mupd.created) > ?)}
+				AND (
+					(my_access.level IS NULL AND elses_access.level IS NULL) /* тема публична */
+					OR (my_access.level IS NOT NULL) /* тема приватна, но у меня есть доступ */
+					{OR (my_access.level IS NULL AND elses_access.level IS NOT NULL AND (my_access.updated > ? }{ OR elses_access.updated > ?))}
+				)
+				{AND (IFNULL(msg.modified, msg.created) > ? }{ OR IFNULL(mupd.modified, mupd.created) > ?)}
 				{AND msg.deleted IS NULL AND 1 = ?d}
 			"
+			, $user->id // мой доступ
+			, $user->id // чужой доступ
 			//, $tag_array // при пустом массиве скип автоматический
-			, $user->id
-			, (!$update_mode ? 1 : DBSIMPLE_SKIP) // достаем удаленные из доступа только если мы в режиме обновления
-			, ($meta['updates_since'] ? $meta['updates_since'] : DBSIMPLE_SKIP)
-			, ($meta['updates_since'] ? $meta['updates_since'] : DBSIMPLE_SKIP)
+			, ($meta['updates_since'] ? $meta['updates_since'] : DBSIMPLE_SKIP) // для доступа
+			, ($meta['updates_since'] ? $meta['updates_since'] : DBSIMPLE_SKIP) // для доступа
+			, ($meta['updates_since'] ? $meta['updates_since'] : DBSIMPLE_SKIP) // для всего остального
+			, ($meta['updates_since'] ? $meta['updates_since'] : DBSIMPLE_SKIP) // для всего остального
 			, (!$update_mode ? 1 : DBSIMPLE_SKIP) // достаем удаленные только если мы в режиме обновления
 		);
 
@@ -237,7 +247,7 @@ class Feed {
 				msg.modified,
 				msg.modifier AS modifier_id,
 				IFNULL(msg.modified, msg.created) AS maxdate,
-				msg.deleted,
+				(msg.deleted IS NOT NULL OR (my_access.level IS NULL AND elses_access.level IS NOT NULL)) AS deleted,
 				usr.email AS author_email,
 				IFNULL(usr.display_name, usr.login) AS author,
 				mlast.id AS last_id,
@@ -248,8 +258,7 @@ class Feed {
 				lma.id AS lastauthor_id,
 				(SELECT COUNT(mcount.id) FROM ?_messages mcount WHERE IF(mcount.topic_id = 0, mcount.id, mcount.topic_id) = msg.id AND mcount.deleted IS NULL) AS postsquant,
 				IF(unr.timestamp < GREATEST(IFNULL(msg.modified, msg.created), IFNULL(IFNULL(mlast.modified, mlast.created),0)), 1, 0) AS unread,
-				IF(priv.user IS NULL, false, true) AS private,
-				priv.deleted AS noaccess
+				(my_access.level IS NOT NULL OR elses_access.level IS NOT NULL) as private
 			FROM ?_messages msg
 
 			LEFT JOIN ?_users usr
@@ -268,6 +277,11 @@ class Feed {
 			LEFT JOIN ?_unread unr
 				ON unr.topic = msg.id
 				AND unr.user = ?d
+			/* доступ */
+			LEFT JOIN ?_private_topics my_access
+				ON my_access.message = msg.id AND my_access.user = ?d
+			LEFT JOIN ?_private_topics elses_access
+				ON elses_access.message = msg.id AND elses_access.user != ?d AND elses_access.level IS NOT NULL
 
 			LEFT JOIN ?_private_topics priv
 				ON priv.message = msg.id
@@ -279,7 +293,11 @@ class Feed {
 				AND tagmap.tag IN (?a)}*/
 
 			WHERE msg.topic_id = 0
-				AND (priv.user IS NULL OR (priv.user = ?d {AND priv.deleted IS NULL AND 1 = ?d}))
+				AND (
+					(my_access.level IS NULL AND elses_access.level IS NULL) /* тема публична */
+					OR (my_access.level IS NOT NULL) /* тема приватна, но у меня есть доступ */
+					{OR (my_access.level IS NULL AND elses_access.level IS NOT NULL AND (my_access.updated > ? }{ OR elses_access.updated > ?))}
+				)
 				/* пробовал через GREATEST - сокращает вывод до одной строки */
 				{AND (IFNULL(msg.modified, msg.created) > ?}{ OR IFNULL(mupd.modified, mupd.created) > ?)}
 				{AND msg.deleted IS NULL AND 1 = ?d}
@@ -291,11 +309,13 @@ class Feed {
 
 			, $cfg['cut_length'], $cfg['cut_length'] // ограничение выборки первого поста
 			, $user->id
-			//, $tag_array // при пустом массиве скип автоматический
 			, $user->id
-			, (!$update_mode ? 1 : DBSIMPLE_SKIP) // достаем удаленные только если мы в режиме обновления
-			, ($meta['updates_since'] ? $meta['updates_since'] : DBSIMPLE_SKIP) // зачем ставить условия, если выбираем всё?
-			, ($meta['updates_since'] ? $meta['updates_since'] : DBSIMPLE_SKIP)
+			, $user->id
+			//, $tag_array // при пустом массиве скип автоматический
+			, ($meta['updates_since'] ? $meta['updates_since'] : DBSIMPLE_SKIP) // для доступа
+			, ($meta['updates_since'] ? $meta['updates_since'] : DBSIMPLE_SKIP) // для доступа
+			, ($meta['updates_since'] ? $meta['updates_since'] : DBSIMPLE_SKIP) // для всего остального
+			, ($meta['updates_since'] ? $meta['updates_since'] : DBSIMPLE_SKIP) // для всего остального
 			, (!$update_mode ? 1 : DBSIMPLE_SKIP) // достаем удаленные только если мы в режиме обновления
 		));
 
@@ -370,13 +390,17 @@ class Feed {
 		$topic_exists = $db->selectCell('
 			SELECT msg.id
 			FROM ?_messages msg
-			LEFT JOIN ?_private_topics priv ON msg.id = priv.message
+			LEFT JOIN ?_private_topics my_access
+				ON msg.id = my_access.message AND my_access.user = ?d
+			LEFT JOIN ?_private_topics elses_access
+				ON msg.id = elses_access.message AND elses_access.user != ?d AND elses_access.level IS NOT NULL
 			WHERE id = ?d
 				AND msg.deleted IS NULL
-				AND (priv.user IS NULL OR (priv.user = ?d AND priv.deleted IS NULL))
+				AND ((my_access.level IS NULL AND elses_access.level IS NULL) OR my_access.level IS NOT NULL)
 			'
+			, $user->id // джойн доступа
+			, $user->id // джойн доступа
 			, $posts['topic']
-			, $user->id
 		);
 
 		// если заглавного сообщения не существует, или оно было удалено
@@ -549,7 +573,7 @@ class Feed {
 				msg.topic_name,
 				msg.created,
 				msg.modified,
-				msg.deleted,
+				(msg.deleted IS NOT NULL) AS deleted,
 				msg.modifier,
 				usr.email AS author_email,
 				UNIX_TIMESTAMP(usr.last_read) AS author_seen_online,
@@ -667,19 +691,16 @@ class Feed {
 		$topic_exists = $db->selectCell('
 			SELECT msg.id
 			FROM ?_messages msg
-			LEFT JOIN ?_private_topics priv ON msg.id = priv.message
 			WHERE id = ?d
 				AND msg.deleted IS NULL
-				AND (priv.user IS NULL OR (priv.user = ?d AND priv.deleted IS NULL))
 			'
 			, $topic['id']
-			, $user->id
 		);
 
 		// если заглавного сообщения не существует, или оно было удалено
 		if (!$topic_exists) return Array();
 
-		// изменялось ли заглавное сообщение темы?
+		// изменялась ли "голова" темы?
 		$new_updated_at = $db->selectCell('
 			SELECT IFNULL(msg.modified, msg.created) AS updated
 			FROM ?_messages msg
@@ -702,20 +723,33 @@ class Feed {
 				msg.topic_name,
 				msg.created,
 				msg.modified,
-				msg.deleted,
+				(msg.deleted IS NOT NULL OR (my_access.level IS NULL AND elses_access.level IS NOT NULL)) AS deleted,
 				msg.modifier,
 				(SELECT COUNT(id) FROM ?_messages msgq WHERE IF(msgq.topic_id = 0, msgq.id, msgq.topic_id) = ?d AND deleted IS NULL) AS post_count,
-				IF(priv.user IS NULL, false, true) AS private
+				(my_access.level IS NOT NULL OR elses_access.level IS NOT NULL) as private
 
 			FROM ?_messages msg
-			LEFT JOIN ?_private_topics priv ON msg.id = priv.message
+			LEFT JOIN ?_private_topics my_access
+				ON msg.id = my_access.message AND my_access.user = ?d
+			LEFT JOIN ?_private_topics elses_access
+				ON msg.id = elses_access.message AND elses_access.user != ?d AND elses_access.level IS NOT NULL
 
-			WHERE msg.id = ?d AND msg.topic_id = 0
+			WHERE msg.id = ?d
+				AND msg.topic_id = 0
+				AND (
+					(my_access.level IS NULL AND elses_access.level IS NULL) /* тема публична */
+					OR (my_access.level IS NOT NULL) /* тема приватна, но у меня есть доступ */
+					{OR (my_access.level IS NULL AND elses_access.level IS NOT NULL AND (my_access.updated > ? }{ OR elses_access.updated > ?))}
+				)
 
 			GROUP BY msg.id
 			'
 				, $topic['id']
+				, $user->id // джойн доступа
+				, $user->id // джойн доступа
 				, $topic['id']
+				, ($meta['updated_at'] ? $meta['updated_at'] : DBSIMPLE_SKIP) // принимать условия только в режиме обновления
+				, ($meta['updated_at'] ? $meta['updated_at'] : DBSIMPLE_SKIP) // принимать условия только в режиме обновления
 			);
 
 			if ($topic_props['private']) {
@@ -730,24 +764,23 @@ class Feed {
 						JOIN ?_users usr ON priv.user = usr.id
 						LEFT JOIN ?_user_settings avatar ON avatar.user_id = usr.id AND avatar.param_key = 'avatar'
 					WHERE priv.message = ?d
-						AND priv.deleted IS NULL
+						AND priv.level IS NOT NULL
 					GROUP BY priv.link_id
-					ORDER BY priv.updated
+					ORDER BY priv.updated, priv.link_id
 					"
 					, $topic['id']
 				);
+
+				//$GLOBALS['debug']['alowed'] = $allowed_users;
 
 				foreach ($allowed_users as $key => $val) {
 
 					if ($val['avatar'] == 'gravatar') {
 						$allowed_users[$key]['avatar'] = 'http://www.gravatar.com/avatar/' . md5(strtolower($val['email'])) . '?s=50';
 					}
-
 					if ($val['display_name'] == null) $allowed_users[$key]['display_name'] = $val['login'];
-
 					unset($allowed_users[$key]['email']);
 				}
-
 				$topic_props['private'] = $allowed_users;
 			}
 

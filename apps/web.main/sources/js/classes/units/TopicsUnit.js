@@ -155,7 +155,7 @@ tinng.protos.TopicsUnit = Class(tinng.protos.Unit, {
 			// если в текущем массиве загруженных тем такая уже есть - обновляем существующую
 			if (existingTopic) {
 
-				if (topicData.deleted) {
+				if (topicData.deleted == 1) {
 
 					existingTopic.remove('fast');
 					//if (topicData.id == t.sync.curTopic) t.funcs.unloadTopic();
@@ -167,7 +167,7 @@ tinng.protos.TopicsUnit = Class(tinng.protos.Unit, {
 				}
 
 				// если же в текущем массиве тем такой нет и пришедшая не удалена, создаем новую
-			} else if (!topicData.deleted) {
+			} else if (!topicData.deleted || topicData.deleted == 0) {
 
 				var topic = t.topics[topicData.id] = new t.protos.TopicNode(topicData);
 				this.addNode(topic);

@@ -83,6 +83,7 @@ tinng.protos.strategic.XHRShortPoll.prototype = {
 		if (this.subscriptions[subscriberId] && this.subscriptions[subscriberId][feedName]) {
 
 			delete this.subscriptions[subscriberId][feedName];
+
 			delete this.meta[subscriberId][feedName];
 
 			// считаем, сколько подписок осталось

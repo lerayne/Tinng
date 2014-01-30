@@ -141,7 +141,9 @@
 				<div data-cell="postsquant" class="postsquant reveal"></div>
 				<div class="clearboth"></div>
 			</div>
-			<div data-cell="topicname" class="topicname"></div>
+			<div class="topicname">
+				<span data-cell="topicname"></span><span data-cell="private" class="private" style="display:none"><?= $txt['topic_private']?></span>
+			</div>
 			<div data-cell="message" class="message">
 				<!-- основное сообщение -->
 			</div>

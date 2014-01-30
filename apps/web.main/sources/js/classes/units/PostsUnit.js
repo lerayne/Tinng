@@ -99,8 +99,10 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 				},
 				function(userData, error){
 
+					if (error) console.error(error)
 					if (userData) that.renderPrivateUser(userData);
-				}
+				},
+				true // no cache
 			);
 		}
 	},
@@ -119,14 +121,11 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 			},
 			function(userId, error){
 
-				if (error){
-					console.error(error)
-				}
-
+				if (error) console.error(error)
 				console.log('remove user:', userId)
-
 				if (userId) that.unrenderPrivateUser(userId);
-			}
+			},
+			true // no cache
 		);
 	},
 
@@ -477,7 +476,7 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 
 			if (existingPost) { // если в текущем массиве загруженных сообщений такое уже есть
 
-				if (postData.deleted) {
+				if (postData.deleted == 1) {
 					existingPost.remove();
 					delete t.posts[postData.id];
 				} else {
@@ -487,7 +486,7 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 					t.userWatcher.forceToOnline(postData.modifier)
 				}
 
-			} else if (!postData.deleted) { // если такого нет и пришедшее не удалено - создаем новый
+			} else if (!postData.deleted || postData.deleted == 0) { // если такого нет и пришедшее не удалено - создаем новый
 
 				var newPost = t.posts[postData.id] = new t.protos.PostNode(postData);
 				this.addNode(newPost);
@@ -573,14 +572,12 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 			for (var i = 0; i < topicData.private.length; i++) {
 				this.renderPrivateUser(topicData.private[i])
 			}
-
-			console.log('this.state.allowedUsers:', this.state.allowedUsers)
 		}
 
 		// todo - если введем автовысоту через css - убрать
 		t.ui.winResize(); // потому что от размера названия темы может разнести хедер
 
-		if (topicData.deleted) t.funcs.unloadTopic();
+		if (topicData.deleted == 1) t.funcs.unloadTopic();
 
 		// todo - в будущем тут будет проверка на наличие модулей, подписанных на список тем
 		if (t.topics && t.topics[topicData.id]) {

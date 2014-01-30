@@ -177,7 +177,7 @@ switch ($action):
 
 		//Приватна ли эта тема сейчас и если да - то какие юзеры к ней были когда-либо допущены?
 		$allowed_users = $db->select('
-			SELECT pvt.user AS ARRAY_KEY, pvt.deleted
+			SELECT pvt.user AS ARRAY_KEY, pvt.level
 			FROM ?_private_topics pvt
 			WHERE pvt.message = ?d
 			', $topic_id
@@ -185,7 +185,7 @@ switch ($action):
 
 		// а какие допущены сейчас?
 		$allowed_now = Array();
-		foreach($allowed_users as $id => $val) if ($val['deleted'] == null) $allowed_now[] = $id;
+		foreach($allowed_users as $id => $val) if ($val['level'] > 0) $allowed_now[] = $id;
 
 		$users_to_add = Array();
 		$users_to_add[] = $user_id;
@@ -202,26 +202,26 @@ switch ($action):
 			} else break; // пока запрещаем добавлять "только себя"
 		}
 
+		$now_sql = now('sql');
+
 		foreach ($users_to_add as $user_i) {
 
-			if ($allowed_users[$user_i]['deleted']) {
+			if (!$allowed_users[$user_i]) {
+				$db->query(
+					'INSERT INTO ?_private_topics (message, user, level, updated) VALUES (?d, ?d, 1, ?)', $topic_id, $user_i, $now_sql
+				);
+			} elseif (!$allowed_users[$user_i]['level']) {
 				// юзер уже ранее был допущен, но был удален
 				$db->query(
-					'UPDATE ?_private_topics SET deleted = NULL WHERE message = ?d AND user = ?d', $topic_id, $user_i
-				);
-
-			} elseif (!$allowed_users[$user_i]) {
-				$db->query(
-					'INSERT INTO ?_private_topics (message, user) VALUES (?d, ?d)', $topic_id, $user_i
+					'UPDATE ?_private_topics SET level = 1, updated = ? WHERE message = ?d AND user = ?d', $now_sql, $topic_id, $user_i
 				);
 			}
 		}
 
 		// во всех случаях - помечаем тему обновленной!
 		$params = Array(
-			'modified' => now('sql'),
-			'modifier' => $user->id,
-			'private' => 1
+			'modified' => $now_sql,
+			'modifier' => $user->id
 		);
 
 		$db->query(
@@ -280,7 +280,7 @@ switch ($action):
 
 		// какие пользователи сейчас допущены к теме
 		$allowed = $db->selectCol(
-			'SELECT user FROM ?_private_topics WHERE message = ?d AND deleted IS NULL', $topic_id
+			'SELECT user FROM ?_private_topics WHERE message = ?d AND level IS NOT NULL', $topic_id
 		);
 
 		$users_to_remove = Array();
@@ -288,24 +288,27 @@ switch ($action):
 
 		// Если в теме всего двое и один из них - "я"
 		if (count($allowed) <= 2 && in_array($user->id, $allowed)) {
+
+			$GLOBALS['debug']['action'] = 'remove me also';
 			$users_to_remove[] = $user->id;
-			$make_public = true;
 		}
+
+		$now_sql = now('sql');
 
 		// Помечаем все указанные линки удаленными
 		foreach ($users_to_remove as $user_i) {
-			$db->query(
-				'UPDATE ?_private_topics SET deleted = 1 WHERE message = ?d AND user = ?d', $topic_id, $user_i
+			$res = $db->query(
+				'UPDATE ?_private_topics SET level = NULL, updated = ? WHERE message = ?d AND user = ?d', $now_sql, $topic_id, $user_i
 			);
+
+			$GLOBALS['debug']['results'][] = $res;
 		}
 
 		// во всех случаях - помечаем тему обновленной!
 		$params = Array(
-			'modified' => now('sql'),
+			'modified' => $now_sql,
 			'modifier' => $user->id
 		);
-
-		if ($make_public) $params['private'] = null;
 
 		$db->query(
 			'UPDATE ?_messages SET ?a WHERE id = ?d', $params, $topic_id
@@ -323,5 +326,5 @@ endswitch;
 
 $GLOBALS['_RESULT'] = $result;
 
-if (count($GLOBALS['debug'])) var_dump($GLOBALS['debug']);
+if (count($GLOBALS['debug'])) print_r($GLOBALS['debug']);
 ?>
