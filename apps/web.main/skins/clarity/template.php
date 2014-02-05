@@ -115,13 +115,13 @@
 
 
 	<div data-chunk-name="unit" class="unit">
-		<header></header>
-		<div class="scroll-area">
-			<div class="content-wrap">
-				<div class="content"></div>
+		<header data-cell="header"></header>
+		<div class="scroll-area" data-cell="scrollArea">
+			<div class="content-wrap" data-cell="contentWrap">
+				<div class="content" data-cell="content"></div>
 			</div>
 		</div>
-		<footer></footer>
+		<footer data-cell="footer"></footer>
 	</div>
 
 

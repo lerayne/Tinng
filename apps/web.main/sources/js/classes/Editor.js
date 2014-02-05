@@ -97,10 +97,10 @@ tinng.protos.Editor.prototype = {
 	resize:function(){
 		//console.log('editor resize');
 		var posts = t.units.posts;
-		this.$body.width(posts.$content.width());
+		this.$body.width(posts.ui.$content.width());
 
 		var wasAtBottom = posts.atBottom; // не убирать! строка ниже меняет значение этого вызова!
-		posts.$contentWrap.css('padding-bottom', this.$body.offsetHeight());
+		posts.ui.$contentWrap.css('padding-bottom', this.$body.offsetHeight());
 		if (wasAtBottom && !posts.atTop) posts.scrollToBottom();
 	},
 

@@ -17,7 +17,7 @@ tinng.protos.TopicsUnit = Class(tinng.protos.Unit, {
 		this.header = new t.protos.ui.Panel([
 			{type:'Button', label:'newTopic', cssClass:'right', icon:'doc_plus_w.png', text:tinng.txt.new_topic}
 		]);
-		this.$header.append(this.header.$body);
+		this.ui.$header.append(this.header.$body);
 
 		// панель поиска
 		this.createSearchBox();
@@ -78,9 +78,9 @@ tinng.protos.TopicsUnit = Class(tinng.protos.Unit, {
 			case 'updated':
 
 				if (t.sync.tsReverse) {
-					this.$content.prepend(node.$body);
+					this.ui.$content.prepend(node.$body);
 				} else {
-					this.$content.append(node.$body);
+					this.ui.$content.append(node.$body);
 				}
 
 				break;

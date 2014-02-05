@@ -20,13 +20,13 @@ tinng.protos.UsersUnit = Class(tinng.protos.Unit, {
 		]);
 
 		this.header.title.$body.text(t.txt.title_all_users);
-		this.$header.append(this.header.$body);
+		this.ui.$header.append(this.header.$body);
 
 		this.$onlineList = t.chunks.get('onlineList');
 		this.$offlineList = t.chunks.get('offlineList');
 
-		this.$content.append(this.$onlineList);
-		this.$content.append(this.$offlineList);
+		this.ui.$content.append(this.$onlineList);
+		this.ui.$content.append(this.$offlineList);
 
 		this.activate();
 	},

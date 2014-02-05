@@ -160,7 +160,7 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 		if (start == false) {
 			var $postsU = t.units.posts;
 			if (!thisLast)
-				$postsU.$scrollArea.scrollTop($postsU.$scrollArea.scrollTop() + parseInt($postsU.$contentWrap.css('padding-bottom')));
+				$postsU.ui.$scrollArea.scrollTop($postsU.ui.$scrollArea.scrollTop() + parseInt($postsU.ui.$contentWrap.css('padding-bottom')));
 			else
 				$postsU.scrollToBottom();
 		}

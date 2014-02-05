@@ -5,22 +5,19 @@
 // тег (визуальное представление)
 tinng.protos.ui.Tag = function (data, callbacks) {
 	this.data = data;
-	this.$body = t.chunks.get('tag');
-	this.$operation = this.$body.find('[data-cell="operation"]');
-
-	var textContainer = this.$body.find('[data-cell="text"]');
-	var closeButton = this.$body.find('[data-cell="close"]');
+	this.ui = t.chunks2.get('tag');
+	this.$body = this.ui.$body;
 
 	if (this.data.operation) {
 		this.$body.addClass('operational')
-		this.$operation.text(this.data.operation).show();
+		this.ui.$operation.text(this.data.operation).show();
 	}
 
 	if (this.data.used === '0') {
 		this.$body.addClass('unused');
 	}
 
-	textContainer.text(data.name);
+	this.ui.$text.text(data.name);
 	this.$body.attr('data-tag', data.name);
 
 	if (typeof callbacks != 'undefined'){
@@ -29,8 +26,8 @@ tinng.protos.ui.Tag = function (data, callbacks) {
 			this.$body.addClass('clickable');
 		}
 		if (callbacks.closeClick) {
-			closeButton.show();
-			closeButton.click(callbacks.closeClick)
+			this.ui.$close.show();
+			this.ui.$close.click(callbacks.closeClick)
 		}
 	}
 }
@@ -38,6 +35,6 @@ tinng.protos.ui.Tag = function (data, callbacks) {
 tinng.protos.ui.Tag.prototype = {
 	removeOperation:function(){
 		this.$body.removeClass('operational')
-		this.$operation.hide();
+		this.ui.$operation.hide();
 	}
 }

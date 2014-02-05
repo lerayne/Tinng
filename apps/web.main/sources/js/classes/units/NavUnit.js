@@ -15,12 +15,12 @@ tinng.protos.NavUnit = Class(tinng.protos.Unit, {
 		]);
 
 		this.header.title.$body.text(t.txt.title_all_tags);
-		this.$header.append(this.header.$body);
+		this.ui.$header.append(this.header.$body);
 
 		this.objectList = {};
 
 		this.$tagArea = t.chunks.get('tagArea');
-		this.$tagArea.appendTo(this.$content);
+		this.$tagArea.appendTo(this.ui.$content);
 
 		this.activate();
 	},

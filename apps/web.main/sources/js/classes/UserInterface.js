@@ -85,7 +85,7 @@ tinng.protos.UserInterface = function (targetWindow) {
 	// редактор
 	this.editor = new t.protos.Editor();
 	this.editor.$body.on('keyup', this.editorResize);
-	t.units.posts.$scrollArea.append(this.editor.$body);
+	t.units.posts.ui.$scrollArea.append(this.editor.$body);
 
 	this.editor.hide();
 
@@ -165,10 +165,10 @@ tinng.protos.UserInterface.prototype = {
 	// Подгоняет внешний вид редактора под окно
 //	editorResize:function () {
 //		var posts = t.units.posts;
-//		this.editor.$body.width(posts.$content.width());
+//		this.editor.$body.width(posts.ui.$content.width());
 //
 //		var atBottom = posts.atBottom; // не убирать! строка ниже меняет значение этого вызова!
-//		posts.$contentWrap.css('padding-bottom', this.editor.$body.offsetHeight());
+//		posts.ui.$contentWrap.css('padding-bottom', this.editor.$body.offsetHeight());
 //		if (atBottom) posts.scrollToBottom();
 //		 // возможно в будущем для еще большей плавности стоит изменять целую пачку стилей с тем чтобы у поля ввода позиция
 //		 // не всегда была fixed. Для этого придется повесить событие OnScroll и отследивать степень прокрутки. Возможно - тогда

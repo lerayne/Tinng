@@ -29,12 +29,15 @@ tinng.protos.Unit = Class({
 		this.state = {};
 
 		// todo - переделать под чанки
-		var $body = this.$body = t.chunks.get('unit');
-		this.$scrollArea = $body.find('.scroll-area');
-		this.$contentWrap = $body.find('.content-wrap');
-		this.$content = $body.find('.content');
-		this.$header = $body.find('header');
-		this.$footer = $body.find('footer');
+
+		this.ui = t.chunks2.get('unit');
+		var $body = this.$body = this.ui.$body;
+
+		//this.$scrollArea = $body.find('.scroll-area');
+		//this.$contentWrap = $body.find('.content-wrap');
+		//this.$content = $body.find('.content');
+		//this.$header = $body.find('header');
+		//this.$footer = $body.find('footer');
 
 		/* ОБРАБОТКА */
 
@@ -44,8 +47,8 @@ tinng.protos.Unit = Class({
 		if (data.minimizeButton) data.minimizeButton.click(this.toggleActive)
 
 		// привязка событий прокрутки
-		this.$scrollArea.on('scroll', this.onScroll);
-		this.$scrollArea.scroll();
+		this.ui.$scrollArea.on('scroll', this.onScroll);
+		this.ui.$scrollArea.scroll();
 	},
 
 	placeTo:function(container){
@@ -71,52 +74,52 @@ tinng.protos.Unit = Class({
 	},
 
 	setHeight: function (num) {
-		var height = num - this.$header.offsetHeight() - this.$footer.offsetHeight();
+		var height = num - this.ui.$header.offsetHeight() - this.ui.$footer.offsetHeight();
 		this.scrollAreaH = height;
-		this.$scrollArea.height(height);
+		this.ui.$scrollArea.height(height);
 	},
 
 	addNode: function (node) {
-		this.$content.append(node.$body);
+		this.ui.$content.append(node.$body);
 	},
 
 	addNodeOnTop: function (node) {
-		this.$content.prepend(node.$body);
+		this.ui.$content.prepend(node.$body);
 	},
 
 	scrollToTop: function () {
-		this.$contentWrap[0].scrollIntoView(true);
+		this.ui.$contentWrap[0].scrollIntoView(true);
 	},
 
 	scrollToBottom: function () {
 		//console.log('scroll to bottom');
-		this.$contentWrap[0].scrollIntoView(false);
+		this.ui.$contentWrap[0].scrollIntoView(false);
 	},
 
 	onScroll: function () {
-		this.scrolledBy = this.$scrollArea.scrollTop();
+		this.scrolledBy = this.ui.$scrollArea.scrollTop();
 
-		this.atBottom = this.scrollAreaH + this.scrolledBy - this.$contentWrap.offsetHeight() >= 0;
+		this.atBottom = this.scrollAreaH + this.scrolledBy - this.ui.$contentWrap.offsetHeight() >= 0;
 		this.atTop = this.scrolledBy == 0;
 	},
 
 	clear: function () {
 		//todo проверить полное удаление из памяти
-		this.$content.children().remove();
+		this.ui.$content.children().remove();
 		this.stopWaitIndication();
 	},
 
 	isClear: function () {
-		return !this.$content.children().size();
+		return !this.ui.$content.children().size();
 	},
 
 	startWaitIndication: function () {
 		this.clear();
-		this.$scrollArea.addClass('loading');
+		this.ui.$scrollArea.addClass('loading');
 	},
 
 	stopWaitIndication: function () {
-		this.$scrollArea.removeClass('loading');
+		this.ui.$scrollArea.removeClass('loading');
 	},
 
 	parseFeed: function (feed) {

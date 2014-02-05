@@ -34,7 +34,7 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 			{type:'Field', label:'topicName', cssClass:'topicname'},
 			{type:'Field', label:'allowedUsers', cssClass:'allowedUsers'}
 		]);
-		this.$header.append(this.header.$body);
+		this.ui.$header.append(this.header.$body);
 
 		this.newTopicMode = false;
 
@@ -83,7 +83,7 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 		this.header.topicRename.hide();
 
 		this.$showMore = $('<div class="showmore"/>');
-		this.$contentWrap.prepend(this.$showMore);
+		this.ui.$contentWrap.prepend(this.$showMore);
 
 		var showNext = $('<a>' + t.txt.show_more + '</a>');
 		var showAll = $('<a>' + t.txt.show_all + '</a>');
@@ -176,7 +176,7 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 
 	addNode: function (node) {
 
-		var posts = this.$content.children();
+		var posts = this.ui.$content.children();
 
 		// если id поста меньше, чем id одного из уже загруженных - вставляем раньше ...
 		if (posts.size()) for (var i = 0; i < posts.length; i++) {
@@ -206,12 +206,12 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 
 	setInvitation: function () {
 		this.clear();
-		this.$content.append(t.chunks.get('posts-default'));
+		this.ui.$content.append(t.chunks.get('posts-default'));
 	},
 
 	/*startWaitIndication:function(){
 	 this.clear();
-	 this.$scrollArea.addClass('loading');
+	 this.ui.$scrollArea.addClass('loading');
 	 },*/
 
 	onScroll: function () {
@@ -488,7 +488,7 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 
 		if (!firstLoad && wasAtTop) { // нужно для догрузки
 
-			var topPost = t.units.posts.$content.children().eq(0);
+			var topPost = t.units.posts.ui.$content.children().eq(0);
 			var topPostOffset = topPost.position().top;
 		}
 
@@ -578,7 +578,7 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 
 			// todo - неправильно прокручивается, если до догрузки все сообщения помещались и прокрутка не появлялась
 			topPost[0].scrollIntoView(true);
-			t.units.posts.$scrollArea.scrollTop(t.units.posts.$scrollArea.scrollTop() - topPostOffset);
+			t.units.posts.ui.$scrollArea.scrollTop(t.units.posts.ui.$scrollArea.scrollTop() - topPostOffset);
 		}
 
 
