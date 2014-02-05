@@ -698,7 +698,7 @@ class Feed {
 		);
 
 		// если заглавного сообщения не существует, или оно было удалено
-		if (!$topic_exists) return Array();
+		if (!$topic_exists) return Array('deleted' => 1);
 
 		// изменялась ли "голова" темы?
 		$new_updated_at = $db->selectCell('

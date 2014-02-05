@@ -451,6 +451,24 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 		t.address.set({topic:id, plimit: limit});
 	},
 
+	// todo - сделано наспех, сделать нормальный класс!
+	createUserElement:function(userData) {
+		var listItem = t.chunks.get('userListItem');
+
+		listItem.$body.addClass('allowedUsersItem user-'+userData.id).attr('data-user', userData.id);
+		listItem.$avatar.prop('src', userData.avatar);
+		listItem.$name.text(userData.display_name);
+
+		listItem.$body.draggable({
+			helper:"clone",
+			appendTo:"#tinng-main-content",
+			distance:5,
+			scroll:false
+		});
+
+		return listItem.$body;
+	},
+
 	parseFeed: function (feed, actionsUsed) {
 		this.stopWaitIndication();
 
@@ -591,56 +609,39 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 
 		this.state.topicData = topicData;
 
-		this.setTopicName(topicData.topic_name); //вывод названия темы
+		if (topicData.deleted == 1) t.funcs.unloadTopic();
+		else {
+			this.setTopicName(topicData.topic_name); //вывод названия темы
 
-		if (typeof topicData.private == 'object' && topicData.private.length) {
+			if (typeof topicData.private == 'object' && topicData.private.length) {
 
-			this.header.allowedUsersContainer.addClass('private');
+				this.header.allowedUsersContainer.addClass('private');
 
-			this.state.allowedUsers = {};
-			this.header.allowedUsersContainer.children().remove();
+				this.state.allowedUsers = {};
+				this.header.allowedUsersContainer.children().remove();
 
-			this.header.allowedUsersContainer.removeClass('none');
+				this.header.allowedUsersContainer.removeClass('none');
 
-			for (var i = 0; i < topicData.private.length; i++) {
-				this.renderPrivateUser(topicData.private[i])
+				for (var i = 0; i < topicData.private.length; i++) {
+					this.renderPrivateUser(topicData.private[i])
+				}
+			} else {
+				this.header.allowedUsersContainer.removeClass('private');
 			}
-		} else {
-			this.header.allowedUsersContainer.removeClass('private');
+
+			// todo - в будущем тут будет проверка на наличие модулей, подписанных на список тем
+			if (t.topics && t.topics[topicData.id]) {
+
+				// если тема есть, но она не выделена - значит тема грузилась не кликом по ней
+				if (!t.topics[topicData.id].isSelected()) {
+					t.topics[topicData.id].select(); // сделать актвной
+					// todo - изменить везде show на scrollTo или что-то подобное
+					t.topics[topicData.id].show(false); // промотать до нее
+				}
+			}
 		}
 
 		// todo - если введем автовысоту через css - убрать
 		t.ui.winResize(); // потому что от размера названия темы может разнести хедер
-
-		if (topicData.deleted == 1) t.funcs.unloadTopic();
-
-		// todo - в будущем тут будет проверка на наличие модулей, подписанных на список тем
-		if (t.topics && t.topics[topicData.id]) {
-
-			// если тема есть, но она не выделена - значит тема грузилась не кликом по ней
-			if (!t.topics[topicData.id].isSelected()) {
-				t.topics[topicData.id].select(); // сделать актвной
-				// todo - изменить везде show на scrollTo или что-то подобное
-				t.topics[topicData.id].show(false); // промотать до нее
-			}
-		}
-	},
-
-	// todo - сделано наспех, сделать нормальный класс!
-	createUserElement:function(userData) {
-		var listItem = t.chunks.get('userListItem');
-
-		listItem.$body.addClass('allowedUsersItem user-'+userData.id).attr('data-user', userData.id);
-		listItem.$avatar.prop('src', userData.avatar);
-		listItem.$name.text(userData.display_name);
-
-		listItem.$body.draggable({
-			helper:"clone",
-			appendTo:"#tinng-main-content",
-			distance:5,
-			scroll:false
-		});
-
-		return listItem.$body;
 	}
 });
