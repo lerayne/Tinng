@@ -14,24 +14,22 @@ tinng.protos.Editor = function () {
 
 		t.funcs.bind(this, ['submitNew']);
 
-        var $body = this.$body = t.chunks.get('editor');
+		this.ui = t.chunks2.get('editor');
+		this.$body = this.ui.$body;
 
-        this.$submit = $body.find('.submit.button');
-        this.$messageBody = $body.find('.textarea');
-
-        this.$submit.click(this.submitNew);
+        this.ui.$submit.click(this.submitNew);
         this.visible = true;
 
         this.currentHeight = 0;
 
-		this.$messageBody.on('keyup', this.onKeyPress)
+		this.ui.$messageBody.on('keyup', this.onKeyPress)
 
 		// todo - мой кейлистенер - полное Г. Переделать.
 //		tinng.keyListener.register('ctrl+enter', this, this.submitNew);
 //		tinng.keyListener.register('alt+enter', this, this.submitNew);
 
     } else {
-        var $body = this.$body = t.chunks.get('editor-disabled');
+        this.$body = t.chunks2.get('editor-disabled').$body;
     }
 }
 
@@ -73,14 +71,14 @@ tinng.protos.Editor.prototype = {
 				t.units.posts.exitNewTopicMode();
 			}
 
-            this.$messageBody.html('').focus(); // todo - сделать затенение кнопки, если сообщение пустое
+            this.ui.$messageBody.html('').focus(); // todo - сделать затенение кнопки, если сообщение пустое
         }
     },
 
     checkMessage:function(){
 
         var blockThis = false;
-        var msg = this.$messageBody.text();
+        var msg = this.ui.$messageBody.text();
 
         if (msg.match(t.rex.empty)) blockThis = 'null length';
 
@@ -91,7 +89,7 @@ tinng.protos.Editor.prototype = {
 
     preparedMessage:function(){
 
-        var msg = this.$messageBody.html()
+        var msg = this.ui.$messageBody.html()
 
         return msg;
     },

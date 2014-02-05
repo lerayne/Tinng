@@ -79,7 +79,7 @@ tinng.protos.UserInterface = function (targetWindow) {
 	t.units.navigation.placeTo(this.$sidePanels.eq(0).find('.unit-portal'));
 	t.units.users.placeTo(this.$sidePanels.eq(1).find('.unit-portal'));
 
-	this.$unitsArea.append(t.chunks.get('clearfix'));
+	this.$unitsArea.append(t.chunks2.get('clearfix').$body);
 
 
 	// редактор
@@ -204,17 +204,17 @@ tinng.protos.UserInterface.prototype = {
 	},
 
 	showLoginForm:function(){
-		var template = t.chunks.get('login-form');
-		var form = template.find('form');
+		var template = t.chunks2.get('login-form');
+		var form = template.$form;
 
-		form.find('#doLogin').click(function(){
-			form[0].lochash.value = location.hash;
-			form.submit();
+		template.$loginBtn.click(function(){
+			template.$form[0].lochash.value = location.hash;
+			template.$form.submit();
 		});
 
-		form.find('#passForget').click(this.showRestoreForm)
+		template.$forgetLink.click(this.showRestoreForm)
 
-		this.showDialogue(txt['title_login'], template);
+		this.showDialogue(txt['title_login'], template.$body);
 	},
 
 	showRestoreForm:function(){

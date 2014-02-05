@@ -189,10 +189,10 @@
 			<input type="text" class="title"/>
 
 			<div class="textarea-wrapper">
-				<div contenteditable="true" class="textarea"></div>
+				<div contenteditable="true" class="textarea" data-cell="messageBody"></div>
 			</div>
 
-			<div class="submit button"><?= $txt['send'] ?></div>
+			<div data-cell="submit" class="submit button"><?= $txt['send'] ?></div>
 			<span class="subtext"><?= $txt['press_to_send_post'] ?></span>
 		</div>
 	</div>
@@ -214,7 +214,7 @@
 
 			<h4><?= $txt['login_local'] ?></h4>
 
-			<form action="<?= $env['appdir'] . 'login.php' ?>" method="post">
+			<form data-cell="form" action="<?= $env['appdir'] . 'login.php' ?>" method="post">
 				<input type="hidden" name="action" value="login">
 				<input type="hidden" name="lochash">
 
@@ -227,7 +227,7 @@
 						<td><?= $txt['login_pass'] ?></td>
 						<td>
 							<input class="text" type="password" name="pass">
-							<span class="dimmed" id="passForget">(<?= $txt['login_forget'] ?>)</span>
+							<span class="dimmed" data-cell="forgetLink" id="passForget">(<?= $txt['login_forget'] ?>)</span>
 						</td>
 					</tr>
 					<tr>
@@ -236,7 +236,7 @@
 					</tr>
 				</table>
 
-				<input type="button" id="doLogin" value="<?= str('login_btn') ?>">
+				<input data-cell="loginBtn" type="button" id="doLogin" value="<?= str('login_btn') ?>">
 
 			</form>
 
