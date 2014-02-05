@@ -218,17 +218,16 @@ tinng.protos.UserInterface.prototype = {
 	},
 
 	showRestoreForm:function(){
-		var template = t.chunks.get('pass-restore-form');
+		var template = t.chunks2.get('pass-restore-form');
 
-		this.showDialogue(txt['title_restore'], template);
+		this.showDialogue(txt['title_restore'], template.$body);
 	},
 
 	showRegForm:function(){
-		var template = t.chunks.get('registration-form');
-		var form = template.find('form');
+		var template = t.chunks2.get('registration-form');
 
 		var vldtr = new t.protos.Validator({
-			form:form,
+			form:template.$form,
 			filters:{
 				login: {regexp:t.rex.login, errtext:'Имя пользователя слишком корокое, слишком длинное, или содержит недопустимые символы'},
 				pass: {regexp:t.rex.pass, errtext:'Пароль слишком корокий, слишком длинный, или содержит недопустимые символы'},
@@ -262,6 +261,6 @@ tinng.protos.UserInterface.prototype = {
 			}
 		}
 
-		this.showDialogue(txt['title_register'], template);
+		this.showDialogue(txt['title_register'], template.$body);
 	}
 };

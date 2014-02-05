@@ -291,7 +291,7 @@
 
 
 	<div data-chunk-name="registration-form">
-		<form action="<?= $env['appdir'] ?>login.php" method="post" class="user-reg">
+		<form data-cell="form" action="<?= $env['appdir'] ?>login.php" method="post" class="user-reg">
 			<input type="hidden" name="action" value="register">
 
 			<table cellpadding="5" cellspacing="5" border="0">
