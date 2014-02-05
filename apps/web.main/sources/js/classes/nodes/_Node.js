@@ -15,7 +15,7 @@ tinng.protos.Node = Class({
 		var that = this;
 		t.funcs.bind(this, ['markRead', 'pushReadState', 'toggleMenu', 'hideMenu']);
 
-		this.cells = t.chunks2.get(chunkName || 'node');
+		this.cells = t.chunks.get(chunkName || 'node');
 		this.$body = this.cells.$body;
 
 		// создаем поля главного объекта на основе данных

@@ -79,7 +79,7 @@ tinng.protos.UserInterface = function (targetWindow) {
 	t.units.navigation.placeTo(this.$sidePanels.eq(0).find('.unit-portal'));
 	t.units.users.placeTo(this.$sidePanels.eq(1).find('.unit-portal'));
 
-	this.$unitsArea.append(t.chunks2.get('clearfix').$body);
+	this.$unitsArea.append(t.chunks.get('clearfix').$body);
 
 
 	// редактор
@@ -204,7 +204,7 @@ tinng.protos.UserInterface.prototype = {
 	},
 
 	showLoginForm:function(){
-		var template = t.chunks2.get('login-form');
+		var template = t.chunks.get('login-form');
 		var form = template.$form;
 
 		template.$loginBtn.click(function(){
@@ -218,13 +218,13 @@ tinng.protos.UserInterface.prototype = {
 	},
 
 	showRestoreForm:function(){
-		var template = t.chunks2.get('pass-restore-form');
+		var template = t.chunks.get('pass-restore-form');
 
 		this.showDialogue(txt['title_restore'], template.$body);
 	},
 
 	showRegForm:function(){
-		var template = t.chunks2.get('registration-form');
+		var template = t.chunks.get('registration-form');
 
 		var vldtr = new t.protos.Validator({
 			form:template.$form,

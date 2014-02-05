@@ -16,7 +16,7 @@ tinng.protos.ui.Panel = function (dataArray) {
 		}
 	}
 
-	this.$body.append(t.chunks2.get('clearfix').$body);
+	this.$body.append(t.chunks.get('clearfix').$body);
 }
 
 tinng.protos.ui.Panel.prototype = {

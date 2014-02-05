@@ -28,16 +28,8 @@ tinng.protos.Unit = Class({
 		this.subscriptions = {};
 		this.state = {};
 
-		// todo - переделать под чанки
-
-		this.ui = t.chunks2.get('unit');
+		this.ui = t.chunks.get('unit');
 		var $body = this.$body = this.ui.$body;
-
-		//this.$scrollArea = $body.find('.scroll-area');
-		//this.$contentWrap = $body.find('.content-wrap');
-		//this.$content = $body.find('.content');
-		//this.$header = $body.find('header');
-		//this.$footer = $body.find('footer');
 
 		/* ОБРАБОТКА */
 

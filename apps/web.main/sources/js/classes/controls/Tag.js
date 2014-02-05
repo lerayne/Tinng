@@ -5,7 +5,7 @@
 // тег (визуальное представление)
 tinng.protos.ui.Tag = function (data, callbacks) {
 	this.data = data;
-	this.ui = t.chunks2.get('tag');
+	this.ui = t.chunks.get('tag');
 	this.$body = this.ui.$body;
 
 	if (this.data.operation) {

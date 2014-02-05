@@ -22,8 +22,8 @@ tinng.protos.UsersUnit = Class(tinng.protos.Unit, {
 		this.header.title.$body.text(t.txt.title_all_users);
 		this.ui.$header.append(this.header.$body);
 
-		this.$onlineList = t.chunks.get('onlineList');
-		this.$offlineList = t.chunks.get('offlineList');
+		this.$onlineList = t.chunks.get('onlineList').$body;
+		this.$offlineList = t.chunks.get('offlineList').$body;
 
 		this.ui.$content.append(this.$onlineList);
 		this.ui.$content.append(this.$offlineList);
@@ -74,23 +74,20 @@ tinng.protos.UsersUnit = Class(tinng.protos.Unit, {
 	},
 
 	createUserElement:function(data){
-		var body = t.chunks.get('userListItem');
+		var listItem = t.chunks.get('userListItem');
 
-		var name = body.find('[data-cell="name"]');
-		var avatar = body.find('[data-cell="avatar"]');
+		listItem.$body.addClass('userListItem user-'+data.id).attr('data-user', data.id);
+		listItem.$name.text(data.display_name);
+		listItem.$avatar.prop('src', data.avatar);
 
-		body.addClass('userListItem user-'+data.id).attr('data-user', data.id);
-		name.text(data.display_name);
-		avatar.prop('src', data.avatar);
-
-		body.draggable({
+		listItem.$body.draggable({
 			helper:"clone",
 			appendTo:"#tinng-main-content",
 			distance:5,
 			scroll:false
 		})
 
-		return body;
+		return listItem.$body;
 	},
 
 	parseOnlineStates:function(userlist) {

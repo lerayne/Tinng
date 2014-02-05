@@ -206,7 +206,7 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 
 	setInvitation: function () {
 		this.clear();
-		this.ui.$content.append(t.chunks.get('posts-default'));
+		this.ui.$content.append(t.chunks.get('posts-default').$body);
 	},
 
 	/*startWaitIndication:function(){
@@ -348,12 +348,6 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 
 		var node = t.chunks.get('topic-edit');
 
-		var title = node.find('[data-cell="input_title"]');
-		var body = node.find('[data-cell="input_body"]');
-		var save = node.find('[data-cell="button_save"]');
-		var cancel = node.find('[data-cell="button_cancel"]');
-		var tagbox = node.find('[data-cell="tagbox"]');
-
 		this.newTags = [];
 
 		var searchBoxParams = {
@@ -365,24 +359,24 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 		}
 
 		if (typeof topic == 'undefined') {
-			save.val(t.txt.new_topic_btn_create);
+			node.$button_save.val(t.txt.new_topic_btn_create);
 		}
 
 		this.searchBox = new t.protos.ui.SearchBox(searchBoxParams);
-		tagbox.append(this.searchBox.$body);
+		node.$tagbox.append(this.searchBox.$body);
 
-		cancel.click(this.cancelNewTopic);
+		node.$button_cancel.click(this.cancelNewTopic);
 
-		save.click(function(){
+		node.$button_save.click(function(){
 
-			if (!title.val().match(t.rex.empty) && !body.val().match(t.rex.empty)) {
+			if (!node.$input_title.val().match(t.rex.empty) && !node.$input_body.val().match(t.rex.empty)) {
 
 				that.clear();
 
 				t.connection.write({
 					action:'add_topic',
-					title: title.val(),
-					message: body.val(),
+					title: node.$input_title.val(),
+					message: node.$input_body.val(),
 					tags:that.newTags
 				})
 
@@ -391,7 +385,7 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 			}
 		})
 
-		return {$body: node};
+		return {$body: node.$body};
 	},
 
 	exitNewTopicMode: function () {
@@ -634,22 +628,19 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 
 	// todo - сделано наспех, сделать нормальный класс!
 	createUserElement:function(userData) {
-		var body = t.chunks.get('userListItem');
+		var listItem = t.chunks.get('userListItem');
 
-		var name = body.find('[data-cell="name"]');
-		var avatar = body.find('[data-cell="avatar"]');
+		listItem.$body.addClass('allowedUsersItem user-'+userData.id).attr('data-user', userData.id);
+		listItem.$avatar.prop('src', userData.avatar);
+		listItem.$name.text(userData.display_name);
 
-		body.addClass('allowedUsersItem user-'+userData.id).attr('data-user', userData.id);
-		avatar.prop('src', userData.avatar);
-		name.text(userData.display_name);
-
-		body.draggable({
+		listItem.$body.draggable({
 			helper:"clone",
 			appendTo:"#tinng-main-content",
 			distance:5,
 			scroll:false
 		});
 
-		return body;
+		return listItem.$body;
 	}
 });

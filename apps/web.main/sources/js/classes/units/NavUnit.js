@@ -19,7 +19,7 @@ tinng.protos.NavUnit = Class(tinng.protos.Unit, {
 
 		this.objectList = {};
 
-		this.$tagArea = t.chunks.get('tagArea');
+		this.$tagArea = t.chunks.get('tagArea').$body;
 		this.$tagArea.appendTo(this.ui.$content);
 
 		this.activate();

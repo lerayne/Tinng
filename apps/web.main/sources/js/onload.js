@@ -13,8 +13,7 @@
 tinng.funcs.onWindowLoad = function(){
 
 	// создание машин, использующих селекторы
-	t.chunks = new t.protos.ChunksEngine('tinng-chunks', 'data-chunk-name');
-	t.chunks2 = new t.protos.ChunksEngine2('tinng-chunks', 'data-chunk-name', 'data-cell');
+	t.chunks = new t.protos.ChunksEngine('tinng-chunks', 'data-chunk-name', 'data-cell');
 
 	t.user = new tinng.protos.User(importedUser);
 	t.address = new tinng.protos.Address(';', ':');

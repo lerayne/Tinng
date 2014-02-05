@@ -14,7 +14,7 @@ tinng.protos.Editor = function () {
 
 		t.funcs.bind(this, ['submitNew']);
 
-		this.ui = t.chunks2.get('editor');
+		this.ui = t.chunks.get('editor');
 		this.$body = this.ui.$body;
 
         this.ui.$submit.click(this.submitNew);
@@ -29,7 +29,7 @@ tinng.protos.Editor = function () {
 //		tinng.keyListener.register('alt+enter', this, this.submitNew);
 
     } else {
-        this.$body = t.chunks2.get('editor-disabled').$body;
+        this.$body = t.chunks.get('editor-disabled').$body;
     }
 }
 
