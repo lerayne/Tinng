@@ -12,6 +12,10 @@
 
 tinng.funcs.onWindowLoad = function(){
 
+	// создание машин, использующих селекторы
+	t.chunks = new t.protos.ChunksEngine('tinng-chunks', 'data-chunk-name');
+	t.chunks2 = new t.protos.ChunksEngine2('tinng-chunks', 'data-chunk-name', 'data-cell');
+
 	t.user = new tinng.protos.User(importedUser);
 	t.address = new tinng.protos.Address(';', ':');
 	//t.keyListener = new tinng.protos.KeyListener();
@@ -21,8 +25,6 @@ tinng.funcs.onWindowLoad = function(){
 		callback:t.funcs.parser2
 	});
 
-    // создание машин, использующих селекторы
-    t.chunks = new t.protos.ChunksEngine('tinng-chunks', 'data-chunk-name');
     t.ui = new t.protos.UserInterface(window);
 
 	t.userWatcher = new t.protos.UserWatcher();

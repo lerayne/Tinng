@@ -6,8 +6,8 @@
 
 tinng.protos.Node = Class({
 
-	initialize:function (data, chunkName, addCells) {
-		this.construct(data, chunkName, addCells);
+	initialize:function (data, chunkName) {
+		this.construct(data, chunkName);
 		this.fill(data);
 	},
 
@@ -15,29 +15,12 @@ tinng.protos.Node = Class({
 		var that = this;
 		t.funcs.bind(this, ['markRead', 'pushReadState', 'toggleMenu', 'hideMenu']);
 
-		this.$body = t.chunks.get(chunkName || 'node');
+		this.cells = t.chunks2.get(chunkName || 'node');
+		this.$body = this.cells.$body;
 
 		// создаем поля главного объекта на основе данных
 		this.data = data;
 		this.id = parseInt(data.id);
-
-		// заполняем коллекцию cells на основе названий полей
-		var cells = [
-
-			'infobar',
-			'created',
-			'author',
-			'id',
-			'message',
-			'controls',
-			'controls2',
-			'menuBtn',
-			'tags'
-
-		].concat(addCells || []);
-
-		this.cells = {};
-		for (var i in cells) this.cells['$' + cells[i]] = this.$body.find('[data-cell="' + cells[i] + '"]');
 
 		// универсальные управления событиями
 		// todo - закончить

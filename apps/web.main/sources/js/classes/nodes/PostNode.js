@@ -16,21 +16,14 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 			'unlock',
 			'save',
 			'cancelEdit',
-			'forceUnread'
+			'forceUnread',
+			'select',
+			'kill'
 		])
 
 		t.protos
 			.Node.prototype
-			.construct.call(this, data, 'post',
-				[
-					'avatar',
-					'avatar_box',
-					'tags_edit'
-				]
-			);
-
-		this.select = $.proxy(this, 'select');
-		this.kill = $.proxy(this, 'kill');
+			.construct.call(this, data, 'post');
 
 		this.$body.click(this.select);
 		//this.cells.$message.on('click', this.select);

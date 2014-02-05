@@ -15,14 +15,7 @@ tinng.protos.TopicNode = Class(tinng.protos.Node, {
 
 		t.protos
 			.Node.prototype
-			.construct.call(this, data, 'topic',
-				[
-					'lastmessage',
-					'topicname',
-					'postsquant',
-					'private'
-				]
-			);
+			.construct.call(this, data, 'topic');
 
 		// вешаем обработчики событий
 		this.$body.on('click', this.loadPosts);
