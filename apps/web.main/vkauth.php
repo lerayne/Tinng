@@ -60,7 +60,7 @@ if ($response['error']) {
 	$param = array();
 	$param[] = 'uid='.$response['user_id'];
 	$param[] = 'access_token='.$response['access_token'];
-	$param[] = 'fields=screen_name,bdate,timezone,photo,photo_medium,';
+	$param[] = 'fields=screen_name,nickname,bdate,timezone,photo,photo_medium,';
 
 	$user_data = curl("https://api.vk.com/method/users.get", $param, 'json');
 	$user_data = $user_data['response'][0];
@@ -69,7 +69,7 @@ if ($response['error']) {
 	$new_user['login'] = 'vk' . $user_data['uid'];
 	$new_user['email'] = 'vk' . $user_data['uid']. '@nomail';
 	$new_user['hash'] = $response['access_token'];
-	$new_user['display_name'] = $user_data['first_name'].' '.$user_data['last_name'];
+	$new_user['display_name'] = $user_data['first_name'].' ' /*.($user_data['nickname'] ? $user_data['nickname'].' ' : '') */ .$user_data['last_name'];
 	$new_user['approved'] = 1;
 	$new_user['source'] = 'vk.com';
 
@@ -91,8 +91,15 @@ if ($response['error']) {
 		// обновляем юзера
 		// todo - обновлять и другие данные (решить какие)
 		$db->query(
-			'UPDATE ?_users SET hash = ? WHERE id = ?d'
+			'UPDATE ?_users SET hash = ?, display_name = ? WHERE id = ?d'
 			, $new_user['hash']
+			, $new_user['display_name']
+			, $new_user['id']
+		);
+
+		$db->query(
+			'UPDATE ?_user_settings SET param_value = ? WHERE user_id = ?d AND param_key = "avatar"'
+			, $user_data['photo']
 			, $new_user['id']
 		);
 
