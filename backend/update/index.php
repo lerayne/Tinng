@@ -209,6 +209,7 @@ class Feed {
 			/*{JOIN ?_tagmap map ON map.message = msg.id AND map.tag IN(?a)}*/
 
 			WHERE msg.topic_id = 0
+				AND msg.dialogue = 0
 				AND (
 					(my_access.level IS NULL AND elses_access.level IS NULL) /* тема публична */
 					OR (my_access.level IS NOT NULL) /* тема приватна, но у меня есть доступ */
@@ -293,12 +294,12 @@ class Feed {
 				AND tagmap.tag IN (?a)}*/
 
 			WHERE msg.topic_id = 0
+				AND msg.dialogue = 0
 				AND (
 					(my_access.level IS NULL AND elses_access.level IS NULL) /* тема публична */
 					OR (my_access.level IS NOT NULL) /* тема приватна, но у меня есть доступ */
 					{OR (my_access.level IS NULL AND elses_access.level IS NOT NULL AND (my_access.updated > ? }{ OR elses_access.updated > ?))}
 				)
-				/* пробовал через GREATEST - сокращает вывод до одной строки */
 				{AND (IFNULL(msg.modified, msg.created) > ?}{ OR IFNULL(mupd.modified, mupd.created) > ?)}
 				{AND msg.deleted IS NULL AND 1 = ?d}
 
@@ -575,6 +576,7 @@ class Feed {
 				msg.modified,
 				(msg.deleted IS NOT NULL) AS deleted,
 				msg.modifier,
+				msg.dialogue,
 				usr.email AS author_email,
 				UNIX_TIMESTAMP(usr.last_read) AS author_seen_online,
 				IFNULL(usr.display_name, usr.login) AS author,
@@ -645,7 +647,7 @@ class Feed {
 		}
 
 		// показываем теги заглавного сообщения
-		if ($output_posts[$posts['topic']]) {
+		if ($output_posts[$posts['topic']] && $output_posts[$posts['topic']]['dialogue'] == 0 ) {
 
 			$output_posts[$posts['topic']]['head'] = true;
 
@@ -723,8 +725,9 @@ class Feed {
 				msg.topic_name,
 				msg.created,
 				msg.modified,
-				(msg.deleted IS NOT NULL OR (my_access.level IS NULL AND elses_access.level IS NOT NULL)) AS deleted,
 				msg.modifier,
+				msg.dialogue,
+				(msg.deleted IS NOT NULL OR (my_access.level IS NULL AND elses_access.level IS NOT NULL)) AS deleted,
 				(SELECT COUNT(id) FROM ?_messages msgq WHERE IF(msgq.topic_id = 0, msgq.id, msgq.topic_id) = ?d AND deleted IS NULL) AS post_count,
 				(my_access.level IS NOT NULL OR elses_access.level IS NOT NULL) as private
 
@@ -862,6 +865,7 @@ class Feed {
 			'avatar'		=> 'avatar.param_value'
 		);
 
+		// если заказывали аватар, но не заказывали имейл - запросить имейл, но потом стереть
 		if (in_array('avatar', $users['fields']) && !in_array('email', $users['fields'])) {
 			$users['fields'][] = 'email';
 			$delete_email_after = true;
