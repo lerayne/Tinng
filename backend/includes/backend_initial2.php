@@ -63,4 +63,9 @@ require_once $env['rootdir'].'libraries/JsHttpRequest.php'; // либа для �
 if (!ini_get('zlib.output_compression')) ob_start('ob_gzhandler'); // выводим результат в gzip
 
 $req =& new JsHttpRequest($e->locale); //"utf-8"
+
+
+function is_assoc($array) {
+	return (bool)count(array_filter(array_keys($array), 'is_string'));
+}
 ?>

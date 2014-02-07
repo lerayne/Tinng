@@ -145,6 +145,32 @@ function get_dialogue($dialogue) {
 	);
 }
 
+
+function ready_users($data, $delete_email_after = false) {
+
+	if (!is_assoc($data)) {
+		$to_process = $data;
+	} else {
+		$to_process = array();
+		$to_process[] = $data;
+	}
+
+	foreach ($to_process as $key => $val) {
+		if ($val['avatar'] == 'gravatar') {
+			$val['avatar'] = 'http://www.gravatar.com/avatar/' . md5(strtolower($val['email'])) . '?s=50';
+		}
+
+		if ($val['display_name'] == null) $val['display_name'] = $val['login'];
+
+		if (is_array($val) && $delete_email_after) unset($val['email']);
+
+		$processed[$key] = $val;
+	}
+
+	return is_assoc($data) ? $processed[0] : $processed;
+}
+
+
 function strip_nulls($array) {
 
 	foreach ($array as $key => $val) {
@@ -400,9 +426,14 @@ class Feed {
 			'slice_start' => '0' // работает как false, а в SQL-запросах по дате - как 0
 		));
 
-		if ($posts['dialogue']) $posts['topic'] = get_dialogue($posts['dialogue']);
+		if ($posts['dialogue']) {
+			$posts['topic'] = get_dialogue($posts['dialogue']);
 
-		if (!$posts['topic']) return Array();
+			if (!$posts['topic']) {
+
+				return Array();
+			}
+		}
 
 		$topic_exists = $db->selectCell('
 			SELECT msg.id
@@ -709,9 +740,47 @@ class Feed {
 			'updated_at' => '0', // определяем
 		));
 
-		if ($topic['dialogue']) $topic['id'] = get_dialogue($topic['dialogue']);
+		if ($topic['dialogue']) {
+			$topic['id'] = get_dialogue($topic['dialogue']);
 
-		if (!$topic['id']) return Array('deleted' => 1);
+			// если такого диалога еще нет
+			if (!$topic['id']) {
+
+				// делаем всё это только один раз
+				if (!$meta['updated_at']) {
+					$dialogue_user = $db->selectRow("
+					SELECT
+						usr.id,
+						usr.login,
+						usr.email,
+						usr.display_name,
+						avatar.param_value AS avatar
+					FROM ?_users usr
+						LEFT JOIN ?_user_settings avatar ON avatar.user_id = usr.id AND avatar.param_key = 'avatar'
+					WHERE usr.id = ?d
+					"
+						, $topic['dialogue']
+					);
+
+					if (!$dialogue_user) return array();
+
+					$dialogue_user = ready_users($dialogue_user, true);
+
+					$topic_props = array(
+						'dialogue' => 1,
+						'private' => array(0 => $dialogue_user)
+					);
+
+					// запоминаем
+					$meta['updated_at'] = now('sql');
+
+					return $topic_props;
+				} else {
+					// если уже сделали - говорим "апдейтов нет"
+					return array();
+				}
+			}
+		}
 
 		$topic_exists = $db->selectCell('
 			SELECT msg.id
@@ -797,16 +866,8 @@ class Feed {
 					, $topic['id']
 				);
 
-				//$GLOBALS['debug']['alowed'] = $allowed_users;
+				$allowed_users = ready_users($allowed_users, true);
 
-				foreach ($allowed_users as $key => $val) {
-
-					if ($val['avatar'] == 'gravatar') {
-						$allowed_users[$key]['avatar'] = 'http://www.gravatar.com/avatar/' . md5(strtolower($val['email'])) . '?s=50';
-					}
-					if ($val['display_name'] == null) $allowed_users[$key]['display_name'] = $val['login'];
-					unset($allowed_users[$key]['email']);
-				}
 				$topic_props['private'] = $allowed_users;
 			}
 
@@ -917,7 +978,7 @@ class Feed {
 
 		if (count($users['fields']) == 1) $method = 'selectCol';
 
-		$raw_userlist = $db->$method("
+		$userlist = $db->$method("
 			SELECT
 				{$fields_to_select}
 			FROM ?_users usr
@@ -930,19 +991,7 @@ class Feed {
 			, ($online_only ? $threshold_away : DBSIMPLE_SKIP)
 		);
 
-		$userlist = Array();
-
-		// постобработка юзеров
-		foreach ($raw_userlist as $val) {
-			if ($val['avatar'] == 'gravatar') {
-				$val['avatar'] = 'http://www.gravatar.com/avatar/' . md5(strtolower($val['email'])) . '?s=50';
-			}
-
-			if ($val['display_name'] == null) $val['display_name'] = $val['login'];
-
-			if ($delete_email_after) unset($val['email']);
-			$userlist[] = $val;
-		}
+		$userlist = ready_users($userlist, $delete_email_after);
 
 		// sorting
 		if (in_array('display_name', $users['fields'])) $userlist = sort_by_field($userlist, 'display_name');
