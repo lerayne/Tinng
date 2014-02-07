@@ -75,6 +75,7 @@ tinng.protos.UsersUnit = Class(tinng.protos.Unit, {
 
 	createUserElement:function(data){
 		var listItem = t.chunks.get('userListItem');
+		var that = this;
 
 		listItem.$body.addClass('userListItem user-'+data.id).attr('data-user', data.id);
 		listItem.$name.text(data.display_name);
@@ -85,7 +86,11 @@ tinng.protos.UsersUnit = Class(tinng.protos.Unit, {
 			appendTo:"#tinng-main-content",
 			distance:5,
 			scroll:false
-		})
+		});
+
+		listItem.$body.click(function(){
+			that.loadDialogue(data.id);
+		});
 
 		return listItem.$body;
 	},
@@ -109,6 +114,15 @@ tinng.protos.UsersUnit = Class(tinng.protos.Unit, {
 		}
 
 		this.currentOnlineList = userlist;
+	},
+
+	loadDialogue:function(id){
+
+		if (t.user.id) {
+			t.funcs.unloadTopic();
+			t.units.posts.unscribe();
+			t.units.posts.subscribe(id, t.cfg.posts_per_page, 'dialogue')
+		}
 	}
 
 })

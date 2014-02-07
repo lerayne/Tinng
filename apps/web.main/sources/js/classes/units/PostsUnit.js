@@ -163,7 +163,7 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 	},
 
 	renderPrivateUser:function(userData){
-		var user = this.state.allowedUsers[userData.id] = this.createUserElement(userData);
+		var user = this.state.allowedUsers[userData.id] = this.createUserElement(userData, 'allowedUsersItem', true);
 		this.header.allowedUsersContainer.addClass('private');
 		user.appendTo(this.header.allowedUsersContainer);
 	},
@@ -406,7 +406,7 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 		return false;
 	},
 
-	setTopicName: function (name) {
+	displayTopicName: function (name) {
 		this.header.topicName.$body.html(name)
 	},
 
@@ -416,6 +416,7 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 		t.connection.unscribe(this, 'topic_data');
 
 		t.address.del('topic');
+		t.address.del('dialogue');
 		t.address.del('plimit');
 		t.address.del('post');
 
@@ -425,46 +426,64 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 		this.exitRenameMode();
 	},
 
-	subscribe:function(id, limit){
+	subscribe:function(id, limit, isDialogue){
+
+		var postsFeed = {
+			feed:'posts',
+			limit: limit
+		}
+
+		var topicsFeed = {
+			feed:'topic'
+			//,fields:['id', 'date_read', 'name', 'post_count'] // пока не работает
+		}
+
+		if (typeof isDialogue == 'undefined' || !isDialogue) {
+			postsFeed.topic = id;
+			topicsFeed.id = id;
+			t.address.set('topic', id);
+		} else {
+			postsFeed.dialogue = id;
+			topicsFeed.dialogue = id;
+			t.address.set('dialogue', id);
+		}
+
+		t.address.set('plimit', limit);
 
 		// подписываемся на новую
 		t.connection.subscribe([
 			{
 				subscriber:this,
 				feedName:'posts',
-				feed: {
-					feed:'posts',
-					topic: id,
-					limit: limit
-				}
+				feed: postsFeed
 			},{
 				subscriber:this,
 				feedName:'topic_data',
-				feed: {
-					feed:'topic'
-					,id: id
-					//,fields:['id', 'date_read', 'name', 'post_count'] // пока не работает
-				}
+				feed: topicsFeed
 			}
 		]);
-
-		t.address.set({topic:id, plimit: limit});
 	},
 
 	// todo - сделано наспех, сделать нормальный класс!
-	createUserElement:function(userData) {
+	createUserElement:function(userData, addClass, draggable) {
 		var listItem = t.chunks.get('userListItem');
 
-		listItem.$body.addClass('allowedUsersItem user-'+userData.id).attr('data-user', userData.id);
+		listItem.$body.addClass('user-'+userData.id).attr('data-user', userData.id);
 		listItem.$avatar.prop('src', userData.avatar);
 		listItem.$name.text(userData.display_name);
 
-		listItem.$body.draggable({
-			helper:"clone",
-			appendTo:"#tinng-main-content",
-			distance:5,
-			scroll:false
-		});
+		if (typeof addClass != 'undefined') {
+			listItem.$body.addClass(addClass);
+		}
+
+		if (typeof draggable != 'undefined') {
+			listItem.$body.draggable({
+				helper:"clone",
+				appendTo:"#tinng-main-content",
+				distance:5,
+				scroll:false
+			});
+		}
 
 		return listItem.$body;
 	},
@@ -504,6 +523,8 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 			var topPostOffset = topPost.position().top;
 		}
 
+		var topicHeadLoaded = false;
+
 		// собственно, разбор пришедших сообщений
 		for (var i in postsList) {
 			var postData = postsList[i];
@@ -538,6 +559,7 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 				var newPost = t.posts[postData.id] = new t.protos.PostNode(postData);
 				this.addNode(newPost);
 
+				// добавляем автора в список отслеживаемых онлайн-статусов
 				t.userWatcher.watch(this, postData.author_id);
 
 				// если сообщение создано недавно - значит автор сейчас онлайн
@@ -549,11 +571,13 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 				if (postData.refered) {
 					thisParse.scrollTo = newPost;
 				}
+
+				if (postData.head) topicHeadLoaded = true;
 			}
 		}
 
 		// смотрим, загружено ли уже стартовое сообщение
-		var topicHeadLoaded = !!t.posts[currentTopic];
+		// var topicHeadLoaded = !!t.posts[currentTopic];
 
 		// если есть (или будет) заглавный пост - скрываем догрузочные кнопки
 		if (topicHeadLoaded) {
@@ -609,35 +633,60 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 
 		this.state.topicData = topicData;
 
-		if (topicData.deleted == 1) t.funcs.unloadTopic();
-		else {
-			this.setTopicName(topicData.topic_name); //вывод названия темы
+		// выгружаем удаленную тему
+		if (this.state.topicData.deleted == 1) {
+			
+			t.funcs.unloadTopic();
+		
+		} else {
+			
+			if (this.state.topicData.dialogue == 1) { // если мы имеем дело с потоком ЛС
 
-			if (typeof topicData.private == 'object' && topicData.private.length) {
-
-				this.header.allowedUsersContainer.addClass('private');
-
-				this.state.allowedUsers = {};
-				this.header.allowedUsersContainer.children().remove();
-
-				this.header.allowedUsersContainer.removeClass('none');
-
-				for (var i = 0; i < topicData.private.length; i++) {
-					this.renderPrivateUser(topicData.private[i])
-				}
-			} else {
 				this.header.allowedUsersContainer.removeClass('private');
-			}
 
-			// todo - в будущем тут будет проверка на наличие модулей, подписанных на список тем
-			if (t.topics && t.topics[topicData.id]) {
-
-				// если тема есть, но она не выделена - значит тема грузилась не кликом по ней
-				if (!t.topics[topicData.id].isSelected()) {
-					t.topics[topicData.id].select(); // сделать актвной
-					// todo - изменить везде show на scrollTo или что-то подобное
-					t.topics[topicData.id].show(false); // промотать до нее
+				for (var i = 0; i < this.state.topicData.private.length; i++) {
+					var user = this.state.topicData.private[i];
+					if (user.id != t.user.id) break;
 				}
+
+				var $user = this.createUserElement(user);
+
+				this.displayTopicName(t.txt.dialogue_width);
+				var dialogueWrap = $('<div class="dialogueWrap">').appendTo(this.header.topicName.$body);
+				dialogueWrap.append($user);
+
+				console.log(this.state.topicData.private);
+				
+			} else { // иначе - обычная тема
+				
+				this.displayTopicName(this.state.topicData.topic_name); //вывод названия темы
+
+				if (typeof this.state.topicData.private == 'object' && this.state.topicData.private.length) {
+
+					this.header.allowedUsersContainer.addClass('private');
+
+					this.state.allowedUsers = {};
+					this.header.allowedUsersContainer.children().remove();
+
+					this.header.allowedUsersContainer.removeClass('none');
+
+					for (var i = 0; i < this.state.topicData.private.length; i++) {
+						this.renderPrivateUser(this.state.topicData.private[i])
+					}
+				} else {
+					this.header.allowedUsersContainer.removeClass('private');
+				}	
+			}
+		}
+
+		// todo - в будущем тут будет проверка на наличие модулей, подписанных на список тем
+		if (t.topics && t.topics[this.state.topicData.id]) {
+
+			// если тема есть, но она не выделена - значит тема грузилась не кликом по ней
+			if (!t.topics[this.state.topicData.id].isSelected()) {
+				t.topics[this.state.topicData.id].select(); // сделать актвной
+				// todo - изменить везде show на scrollTo или что-то подобное
+				t.topics[this.state.topicData.id].show(false); // промотать до нее
 			}
 		}
 

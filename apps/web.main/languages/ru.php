@@ -43,6 +43,7 @@ $txt['save'] = 'Сохранить';
 $txt['answer'] = 'Ответить';
 $txt['rename'] = 'Переименовать';
 $txt['rename_topic'] = 'Переименовать тему';
+$txt['dialogue_width'] = 'Диалог:';
 
 $txt['new_topic_creation'] = 'Создание новой темы';
 $txt['new_topic_title'] = 'Название темы';

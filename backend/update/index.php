@@ -133,6 +133,18 @@ function add_tags($tags, $message_id){
 	}
 }
 
+function get_dialogue($dialogue) {
+	global $db, $user;
+
+	return $db->selectCell('
+		SELECT msg.id FROM ?_messages msg
+		JOIN ?_private_topics pvt ON pvt.message = msg.id AND pvt.level IS NOT NULL AND pvt.user = ?d
+		WHERE msg.dialogue = 1
+		'
+		, $dialogue
+	);
+}
+
 function strip_nulls($array) {
 
 	foreach ($array as $key => $val) {
@@ -387,6 +399,10 @@ class Feed {
 			'updates_since' => '0', // работает как false, а в SQL-запросах по дате - как 0
 			'slice_start' => '0' // работает как false, а в SQL-запросах по дате - как 0
 		));
+
+		if ($posts['dialogue']) $posts['topic'] = get_dialogue($posts['dialogue']);
+
+		if (!$posts['topic']) return Array();
 
 		$topic_exists = $db->selectCell('
 			SELECT msg.id
@@ -647,11 +663,13 @@ class Feed {
 		}
 
 		// показываем теги заглавного сообщения
-		if ($output_posts[$posts['topic']] && $output_posts[$posts['topic']]['dialogue'] == 0 ) {
+		if ($output_posts[$posts['topic']]) {
 
 			$output_posts[$posts['topic']]['head'] = true;
 
-			$tags = $db->select('
+			// в диалоге нам теги не нужны
+			if ($output_posts[$posts['topic']]['dialogue'] == 0) {
+				$tags = $db->select('
 				SELECT
 					tag.id,
 					tag.name,
@@ -660,10 +678,11 @@ class Feed {
 				LEFT JOIN ?_tags tag ON map.tag = tag.id
 				WHERE map.message = ?d
 				'
-				, $posts['topic']
-			);
+					, $posts['topic']
+				);
 
-			$output_posts[$posts['topic']]['tags'] = $tags;
+				$output_posts[$posts['topic']]['tags'] = $tags;
+			}
 		}
 
 
@@ -683,12 +702,16 @@ class Feed {
 
 		// defaults
 		$topic = load_defaults($topic, $topic_defaults = Array(
-			'id' => 0, // Ограничение выборки последними n сообщениями. 0 - грузить все
+			'id' => 0,
 		));
 
 		$meta = load_defaults($meta, $meta_defaults = Array(
 			'updated_at' => '0', // определяем
 		));
+
+		if ($topic['dialogue']) $topic['id'] = get_dialogue($topic['dialogue']);
+
+		if (!$topic['id']) return Array('deleted' => 1);
 
 		$topic_exists = $db->selectCell('
 			SELECT msg.id

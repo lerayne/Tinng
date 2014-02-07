@@ -32,10 +32,11 @@ tinng.funcs.onWindowLoad = function(){
 
     // загрузка данных из хеша адресной строки
 	var topicFromAddress = t.address.get('topic');
+	var dialogueFromAddress = t.address.get('dialogue');
     t.sync.curTopic = topicFromAddress ? parseInt(t.address.get('topic')) : 0;
 
 	//t.units.topics.startWaitIndication();
-	if (!t.sync.curTopic) t.units.posts.setInvitation();
+	if (!t.sync.curTopic && !dialogueFromAddress) t.units.posts.setInvitation();
 	else {
 		// todo - еще один костыль, напоминающий, что нужно сделать функцию инициализации темы
 		// todo - проблема: здесь массив t.topics еще не заполнен
@@ -60,27 +61,39 @@ tinng.funcs.onWindowLoad = function(){
 
 	var curTopic = t.sync.curTopic;
 
-	if (curTopic) {
+	if (curTopic || dialogueFromAddress) {
+
+		var postsFeed = {
+			feed:'posts',
+			topic: curTopic,
+			show_post: t.address.get('post') || 0,
+			limit: t.address.get('plimit') || t.cfg.posts_per_page
+		}
+
+		var topicFeed = {
+			feed:'topic'
+			,id: curTopic
+			//,fields:['id', 'date_read', 'name', 'post_count'] // пока не работает
+		}
+
+		if (curTopic) {
+			postsFeed.topic = curTopic;
+			topicFeed.id = curTopic;
+		} else if (dialogueFromAddress) {
+			postsFeed.dialogue = dialogueFromAddress;
+			topicFeed.dialogue = dialogueFromAddress;
+		}
 
 		initialSubscriptions.push({
 			subscriber: t.units.posts,
 			feedName:'posts',
-			feed:{
-				feed:'posts',
-				topic: curTopic,
-				show_post: t.address.get('post') || 0,
-				limit: t.address.get('plimit') || t.cfg.posts_per_page
-			}
+			feed:postsFeed
 		});
 
 		initialSubscriptions.push({
 			subscriber: t.units.posts,
 			feedName:'topic_data',
-			feed:{
-				feed:'topic'
-				,id: curTopic
-				//,fields:['id', 'date_read', 'name', 'post_count'] // пока не работает
-			}
+			feed:topicFeed
 		});
 	}
 
