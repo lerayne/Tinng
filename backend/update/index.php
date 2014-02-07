@@ -768,6 +768,7 @@ class Feed {
 
 					$topic_props = array(
 						'dialogue' => 1,
+						'new_dialogue' => 1,
 						'private' => array(0 => $dialogue_user)
 					);
 
