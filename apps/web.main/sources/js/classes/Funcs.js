@@ -76,6 +76,7 @@ Funcs.prototype = {
 	unloadTopic:function () {
 
 		if (t.state.selectedPost) t.state.selectedPost.deselect('full');
+		this.topicDeselect();
 
 		t.units.posts.unscribe();
 		t.ui.editor.hide();
