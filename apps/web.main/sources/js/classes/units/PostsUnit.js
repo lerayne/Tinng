@@ -37,6 +37,7 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 		this.ui.$header.append(this.header.$body);
 
 		this.newTopicMode = false;
+		this.topicHeadLoaded = false;
 
 		this.header.allowedUsersContainer = $('<div class="allowedUsersContainer"></div>').appendTo(this.header.allowedUsers.$body);
 
@@ -196,6 +197,7 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 		t.protos.Unit.prototype['clear'].apply(this, arguments);
 
 		this.$showMore.hide();
+		this.topicHeadLoaded = false;
 		this.header.allowedUsersContainer.removeClass('private').children().remove()
 		t.posts = {};
 	},
@@ -523,8 +525,6 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 			var topPostOffset = topPost.position().top;
 		}
 
-		var topicHeadLoaded = false;
-
 		// собственно, разбор пришедших сообщений
 		for (var i in postsList) {
 			var postData = postsList[i];
@@ -572,7 +572,7 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 					thisParse.scrollTo = newPost;
 				}
 
-				if (postData.head) topicHeadLoaded = true;
+				if (postData.head) this.topicHeadLoaded = true;
 			}
 		}
 
@@ -580,7 +580,7 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 		// var topicHeadLoaded = !!t.posts[currentTopic];
 
 		// если есть (или будет) заглавный пост - скрываем догрузочные кнопки
-		if (topicHeadLoaded) {
+		if (this.topicHeadLoaded) {
 			this.$showMore.hide();
 		} else {
 			this.$showMore.show();
