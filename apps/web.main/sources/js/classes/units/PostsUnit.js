@@ -101,32 +101,35 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 
 		// todo - сделать проверку на авторство, если тема была открытой
 
-		if (!this.state.allowedUsers[userId] && t.user.id != 0) {
 
-			this.header.allowedUsersContainer.addClass('private');
+		if (t.user.id == 0) return false; // не пускаем анонима
+		if (this.state.allowedUsers[userId]) return false; // не добавляем, если такой уже есть
+		// если тема открытая - разрешаем добавлять людей только ее автору
+		if (!this.state.allowedUsers.length && t.user.id != this.state.topicData.author_id) return false;
 
-			JsHttpRequest.query('backend/service.php',
-				{
-					action: 'add_to_private',
-					user_id: userId,
-					topic_id: this.subscriptions.topic_data.id
-				},
-				function(userData, error){
+		this.header.allowedUsersContainer.addClass('private');
 
-					if (error) console.error(error)
-					if (userData) {
+		JsHttpRequest.query('backend/service.php',
+			{
+				action: 'add_to_private',
+				user_id: userId,
+				topic_id: this.subscriptions.topic_data.id
+			},
+			function(userData, error){
 
-						// если меня еще нет
-						if (!that.state.allowedUsers[t.user.id]){
-							that.renderPrivateUser(t.user.data)
-						}
+				if (error) console.error(error)
+				if (userData) {
 
-						that.renderPrivateUser(userData);
+					// если меня еще нет
+					if (!that.state.allowedUsers[t.user.id]){
+						that.renderPrivateUser(t.user.data)
 					}
-				},
-				true // no cache
-			);
-		}
+
+					that.renderPrivateUser(userData);
+				}
+			},
+			true // no cache
+		);
 	},
 
 	removeUserFromPrivate:function(e, ui){
@@ -644,7 +647,8 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 			
 			if (this.state.topicData.dialogue > 0) { // если мы имеем дело с потоком ЛС
 
-				this.header.allowedUsersContainer.removeClass('private');
+				// хайд верхнего контейнера дает не только скрытие, но и отсутствие показа при такскании
+				this.header.allowedUsers.$body.hide();
 
 				for (var i = 0; i < this.state.topicData.private.length; i++) {
 					var user = this.state.topicData.private[i];
@@ -668,6 +672,7 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 				if (typeof this.state.topicData.private == 'object' && this.state.topicData.private.length) {
 
 					this.header.allowedUsersContainer.addClass('private');
+					this.header.allowedUsers.$body.show();
 
 					this.state.allowedUsers = {};
 					this.header.allowedUsersContainer.children().remove();
@@ -679,7 +684,9 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 					}
 				} else {
 					this.header.allowedUsersContainer.removeClass('private');
-				}	
+					// если пользователь не имеет права делать тему приватной - не показываем даже окошко
+					if (t.user.id != this.state.topicData.author_id) this.header.allowedUsers.$body.hide();
+				}
 			}
 		}
 
