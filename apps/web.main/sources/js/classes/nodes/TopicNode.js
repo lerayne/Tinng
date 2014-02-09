@@ -99,7 +99,6 @@ tinng.protos.TopicNode = Class(tinng.protos.Node, {
 		t.funcs.unloadTopic();
 		this.select(); // делаем тему в столбце тем активной
 		t.sync.curTopic = this.id;
-		if (t.user.hasRight('editMessage', t.topics[this.id])) t.units.posts.header.topicRename.show();
 
 		t.units.posts.unscribe();
 		t.units.posts.subscribe(this.id, t.cfg.posts_per_page)

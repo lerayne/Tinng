@@ -55,7 +55,7 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 
 		// права (todo - сделать наоборот!)
 		if (!t.user.hasRight('editMessage', this)) this.mainPanel.edit.$body.remove();
-		if (!t.user.hasRight('deleteMessage', this)) this.mainPanel['delete'].$body.remove();
+		if (!t.user.hasRight('deleteMessage', this) || data.dialogue > 0) this.mainPanel['delete'].$body.remove();
 		if (!t.user.hasRight('admin', this)) this.mainPanel.unlock.$body.remove();
 		// todo - тема, вручную отмеченная непрочитанной не отмечается таковой в списке тем, если последний пост в ней - текущего юзера
 		if (!t.user.hasRight('readMessage', this)) this.mainPanel.mark_unread.$body.remove();

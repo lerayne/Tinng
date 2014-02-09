@@ -200,6 +200,7 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 
 	clear: function () {
 		t.protos.Unit.prototype['clear'].apply(this, arguments);
+		this.header.topicRename.hide();
 
 		this.$showMore.hide();
 		this.topicHeadLoaded = false;
@@ -289,7 +290,7 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 	},
 
 	exitRenameMode: function () {
-		this.header.topicRename.show();
+		this.initializeRenameBtn();
 		this.header.save.hide();
 		this.header.cancel.hide();
 
@@ -395,8 +396,13 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 		return {$body: node.$body};
 	},
 
+	// todo - тут бред, навести порядок в инициализации
+	initializeRenameBtn:function(){
+		if (this.state.topicData.dialogue > 0) this.header.topicRename.show();
+	},
+
 	exitNewTopicMode: function () {
-		this.header.topicRename.show();
+		this.initializeRenameBtn();
 		//this.header.cancelNewTopic.hide();
 		this.header.topicName.$body.removeAttr('contenteditable').html('');
 		t.units.topics.header.newTopic.unblock();
@@ -666,6 +672,9 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 				else this.newDialogueMode = 0;
 				
 			} else { // иначе - обычная тема
+
+				if (t.user.hasRight('editMessage', t.topics[this.id])) t.units.posts.header.topicRename.show();
+				console.log('rename shown (1)')
 				
 				this.displayTopicName(this.state.topicData.topic_name); //вывод названия темы
 
