@@ -190,9 +190,16 @@ switch ($action):
 		$users_to_add = Array();
 		$users_to_add[] = $user_id;
 
-		if (!count($allowed_now)) { // мы впервые делаем тему приватной
+		if (!count($allowed_now)) { // мы делаем тему приватной из открытой
 
-			// todo - сделать проверку на право юзера делать тему приватной
+		 	if ($user->id > 1) {
+				$author = $db->selectCell('SELECT author_id FROM ?_messages WHERE id = ?d', $topic_id);
+
+				if ($user->id != $author) {
+					$result = 'restricted to topic\'s author';
+					break;
+				}
+			}
 
 			// если юзер не пытается добавить себя - добавляем еще и себя в список
 			if ($user->id != $user_id) $users_to_add[] = $user->id;

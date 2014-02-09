@@ -36,7 +36,7 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 		]);
 		this.ui.$header.append(this.header.$body);
 
-		this.newTopicMode = false;
+		this.newDialogueMode = false;
 		this.topicHeadLoaded = false;
 
 		this.header.allowedUsersContainer = $('<div class="allowedUsersContainer"></div>').appendTo(this.header.allowedUsers.$body);
@@ -98,6 +98,8 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 	addUserToPrivate: function(e, ui){
 		var that = this;
 		var userId = ui.draggable.attr('data-user');
+
+		// todo - сделать проверку на авторство, если тема была открытой
 
 		if (!this.state.allowedUsers[userId] && t.user.id != 0) {
 
@@ -340,7 +342,7 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 
 		this.addNode(this.createTopicEditNode())
 
-		this.newTopicMode = true;
+		this.newDialogueMode = true;
 
 		return false;
 	},
@@ -396,7 +398,7 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 		this.header.topicName.$body.removeAttr('contenteditable').html('');
 		t.units.topics.header.newTopic.unblock();
 
-		this.newTopicMode = false;
+		this.newDialogueMode = false;
 	},
 
 	cancelNewTopic: function () {
@@ -589,8 +591,6 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 		// управление прокруткой
 		if (firstLoad) {
 
-			t.ui.editor.show();
-
 			if (thisParse.scrollTo) {
 				// прокрутка до поста, указанного в фиде как референсный
 				thisParse.scrollTo.show(true);
@@ -639,8 +639,10 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 			t.funcs.unloadTopic();
 		
 		} else {
+
+			t.ui.editor.show();
 			
-			if (this.state.topicData.dialogue == 1) { // если мы имеем дело с потоком ЛС
+			if (this.state.topicData.dialogue > 0) { // если мы имеем дело с потоком ЛС
 
 				this.header.allowedUsersContainer.removeClass('private');
 
@@ -649,13 +651,15 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 					if (user.id != t.user.id) break;
 				}
 
+				this.state.topicData.dialogue = user.id;
 				var $user = this.createUserElement(user);
 
 				this.displayTopicName(t.txt.dialogue_width);
 				var dialogueWrap = $('<div class="dialogueWrap">').appendTo(this.header.topicName.$body);
 				dialogueWrap.append($user);
 
-				console.log(this.state.topicData.private);
+				if (this.state.topicData.new_dialogue) this.newDialogueMode = 1;
+				else this.newDialogueMode = 0;
 				
 			} else { // иначе - обычная тема
 				

@@ -56,20 +56,17 @@ tinng.protos.Editor.prototype = {
 				message: this.preparedMessage()
 			}
 
-			if (t.units.posts.newTopicMode) {
+			if (t.units.posts.newDialogueMode) {
 				writeObject.action = 'add_topic';
-				writeObject.title = t.units.posts.header.topicName.$body.text();
-
+				writeObject.title = '';
+				writeObject.dialogue = t.units.posts.state.topicData.dialogue;
 			} else {
 				writeObject.action = 'add_post';
-				writeObject.topic = t.units.posts.subscriptions['posts'].topic
+				writeObject.topic = t.units.posts.state.topicData.id;
 			}
 
+			// ОТПРАВЛЯЕМ
 			t.connection.write(writeObject);
-
-			if (t.units.posts.newTopicMode){
-				t.units.posts.exitNewTopicMode();
-			}
 
             this.ui.$messageBody.html('').focus(); // todo - сделать затенение кнопки, если сообщение пустое
         }
