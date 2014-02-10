@@ -199,7 +199,7 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 			this.hideMenu();
 			this.cells.$menuBtn.hide();
 
-			if (this.data.head) {
+			if (this.data.head && !this.data.dialogue) {
 				this.cells.$tags.hide();
 
 				this.data.newTags = this.data.tags ? this.data.tags.map(function(val){return val.name}) : [];
