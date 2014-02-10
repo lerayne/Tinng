@@ -40,12 +40,12 @@ tinng.protos.User.prototype = {
 
             case 'editMessage':
                 var message = value;
-                if (this.id == 1 || this.id == message.data.author_id) return true;
+                if (this.id == 1 || this.id == message.author_id) return true;
             	break;
 
 			case 'deleteMessage':
 				var message = value;
-				if (this.id == 1 || this.id == message.data.author_id) return true;
+				if (this.id == 1 || this.id == message.author_id) return true;
 				break;
         }
 

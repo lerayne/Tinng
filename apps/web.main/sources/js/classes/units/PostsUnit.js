@@ -120,12 +120,12 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 				if (error) console.error(error)
 				if (userData) {
 
+					that.renderPrivateUser(userData);
+
 					// если меня еще нет
 					if (!that.state.allowedUsers[t.user.id]){
 						that.renderPrivateUser(t.user.data)
 					}
-
-					that.renderPrivateUser(userData);
 				}
 			},
 			true // no cache
@@ -673,8 +673,7 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 				
 			} else { // иначе - обычная тема
 
-				if (t.user.hasRight('editMessage', t.topics[this.id])) t.units.posts.header.topicRename.show();
-				console.log('rename shown (1)')
+				if (t.user.hasRight('editMessage', this.state.topicData)) t.units.posts.header.topicRename.show();
 				
 				this.displayTopicName(this.state.topicData.topic_name); //вывод названия темы
 
