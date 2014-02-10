@@ -28,6 +28,10 @@ tinng.funcs.parser2 = function (result, actions) {
 		}
 	}
 
+//	console.log('something returned')
+//	if (result.feeds) console.log('result.feeds:',result.feeds)
+//	else console.log('no data')
+
 	if (result.feeds) {
 		for (var subscriberId in result.feeds) {
 			if (t.connection.subscribers[subscriberId] && t.connection.subscribers[subscriberId].parseFeed) {

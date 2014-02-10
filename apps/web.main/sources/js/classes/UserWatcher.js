@@ -111,6 +111,6 @@ t.protos.UserWatcher.prototype = {
 
 		this.stylesheet.text(rule);
 
-		console.log('rewriting online rule');
+		//console.log('rewriting online rule');
 	}
 }

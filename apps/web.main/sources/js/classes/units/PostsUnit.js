@@ -116,6 +116,8 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 		// если есть подписки
 		if (!t.funcs.isEmptyObject(this.subscriptions)){
 
+			console.log ('subscriptions detected: unscribing')
+
 			// отписываемся от старой темы
 			t.connection.unscribe(this, 'posts');
 			t.connection.unscribe(this, 'topic_data');
@@ -126,7 +128,6 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 
 			t.address.del(['topic', 'dialogue', 'plimit', 'post']);
 
-			// todo - заменить на единую функцию инициализации интерфейса
 			this.exitRenameMode();
 		}
 
@@ -134,7 +135,7 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 	},
 
 	isClear: function () {
-		return t.funcs.isEmptyObject(t.posts);
+		return t.funcs.isEmptyObject(t.posts) && !this.ui.$content.children().size();
 	},
 
 	subscribe:function(id, limit, isDialogue){
@@ -370,13 +371,15 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 
 	exitRenameMode: function () {
 
-		this.state.renameFrom = false;
-		
-		this.initializeRenameBtn();
-		this.header.save.hide();
-		this.header.cancel.hide();
+		if (this.state.renameFrom) {
+			this.state.renameFrom = false;
 
-		this.header.topicName.$body.removeAttr('contenteditable');
+			this.header.topicRename.show();
+			this.header.save.hide();
+			this.header.cancel.hide();
+
+			this.header.topicName.$body.removeAttr('contenteditable');
+		}
 	},
 
 	cancelRename: function () {
@@ -474,11 +477,6 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 		})
 
 		return {$body: node.$body};
-	},
-
-	// todo - тут бред, навести порядок в инициализации
-	initializeRenameBtn:function(){
-		if (this.state.topicData.dialogue == 0) this.header.topicRename.show();
 	},
 
 	exitNewTopicMode: function () {
@@ -665,7 +663,8 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 
 		// выгружаем удаленную тему
 		if (this.state.topicData.deleted == 1) {
-			
+
+			//console.log('TOPIC DELETED')
 			this.unscribe();
 		
 		} else {

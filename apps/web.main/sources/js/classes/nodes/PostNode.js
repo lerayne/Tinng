@@ -145,7 +145,7 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 	// окончательно удаляет ноду
 	kill:function () {
 		this.$body.remove();
-		delete(t.posts[this.id]); //todo - проверить, удаляется ли сам элемент массива
+		delete(t.posts[this.id]);
 	},
 
 	// прокручивает список до данного сообщения

@@ -54,7 +54,10 @@ tinng.protos.strategic.XHRShortPoll.prototype = {
 				}
 
 				// сбрасываем ее мету
-				if (!soft && this.meta[subscriberId]) this.meta[subscriberId][feedName] = {};
+				if (!soft && this.meta[subscriberId]) {
+					//console.log('META RESET')
+					this.meta[subscriberId][feedName] = {};
+				}
 
 				// иначе создаем новую подписку
 			} else subscriberFeeds[feedName] = feed;
@@ -84,7 +87,9 @@ tinng.protos.strategic.XHRShortPoll.prototype = {
 
 			delete this.subscriptions[subscriberId][feedName];
 
-			if (this.meta[subscriberId]) delete this.meta[subscriberId][feedName];
+			if (this.meta[subscriberId]) {
+				delete this.meta[subscriberId][feedName];
+			}
 
 			// считаем, сколько подписок осталось
 			var i = 0;
@@ -120,6 +125,9 @@ tinng.protos.strategic.XHRShortPoll.prototype = {
 		if (this.request || this.timeout) this.stop();
 
 		this.startIndication(); // показываем, что запрос начался
+
+//		console.log('this.subscriptions:', this.subscriptions);
+//		console.log('this.meta:', this.meta);
 
 		try {
 			// Отправляем запрос
@@ -183,13 +191,17 @@ tinng.protos.strategic.XHRShortPoll.prototype = {
 
 			//console.log('XHRShortPoll actions:', this.actions)
 
+			this.meta = {};
+
+			for (var i = 0; i < this.request.responseJS.meta.length; i++) {
+				var metaItem = this.request.responseJS.meta[i];
+				this.meta[i] = metaItem;
+			}
+
 			// разбираем пришедший пакет и выполняем обновления
 			this.parseCallback(this.request.responseJS, this.actions);
 
-			this.meta = this.request.responseJS.meta;
-
 			this.actions = {};
-
 
 			this.stopIndication(); // индикация ожидания откл
 			this.request = false;

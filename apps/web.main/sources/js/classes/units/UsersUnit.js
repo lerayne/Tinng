@@ -90,9 +90,12 @@ tinng.protos.UsersUnit = Class(tinng.protos.Unit, {
 			scroll:false
 		});
 
-		listItem.$body.click(function(){
-			that.loadDialogue(data.id);
-		});
+		if (data.id != t.user.id) {
+			listItem.$body.click(function(){
+				that.loadDialogue(data.id);
+			});
+		}
+
 
 		return listItem.$body;
 	},
@@ -120,9 +123,10 @@ tinng.protos.UsersUnit = Class(tinng.protos.Unit, {
 
 	loadDialogue:function(id){
 
-		if (t.user.id) {
+		if (t.user.id && t.user.id != id) {
 			t.units.posts.unscribe();
 			t.units.posts.subscribe(id, t.cfg.posts_per_page, 'dialogue')
+			t.units.posts.startWaitIndication();
 		}
 	}
 
