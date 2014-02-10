@@ -6,6 +6,17 @@
 
 tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 
+	nullify:function(){
+		t.protos.Unit.prototype
+			.nullify.apply(this, arguments);
+
+		this.state.topicData = {};
+		this.state.allowedUsers = {};
+		this.newDialogueMode = false;
+		this.topicHeadLoaded = false;
+	},
+
+
 	construct: function () {
 		var that = this;
 
@@ -24,8 +35,6 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 		t.protos.Unit.prototype
 			.construct.apply(this, arguments);
 
-		this.state.allowedUsers = {};
-
 		this.header = new t.protos.ui.Panel([
 			{type:'Button', label:'topicRename', cssClass:'right reveal3', icon:'pencil_w.png', tip:tinng.txt.rename_topic},
 			{type:'Button', label:'cancel', cssClass:'right', icon:'cancel_w.png', tip:tinng.txt.cancel},
@@ -35,9 +44,6 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 			{type:'Field', label:'allowedUsers', cssClass:'allowedUsers'}
 		]);
 		this.ui.$header.append(this.header.$body);
-
-		this.newDialogueMode = false;
-		this.topicHeadLoaded = false;
 
 		this.header.allowedUsersContainer = $('<div class="allowedUsersContainer"></div>').appendTo(this.header.allowedUsers.$body);
 

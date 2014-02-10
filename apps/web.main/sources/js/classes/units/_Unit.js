@@ -12,8 +12,11 @@ tinng.protos.Unit = Class({
 
 	nullify:function(){
 		this.state = {};
-		this.contentLoaded = 0;
+		this.contentLoaded = false;
 		this.subscriptions = {};
+
+		this.ui.$content.children().remove();
+		this.stopWaitIndication();
 	},
 
 	construct: function (data) {
@@ -27,9 +30,6 @@ tinng.protos.Unit = Class({
 
 		this.data = data;
 		this.active = true;
-
-		// ИНИЦИАЛИЗАЦИЯ
-		this.nullify();
 
 		this.ui = t.chunks.get('unit');
 		var $body = this.$body = this.ui.$body;
@@ -47,7 +47,9 @@ tinng.protos.Unit = Class({
 	},
 
 	placeTo:function(container){
-		// todo - здесь можно также инициализировать юнит
+
+		// ИНИЦИАЛИЗАЦИЯ
+		this.nullify();
 		container.append(this.$body);
 	},
 
