@@ -105,7 +105,7 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 		if (t.user.id == 0) return false; // не пускаем анонима
 		if (this.state.allowedUsers[userId]) return false; // не добавляем, если такой уже есть
 		// если тема открытая - разрешаем добавлять людей только ее автору
-		if (!this.state.allowedUsers.length && t.user.id != this.state.topicData.author_id) return false;
+		if (t.funcs.isEmptyObject(this.state.allowedUsers) && t.user.id != this.state.topicData.author_id) return false;
 
 		this.header.allowedUsersContainer.addClass('private');
 
@@ -132,20 +132,9 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 		);
 	},
 
-	removeUserFromPrivate:function(e, ui){
+	// допустим $_ - приватный метод
+	$_removeUserFromPrivate:function(userId){
 		var that = this;
-		var userId = ui.draggable.attr('data-user');
-
-		if (t.funcs.objectSize(this.state.allowedUsers) > 1 && userId == t.user.id && this.state.topicData.author_id == t.user.id) {
-			console.warn("you can only remove yourself from YOUR topic if you're the last person with access");
-			return false;
-		}
-
-		// если ты не админ, не автор темы и удалить пытаешься не себя - запретить
-		if (t.user.id != 1 && this.state.topicData.author_id != t.user.id && userId != t.user.id){
-			console.warn("you can't remove user from someone else's topic");
-			return false;
-		}
 
 		JsHttpRequest.query('backend/service.php',
 			{
@@ -166,6 +155,31 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 			},
 			true // no cache
 		);
+	},
+
+	removeUserFromPrivate:function(e, ui){
+		var that = this;
+		var userId = ui.draggable.attr('data-user');
+
+		if (t.funcs.objectSize(this.state.allowedUsers) > 1 && userId == t.user.id && this.state.topicData.author_id == t.user.id) {
+			console.warn("you can only remove yourself from YOUR topic if you're the last person with access");
+			return false;
+		}
+
+		// если ты не админ, не автор темы и удалить пытаешься не себя - запретить
+		if (t.user.id != 1 && this.state.topicData.author_id != t.user.id && userId != t.user.id){
+			console.warn("you can't remove user from someone else's topic");
+			return false;
+		}
+
+		if (t.user.id == userId) {
+
+			var warnText = t.funcs.objectSize(this.state.allowedUsers) > 1 ? t.txt.warn_unaccess_yourself : t.txt.warn_making_public;
+			if (confirm(warnText)) this.$_removeUserFromPrivate(userId);
+
+		} else {
+			this.$_removeUserFromPrivate(userId);
+		}
 	},
 
 	renderPrivateUser:function(userData){
@@ -201,6 +215,8 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 	clear: function () {
 		t.protos.Unit.prototype['clear'].apply(this, arguments);
 		this.header.topicRename.hide();
+
+		this.state.allowedUsers = {};
 
 		this.$showMore.hide();
 		this.topicHeadLoaded = false;
@@ -682,7 +698,6 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 					this.header.allowedUsersContainer.addClass('private');
 					this.header.allowedUsers.$body.show();
 
-					this.state.allowedUsers = {};
 					this.header.allowedUsersContainer.children().remove();
 
 					this.header.allowedUsersContainer.removeClass('none');
