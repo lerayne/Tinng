@@ -102,20 +102,24 @@ tinng.protos.UsersUnit = Class(tinng.protos.Unit, {
 
 	parseOnlineStates:function(userlist) {
 
-		for (var i = 0; i < userlist.length; i++) {
-			var user = userlist[i];
+		try {
+			for (var i = 0; i < userlist.length; i++) {
+				var user = userlist[i];
 
-			if (this.currentOnlineList.indexOf(user) == -1) {
-				this.objectsList[user].appendTo(this.$onlineList)
+				if (this.currentOnlineList.indexOf(user) == -1) {
+					this.objectsList[user].appendTo(this.$onlineList)
+				}
 			}
-		}
 
-		for (var i = 0; i < this.currentOnlineList.length; i++) {
-			var user = this.currentOnlineList[i];
+			for (var i = 0; i < this.currentOnlineList.length; i++) {
+				var user = this.currentOnlineList[i];
 
-			if (userlist.indexOf(user) == -1) {
-				this.objectsList[user].appendTo(this.$offlineList)
+				if (userlist.indexOf(user) == -1) {
+					this.objectsList[user].appendTo(this.$offlineList)
+				}
 			}
+		} catch (e) {
+			console.warn('Tinng: Ошибка парсинга онлайн-статусов:', e)
 		}
 
 		this.currentOnlineList = userlist;

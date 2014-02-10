@@ -712,7 +712,11 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 				} else {
 					this.header.allowedUsersContainer.removeClass('private');
 					// если пользователь не имеет права делать тему приватной - не показываем даже окошко
-					if (t.user.id != this.state.topicData.author_id) this.header.allowedUsers.$body.hide();
+					if (t.user.id == this.state.topicData.author_id || t.user.id == 1) {
+						this.header.allowedUsers.$body.show();
+					} else {
+						this.header.allowedUsers.$body.hide();
+					}
 				}
 			}
 		}
