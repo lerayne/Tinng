@@ -34,6 +34,9 @@ tinng.protos.Unit = Class({
 		this.ui = t.chunks.get('unit');
 		var $body = this.$body = this.ui.$body;
 
+		// ИНИЦИАЛИЗАЦИЯ
+		this.nullify();
+
 		/* ОБРАБОТКА */
 
 		$body.addClass(data.name);
@@ -48,8 +51,6 @@ tinng.protos.Unit = Class({
 
 	placeTo:function(container){
 
-		// ИНИЦИАЛИЗАЦИЯ
-		this.nullify();
 		container.append(this.$body);
 	},
 
