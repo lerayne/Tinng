@@ -27,6 +27,13 @@ tinng.protos.TopicsUnit = Class(tinng.protos.Unit, {
 		if (!t.user.hasRight('createTopic')) this.header.newTopic.block();
 	},
 
+	nullify:function(){
+		t.protos.Unit.prototype
+			.nullify.apply(this, arguments);
+
+		t.topics = {};
+	},
+
 	createSearchBox:function(){
 		var that = this;
 
@@ -90,7 +97,7 @@ tinng.protos.TopicsUnit = Class(tinng.protos.Unit, {
 	},
 
 	setFilterQuery: function (tagSet) {
-		this.clear();
+		this.nullify();
 
 		var searchString = tagSet.join('+');
 
@@ -103,12 +110,6 @@ tinng.protos.TopicsUnit = Class(tinng.protos.Unit, {
 		} else {
 			t.address.del('search');
 		}
-	},
-
-	clear: function () {
-		t.protos.Unit.prototype['clear'].apply(this, arguments);
-
-		t.topics = {};
 	},
 
 	isClear: function () {
@@ -158,7 +159,7 @@ tinng.protos.TopicsUnit = Class(tinng.protos.Unit, {
 				if (topicData.deleted == 1) {
 
 					existingTopic.remove('fast');
-					//if (topicData.id == t.sync.curTopic) t.units.posts.unloadTopic();
+					//if (topicData.id == t.sync.curTopic) t.units.posts.unscribe();
 					delete(existingTopic);
 
 				} else {

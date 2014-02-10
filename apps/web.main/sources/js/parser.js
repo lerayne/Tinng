@@ -16,6 +16,7 @@ tinng.funcs.parser2 = function (result, actions) {
 		for (var actionId in result.actions){
 			var actionResponse = result.actions[actionId];
 
+			// если это было создание новой темы - сразу подписываемся на нее
 			switch (actionResponse.action) {
 				case 'add_topic':
 

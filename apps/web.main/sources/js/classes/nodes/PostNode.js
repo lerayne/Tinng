@@ -199,7 +199,7 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 			this.hideMenu();
 			this.cells.$menuBtn.hide();
 
-			if (this.data.head && !this.data.dialogue) {
+			if (this.data.head && this.data.dialogue == 0) {
 				this.cells.$tags.hide();
 
 				this.data.newTags = this.data.tags ? this.data.tags.map(function(val){return val.name}) : [];
@@ -252,13 +252,18 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 
 		console.log('write tags:', this.data.newTags)
 
-		t.connection.write({
-			action: 'update_message',
-			id:this.id,
-			message:this.cells.$message.html(),
-			tags:this.data.newTags
-		});
-		this.exitEditMode();
+		var newContent = this.cells.$message.html();
+
+		if (!newContent.match(t.rex.empty)) {
+			t.connection.write({
+				action: 'update_message',
+				id:this.id,
+				message:newContent,
+				tags:this.data.newTags
+			});
+			this.exitEditMode();
+		} else alert('null length!')
+
 
 		return false; // preventDefault + stopPropagation
 	},

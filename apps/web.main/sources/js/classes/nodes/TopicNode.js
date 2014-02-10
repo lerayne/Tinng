@@ -94,9 +94,6 @@ tinng.protos.TopicNode = Class(tinng.protos.Node, {
 	// загрузить тему
 	loadPosts:function () {
 
-		//console.log('loadPosts:', this.data.topic_name, this.data.id);
-
-		t.units.posts.unloadTopic();
 		this.select(); // делаем тему в столбце тем активной
 		t.sync.curTopic = this.id;
 

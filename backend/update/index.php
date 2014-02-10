@@ -90,27 +90,29 @@ function parse_request($request) {
 					$new_tags = $write['tags'];
 					unset($write['id'], $write['tags']);
 
-					// занимаемся тегами
-					$current_tags = $db->selectCol('
+					if ($new_tags) {
+						// занимаемся тегами
+						$current_tags = $db->selectCol('
 						SELECT tag.id AS ARRAY_KEY, tag.name FROM ?_tagmap map
 						LEFT JOIN ?_tags tag ON map.tag = tag.id
 						WHERE map.message = ?d
 						'
-						, $upd_id
-					);
+							, $upd_id
+						);
 
-					$tags_to_add = array();
-					$tags_to_remove = array();
+						$tags_to_add = array();
+						$tags_to_remove = array();
 
-					foreach ($new_tags as $tag) if (!in_array($tag, $current_tags)) $tags_to_add[] = $tag;
-					foreach ($current_tags as $id => $tag) if (!in_array($tag, $new_tags)) $tags_to_remove[$id] = $tag;
+						foreach ($new_tags as $tag) if (!in_array($tag, $current_tags)) $tags_to_add[] = $tag;
+						foreach ($current_tags as $id => $tag) if (!in_array($tag, $new_tags)) $tags_to_remove[$id] = $tag;
 
-					if (count($tags_to_remove)) {
-						$db->query('DELETE FROM ?_tagmap WHERE message = ?d AND tag IN (?a)', $upd_id, array_keys($tags_to_remove));
-					}
+						if (count($tags_to_remove)) {
+							$db->query('DELETE FROM ?_tagmap WHERE message = ?d AND tag IN (?a)', $upd_id, array_keys($tags_to_remove));
+						}
 
-					if (count($tags_to_add)) {
-						add_tags($tags_to_add, $upd_id);
+						if (count($tags_to_add)) {
+							add_tags($tags_to_add, $upd_id);
+						}
 					}
 
 					/*$GLOBALS['debug']['$new_tags'] = $new_tags;

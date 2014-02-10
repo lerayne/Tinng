@@ -10,15 +10,6 @@ tinng.protos.Unit = Class({
 		this.construct(data);
 	},
 
-	nullify:function(){
-		this.state = {};
-		this.contentLoaded = false;
-		this.subscriptions = {};
-
-		this.ui.$content.children().remove();
-		this.stopWaitIndication();
-	},
-
 	construct: function (data) {
 
 		t.funcs.bind(this, [
@@ -34,9 +25,6 @@ tinng.protos.Unit = Class({
 		this.ui = t.chunks.get('unit');
 		var $body = this.$body = this.ui.$body;
 
-		// ИНИЦИАЛИЗАЦИЯ
-		this.nullify();
-
 		/* ОБРАБОТКА */
 
 		$body.addClass(data.name);
@@ -49,9 +37,23 @@ tinng.protos.Unit = Class({
 		this.ui.$scrollArea.scroll();
 	},
 
+	nullify:function(){
+		this.state = {};
+		this.contentLoaded = false;
+		this.subscriptions = {};
+
+		this.ui.$content.children().remove();
+		this.stopWaitIndication();
+	},
+
 	placeTo:function(container){
 
+		// ИНИЦИАЛИЗАЦИЯ
+		this.nullify();
+
 		container.append(this.$body);
+
+		this.activate();
 	},
 
 	toggleActive:function(){
@@ -100,12 +102,6 @@ tinng.protos.Unit = Class({
 
 		this.atBottom = this.scrollAreaH + this.scrolledBy - this.ui.$contentWrap.offsetHeight() >= 0;
 		this.atTop = this.scrolledBy == 0;
-	},
-
-	clear: function () {
-		//todo проверить полное удаление из памяти
-		this.ui.$content.children().remove();
-		this.stopWaitIndication();
 	},
 
 	isClear: function () {

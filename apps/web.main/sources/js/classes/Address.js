@@ -53,7 +53,13 @@ tinng.protos.Address.prototype = {
     },
 
     del:function (varName) {
-        delete(this.vars[varName]);
+
+		var array = (varName instanceof Array) ? varName : [varName];
+
+		for (var i = 0; i < array.length; i++) {
+			delete(this.vars[array[i]]);
+		}
+
         this.write();
     }
 }

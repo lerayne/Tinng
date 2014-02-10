@@ -10,7 +10,7 @@
 // нужен return new InternalClass() в конструкторе. Само собой, возможна и полузакрытая схема
 tinng.protos.Connection = function (config) {
 
-	this.subscribers = []
+	this.subscribers = [];
 
 	// настройки по умолчанию и их перегрузка
 	this.conf = t.funcs.objectConfig(config, this.defaultConf = {

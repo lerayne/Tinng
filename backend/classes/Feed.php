@@ -853,6 +853,7 @@ class Feed {
 			LEFT JOIN ?_tagmap map ON map.tag = tag.id
 			LEFT JOIN ?_messages msg ON map.message = msg.id
 			WHERE tag.updated > ?
+			GROUP BY tag.id
 			",$meta['updated']
 		);
 

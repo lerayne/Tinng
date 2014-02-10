@@ -6,17 +6,6 @@
 
 tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 
-	nullify:function(){
-		t.protos.Unit.prototype
-			.nullify.apply(this, arguments);
-
-		this.state.topicData = {};
-		this.state.allowedUsers = {};
-		this.newDialogueMode = false;
-		this.topicHeadLoaded = false;
-	},
-
-
 	construct: function () {
 		var that = this;
 
@@ -101,6 +90,91 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 		this.$showMore.append(showNext, showAll);
 	},
 
+	nullify:function(){
+		t.protos.Unit.prototype
+			.nullify.apply(this, arguments);
+
+		t.posts = {};
+
+		this.state.topicData = {};
+		this.state.allowedUsers = {};
+		this.newDialogueMode = false;
+		this.topicHeadLoaded = false;
+
+		this.header.allowedUsers.$body.hide();
+		this.header.allowedUsersContainer.removeClass('private').children().remove();
+		this.header.topicName.$body.html('');
+
+		this.$showMore.hide();
+		this.header.topicRename.hide();
+
+		$('.topics .active').removeClass('active');
+	},
+
+	unscribe:function(){
+
+		// если есть подписки
+		if (!t.funcs.isEmptyObject(this.subscriptions)){
+
+			// отписываемся от старой темы
+			t.connection.unscribe(this, 'posts');
+			t.connection.unscribe(this, 'topic_data');
+
+			if (t.state.selectedPost) t.state.selectedPost.deselect('full');
+			t.ui.editor.hide();
+			t.userWatcher.unwatch(this);
+
+			t.address.del(['topic', 'dialogue', 'plimit', 'post']);
+
+			// todo - заменить на единую функцию инициализации интерфейса
+			this.exitRenameMode();
+		}
+
+		this.nullify();
+	},
+
+	isClear: function () {
+		return t.funcs.isEmptyObject(t.posts);
+	},
+
+	subscribe:function(id, limit, isDialogue){
+
+		var postsFeed = {
+			feed:'posts',
+			limit: limit
+		}
+
+		var topicsFeed = {
+			feed:'topic'
+			//,fields:['id', 'date_read', 'name', 'post_count'] // пока не работает
+		}
+
+		if (typeof isDialogue == 'undefined' || !isDialogue) {
+			postsFeed.topic = id;
+			topicsFeed.id = id;
+			t.address.set('topic', id);
+		} else {
+			postsFeed.dialogue = id;
+			topicsFeed.dialogue = id;
+			t.address.set('dialogue', id);
+		}
+
+		t.address.set('plimit', limit);
+
+		// подписываемся на новую
+		t.connection.subscribe([
+			{
+				subscriber:this,
+				feedName:'posts',
+				feed: postsFeed
+			},{
+				subscriber:this,
+				feedName:'topic_data',
+				feed: topicsFeed
+			}
+		]);
+	},
+
 	addUserToPrivate: function(e, ui){
 		var that = this;
 		var userId = ui.draggable.attr('data-user');
@@ -155,7 +229,7 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 
 					// если ты удалил себя а в теме еще кто-то есть - закрыть у себя тему
 					if (userId == t.user.id && t.funcs.objectSize(that.state.allowedUsers) > 0) {
-						this.unloadTopic();
+						this.unscribe();
 					}
 				}
 			},
@@ -219,12 +293,10 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 	},
 
 	setInvitation: function () {
-		this.clear();
 		this.ui.$content.append(t.chunks.get('posts-default').$body);
 	},
 
 	/*startWaitIndication:function(){
-	 this.clear();
 	 this.ui.$scrollArea.addClass('loading');
 	 },*/
 
@@ -284,9 +356,10 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 
 		} else {
 
+			this.state.renameFrom = this.header.topicName.$body.html();
+
 			this.header.topicRename.hide();
 
-			this.nameBackup = this.header.topicName.$body.html();
 			this.header.save.show();
 			this.header.cancel.show();
 
@@ -296,6 +369,9 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 	},
 
 	exitRenameMode: function () {
+
+		this.state.renameFrom = false;
+		
 		this.initializeRenameBtn();
 		this.header.save.hide();
 		this.header.cancel.hide();
@@ -305,23 +381,28 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 
 	cancelRename: function () {
 
-		this.exitRenameMode();
 		this.unlock();
-		this.header.topicName.$body.html(this.nameBackup);
-		this.nameBackup = '';
+		this.header.topicName.$body.html(this.state.renameFrom);
+
+		this.exitRenameMode();
 
 		return false;
 	},
 
 	saveName: function () {
 
-		t.connection.write({
-			action:'update_message',
-			id: this.subscriptions['posts'].topic,
-			topic_name: this.header.topicName.$body.html()
-		});
+		var newName = this.header.topicName.$body.text();
 
-		this.exitRenameMode();
+		// todo - сделать универсальную проверялку валидности вводимого текста
+		if (!newName.match(t.rex.empty)) {
+			t.connection.write({
+				action:'update_message',
+				id: this.subscriptions['posts'].topic,
+				topic_name: newName
+			});
+
+			this.exitRenameMode();
+		} else alert ('null length')
 
 		return false; // preventDefault + stopPropagation
 	},
@@ -340,19 +421,12 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 
 	newTopic: function () {
 
-		this.unloadTopic();
+		this.unscribe();
 
-		this.header.topicRename.hide();
-		//this.header.cancelNewTopic.show();
-		this.$showMore.hide();
-
+		t.units.topics.header.newTopic.block();
 		this.header.topicName.$body.html(t.txt.new_topic_creation);
-		//this.header.topicName.$body.attr('contenteditable', true);
-		//this.header.topicName.$body.focus();
 
-		this.addNode(this.createTopicEditNode())
-
-		this.newDialogueMode = true;
+		this.addNode(this.createTopicEditNode());
 
 		return false;
 	},
@@ -385,7 +459,7 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 
 			if (!node.$input_title.val().match(t.rex.empty) && !node.$input_body.val().match(t.rex.empty)) {
 
-				that.clear();
+				that.exitNewTopicMode();
 
 				t.connection.write({
 					action:'add_topic',
@@ -404,116 +478,24 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 
 	// todo - тут бред, навести порядок в инициализации
 	initializeRenameBtn:function(){
-		if (this.state.topicData.dialogue > 0) this.header.topicRename.show();
+		if (this.state.topicData.dialogue == 0) this.header.topicRename.show();
 	},
 
 	exitNewTopicMode: function () {
-		this.initializeRenameBtn();
-		//this.header.cancelNewTopic.hide();
-		this.header.topicName.$body.removeAttr('contenteditable').html('');
+		this.ui.$content.children().remove();
 		t.units.topics.header.newTopic.unblock();
-
-		this.newDialogueMode = false;
 	},
 
 	cancelNewTopic: function () {
 
-		// todo - убрать эту хрень с unloadTopic и разобраться в алгоритмах загрузки и выгрузки, подписки-отписки
-		this.unloadTopic();
 		this.exitNewTopicMode();
+		this.setInvitation();
 
 		return false;
 	},
 
 	displayTopicName: function (name) {
 		this.header.topicName.$body.html(name)
-	},
-
-	isClear: function () {
-		return t.funcs.isEmptyObject(t.posts);
-	},
-
-	clear: function () {
-		t.protos.
-			Unit.prototype.
-			clear.apply(this, arguments);
-
-		this.header.topicRename.hide();
-
-		this.state.allowedUsers = {};
-
-		this.$showMore.hide();
-		this.topicHeadLoaded = false;
-		this.header.allowedUsersContainer.removeClass('private').children().remove()
-		t.posts = {};
-	},
-
-	unloadTopic:function(){
-		if (t.state.selectedPost) t.state.selectedPost.deselect('full');
-
-		$('.topics .active').removeClass('active');
-
-		this.unscribe();
-		t.ui.editor.hide();
-
-		t.userWatcher.unwatch(this);
-
-		this.contentLoaded = 0;
-		this.header.topicRename.hide();
-	},
-
-	unscribe:function(){
-		// отписываемся от старой темы
-		t.connection.unscribe(this, 'posts');
-		t.connection.unscribe(this, 'topic_data');
-
-		t.address.del('topic');
-		t.address.del('dialogue');
-		t.address.del('plimit');
-		t.address.del('post');
-
-		this.clear();
-		// todo - заменить на единую функцию инициализации интерфейса
-		this.exitNewTopicMode();
-		this.exitRenameMode();
-	},
-
-	subscribe:function(id, limit, isDialogue){
-
-		var postsFeed = {
-			feed:'posts',
-			limit: limit
-		}
-
-		var topicsFeed = {
-			feed:'topic'
-			//,fields:['id', 'date_read', 'name', 'post_count'] // пока не работает
-		}
-
-		if (typeof isDialogue == 'undefined' || !isDialogue) {
-			postsFeed.topic = id;
-			topicsFeed.id = id;
-			t.address.set('topic', id);
-		} else {
-			postsFeed.dialogue = id;
-			topicsFeed.dialogue = id;
-			t.address.set('dialogue', id);
-		}
-
-		t.address.set('plimit', limit);
-
-		// подписываемся на новую
-		t.connection.subscribe([
-			{
-				subscriber:this,
-				feedName:'posts',
-				feed: postsFeed
-			},{
-				subscriber:this,
-				feedName:'topic_data',
-				feed: topicsFeed
-			}
-		]);
 	},
 
 	// todo - сделано наспех, сделать нормальный класс!
@@ -684,7 +666,7 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 		// выгружаем удаленную тему
 		if (this.state.topicData.deleted == 1) {
 			
-			this.unloadTopic();
+			this.unscribe();
 		
 		} else {
 

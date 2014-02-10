@@ -16,13 +16,16 @@ tinng.protos.NavUnit = Class(tinng.protos.Unit, {
 
 		this.header.title.$body.text(t.txt.title_all_tags);
 		this.ui.$header.append(this.header.$body);
+	},
+
+	nullify:function(){
+		t.protos.Unit.prototype
+			.nullify.apply(this, arguments);
 
 		this.objectList = {};
 
 		this.$tagArea = t.chunks.get('tagArea').$body;
 		this.$tagArea.appendTo(this.ui.$content);
-
-		this.activate();
 	},
 
 	activate:function(){
@@ -35,6 +38,7 @@ tinng.protos.NavUnit = Class(tinng.protos.Unit, {
 	},
 
 	parseFeed:function(data){
+
 		if (data.tags) this.parseTags(data.tags);
 	},
 
@@ -44,6 +48,8 @@ tinng.protos.NavUnit = Class(tinng.protos.Unit, {
 		tags.forEach(function(tagData, i){
 
 			if (!that.objectList[tagData.id]) {
+
+
 				that.objectList[tagData.id] = new t.protos.ui.Tag(tagData, {
 					bodyClick:function(){
 						t.units.topics.searchBox.addTagToSelection(tagData.name)

@@ -11,24 +11,26 @@ tinng.protos.UsersUnit = Class(tinng.protos.Unit, {
 		t.protos.Unit.prototype
 			.construct.apply(this, arguments);
 
-
-		this.objectsList = {};
-		this.currentOnlineList = [];
-
 		this.header = new t.protos.ui.Panel([
 			{type:'Field', label:'title', cssClass:'title'}
 		]);
 
 		this.header.title.$body.text(t.txt.title_all_users);
 		this.ui.$header.append(this.header.$body);
+	},
+
+	nullify:function(){
+		t.protos.Unit.prototype
+			.nullify.apply(this, arguments);
+
+		this.objectsList = {};
+		this.currentOnlineList = [];
 
 		this.$onlineList = t.chunks.get('onlineList').$body;
 		this.$offlineList = t.chunks.get('offlineList').$body;
 
 		this.ui.$content.append(this.$onlineList);
 		this.ui.$content.append(this.$offlineList);
-
-		this.activate();
 	},
 
 	activate:function(){
@@ -119,7 +121,6 @@ tinng.protos.UsersUnit = Class(tinng.protos.Unit, {
 	loadDialogue:function(id){
 
 		if (t.user.id) {
-			t.units.posts.unloadTopic();
 			t.units.posts.unscribe();
 			t.units.posts.subscribe(id, t.cfg.posts_per_page, 'dialogue')
 		}
