@@ -119,7 +119,7 @@ tinng.protos.UsersUnit = Class(tinng.protos.Unit, {
 	loadDialogue:function(id){
 
 		if (t.user.id) {
-			t.funcs.unloadTopic();
+			t.units.posts.unloadTopic();
 			t.units.posts.unscribe();
 			t.units.posts.subscribe(id, t.cfg.posts_per_page, 'dialogue')
 		}

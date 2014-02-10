@@ -73,25 +73,6 @@ Funcs.prototype = {
 //		e.stopPropagation ? e.stopPropagation() : (e.cancelBubble=true);
 	},
 
-	unloadTopic:function () {
-
-		if (t.state.selectedPost) t.state.selectedPost.deselect('full');
-		this.topicDeselect();
-
-		t.units.posts.unscribe();
-		t.ui.editor.hide();
-
-		t.userWatcher.unwatch(t.units.posts);
-
-		t.units.posts.contentLoaded = 0;
-		t.units.posts.header.topicRename.hide(); // todo - сделать нормальный инициализатор и вызывать его здесь и в начале, вместо unloadTopic
-	},
-
-
-	topicDeselect:function () {
-		$('.topics .active').removeClass('active');
-	},
-
 	bind:function (context, funcNames) {
 		/*
 		 *  если funcNames:

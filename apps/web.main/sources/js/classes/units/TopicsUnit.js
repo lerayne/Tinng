@@ -158,7 +158,7 @@ tinng.protos.TopicsUnit = Class(tinng.protos.Unit, {
 				if (topicData.deleted == 1) {
 
 					existingTopic.remove('fast');
-					//if (topicData.id == t.sync.curTopic) t.funcs.unloadTopic();
+					//if (topicData.id == t.sync.curTopic) t.units.posts.unloadTopic();
 					delete(existingTopic);
 
 				} else {

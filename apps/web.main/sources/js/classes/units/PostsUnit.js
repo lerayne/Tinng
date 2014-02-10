@@ -149,7 +149,7 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 
 					// если ты удалил себя а в теме еще кто-то есть - закрыть у себя тему
 					if (userId == t.user.id && t.funcs.objectSize(that.state.allowedUsers) > 0) {
-						t.funcs.unloadTopic();
+						this.unloadTopic();
 					}
 				}
 			},
@@ -210,22 +210,6 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 
 		// если не завеошили выше - пользуемся дефолтом из класса-предка
 		t.protos.Unit.prototype['addNode'].call(this, node);
-	},
-
-	clear: function () {
-		t.protos.Unit.prototype['clear'].apply(this, arguments);
-		this.header.topicRename.hide();
-
-		this.state.allowedUsers = {};
-
-		this.$showMore.hide();
-		this.topicHeadLoaded = false;
-		this.header.allowedUsersContainer.removeClass('private').children().remove()
-		t.posts = {};
-	},
-
-	isClear: function () {
-		return t.funcs.isEmptyObject(t.posts);
 	},
 
 	setInvitation: function () {
@@ -350,7 +334,7 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 
 	newTopic: function () {
 
-		t.funcs.unloadTopic();
+		this.unloadTopic();
 
 		this.header.topicRename.hide();
 		//this.header.cancelNewTopic.show();
@@ -429,7 +413,7 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 	cancelNewTopic: function () {
 
 		// todo - убрать эту хрень с unloadTopic и разобраться в алгоритмах загрузки и выгрузки, подписки-отписки
-		t.funcs.unloadTopic();
+		this.unloadTopic();
 		this.exitNewTopicMode();
 
 		return false;
@@ -437,6 +421,39 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 
 	displayTopicName: function (name) {
 		this.header.topicName.$body.html(name)
+	},
+
+	isClear: function () {
+		return t.funcs.isEmptyObject(t.posts);
+	},
+
+	clear: function () {
+		t.protos.
+			Unit.prototype.
+			clear.apply(this, arguments);
+
+		this.header.topicRename.hide();
+
+		this.state.allowedUsers = {};
+
+		this.$showMore.hide();
+		this.topicHeadLoaded = false;
+		this.header.allowedUsersContainer.removeClass('private').children().remove()
+		t.posts = {};
+	},
+
+	unloadTopic:function(){
+		if (t.state.selectedPost) t.state.selectedPost.deselect('full');
+
+		$('.topics .active').removeClass('active');
+
+		this.unscribe();
+		t.ui.editor.hide();
+
+		t.userWatcher.unwatch(this);
+
+		this.contentLoaded = 0;
+		this.header.topicRename.hide();
 	},
 
 	unscribe:function(){
@@ -638,7 +655,7 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 		} else if (wasAtTop) { // если догрузка и тема была прокручена до верха
 
 			// todo - неправильно прокручивается, если до догрузки все сообщения помещались и прокрутка не появлялась
-			topPost[0].scrollIntoView(true);
+			topPost.scrollIntoView(true);
 			t.units.posts.ui.$scrollArea.scrollTop(t.units.posts.ui.$scrollArea.scrollTop() - topPostOffset);
 		}
 
@@ -661,7 +678,7 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 		// выгружаем удаленную тему
 		if (this.state.topicData.deleted == 1) {
 			
-			t.funcs.unloadTopic();
+			this.unloadTopic();
 		
 		} else {
 

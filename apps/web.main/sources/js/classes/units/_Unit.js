@@ -10,6 +10,12 @@ tinng.protos.Unit = Class({
 		this.construct(data);
 	},
 
+	nullify:function(){
+		this.state = {};
+		this.contentLoaded = 0;
+		this.subscriptions = {};
+	},
+
 	construct: function (data) {
 
 		t.funcs.bind(this, [
@@ -20,13 +26,10 @@ tinng.protos.Unit = Class({
 		/* СБОР */
 
 		this.data = data;
-
 		this.active = true;
 
-		this.contentLoaded = 0;
-
-		this.subscriptions = {};
-		this.state = {};
+		// ИНИЦИАЛИЗАЦИЯ
+		this.nullify();
 
 		this.ui = t.chunks.get('unit');
 		var $body = this.$body = this.ui.$body;
@@ -36,7 +39,7 @@ tinng.protos.Unit = Class({
 		$body.addClass(data.name);
 		if (data.css) $body.css(data.css);
 
-		if (data.minimizeButton) data.minimizeButton.click(this.toggleActive)
+		if (data.minimizeButton) data.minimizeButton.click(this.toggleActive);
 
 		// привязка событий прокрутки
 		this.ui.$scrollArea.on('scroll', this.onScroll);
@@ -80,12 +83,13 @@ tinng.protos.Unit = Class({
 	},
 
 	scrollToTop: function () {
-		this.ui.$contentWrap[0].scrollIntoView(true);
+		this.ui.$contentWrap.scrollIntoView(true);
+		this.onScroll();
 	},
 
 	scrollToBottom: function () {
-		//console.log('scroll to bottom');
-		this.ui.$contentWrap[0].scrollIntoView(false);
+		this.ui.$contentWrap.scrollIntoView(false);
+		this.onScroll();
 	},
 
 	onScroll: function () {
@@ -106,7 +110,6 @@ tinng.protos.Unit = Class({
 	},
 
 	startWaitIndication: function () {
-		this.clear();
 		this.ui.$scrollArea.addClass('loading');
 	},
 

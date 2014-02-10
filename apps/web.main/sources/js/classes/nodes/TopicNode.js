@@ -96,7 +96,7 @@ tinng.protos.TopicNode = Class(tinng.protos.Node, {
 
 		//console.log('loadPosts:', this.data.topic_name, this.data.id);
 
-		t.funcs.unloadTopic();
+		t.units.posts.unloadTopic();
 		this.select(); // делаем тему в столбце тем активной
 		t.sync.curTopic = this.id;
 
@@ -112,7 +112,7 @@ tinng.protos.TopicNode = Class(tinng.protos.Node, {
 	},
 
 	deselect:function () {
-		t.funcs.topicDeselect();
+		$('.topics .active').removeClass('active');
 	},
 
 	isSelected:function(){

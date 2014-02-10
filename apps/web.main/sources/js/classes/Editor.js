@@ -98,7 +98,10 @@ tinng.protos.Editor.prototype = {
 
 		var wasAtBottom = posts.atBottom; // не убирать! строка ниже меняет значение этого вызова!
 		posts.ui.$contentWrap.css('padding-bottom', this.$body.offsetHeight());
-		if (wasAtBottom && !posts.atTop) posts.scrollToBottom();
+
+		if (wasAtBottom && !posts.atTop) {
+			posts.scrollToBottom();
+		}
 	},
 
 	hide:function(){

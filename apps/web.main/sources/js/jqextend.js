@@ -6,16 +6,23 @@
  * To change this template use File | Settings | File Templates.
  */
 
-(function ($) {
-    $.fn.extend({
-        'offsetHeight':function () {
-            return this[0].offsetHeight;
-        }
-    });
 
-    $.fn.extend({
-        'offsetWidth':function () {
-            return this[0].offsetWidth;
-        }
-    });
-})(jQuery);
+jQuery.fn.extend({
+
+	'offsetHeight':function () {
+		return this[0].offsetHeight;
+	},
+
+	'offsetWidth':function () {
+		return this[0].offsetWidth;
+	},
+
+	scrollIntoView:function(alignWithTop) {
+
+		if (typeof alignWithTop == 'undefined') {
+			return this[0].scrollIntoView()
+		} else {
+			return this[0].scrollIntoView(alignWithTop)
+		}
+	}
+});
