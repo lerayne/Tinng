@@ -128,7 +128,6 @@ tinng.protos.UsersUnit = Class(tinng.protos.Unit, {
 	loadDialogue:function(id){
 
 		if (t.user.id && t.user.id != id) {
-			t.units.posts.unscribe();
 			t.units.posts.subscribe(id, t.cfg.posts_per_page, 'dialogue')
 			t.units.posts.startWaitIndication();
 		}

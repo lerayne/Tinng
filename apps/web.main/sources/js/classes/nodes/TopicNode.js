@@ -97,7 +97,6 @@ tinng.protos.TopicNode = Class(tinng.protos.Node, {
 		this.select(); // делаем тему в столбце тем активной
 		t.sync.curTopic = this.id;
 
-		t.units.posts.unscribe();
 		t.units.posts.subscribe(this.id, t.cfg.posts_per_page)
 
 		t.units.posts.startWaitIndication();

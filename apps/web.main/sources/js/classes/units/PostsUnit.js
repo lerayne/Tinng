@@ -90,6 +90,7 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 		this.$showMore.append(showNext, showAll);
 	},
 
+	// todo - тоже не идеально, но более-менее. Возможно потом доделать
 	nullify:function(){
 		t.protos.Unit.prototype
 			.nullify.apply(this, arguments);
@@ -104,6 +105,7 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 		this.header.allowedUsers.$body.hide();
 		this.header.allowedUsersContainer.removeClass('private').children().remove();
 		this.header.topicName.$body.html('');
+		if (t.user.id > 0) t.units.topics.header.newTopic.unblock();
 
 		this.$showMore.hide();
 		this.header.topicRename.hide();
@@ -139,6 +141,10 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 	},
 
 	subscribe:function(id, limit, isDialogue){
+
+		// todo - unscribe происходит только если была подписка, иначе - только nullify
+		// нужно перенести изначальную подписку из unload в метод этого класса и тогда можно убрать nullify из инициатора
+		this.unscribe();
 
 		var postsFeed = {
 			feed:'posts',
