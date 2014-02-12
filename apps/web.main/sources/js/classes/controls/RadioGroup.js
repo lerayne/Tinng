@@ -3,7 +3,7 @@
  */
 
 tinng.protos.ui.RadioGroup = function(config){
-	t.funcs.bind(this, ['setCookie']);
+	t.funcs.bind(this, ['onClick']);
 
 	this.conf = t.funcs.objectConfig(config, this.configDefaults = {
 		name:'defaultGroup',
@@ -39,16 +39,11 @@ tinng.protos.ui.RadioGroup = function(config){
 		$label.appendTo(this.$body);
 	}
 
-	if (this.conf.cookie) {
-		var initOption = t.funcs.getCookie(this.conf.cookie);
-		this.$allRadios.on('click', this.setCookie);
-	} else {
-		initOption = false
-	}
+	this.currentVal = this.options[0];
 
-	this.setValue(initOption);
+	this.setValue(t.funcs.getCookie(this.conf.cookie));
 
-	this.$allRadios.on('click', this.conf.onClick);
+	this.$allRadios.on('click', this.onClick);
 }
 
 tinng.protos.ui.RadioGroup.prototype = {
@@ -56,23 +51,30 @@ tinng.protos.ui.RadioGroup.prototype = {
 	setValue:function(value){
 
 		// ктивировать указанную опцию, иначе - первую
-		if (this.radios[value]) {
-			this.radios[value].prop('checked', true);
-		} else {
-			this.radios[this.options[0]].prop('checked', true);
-		}
+		if (!this.radios[value]) value = this.currentVal;
+		else this.currentVal = value;
+
+		this.radios[value].prop('checked', true);
 	},
 
 	getValue:function(){
-		return this.$allRadios.filter(':checked').val();
+		return this.currentVal;
+	},
+
+	onClick:function(e){
+		var value = $(e.currentTarget).val();
+
+		this.currentVal = value;
+
+		if (this.conf.cookie) this.setCookie()
+
+		this.conf.onClick(e);
 	},
 
 	setCookie:function(){
-		var val = this.getValue();
-
 		t.funcs.setCookie({
 			name:this.conf.cookie,
-			value: val
+			value: this.currentVal
 		})
 	},
 

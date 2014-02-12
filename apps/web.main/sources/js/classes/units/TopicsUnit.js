@@ -73,8 +73,6 @@ tinng.protos.TopicsUnit = Class(tinng.protos.Unit, {
 			name:'asc'
 		}
 
-		if (!t.funcs.getCookie('topics_sort_dir')) this.topicsSortDir.setValue(this.sortDefaults.updated);
-
 		// панель поиска
 		this.createSearchBox();
 
@@ -89,6 +87,9 @@ tinng.protos.TopicsUnit = Class(tinng.protos.Unit, {
 		t.protos.Unit.prototype
 			.nullify.apply(this, arguments);
 
+		if (!t.funcs.getCookie('topics_sort_dir')) {
+			this.topicsSortDir.setValue(this.sortDefaults.updated);
+		}
 		this.setTopicsSort();
 
 		t.topics = {};
@@ -123,9 +124,6 @@ tinng.protos.TopicsUnit = Class(tinng.protos.Unit, {
 	setTopicsSort:function(e){
 		this.state.sort = this.topicsSort.getValue();
 		this.state.sortDir = this.topicsSortDir.getValue();
-
-		console.log('sortType',this.state.sort)
-		console.log('sortDir',this.state.sortDir)
 
 		if (typeof e != 'undefined') {
 
