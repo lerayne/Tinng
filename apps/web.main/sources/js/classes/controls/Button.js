@@ -5,6 +5,8 @@
 // Кнопка
 tinng.protos.ui.Button = function (data) {
 
+	t.funcs.bind(this, ['waitTip', 'showTip', 'hideTip'])
+
 	this.$body = $('<div class="button-body">');
 	this.$button = $('<div class="button">');
 	this.$body.append(this.$button);
@@ -26,10 +28,6 @@ tinng.protos.ui.Button = function (data) {
 	if (data.tip) {
 		this.$tip = $('<div class="tip"><div class="body">' + data.tip + '</div><div class="tail"></div></div>')
 			.hide().appendTo(this.$button);
-
-		this.waitTip = $.proxy(this, 'waitTip');
-		this.showTip = $.proxy(this, 'showTip');
-		this.hideTip = $.proxy(this, 'hideTip');
 
 		this.$button.on('mouseenter', this.waitTip);
 		this.$button.on('mouseleave', this.hideTip);

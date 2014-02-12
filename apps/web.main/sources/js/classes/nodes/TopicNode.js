@@ -94,10 +94,10 @@ tinng.protos.TopicNode = Class(tinng.protos.Node, {
 	// загрузить тему
 	loadPosts:function () {
 
-		this.select(); // делаем тему в столбце тем активной
 		t.sync.curTopic = this.id;
 
-		t.units.posts.subscribe(this.id, t.cfg.posts_per_page)
+		t.units.posts.subscribe(this.id, t.cfg.posts_per_page);
+		this.select(); // делаем тему в столбце тем активной
 
 		t.units.posts.startWaitIndication();
 	},

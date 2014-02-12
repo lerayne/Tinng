@@ -123,9 +123,10 @@ tinng.protos.UsersUnit = Class(tinng.protos.Unit, {
 			console.log('user: ',user)
 			console.log('userlist: ',userlist)
 			console.log('currentOnlineList: ',this.currentOnlineList)
-			console.log('currentOnlineList: ',this.currentOnlineList)
 			console.log('this.objectsList: ',this.objectsList);
 		}
+
+		if (userlist.indexOf(null) != -1) console.warn('warning! null present in [userlist]')
 
 		this.currentOnlineList = userlist;
 	},

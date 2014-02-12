@@ -118,8 +118,6 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 		// если есть подписки
 		if (!t.funcs.isEmptyObject(this.subscriptions)){
 
-			console.log ('subscriptions detected: unscribing')
-
 			// отписываемся от старой темы
 			t.connection.unscribe(this, 'posts');
 			t.connection.unscribe(this, 'topic_data');
@@ -732,6 +730,7 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 
 			// если тема есть, но она не выделена - значит тема грузилась не кликом по ней
 			if (!t.topics[this.state.topicData.id].isSelected()) {
+
 				t.topics[this.state.topicData.id].select(); // сделать актвной
 				// todo - изменить везде show на scrollTo или что-то подобное
 				t.topics[this.state.topicData.id].show(false); // промотать до нее

@@ -129,7 +129,7 @@ tinng.protos.UserInterface.prototype = {
 		this.$mainFrame.removeAttr('class');
 		if (frameH < 800) this.$mainFrame.addClass('low-res');
 		if (frameW < 1500) this.$mainFrame.addClass('low-width');
-		if (frameH > 1000) this.$mainFrame.addClass('high-res');
+		if (frameH > 950) this.$mainFrame.addClass('high-res');
 
 
 		// высота основного интерфейса

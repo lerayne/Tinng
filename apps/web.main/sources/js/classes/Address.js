@@ -8,6 +8,7 @@
 
 tinng.protos.Address = function (delimSign, eqSign) {
 	// проксирование приватных функций
+	// todo - придумать что-то с этим
 	for (var i in this.$) if (typeof this.$[i] == 'function') this.$[i] = $.proxy(this.$[i], this)
 
 	this.vars = {};
