@@ -70,7 +70,7 @@ tinng.protos.TopicsUnit = Class(tinng.protos.Unit, {
 		this.sortDefaults = {
 			updated:'desc',
 			created:'desc',
-			name:'asc'
+			topic_name:'asc'
 		}
 
 		// панель поиска
@@ -132,6 +132,11 @@ tinng.protos.TopicsUnit = Class(tinng.protos.Unit, {
 			var name = target.attr('name');
 
 			if (name == 'topics_sort') {
+
+				console.log('reset order')
+				console.log('value', value)
+				console.log('this.sortDefaults[value]', this.sortDefaults[value])
+
 				this.topicsSortDir.setValue(this.sortDefaults[value]);
 				this.topicsSortDir.setCookie();
 			}
