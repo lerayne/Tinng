@@ -50,15 +50,6 @@ tinng.funcs.onWindowLoad = function(){
 
 	var initialSubscriptions = [];
 
-	initialSubscriptions.push({
-		subscriber: t.units.topics,
-		feedName: 'topics',
-		feed:{
-			feed:'topics',
-			filter: t.address.get('search') || ''
-		}
-	});
-
 	var curTopic = t.sync.curTopic;
 
 	if (curTopic || dialogueFromAddress) {

@@ -24,7 +24,7 @@ class Feed {
 		// defaults
 		$topics = load_defaults($topics, $topics_defaults = Array(
 			'sort' => 'updated',
-			'sort_reversed' => true,
+			'sort_direction' => 'desc',
 			'filter' => ''
 		));
 
@@ -106,7 +106,7 @@ class Feed {
 				mlast.id AS last_id,
 				LEFT(mlast.message, ?d) AS lastpost,
 				IFNULL(mlast.modified, mlast.created) AS lastdate,
-				GREATEST(IFNULL(msg.modified, msg.created), IFNULL(IFNULL(mlast.modified, mlast.created),0)) as totalmaxd,
+				GREATEST(IFNULL(msg.modified, msg.created), IFNULL(IFNULL(mlast.modified, mlast.created),0)) as updated,
 				IFNULL(lma.display_name, lma.login) AS lastauthor,
 				lma.id AS lastauthor_id,
 				(SELECT COUNT(mcount.id) FROM ?_messages mcount WHERE IF(mcount.topic_id = 0, mcount.id, mcount.topic_id) = msg.id AND mcount.deleted IS NULL) AS postsquant,
@@ -158,6 +158,8 @@ class Feed {
 			GROUP BY msg.id
 		";
 
+		$if_updated = $meta['updates_since'] ? $meta['updates_since'] : DBSIMPLE_SKIP;
+
 		$output_topics = make_tree($db->select($query
 
 			, $cfg['cut_length'], $cfg['cut_length'] // ограничение выборки первого поста
@@ -165,10 +167,10 @@ class Feed {
 			, $user->id
 			, $user->id
 			//, $tag_array // при пустом массиве скип автоматический
-			, ($meta['updates_since'] ? $meta['updates_since'] : DBSIMPLE_SKIP) // для доступа
-			, ($meta['updates_since'] ? $meta['updates_since'] : DBSIMPLE_SKIP) // для доступа
-			, ($meta['updates_since'] ? $meta['updates_since'] : DBSIMPLE_SKIP) // для всего остального
-			, ($meta['updates_since'] ? $meta['updates_since'] : DBSIMPLE_SKIP) // для всего остального
+			, $if_updated // для доступа
+			, $if_updated // для доступа
+			, $if_updated // для всего остального
+			, $if_updated // для всего остального
 			, (!$update_mode ? 1 : DBSIMPLE_SKIP) // достаем удаленные только если мы в режиме обновления
 		));
 
@@ -205,14 +207,9 @@ class Feed {
 			if ($output_topics[$id]) $output_topics[$id]['tags'][] = $tag;
 		}
 
+		$output_topics = sort_by_field($output_topics, $topics['sort'], $topics['sort_direction'] == 'desc');
 
-		// сортировка. До сортировки массив $topics имеет индекс в виде номера темы
-		switch ($topics['sort']) {
-
-			case 'updated':
-				$output_topics = sort_by_field($output_topics, 'totalmaxd', $topics['sort_reverse']);
-				break;
-		}
+		$output_topics = array_reverse($output_topics); // потому что в колонке тем сообщения препендятся, т.е. рендерятся снизу вверх
 
 		// все запросы в базу идут со старой датой и только потом мы обновляем ее
 		$meta['updates_since'] = $updates_since;

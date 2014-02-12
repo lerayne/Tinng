@@ -8,7 +8,7 @@ tinng.protos.TopicsUnit = Class(tinng.protos.Unit, {
 
 	construct: function () {
 		var that = this;
-		t.funcs.bind(this, ['newTopic', 'setTopicsStyle'])
+		t.funcs.bind(this, ['newTopic', 'setTopicsStyle', 'setTopicsSort']);
 
 		t.protos
 			.Unit.prototype
@@ -19,25 +19,61 @@ tinng.protos.TopicsUnit = Class(tinng.protos.Unit, {
 		]);
 		this.ui.$header.append(this.header.$body);
 
-		// todo - довольно по-варварски сделал, нужно сделать чисто
-		this.dropMenu = new t.protos.Chunk('' +
-			'<div class="settings-group radio-group">' +
-			'	<h4>'+ t.txt.topics_view_setting +'</h4>' +
-			'	<label><input type="radio" name="topics_unit_view" data-cell="middle" value="middle">'+ t.txt.topics_view_middle +'</label>' +
-			'	<label><input type="radio" name="topics_unit_view" data-cell="short" value="short">'+ t.txt.topics_view_short +'</label>' +
-			'</div>'
-			, 'data-cell'
-		);
+		// выбор стиля отображения
+		this.styleSelect = new t.protos.ui.RadioGroup({
+			name: 'topics_style',
+			elements: [
+				{type:'header', text:t.txt.topics_view_setting},
+				{type:'radio', value:'middle', text:t.txt.topics_view_middle},
+				{type:'radio', value:'short', text:t.txt.topics_view_short}
+			],
+			onClick: this.setTopicsStyle,
+			cookie:'topics_style'
+		});
 
-		var initTopicsStyle = t.funcs.getCookie('topics_view_style');
-		if (!initTopicsStyle) initTopicsStyle = 'middle';
-		this.dropMenu['$'+initTopicsStyle].prop('checked', true);
-		this.ui.$content.addClass(initTopicsStyle);
+		this.ui.$content.addClass(this.styleSelect.getValue()); // присваиваем контейнеру класс
 
-		this.dropMenu.$middle.on('click', this.setTopicsStyle);
-		this.dropMenu.$short.on('click', this.setTopicsStyle);
+		this.styleSelect.$body.addClass('settings-group');
+		this.styleSelect.placeTo(this.ui.$settingsDropdown);
 
-		this.dropMenu.appendTo(this.ui.$settingsDropdown);
+		// Выбор сортировки тем
+		this.topicsSort = new t.protos.ui.RadioGroup({
+			name:'topics_sort',
+			elements:[
+				{type:'header', text: t.txt.topics_sort_setting},
+				{type:'radio', value:'updated', text: t.txt.topics_sort_updated},
+				{type:'radio', value:'created', text: t.txt.topics_sort_created},
+				{type:'radio', value:'topic_name', text: t.txt.topics_sort_name}
+			],
+			onClick:this.setTopicsSort,
+			cookie:'topics_sort'
+		});
+
+		this.topicsSort.$body.addClass('settings-group');
+		this.topicsSort.placeTo(this.ui.$settingsDropdown);
+
+		// Выбор направления сортировки
+		this.topicsSortDir = new t.protos.ui.RadioGroup({
+			name:'topics_sort_dir',
+			cookie:'topics_sort_dir',
+			onClick:this.setTopicsSort,
+			elements: [
+				{type:'header', text: t.funcs.txt('topics_sortdir_setting')},
+				{type:'radio', value:'asc', text:t.funcs.txt('topics_sortdir_asc')},
+				{type:'radio', value:'desc', text:t.funcs.txt('topics_sortdir_desc')}
+			]
+		});
+
+		this.topicsSortDir.$body.addClass('settings-group');
+		this.topicsSortDir.placeTo(this.ui.$settingsDropdown);
+
+		this.sortDefaults = {
+			updated:'desc',
+			created:'desc',
+			name:'asc'
+		}
+
+		if (!t.funcs.getCookie('topics_sort_dir')) this.topicsSortDir.setValue(this.sortDefaults.updated);
 
 		// панель поиска
 		this.createSearchBox();
@@ -53,18 +89,62 @@ tinng.protos.TopicsUnit = Class(tinng.protos.Unit, {
 		t.protos.Unit.prototype
 			.nullify.apply(this, arguments);
 
+		this.setTopicsSort();
+
 		t.topics = {};
+	},
+
+	subscribe:function(){
+
+		t.connection.subscribe({
+			subscriber: this,
+			feedName: 'topics',
+			feed:{
+				feed:'topics',
+				filter: t.address.get('search') || '',
+				sort: this.state.sort,
+				sort_direction: this.state.sortDir
+			}
+		})
+	},
+
+	activate:function(){
+		t.protos.Unit.prototype
+			.activate.apply(this, arguments);
+
+		this.subscribe();
 	},
 
 	setTopicsStyle:function(e){
 		var style = $(e.currentTarget).val();
+		this.ui.$content.removeClass(this.styleSelect.options.join(' ')).addClass(style);
+	},
 
-		t.funcs.setCookie({
-			name:'topics_view_style',
-			value: style
-		});
+	setTopicsSort:function(e){
+		this.state.sort = this.topicsSort.getValue();
+		this.state.sortDir = this.topicsSortDir.getValue();
 
-		this.ui.$content.removeClass('middle short').addClass(style);
+		console.log('sortType',this.state.sort)
+		console.log('sortDir',this.state.sortDir)
+
+		if (typeof e != 'undefined') {
+
+			var target = $(e.currentTarget);
+			var value = target.val();
+			var name = target.attr('name');
+
+			if (name == 'topics_sort') {
+				this.topicsSortDir.setValue(this.sortDefaults[value]);
+				this.topicsSortDir.setCookie();
+			}
+
+			this.nullify();
+
+			t.connection.subscribe(this, 'topics', {
+				sort: this.state.sort,
+				sort_direction: this.state.sortDir
+			})
+		}
 	},
 
 	createSearchBox:function(){

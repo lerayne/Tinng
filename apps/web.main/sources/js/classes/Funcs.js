@@ -175,6 +175,10 @@ Funcs.prototype = {
 			if (object.propertyIsEnumerable(key)) i++;
 		}
 		return i;
+	},
+
+	txt:function(key){
+		return t.txt[key] ? t.txt[key] : key
 	}
 }
 
