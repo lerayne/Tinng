@@ -120,6 +120,11 @@ tinng.protos.UsersUnit = Class(tinng.protos.Unit, {
 			}
 		} catch (e) {
 			console.warn('Tinng: Ошибка парсинга онлайн-статусов:', e)
+			console.log('user: ',user)
+			console.log('userlist: ',userlist)
+			console.log('currentOnlineList: ',this.currentOnlineList)
+			console.log('currentOnlineList: ',this.currentOnlineList)
+			console.log('this.objectsList: ',this.objectsList);
 		}
 
 		this.currentOnlineList = userlist;

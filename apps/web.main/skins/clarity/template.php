@@ -115,7 +115,13 @@
 
 
 	<div data-chunk-name="unit" class="unit">
-		<header data-cell="header"></header>
+		<header>
+			<div class="header-panel" data-cell="header"></div>
+			<div class="settingsBtn" data-cell="settingsMenu">
+				<span data-cell="settingsBtn"></span>
+				<div class="dropmenu" style="display:none" data-cell="settingsDropdown"></div>
+			</div>
+		</header>
 		<div class="scroll-area" data-cell="scrollArea">
 			<div class="content-wrap" data-cell="contentWrap">
 				<div class="content" data-cell="content"></div>

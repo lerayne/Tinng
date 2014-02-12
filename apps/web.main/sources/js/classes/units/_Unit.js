@@ -11,6 +11,7 @@ tinng.protos.Unit = Class({
 	},
 
 	construct: function (data) {
+		var that = this;
 
 		t.funcs.bind(this, [
 			'onScroll',
@@ -35,6 +36,21 @@ tinng.protos.Unit = Class({
 		// привязка событий прокрутки
 		this.ui.$scrollArea.on('scroll', this.onScroll);
 		this.ui.$scrollArea.scroll();
+
+		// выпадающее меню
+		this.ui.$body.addClass('with-settings');
+		this.settingsBtn = new t.protos.ui.Button(
+			{label:'settingsBtn', cssClass:'right', icon:'gear_white.png', tip: t.txt.unit_settings}
+		);
+		this.settingsBtn.$body.appendTo(this.ui.$settingsBtn);
+		this.settingsBtn.on('click', function(){
+			that.settingsBtn.freeze();
+			that.ui.$settingsDropdown.show();
+		})
+		this.ui.$settingsMenu.on('mouseleave', function(){
+			that.settingsBtn.unfreeze();
+			that.ui.$settingsDropdown.hide();
+		})
 	},
 
 	nullify:function(){
@@ -44,6 +60,13 @@ tinng.protos.Unit = Class({
 
 		this.ui.$content.children().remove();
 		this.stopWaitIndication();
+
+		this.refreshMenu();
+	},
+
+	refreshMenu:function(){
+		if (!this.ui.$settingsDropdown.children().not('.none').size()) this.ui.$body.removeClass('with-settings');
+		else this.ui.$body.addClass('with-settings');
 	},
 
 	placeTo:function(container){

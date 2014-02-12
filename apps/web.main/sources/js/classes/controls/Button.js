@@ -86,5 +86,13 @@ tinng.protos.ui.Button.prototype = {
 			this.$clone.hide();
 			this.$button.show();
 		}
+	},
+
+	freeze:function(){
+		this.$button.addClass('hover');
+	},
+
+	unfreeze:function(){
+		this.$button.removeClass('hover');
 	}
 }

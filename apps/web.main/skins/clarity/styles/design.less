@@ -338,6 +338,24 @@ body {
 	position: relative;
 
 	header {
+
+		.settingsBtn {
+			display:none;
+			position: absolute;
+			top:0;
+			right:0;
+
+			.button {
+				margin:4px 3px 0 0;
+			}
+
+			.dropmenu {
+				top:25px;
+				right:3px;
+				color:#555;
+			}
+		}
+
 		min-height: 28px;
 		background-color:#0e5a91;
 		border-right:1px solid;
@@ -357,7 +375,7 @@ body {
 			color:white;
 			margin:1px;
 
-			&:hover {
+			&:hover, &.hover {
 				background-color: #2b7cbd;
 			}
 		}
@@ -410,6 +428,7 @@ body {
 			top:0;
 			width: 0;
 			height: 0;
+			z-index: 100;
 			background: #ccc url(../../skins/clarity/images/icons/trash.png) center center no-repeat;
 
 			&.acceptable {
@@ -466,6 +485,17 @@ body {
 					display:none;
 				}
 			}
+		}
+	}
+
+	&.with-settings {
+
+		.settingsBtn {
+			display:block;
+		}
+
+		.header-panel {
+			margin-right:28px;
 		}
 	}
 
@@ -662,18 +692,6 @@ body {
 		}
 	}
 
-	.dropmenu {
-		position: absolute;
-		background: #fff;
-		border: 1px #ccc solid;
-		z-index: 100;
-		right: 0;
-
-		.button {
-			display:block;
-		}
-	}
-
 	.topic {
 		cursor:pointer;
 		border-left-width:10px;
@@ -722,6 +740,27 @@ body {
 			overflow-y: hidden;
 			font-size:85%;
 		}
+	}
+
+	&.short .topic {
+
+		&.active {background-position: -4px center;}
+
+		.created, .parent, .author, .msgid, .postsquant, .message, .lastmessage, .tags {display:none !important;}
+
+		.infobar {
+			position: absolute;
+			right:4px;
+			top:6px;
+		}
+
+		.topicname {
+			margin:0;
+			font-size: 12px;
+			.private {font-size: 85%;}
+		}
+
+		.data_cell {padding: 8px 22px 8px 18px;}
 	}
 
 	.post {
@@ -774,6 +813,54 @@ body {
 	.unread {
 		border-color: #ffbc1c;
 		background-color: #fff6df;
+	}
+}
+
+.dropmenu {
+	position: absolute;
+	background-color: #fff;
+	min-height: 10px;
+	min-width: 80px;
+	border: 1px #ccc solid;
+	z-index: 100;
+	right: 0;
+
+	.button {
+		display:block;
+	}
+
+	.settings-group {
+		padding:6px;
+		border-bottom: 1px solid #ccc;
+
+		&:last-child {
+			border:0;
+		}
+
+		h4 {
+			margin:3px 0 1px;
+			padding:0 7px;
+			color:#777;
+			font-weight: normal;
+			white-space: nowrap;
+			font-size: 85%;
+		}
+	}
+
+	label {
+		display: block;
+		white-space: nowrap;
+		padding: 4px;
+		cursor: pointer;
+
+		&:hover {
+			background-color: #eee;
+		}
+
+		input[type="radio"] {
+			margin:3px 3px 1px 3px;
+			vertical-align: bottom;
+		}
 	}
 }
 
@@ -964,7 +1051,7 @@ input[type="button"] {
 }
 
 
-.button:hover {
+.button:hover, .button.hover {
 	border-color: #ccc;
 	background-color: #eaeaea;
 	opacity:1;
@@ -1017,7 +1104,7 @@ input[type="button"] {
 	text-shadow:1px 1px #004162;
 }
 
-.button.submit:hover {
+.button.submit:hover, .button.submit.hover {
 	background-image: -webkit-linear-gradient(top, #018bd3, #007bb7);
 	background-color: #007bb7;
 	border-color: #006299;

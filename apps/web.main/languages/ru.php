@@ -46,6 +46,10 @@ $txt['rename_topic'] = 'Переименовать тему';
 $txt['dialogue_width'] = 'Диалог:';
 $txt['warn_unaccess_yourself'] = 'Вы больше не будете иметь доступа к теме, пока кто-то другой вас не добавит. Продолжить?';
 $txt['warn_making_public'] = 'Данное действие сделает тему открытой для всех. Продолжить?';
+$txt['unit_settings'] = 'Настройки';
+$txt['topics_view_setting'] = 'Вид списка тем';
+$txt['topics_view_middle'] = 'Обычный';
+$txt['topics_view_short'] = 'Компактный';
 
 $txt['new_topic_creation'] = 'Создание новой темы';
 $txt['new_topic_title'] = 'Название темы';

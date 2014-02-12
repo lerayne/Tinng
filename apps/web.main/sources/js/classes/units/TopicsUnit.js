@@ -8,7 +8,7 @@ tinng.protos.TopicsUnit = Class(tinng.protos.Unit, {
 
 	construct: function () {
 		var that = this;
-		t.funcs.bind(this, ['newTopic'])
+		t.funcs.bind(this, ['newTopic', 'setTopicsStyle'])
 
 		t.protos
 			.Unit.prototype
@@ -19,12 +19,34 @@ tinng.protos.TopicsUnit = Class(tinng.protos.Unit, {
 		]);
 		this.ui.$header.append(this.header.$body);
 
+		// todo - довольно по-варварски сделал, нужно сделать чисто
+		this.dropMenu = new t.protos.Chunk('' +
+			'<div class="settings-group radio-group">' +
+			'	<h4>'+ t.txt.topics_view_setting +'</h4>' +
+			'	<label><input type="radio" name="topics_unit_view" data-cell="middle" value="middle">'+ t.txt.topics_view_middle +'</label>' +
+			'	<label><input type="radio" name="topics_unit_view" data-cell="short" value="short">'+ t.txt.topics_view_short +'</label>' +
+			'</div>'
+			, 'data-cell'
+		);
+
+		var initTopicsStyle = t.funcs.getCookie('topics_view_style');
+		if (!initTopicsStyle) initTopicsStyle = 'middle';
+		this.dropMenu['$'+initTopicsStyle].prop('checked', true);
+		this.ui.$content.addClass(initTopicsStyle);
+
+		this.dropMenu.$middle.on('click', this.setTopicsStyle);
+		this.dropMenu.$short.on('click', this.setTopicsStyle);
+
+		this.dropMenu.appendTo(this.ui.$settingsDropdown);
+
 		// панель поиска
 		this.createSearchBox();
 
 		this.header.newTopic.on('click', this.newTopic);
 
 		if (!t.user.hasRight('createTopic')) this.header.newTopic.block();
+
+
 	},
 
 	nullify:function(){
@@ -32,6 +54,17 @@ tinng.protos.TopicsUnit = Class(tinng.protos.Unit, {
 			.nullify.apply(this, arguments);
 
 		t.topics = {};
+	},
+
+	setTopicsStyle:function(e){
+		var style = $(e.currentTarget).val();
+
+		t.funcs.setCookie({
+			name:'topics_view_style',
+			value: style
+		});
+
+		this.ui.$content.removeClass('middle short').addClass(style);
 	},
 
 	createSearchBox:function(){
@@ -176,6 +209,8 @@ tinng.protos.TopicsUnit = Class(tinng.protos.Unit, {
 				//ifblur_notify('New Topic: '+topicData.topic_name, topicData.message);
 			}
 		}
+
+		this.refreshMenu();
 
 		this.contentLoaded = 1;
 	}
