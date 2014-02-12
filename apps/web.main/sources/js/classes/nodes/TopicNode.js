@@ -75,18 +75,11 @@ tinng.protos.TopicNode = Class(tinng.protos.Node, {
 	bump:function () {
 		var topics = t.units.topics;
 
-		switch (t.units.topics.state.sort) {
+		switch (topics.state.sort) {
 
 			// сортировка по последнему обновлению
 			case 'updated':
-				//this.detach(); // - нет необходимости
-
-				if (t.sync.tsReverse) {
-					topics.addNodeOnTop(this)
-				} else {
-					topics.addNode(this);
-				}
-
+				topics.addNode(this);
 				break;
 		}
 	},

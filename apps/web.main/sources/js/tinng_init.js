@@ -40,8 +40,6 @@ tinng.sync = {
     curTopic:0,
     plimit:1,
     pglimdateTS:0,
-    topicSort:'updated',
-    tsReverse:true,
 	filterQuery:'',
     params:{}
 }

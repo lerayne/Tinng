@@ -190,20 +190,11 @@ tinng.protos.TopicsUnit = Class(tinng.protos.Unit, {
 	},
 
 	addNode: function (node) {
-		//todo - реализация похожа на node.bump - подумать что с этим можно сделать
 
-		switch (t.sync.topicSort) {
-
-			// сортировка по последнему обновлению
-			case 'updated':
-
-				if (t.sync.tsReverse) {
-					this.ui.$content.prepend(node.$body);
-				} else {
-					this.ui.$content.append(node.$body);
-				}
-
-				break;
+		if (this.state.sortDir == 'desc') {
+			this.ui.$content.prepend(node.$body);
+		} else {
+			this.ui.$content.append(node.$body);
 		}
 
 		return false;
