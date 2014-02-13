@@ -64,13 +64,13 @@ function sort_by_field($array, $field, $reverse = false) {
 	$afs = Array(); // array for sort
 	$out = Array();
 
-	foreach ($array as $key => $val) $afs[mb_strtolower($val[$field], 'utf-8') . $key] = $val;
+	foreach ($array as $key => $val) $afs[mb_strtolower($val[$field], 'utf-8') .'.'.$key] = $val;
 
 	ksort($afs);
 
 	if ($reverse) $afs = array_reverse($afs);
 	foreach ($afs as $key => $val) {
-		//$GLOBALS['debug']['sorted'][$key] = $val['topic_name'];
+		$GLOBALS['debug']['sorted'][$key] = $val['topic_name'];
 		$out[] = $val;
 	}
 	return $out;

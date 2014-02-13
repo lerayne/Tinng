@@ -209,8 +209,6 @@ class Feed {
 
 		$output_topics = sort_by_field($output_topics, $topics['sort']/*, $topics['sort_direction'] == 'desc'*/);
 
-		//$output_topics = array_reverse($output_topics); // потому что в колонке тем сообщения препендятся, т.е. рендерятся снизу вверх
-
 		// все запросы в базу идут со старой датой и только потом мы обновляем ее
 		$meta['updates_since'] = $updates_since;
 

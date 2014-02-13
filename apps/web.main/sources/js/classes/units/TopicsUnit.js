@@ -24,6 +24,7 @@ tinng.protos.TopicsUnit = Class(tinng.protos.Unit, {
 			name: 'topics_style',
 			elements: [
 				{type:'header', text:t.txt.topics_view_setting},
+				{type:'radio', value:'standart', text:t.txt.topics_view_standart},
 				{type:'radio', value:'middle', text:t.txt.topics_view_middle},
 				{type:'radio', value:'short', text:t.txt.topics_view_short}
 			],
@@ -43,7 +44,9 @@ tinng.protos.TopicsUnit = Class(tinng.protos.Unit, {
 				{type:'header', text: t.txt.topics_sort_setting},
 				{type:'radio', value:'updated', text: t.txt.topics_sort_updated},
 				{type:'radio', value:'created', text: t.txt.topics_sort_created},
-				{type:'radio', value:'topic_name', text: t.txt.topics_sort_name}
+				{type:'radio', value:'postsquant', text: t.txt.topics_sort_postsquant},
+				{type:'radio', value:'topic_name', text: t.txt.topics_sort_name},
+				{type:'radio', value:'author', text: t.txt.topics_sort_author}
 			],
 			onClick:this.setTopicsSort,
 			cookie:'topics_sort'
@@ -70,7 +73,9 @@ tinng.protos.TopicsUnit = Class(tinng.protos.Unit, {
 		this.sortDefaults = {
 			updated:'desc',
 			created:'desc',
-			topic_name:'asc'
+			postsquant:'desc',
+			topic_name:'asc',
+			author:'asc'
 		}
 
 		// панель поиска
