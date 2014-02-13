@@ -70,7 +70,7 @@ function sort_by_field($array, $field, $reverse = false) {
 
 	if ($reverse) $afs = array_reverse($afs);
 	foreach ($afs as $key => $val) {
-		$GLOBALS['debug']['sorted'][$key] = $val['topic_name'];
+//		$GLOBALS['debug']['sorted'][$key] = $val['topic_name'];
 		$out[] = $val;
 	}
 	return $out;

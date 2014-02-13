@@ -15,6 +15,17 @@ tinng.protos.UsersUnit = Class(tinng.protos.Unit, {
 			{type:'Field', label:'title', cssClass:'title'}
 		]);
 
+		this.$flags = $('<div class="flags">').appendTo(this.$body);
+
+		this.unreadFlag = new t.protos.Chunk('' +
+			'<div class="flag">' +
+			'	<div data-cell="text" class="text"></div>' +
+			'</div>'
+			, 'data-cell'
+		);
+
+		this.unreadFlag.appendTo(this.$flags);
+
 		this.header.title.$body.text(t.txt.title_all_users);
 		this.ui.$header.append(this.header.$body);
 	},
@@ -23,7 +34,8 @@ tinng.protos.UsersUnit = Class(tinng.protos.Unit, {
 		t.protos.Unit.prototype
 			.nullify.apply(this, arguments);
 
-		this.objectsList = {};
+		this.unread = {};
+		this.usersList = {};
 		this.currentOnlineList = [];
 
 		this.$onlineList = t.chunks.get('onlineList').$body;
@@ -37,21 +49,39 @@ tinng.protos.UsersUnit = Class(tinng.protos.Unit, {
 		t.protos.Unit.prototype
 			.activate.apply(this, arguments);
 
-		t.connection.subscribe(this, 'userlist', {
-			feed:'users',
-			fields:[
-				'id',
-				'login',
-				'display_name',
-				'last_read',
-				'last_read_ts',
-				'avatar'
-			]
+		var subscriptions = [];
+
+		subscriptions.push({
+			subscriber: this,
+			feedName:'userlist',
+			feed: {
+				feed:'users',
+				fields:[
+					'id',
+					'login',
+					'display_name',
+					'last_read',
+					'last_read_ts',
+					'avatar'
+				]
+			}
 		});
+
+		subscriptions.push({
+			subscriber:this,
+			feedName:'dialogues',
+			feed:{
+				feed:'dialogues',
+				method:'updates_extended'
+			}
+		})
+
+		t.connection.subscribe(subscriptions);
 	},
 
 	parseFeed:function(data){
 		if (data.userlist) this.parseUserlist(data.userlist);
+		if (data.dialogues) this.parseDialogues(data.dialogues);
 	},
 
 	parseUserlist:function(userlist){
@@ -60,18 +90,64 @@ tinng.protos.UsersUnit = Class(tinng.protos.Unit, {
 		for (var i = 0; i < userlist.length; i++) {
 			var user = userlist[i];
 
-			if (!this.objectsList[user.id]){
-				this.objectsList[user.id] = this.createUserElement(user);
+			if (!this.usersList[user.id]){
+				var userElement = this.usersList[user.id] = this.createUserElement(user);
 
 				if (now.getTime() - user.last_read_ts * 1000 < t.cfg.online_threshold * 1000) {
-					this.$onlineList.append(this.objectsList[user.id]);
+					this.$onlineList.append(userElement.$body);
 					this.currentOnlineList.push(user.id)
 				} else {
-					this.$offlineList.append(this.objectsList[user.id]);
+					this.$offlineList.append(userElement.$body);
 				}
 
 				t.userWatcher.watch(this, user.id);
 			}
+		}
+
+		this.appendMarkers();
+	},
+
+	parseDialogues:function(dialogues){
+
+		var quantity = dialogues.length;
+
+		this.unread = {}
+
+		if (quantity > 0) {
+
+			this.unreadFlag.$body.show();
+			this.unreadFlag.$text.text('+'+quantity);
+
+			for (var i = 0; i < dialogues.length; i++) {
+				var dialogue = dialogues[i];
+
+				if (!this.unread[dialogue.sender]) this.unread[dialogue.sender] = 0;
+				this.unread[dialogue.sender]++ ;
+			}
+
+			this.appendMarkers();
+
+		} else {
+			this.unreadFlag.$body.hide();
+		}
+	},
+
+	appendMarkers:function(){
+		console.log('this.unread', this.unread);
+
+		for (var userId in this.unread) {
+
+			if (this.usersList[userId] && !this.usersList[userId].$appends.children().size()) {
+				this.appendUnreadMarker(userId, this.unread[userId])
+			}
+		}
+	},
+
+	appendUnreadMarker:function(userId, q){
+		var user = this.usersList[userId];
+
+		if (!user.$appends.children().size()) {
+			$('<div class="unreadLabel">').text('+'+q).appendTo(user.$appends);
 		}
 	},
 
@@ -97,17 +173,19 @@ tinng.protos.UsersUnit = Class(tinng.protos.Unit, {
 		}
 
 
-		return listItem.$body;
+		return listItem;
 	},
 
 	parseOnlineStates:function(userlist) {
+
+		if (userlist.indexOf(null) != -1) console.warn('warning! null present in [userlist]')
 
 		try {
 			for (var i = 0; i < userlist.length; i++) {
 				var user = userlist[i];
 
 				if (this.currentOnlineList.indexOf(user) == -1) {
-					this.objectsList[user].appendTo(this.$onlineList)
+					this.usersList[user].$body.appendTo(this.$onlineList)
 				}
 			}
 
@@ -115,7 +193,7 @@ tinng.protos.UsersUnit = Class(tinng.protos.Unit, {
 				var user = this.currentOnlineList[i];
 
 				if (userlist.indexOf(user) == -1) {
-					this.objectsList[user].appendTo(this.$offlineList)
+					this.usersList[user].$body.appendTo(this.$offlineList)
 				}
 			}
 		} catch (e) {
@@ -123,10 +201,8 @@ tinng.protos.UsersUnit = Class(tinng.protos.Unit, {
 			console.log('user: ',user)
 			console.log('userlist: ',userlist)
 			console.log('currentOnlineList: ',this.currentOnlineList)
-			console.log('this.objectsList: ',this.objectsList);
+			console.log('this.usersList: ',this.usersList);
 		}
-
-		if (userlist.indexOf(null) != -1) console.warn('warning! null present in [userlist]')
 
 		this.currentOnlineList = userlist;
 	},

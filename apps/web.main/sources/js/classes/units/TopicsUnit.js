@@ -45,8 +45,8 @@ tinng.protos.TopicsUnit = Class(tinng.protos.Unit, {
 				{type:'radio', value:'updated', text: t.txt.topics_sort_updated},
 				{type:'radio', value:'created', text: t.txt.topics_sort_created},
 				{type:'radio', value:'postsquant', text: t.txt.topics_sort_postsquant},
-				{type:'radio', value:'topic_name', text: t.txt.topics_sort_name},
-				{type:'radio', value:'author', text: t.txt.topics_sort_author}
+				{type:'radio', value:'topic_name', text: t.txt.topics_sort_name}
+//				{type:'radio', value:'author', text: t.txt.topics_sort_author}
 			],
 			onClick:this.setTopicsSort,
 			cookie:'topics_sort'

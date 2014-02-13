@@ -42,7 +42,6 @@
 	opacity:@decimal;
 	-moz-opacity:@decimal;
 	-khtml-opacity:@decimal;
-	-webkit-opacity:@decimal;
 	-ms-filter: "progid:DXImageTransform.Microsoft.Alpha(opacity="+(@decimal*100)+")";
 	filter: progid:DXImageTransform.Microsoft.Alpha(opacity=(@decimal*100));
 }
@@ -52,6 +51,7 @@
 	-moz-transform:rotate(@deg); /* Firefox */
 	-webkit-transform:rotate(@deg); /* Safari and Chrome */
 	-o-transform:rotate(@deg); /* Opera */
+	transform:rotate(@deg);
 }
 
 .width-scheme(){
@@ -263,6 +263,7 @@ body {
 			height: 100%;
 			cursor: pointer;
 			background-color: #fff;
+			z-index: 50;
 			.opacity(0);
 
 			&:hover {
@@ -507,6 +508,17 @@ body {
 
 	&.users {
 
+		.appends {
+			display: block;
+		}
+
+		.unreadLabel {
+			background-color: #09ba00;
+			color:white;
+			padding: 2px 4px;
+			border-radius: 2px;
+		}
+
 		.offlineList {
 			.userItem {
 				.name {
@@ -516,6 +528,36 @@ body {
 				.avatar {
 					.opacity(0.5)
 				}
+			}
+		}
+
+		.flags {
+
+			@flagsWidth: 40px;
+
+			position: absolute;
+			min-height:40px;
+			width: @flagsWidth;
+			left:-@flagsWidth;
+			top:180px;
+		}
+
+		.flag {
+			width: @flagsWidth;
+			height: 40px;
+			overflow: hidden;
+			.opacity(0.8);
+			background-color: #09ba00;
+			color:#fff;
+			font-size: 14px;
+			font-weight: bold;
+			border-radius: 4px 0 0 4px;
+			cursor:pointer;
+			display: none;
+
+			.text {
+				text-align: center;
+				padding: 10px 5px 0 5px;
 			}
 		}
 	}
@@ -551,6 +593,11 @@ body {
 		z-index: 1000;
 		border:1px solid #1a69a8;
 		padding: 3px;
+	}
+
+	.appends {
+		display:none;
+		float:left;
 	}
 }
 
@@ -763,7 +810,7 @@ body {
 
 		.tag {
 			margin: 4px 4px 0 0;
-			padding: 1px 3px;
+			padding: 0 6px 2px 4px;
 		}
 
 		.message {

@@ -858,4 +858,81 @@ class Feed {
 
 		return $tags_list;
 	}
+
+
+
+	///////////////
+	// dialogues
+	///////////////
+
+	function get_dialogues ($dialogues, &$meta = Array()){
+		global $db, $user, $cfg;
+
+		$dialogues = load_defaults($dialogues, $dialogues_defaults = Array(
+			'method' => 'full'
+		));
+
+		$meta = load_defaults($meta, $meta_defaults = Array(
+			'read' => '0' // работает как false, а в SQL-запросах по дате - как 0
+		));
+
+		//определяем есть ли вообще непрочитанные диалоги
+		$unread = $db->selectCell('
+			SELECT MAX(msg.created)
+			FROM ?_messages msg
+				JOIN ?_messages head ON msg.id = head.id OR msg.topic_id = head.id
+				JOIN ?_private_topics my_access ON my_access.message = head.id AND my_access.level IS NOT NULL AND my_access.user = ?d
+				JOIN ?_private_topics elses_access ON elses_access.message = head.id AND elses_access.level IS NOT NULL AND elses_access.user != ?d
+			WHERE (msg.dialogue = 1 OR head.dialogue = 1)
+				AND msg.author_id != ?d
+				{AND msg.created > ?}
+			'
+			, $user->id
+			, $user->id
+			, $user->id
+			, ($meta['read'] ? $meta['read'] : DBSIMPLE_SKIP)
+		);
+
+		if (!$unread) return Array();
+
+		switch ($dialogues['method']){
+
+			case 'updates':
+				break;
+
+			case 'updates_extended':
+
+				$result = $db->select('
+					SELECT
+						msg.id,
+						head.id AS parent,
+						elses_access.user AS sender,
+						unr.timestamp AS last_read
+					FROM ?_messages msg
+						JOIN ?_messages head ON msg.id = head.id OR msg.topic_id = head.id
+						JOIN ?_private_topics my_access ON my_access.message = head.id AND my_access.user = ?d AND my_access.level IS NOT NULL
+						JOIN ?_private_topics elses_access ON elses_access.message = head.id AND elses_access.user != ?d AND elses_access.level IS NOT NULL
+						LEFT JOIN ?_unread unr ON unr.topic = head.id
+					WHERE (msg.dialogue = 1 OR head.dialogue = 1)
+						AND msg.author_id != ?d
+						{AND msg.created > ?}
+					GROUP BY msg.id
+					'
+					, $user->id
+					, $user->id
+					, $user->id
+					, ($meta['read'] ? $meta['read'] : DBSIMPLE_SKIP)
+				);
+
+				break;
+
+			case 'full':
+				break;
+
+		}
+
+		$meta['read'] = $unread;
+
+		return $result;
+	}
 }
