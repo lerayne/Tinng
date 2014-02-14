@@ -55,7 +55,7 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 
 		// права (todo - сделать наоборот!)
 		if (!t.user.hasRight('editMessage', this.data)) this.mainPanel.edit.$body.remove();
-		if (!t.user.hasRight('deleteMessage', this.data) || data.dialogue > 0) this.mainPanel['delete'].$body.remove();
+		if (!t.user.hasRight('deleteMessage', this.data) || (data.head && data.dialogue > 0)) this.mainPanel['delete'].$body.remove();
 		if (!t.user.hasRight('admin', this)) this.mainPanel.unlock.$body.remove();
 		if (this.data.author_id == t.user.id) this.mainPanel.mark_unread.$body.remove();
 		// todo - тема, вручную отмеченная непрочитанной не отмечается таковой в списке тем, если последний пост в ней - текущего юзера
@@ -316,7 +316,8 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 				action:'read_topic',
 				id: this.data.topic_id == 0 ? this.data.id : this.data.topic_id,
 				time: latestReadTS,
-				author: this.data.author_id
+				author: this.data.author_id,
+				dialogue: this.data.dialogue
 			});
 
 			this.markReadPrev();

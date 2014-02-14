@@ -20,6 +20,7 @@ tinng.protos.strategic.XHRShortPoll = function(server, callback){
 	this.$stateIndicator = $('.state-ind');
 
 	this.subscriptions = {};
+	//console.log('XHRShortPoll construct meta init')
 	this.meta = {};
 	this.actions = {};
 	this.latest_change = 0;
@@ -30,7 +31,6 @@ tinng.protos.strategic.XHRShortPoll.prototype = {
 	// интерфейсные методы
 
 	refresh:function(){
-		//console.log('refresh');
 		this.start();
 	},
 
@@ -55,7 +55,7 @@ tinng.protos.strategic.XHRShortPoll.prototype = {
 
 				// сбрасываем ее мету
 				if (!soft && this.meta[subscriberId]) {
-					//console.log('META RESET')
+					//console.log('META RESET on subscribe:', subscriberId, feedName)
 					this.meta[subscriberId][feedName] = {};
 				}
 
@@ -88,6 +88,7 @@ tinng.protos.strategic.XHRShortPoll.prototype = {
 			delete this.subscriptions[subscriberId][feedName];
 
 			if (this.meta[subscriberId]) {
+				//console.log('META DELETE on UNscribe:', subscriberId, feedName)
 				delete this.meta[subscriberId][feedName];
 			}
 
@@ -100,6 +101,8 @@ tinng.protos.strategic.XHRShortPoll.prototype = {
 			// если ни одной - прибиваем подписчика
 			if (i == 0) {
 				delete this.subscriptions[subscriberId];
+
+				//console.log('SUBSCRIBER DELETE:', subscriberId)
 				delete this.meta[subscriberId];
 			}
 		}
@@ -127,7 +130,8 @@ tinng.protos.strategic.XHRShortPoll.prototype = {
 		this.startIndication(); // показываем, что запрос начался
 
 //		console.log('this.subscriptions:', this.subscriptions);
-		if (!t.funcs.objectSize(this.meta)) console.log('META EMPTY!');
+		var now = new Date();
+		//if (!t.funcs.objectSize(this.meta)) console.log(now.getTime()+' META EMPTY!');
 
 		try {
 			// Отправляем запрос
@@ -145,7 +149,7 @@ tinng.protos.strategic.XHRShortPoll.prototype = {
 
 		this.connectionLossTO = setTimeout(this.restart, 10000);
 
-		t.funcs.log('Launching query with timeout ' + this.waitTime);
+		//t.funcs.log('Launching query with timeout ' + this.waitTime);
 	},
 
 	restart:function(){
@@ -168,7 +172,7 @@ tinng.protos.strategic.XHRShortPoll.prototype = {
 			this.request.abort();
 			this.request = false;
 
-			t.funcs.log('STOP occured while WAITING. Query has been ABORTED');
+			console.info('Connection STOP occured while waiting. Previous query has been aborted');
 		}
 
 		return true;
@@ -186,16 +190,19 @@ tinng.protos.strategic.XHRShortPoll.prototype = {
 			clearTimeout(this.connectionLossTO);
 
 			if (this.request.responseText) {
-				console.log('PHP backtrace:\n==============\n' + this.request.responseText)
+				console.info('PHP backtrace:\n==============\n' + this.request.responseText)
 			}
 
-			//console.log('XHRShortPoll actions:', this.actions)
+			// todo - иногда от сервера приходит meta в виде массива, а иногда - в виде объекта. разобраться
+			if (this.request.responseJS.meta instanceof Array) {
 
-			this.meta = {};
-
-			for (var i = 0; i < this.request.responseJS.meta.length; i++) {
-				var metaItem = this.request.responseJS.meta[i];
-				this.meta[i] = metaItem;
+				this.meta = {};
+				for (var i = 0; i < this.request.responseJS.meta.length; i++) {
+					var metaItem = this.request.responseJS.meta[i];
+					this.meta[i] = metaItem;
+				}
+			} else {
+				this.meta = this.request.responseJS.meta;
 			}
 
 			// разбираем пришедший пакет и выполняем обновления

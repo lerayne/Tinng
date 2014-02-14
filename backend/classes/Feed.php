@@ -438,30 +438,27 @@ class Feed {
 				msg.modified,
 				(msg.deleted IS NOT NULL) AS deleted,
 				msg.modifier,
-				msg.dialogue,
+				tpc.dialogue,
+				tpc.author_id AS topicstarter,
 				usr.email AS author_email,
 				UNIX_TIMESTAMP(usr.last_read) AS author_seen_online,
 				IFNULL(usr.display_name, usr.login) AS author,
 				IF(unr.timestamp < IFNULL(msg.modified, msg.created) && IFNULL(msg.modifier, msg.author_id) != ?d, 1, 0) AS unread,
 				moder.login AS modifier_name,
-				(SELECT starter.author_id FROM ?_messages starter WHERE starter.id = msg.topic_id ) AS topicstarter,
 				uset.param_value as author_avatar
 			FROM ?_messages msg
 
-			LEFT JOIN ?_users usr
-				ON msg.author_id = usr.id
-			LEFT JOIN ?_unread unr
-				ON unr.topic = IF(msg.topic_id = 0, msg.id, msg.topic_id) AND unr.user = ?d
-			LEFT JOIN ?_users moder
-				ON msg.modifier = moder.id
-			LEFT JOIN ?_user_settings uset
-				ON msg.author_id = uset.user_id AND uset.param_key = "avatar"
+			JOIN ?_messages tpc ON msg.topic_id = tpc.id OR msg.id = tpc.id
+			JOIN ?_users usr ON msg.author_id = usr.id
+			LEFT JOIN ?_unread unr ON unr.topic = IF(msg.topic_id = 0, msg.id, msg.topic_id) AND unr.user = ?d
+			LEFT JOIN ?_users moder ON msg.modifier = moder.id
+			LEFT JOIN ?_user_settings uset ON msg.author_id = uset.user_id AND uset.param_key = "avatar"
 			WHERE
-				IF(msg.topic_id = 0, msg.id, msg.topic_id) = ?d
+				tpc.id = ?d
 				{AND msg.deleted IS NULL AND 1 = ?d}
 		';
 
-		$query_end = '/*sql*/ ORDER BY msg.created ASC ';
+		$query_end = '/*sql*/ GROUP BY msg.id ORDER BY msg.created ASC ';
 
 		// если режим догрузки
 		if ($slice_end) {
@@ -918,8 +915,8 @@ class Feed {
 						/*,IF(unr.timestamp >= msg.created, 1, 0) AS was_read*/
 					FROM ?_messages msg
 						JOIN ?_messages head ON msg.id = head.id OR msg.topic_id = head.id
-						JOIN ?_private_topics my_access ON my_access.message = head.id AND my_access.user = ?d AND my_access.level IS NOT NULL
-						JOIN ?_private_topics elses_access ON elses_access.message = head.id AND elses_access.user != ?d AND elses_access.level IS NOT NULL
+						JOIN ?_private_topics my_access ON my_access.message = head.id AND my_access.level IS NOT NULL AND my_access.user = ?d
+						JOIN ?_private_topics elses_access ON elses_access.message = head.id AND elses_access.level IS NOT NULL AND elses_access.user != ?d
 						LEFT JOIN ?_unread unr ON unr.topic = head.id AND unr.user = ?d
 					WHERE head.dialogue = 1
 						AND msg.author_id != ?d

@@ -163,7 +163,7 @@ tinng.protos.UsersUnit = Class(tinng.protos.Unit, {
 		var params = e.message;
 
 		// todo - проверка на диалог убивает идею броадкаста. Можно при входе в режим диалога броадкастить и это тоже.
-		if (params.author && this.unread[params.author] && t.units.posts.state.topicData.dialogue > 0) {
+		if (params.author && params.dialogue != 0 && this.unread[params.author]) {
 			for (var msg_id in this.unread[params.author]){
 				if (this.unread[params.author][msg_id] <= params.time) {
 					delete this.unread[params.author][msg_id];
