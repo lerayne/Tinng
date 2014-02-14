@@ -666,7 +666,7 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 		this.state.topicData = topicData;
 
 		// выгружаем удаленную тему
-		if (this.state.topicData.deleted == 1) {
+		if (topicData.deleted == 1) {
 
 			//console.log('TOPIC DELETED')
 			this.unscribe();
@@ -675,13 +675,13 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 
 			t.ui.editor.show();
 			
-			if (this.state.topicData.dialogue > 0) { // если мы имеем дело с потоком ЛС
+			if (topicData.dialogue > 0) { // если мы имеем дело с потоком ЛС
 
 				// хайд верхнего контейнера дает не только скрытие, но и отсутствие показа при такскании
 				this.header.allowedUsers.$body.hide();
 
-				for (var i = 0; i < this.state.topicData.private.length; i++) {
-					var user = this.state.topicData.private[i];
+				for (var i = 0; i < topicData.private.length; i++) {
+					var user = topicData.private[i];
 					if (user.id != t.user.id) break;
 				}
 
@@ -692,16 +692,16 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 				var dialogueWrap = $('<div class="dialogueWrap">').appendTo(this.header.topicName.$body);
 				dialogueWrap.append($user);
 
-				if (this.state.topicData.new_dialogue) this.newDialogueMode = 1;
+				if (topicData.new_dialogue) this.newDialogueMode = 1;
 				else this.newDialogueMode = 0;
 				
 			} else { // иначе - обычная тема
 
-				if (t.user.hasRight('editMessage', this.state.topicData)) t.units.posts.header.topicRename.show();
+				if (t.user.hasRight('editMessage', topicData)) t.units.posts.header.topicRename.show();
 				
-				this.displayTopicName(this.state.topicData.topic_name); //вывод названия темы
+				this.displayTopicName(topicData.topic_name); //вывод названия темы
 
-				if (typeof this.state.topicData.private == 'object' && this.state.topicData.private.length) {
+				if (typeof topicData.private == 'object' && topicData.private.length) {
 
 					this.header.allowedUsersContainer.addClass('private');
 					this.header.allowedUsers.$body.show();
@@ -710,13 +710,13 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 
 					this.header.allowedUsersContainer.removeClass('none');
 
-					for (var i = 0; i < this.state.topicData.private.length; i++) {
-						this.renderPrivateUser(this.state.topicData.private[i])
+					for (var i = 0; i < topicData.private.length; i++) {
+						this.renderPrivateUser(topicData.private[i])
 					}
 				} else {
 					this.header.allowedUsersContainer.removeClass('private');
 					// если пользователь не имеет права делать тему приватной - не показываем даже окошко
-					if (t.user.id == this.state.topicData.author_id || t.user.id == 1) {
+					if (t.user.id == topicData.author_id || t.user.id == 1) {
 						this.header.allowedUsers.$body.show();
 					} else {
 						this.header.allowedUsers.$body.hide();
@@ -725,15 +725,30 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 			}
 		}
 
+		// хак прочитанности первого сообщения
+		var latestReadTS = t.funcs.sql2stamp(topicData.modified ? topicData.modified : topicData.created);
+
+		if (topicData.post_count == 1) {
+			$.event.trigger({
+				type: 'read_topic',
+				message:{
+					id: topicData.id,
+					time: latestReadTS,
+					author: topicData.author_id,
+					dialogue: topicData.dialogue
+				}
+			})
+		}
+
 		// todo - в будущем тут будет проверка на наличие модулей, подписанных на список тем
-		if (t.topics && t.topics[this.state.topicData.id]) {
+		if (t.topics && t.topics[topicData.id]) {
 
 			// если тема есть, но она не выделена - значит тема грузилась не кликом по ней
-			if (!t.topics[this.state.topicData.id].isSelected()) {
+			if (!t.topics[topicData.id].isSelected()) {
 
-				t.topics[this.state.topicData.id].select(); // сделать актвной
+				t.topics[topicData.id].select(); // сделать актвной
 				// todo - изменить везде show на scrollTo или что-то подобное
-				t.topics[this.state.topicData.id].show(false); // промотать до нее
+				t.topics[topicData.id].show(false); // промотать до нее
 			}
 		}
 

@@ -886,7 +886,7 @@ class Feed {
 			WHERE head.dialogue = 1
 				AND msg.author_id != ?d
 				AND msg.deleted IS NULL
-				AND msg.created > unr.timestamp
+				AND msg.created > IFNULL(unr.timestamp, 0)
 				{AND msg.created > ?}
 			'
 			, $user->id
@@ -895,9 +895,9 @@ class Feed {
 			, ($meta['read'] ? $meta['read'] : DBSIMPLE_SKIP)
 		);
 
-//		$GLOBALS['debug']['dialogue unread'] = $meta['read'];
-
 		if (!$unread) return Array();
+
+		$GLOBALS['debug']['dialogue unread'] = $unread;
 
 		switch ($dialogues['method']){
 
@@ -921,7 +921,7 @@ class Feed {
 					WHERE head.dialogue = 1
 						AND msg.author_id != ?d
 						AND msg.deleted IS NULL
-						AND msg.created > unr.timestamp
+						AND msg.created > IFNULL(unr.timestamp, 0)
 						{AND msg.created > ?}
 					GROUP BY msg.id
 					'
@@ -938,6 +938,8 @@ class Feed {
 				break;
 
 		}
+
+		$GLOBALS['debug']['dialogue result count'] = count($result);
 
 		$meta['read'] = $unread;
 
