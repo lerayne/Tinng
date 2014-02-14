@@ -68,6 +68,9 @@
 				<? endif; ?>
 
 			</div>
+			<div class="right">
+				<a class="notification_perm_request"><?= $txt['notification_perm_request'] ?></a>
+			</div>
 			<div class='clearfix'></div>
 		</div>
 

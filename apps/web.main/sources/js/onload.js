@@ -12,10 +12,12 @@
 
 tinng.funcs.onWindowLoad = function(){
 
+	t.user = new tinng.protos.User(importedUser);
+
 	// создание машин, использующих селекторы
 	t.chunks = new t.protos.ChunksEngine('tinng-chunks', 'data-chunk-name', 'data-cell');
+	t.notifier = new t.protos.Notifier();
 
-	t.user = new tinng.protos.User(importedUser);
 	t.address = new tinng.protos.Address(';', ':');
 	//t.keyListener = new tinng.protos.KeyListener();
 
@@ -25,9 +27,7 @@ tinng.funcs.onWindowLoad = function(){
 	});
 
     t.ui = new t.protos.UserInterface(window);
-
 	t.userWatcher = new t.protos.UserWatcher();
-
 	t.stateService = new t.protos.StateService();
 
     // загрузка данных из хеша адресной строки

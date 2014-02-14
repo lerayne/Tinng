@@ -61,6 +61,9 @@ $txt['topics_sortdir_setting'] = 'Направление сортировки';
 $txt['topics_sortdir_asc'] = 'По возрастанию';
 $txt['topics_sortdir_desc'] = 'По убыванию';
 
+$txt['notification_perm_request'] = 'Включить уведомления рабочего стола';
+$txt['notification_perm_granted'] = 'Уведомления включены';
+
 $txt['new_topic_creation'] = 'Создание новой темы';
 $txt['new_topic_title'] = 'Название темы';
 $txt['new_topic_body'] = 'Заглавное сообщение';

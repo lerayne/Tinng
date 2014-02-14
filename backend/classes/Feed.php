@@ -403,7 +403,7 @@ class Feed {
 		// смотрим, есть ли сообщение с датой позже чем $meta['updates_since'] и $slice_start
 		// issue - если первая выборка даты не выдает удаленных, возможна ситуация когда последний удаленный пост приходит
 		// с ближайшим апдейтом. todo - проверить все ли ок.
-		$new_updates_since = $db->selectCell( '
+		$new_updates_since = $db->selectCell('
 			SELECT GREATEST(MAX(msg.created), IFNULL(MAX(msg.modified), 0))
 			FROM ?_messages msg
 			WHERE IF(msg.topic_id = 0, msg.id, msg.topic_id) = ?d /* topic_id */
