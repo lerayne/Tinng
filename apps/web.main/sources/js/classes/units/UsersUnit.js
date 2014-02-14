@@ -8,7 +8,7 @@
 tinng.protos.UsersUnit = Class(tinng.protos.Unit, {
 
 	construct: function () {
-		t.funcs.bind(this, ['markRead']);
+		t.funcs.bind(this, ['markRead', 'openParentWindow']);
 
 		t.protos.Unit.prototype
 			.construct.apply(this, arguments);
@@ -87,6 +87,7 @@ tinng.protos.UsersUnit = Class(tinng.protos.Unit, {
 	parseFeed:function(data){
 		if (data.userlist) this.parseUserlist(data.userlist);
 		if (data.dialogues) this.parseDialogues(data.dialogues);
+		this.contentLoaded = true;
 	},
 
 	parseUserlist:function(userlist){
@@ -122,6 +123,15 @@ tinng.protos.UsersUnit = Class(tinng.protos.Unit, {
 
 				if (!this.unread[message.sender]) this.unread[message.sender] = {};
 				this.unread[message.sender][message.id] = message.created;
+
+				var openDialogue = t.units.posts.state.topicData.dialogue;
+
+				console.log('window focused', document.hasFocus() )
+
+				// уведомление (не показываем, если это первая загрузка модуля)
+				if (this.contentLoaded && (message.sender != openDialogue || !document.hasFocus() )) {
+					t.notifier.send(message.display_name, message.message, message.avatar, message.sender, this.openParentWindow);
+				}
 			}
 
 			this.unreadQuant += quantity;
@@ -233,6 +243,20 @@ tinng.protos.UsersUnit = Class(tinng.protos.Unit, {
 		}
 
 		this.currentOnlineList = userlist;
+	},
+
+	openParentWindow:function(e){
+		// todo - обходной маневр для хрома, который не показывает сообщение с тегом
+
+		var sender = e.target.ondisplay();
+
+		if (navigator.appCodeName != 'Mozilla') {
+			if (t.units.posts.state.topicData.dialogue != sender) {
+				this.loadDialogue(sender);
+			}
+		}
+
+		$(window).focus();
 	},
 
 	loadDialogue:function(id){

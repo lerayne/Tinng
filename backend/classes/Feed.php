@@ -897,8 +897,6 @@ class Feed {
 
 		if (!$unread) return Array();
 
-		$GLOBALS['debug']['dialogue unread'] = $unread;
-
 		switch ($dialogues['method']){
 
 			case 'updates':
@@ -906,31 +904,38 @@ class Feed {
 
 			case 'updates_extended':
 
-				$result = $db->select('
+				$result = $db->select("
 					SELECT
 						msg.id,
 						head.id AS topic,
-						elses_access.user AS sender,
-						UNIX_TIMESTAMP(msg.created)*1000 AS created
-						/*,IF(unr.timestamp >= msg.created, 1, 0) AS was_read*/
+						msg.author_id AS sender,
+						usr.login,
+						usr.display_name,
+						usr.email,
+						avatar.param_value AS avatar,
+						UNIX_TIMESTAMP(msg.created)*1000 AS created,
+						LEFT(msg.message, 80) AS message
 					FROM ?_messages msg
 						JOIN ?_messages head ON msg.id = head.id OR msg.topic_id = head.id
+						JOIN ?_users usr ON msg.author_id = usr.id
 						JOIN ?_private_topics my_access ON my_access.message = head.id AND my_access.level IS NOT NULL AND my_access.user = ?d
-						JOIN ?_private_topics elses_access ON elses_access.message = head.id AND elses_access.level IS NOT NULL AND elses_access.user != ?d
+						/*JOIN ?_private_topics elses_access ON elses_access.message = head.id AND elses_access.level IS NOT NULL AND elses_access.user != ?d*/
 						LEFT JOIN ?_unread unr ON unr.topic = head.id AND unr.user = ?d
+						LEFT JOIN ?_user_settings avatar ON avatar.user_id = msg.author_id AND avatar.param_key = 'avatar'
 					WHERE head.dialogue = 1
 						AND msg.author_id != ?d
 						AND msg.deleted IS NULL
 						AND msg.created > IFNULL(unr.timestamp, 0)
 						{AND msg.created > ?}
 					GROUP BY msg.id
-					'
-					, $user->id
+					"
 					, $user->id
 					, $user->id
 					, $user->id
 					, ($meta['read'] ? $meta['read'] : DBSIMPLE_SKIP)
 				);
+
+				$result = ready_users($result, true);
 
 				break;
 
@@ -938,8 +943,6 @@ class Feed {
 				break;
 
 		}
-
-		$GLOBALS['debug']['dialogue result count'] = count($result);
 
 		$meta['read'] = $unread;
 
