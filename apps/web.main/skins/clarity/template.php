@@ -384,7 +384,9 @@
 	<div data-chunk-name="userListItem" class="userItem">
 		<img data-cell="avatar" class="avatar">
 		<div data-cell="name" class="name"></div>
-		<div data-cell="appends" class="appends"></div>
+		<div class="appends" data-cell="appends">
+			<div data-cell="unread" class="unreadLabel"></div>
+		</div>
 		<div class="clearfix"></div>
 	</div>
 

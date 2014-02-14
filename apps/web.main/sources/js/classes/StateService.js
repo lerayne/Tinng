@@ -32,6 +32,11 @@ t.protos.StateService.prototype = {
 			if (!this.stateData[action][id]) this.stateData[action][id] = 0;
 			if (time > this.stateData[action][id]) this.stateData[action][id] = time;
 		}
+
+		$.event.trigger({
+			type:action,
+			message:object
+		})
 	},
 
 	flushState:function(){

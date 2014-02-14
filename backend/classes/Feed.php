@@ -873,18 +873,23 @@ class Feed {
 		));
 
 		$meta = load_defaults($meta, $meta_defaults = Array(
-			'read' => '0' // работает как false, а в SQL-запросах по дате - как 0
+			'read' => '0', // работает как false, а в SQL-запросах по дате - как 0
 		));
+
+//		$GLOBALS['debug']['dialogue meta read'] = $meta['read'];
+
 
 		//определяем есть ли вообще непрочитанные диалоги
 		$unread = $db->selectCell('
-			SELECT MAX(msg.created)
+			SELECT MAX(msg.created) AS latestchange
 			FROM ?_messages msg
 				JOIN ?_messages head ON msg.id = head.id OR msg.topic_id = head.id
 				JOIN ?_private_topics my_access ON my_access.message = head.id AND my_access.level IS NOT NULL AND my_access.user = ?d
-				JOIN ?_private_topics elses_access ON elses_access.message = head.id AND elses_access.level IS NOT NULL AND elses_access.user != ?d
-			WHERE (msg.dialogue = 1 OR head.dialogue = 1)
+				LEFT JOIN ?_unread unr ON unr.topic = head.id AND unr.user = ?d
+			WHERE head.dialogue = 1
 				AND msg.author_id != ?d
+				AND msg.deleted IS NULL
+				AND msg.created > unr.timestamp
 				{AND msg.created > ?}
 			'
 			, $user->id
@@ -892,6 +897,8 @@ class Feed {
 			, $user->id
 			, ($meta['read'] ? $meta['read'] : DBSIMPLE_SKIP)
 		);
+
+//		$GLOBALS['debug']['dialogue unread'] = $meta['read'];
 
 		if (!$unread) return Array();
 
@@ -905,19 +912,23 @@ class Feed {
 				$result = $db->select('
 					SELECT
 						msg.id,
-						head.id AS parent,
+						head.id AS topic,
 						elses_access.user AS sender,
-						unr.timestamp AS last_read
+						UNIX_TIMESTAMP(msg.created)*1000 AS created
+						/*,IF(unr.timestamp >= msg.created, 1, 0) AS was_read*/
 					FROM ?_messages msg
 						JOIN ?_messages head ON msg.id = head.id OR msg.topic_id = head.id
 						JOIN ?_private_topics my_access ON my_access.message = head.id AND my_access.user = ?d AND my_access.level IS NOT NULL
 						JOIN ?_private_topics elses_access ON elses_access.message = head.id AND elses_access.user != ?d AND elses_access.level IS NOT NULL
-						LEFT JOIN ?_unread unr ON unr.topic = head.id
-					WHERE (msg.dialogue = 1 OR head.dialogue = 1)
+						LEFT JOIN ?_unread unr ON unr.topic = head.id AND unr.user = ?d
+					WHERE head.dialogue = 1
 						AND msg.author_id != ?d
+						AND msg.deleted IS NULL
+						AND msg.created > unr.timestamp
 						{AND msg.created > ?}
 					GROUP BY msg.id
 					'
+					, $user->id
 					, $user->id
 					, $user->id
 					, $user->id

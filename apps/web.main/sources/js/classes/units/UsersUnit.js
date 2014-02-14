@@ -8,6 +8,8 @@
 tinng.protos.UsersUnit = Class(tinng.protos.Unit, {
 
 	construct: function () {
+		t.funcs.bind(this, ['markRead']);
+
 		t.protos.Unit.prototype
 			.construct.apply(this, arguments);
 
@@ -28,6 +30,8 @@ tinng.protos.UsersUnit = Class(tinng.protos.Unit, {
 
 		this.header.title.$body.text(t.txt.title_all_users);
 		this.ui.$header.append(this.header.$body);
+
+		$(document).on('read_topic', this.markRead)
 	},
 
 	nullify:function(){
@@ -35,6 +39,7 @@ tinng.protos.UsersUnit = Class(tinng.protos.Unit, {
 			.nullify.apply(this, arguments);
 
 		this.unread = {};
+		this.unreadQuant = 0;
 		this.usersList = {};
 		this.currentOnlineList = [];
 
@@ -108,47 +113,71 @@ tinng.protos.UsersUnit = Class(tinng.protos.Unit, {
 	},
 
 	parseDialogues:function(dialogues){
-
 		var quantity = dialogues.length;
-
-		this.unread = {}
 
 		if (quantity > 0) {
 
-			this.unreadFlag.$body.show();
-			this.unreadFlag.$text.text('+'+quantity);
-
 			for (var i = 0; i < dialogues.length; i++) {
-				var dialogue = dialogues[i];
+				var message = dialogues[i];
 
-				if (!this.unread[dialogue.sender]) this.unread[dialogue.sender] = 0;
-				this.unread[dialogue.sender]++ ;
+				if (!this.unread[message.sender]) this.unread[message.sender] = {};
+				this.unread[message.sender][message.id] = message.created;
 			}
 
+			this.unreadQuant += quantity;
+			this.renderUnreadSum();
 			this.appendMarkers();
 
+			//console.log('dialogues', dialogues, this.unread, this.unreadQuant)
+		}
+	},
+
+	appendMarkers:function(){
+
+		for (var userId in this.unread) {
+			if (this.usersList[userId]) this.renderReadState(userId);
+		}
+	},
+
+	renderReadState:function(authorId){
+		var quant = this.unread[authorId] ? t.funcs.objectSize(this.unread[authorId]) : 0;
+
+		if (quant > 0) {
+			this.usersList[authorId].$unread.text('+'+quant);
+			this.usersList[authorId].$unread.show();
+		} else {
+			this.usersList[authorId].$unread.hide();
+		}
+	},
+
+	renderUnreadSum:function(){
+		if (this.unreadQuant > 0) {
+			this.unreadFlag.$body.show();
+			this.unreadFlag.$text.text('+'+ this.unreadQuant);
 		} else {
 			this.unreadFlag.$body.hide();
 		}
 	},
 
-	appendMarkers:function(){
-		console.log('this.unread', this.unread);
+	markRead:function(e){
+		var params = e.message;
 
-		for (var userId in this.unread) {
-
-			if (this.usersList[userId] && !this.usersList[userId].$appends.children().size()) {
-				this.appendUnreadMarker(userId, this.unread[userId])
+		// todo - проверка на диалог убивает идею броадкаста. Можно при входе в режим диалога броадкастить и это тоже.
+		if (params.author && this.unread[params.author] && t.units.posts.state.topicData.dialogue > 0) {
+			for (var msg_id in this.unread[params.author]){
+				if (this.unread[params.author][msg_id] <= params.time) {
+					delete this.unread[params.author][msg_id];
+					this.unreadQuant--;
+				}
 			}
-		}
-	},
 
-	appendUnreadMarker:function(userId, q){
-		var user = this.usersList[userId];
+			if (!t.funcs.objectSize(this.unread[params.author])) delete this.unread[params.author];
 
-		if (!user.$appends.children().size()) {
-			$('<div class="unreadLabel">').text('+'+q).appendTo(user.$appends);
+			this.renderReadState(params.author);
+			this.renderUnreadSum();
 		}
+
+		console.log('UsersUnit caught an event:', params);
 	},
 
 	createUserElement:function(data){

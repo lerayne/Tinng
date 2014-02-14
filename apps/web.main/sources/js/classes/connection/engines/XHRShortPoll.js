@@ -127,7 +127,7 @@ tinng.protos.strategic.XHRShortPoll.prototype = {
 		this.startIndication(); // показываем, что запрос начался
 
 //		console.log('this.subscriptions:', this.subscriptions);
-//		console.log('this.meta:', this.meta);
+		if (!t.funcs.objectSize(this.meta)) console.log('META EMPTY!');
 
 		try {
 			// Отправляем запрос

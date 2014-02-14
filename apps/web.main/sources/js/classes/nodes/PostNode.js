@@ -315,7 +315,8 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 			t.stateService.push({
 				action:'read_topic',
 				id: this.data.topic_id == 0 ? this.data.id : this.data.topic_id,
-				time: latestReadTS
+				time: latestReadTS,
+				author: this.data.author_id
 			});
 
 			this.markReadPrev();
