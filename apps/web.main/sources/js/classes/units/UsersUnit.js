@@ -20,7 +20,7 @@ tinng.protos.UsersUnit = Class(tinng.protos.Unit, {
 		this.$flags = $('<div class="flags">').appendTo(this.$body);
 
 		this.unreadFlag = new t.protos.Chunk('' +
-			'<div class="flag">' +
+			'<div class="flag messages none">' +
 			'	<div data-cell="text" class="text"></div>' +
 			'</div>'
 			, 'data-cell'
@@ -152,17 +152,16 @@ tinng.protos.UsersUnit = Class(tinng.protos.Unit, {
 
 	renderUnreadSum:function(){
 		if (this.unreadQuant > 0) {
-			this.unreadFlag.$body.show();
+			this.unreadFlag.$body.removeClass('none');
 			this.unreadFlag.$text.text('+'+ this.unreadQuant);
 		} else {
-			this.unreadFlag.$body.hide();
+			this.unreadFlag.$body.addClass('none');
 		}
 	},
 
 	markRead:function(e){
 		var params = e.message;
 
-		// todo - проверка на диалог убивает идею броадкаста. Можно при входе в режим диалога броадкастить и это тоже.
 		if (params.author && params.dialogue != 0 && this.unread[params.author]) {
 			for (var msg_id in this.unread[params.author]){
 				if (this.unread[params.author][msg_id] <= params.time) {

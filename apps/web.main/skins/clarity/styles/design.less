@@ -216,6 +216,12 @@ body {
 		z-index: 100;
 		background-color: #ddd;
 
+		&.closed {
+			.flags {
+				display: block;
+			}
+		}
+
 		.unit-portal {
 			height: 100%;
 			background-color: white;
@@ -532,15 +538,16 @@ body {
 			}
 		}
 
-		.flags {
+		@flagsWidth: 40px;
 
-			@flagsWidth: 40px;
+		.flags {
 
 			position: absolute;
 			min-height:40px;
 			width: @flagsWidth;
 			left:-@flagsWidth;
 			top:180px;
+			display: none;
 		}
 
 		.flag {
@@ -548,17 +555,20 @@ body {
 			height: 40px;
 			overflow: hidden;
 			.opacity(0.8);
-			background-color: #09ba00;
+			background: #09ba00 no-repeat center 4px;
 			color:#fff;
 			font-size: 14px;
 			font-weight: bold;
 			border-radius: 4px 0 0 4px;
 			cursor:pointer;
-			display: none;
+
+			&.messages {
+				background-image: url(../../skins/clarity/images/icons/message.png);
+			}
 
 			.text {
 				text-align: center;
-				padding: 10px 5px 0 5px;
+				padding: 18px 5px 0 5px;
 			}
 		}
 	}
