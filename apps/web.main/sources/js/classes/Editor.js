@@ -7,15 +7,16 @@
  */
 
 // Редактор сообщений
-tinng.protos.Editor = function () {
+tinng.protos.Editor = function (element) {
 	t.funcs.bind(this);
 
 	if (tinng.user.hasRight('writeToTopic', tinng.sync.curTopic)){
-
+		var that = this;
 		t.funcs.bind(this, ['submitNew']);
 
 		this.ui = t.chunks.get('editor');
 		this.$body = this.ui.$body;
+		element.append(this.$body);
 
         this.ui.$submit.click(this.submitNew);
         this.visible = true;
@@ -26,11 +27,23 @@ tinng.protos.Editor = function () {
 			enterMode: CKEDITOR.ENTER_BR
 		};
 
-		ckconf.toolbar = [['Bold', 'Italic'],['Blockquote'],['Source']];
+		ckconf.toolbar = [['Bold', 'Italic', 'Strike'],['Blockquote'],['Source']];
+		ckconf.on = {
+			autogrow:function(e){ console.log('grow:', e)},
+			focus:function(e){console.log('focus:', e)}
+		}
 
 		this.ck = CKEDITOR.replace(this.ui.$messageBody[0], ckconf);
 
-		//this.ui.$messageBody.on('keyup', this.onKeyPress)
+		//this.ck.on('focus:', function(e){console.log('focus:', e)})
+
+
+
+		/*CKEDITOR.on('instanceReady', function(){
+			$(that.ck.container.$).on('keyup', that.onKeyPress);
+		})*/
+
+		this.ui.$wrapper.on('keyup', this.onKeyPress);
 
 		// todo - мой кейлистенер - полное Г. Переделать.
 //		tinng.keyListener.register('ctrl+enter', this, this.submitNew);
@@ -46,6 +59,9 @@ tinng.protos.Editor.prototype = {
 	onKeyPress:function(e){
 		// todo - разобраться, почему не срабатывает alt+enter (подозение - раскладка бирмана)
 		//console.log('key:', e.keyCode,'; alt:', e.altKey, '; ctrl:', e.ctrlKey)
+
+		console.log('keyup', e)
+
 		if (e.keyCode == 10 || ( e.keyCode == 13 && (e.altKey || e.ctrlKey) )){
 			this.submitNew();
 		}

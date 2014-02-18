@@ -83,9 +83,9 @@ tinng.protos.UserInterface = function (targetWindow) {
 
 
 	// редактор
-	this.editor = new t.protos.Editor();
-	this.editor.$body.on('keyup', this.editorResize);
-	t.units.posts.ui.$scrollArea.append(this.editor.$body);
+	this.editor = new t.protos.Editor(t.units.posts.ui.$scrollArea);
+	//this.editor.$body.on('keyup', this.editorResize);
+	//t.units.posts.ui.$scrollArea.append(this.editor.$body);
 
 	this.editor.hide();
 
