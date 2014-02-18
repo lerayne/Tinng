@@ -22,7 +22,15 @@ tinng.protos.Editor = function () {
 
         this.currentHeight = 0;
 
-		this.ui.$messageBody.on('keyup', this.onKeyPress)
+		var ckconf = {
+			enterMode: CKEDITOR.ENTER_BR
+		};
+
+		ckconf.toolbar = [['Bold', 'Italic'],['Blockquote'],['Source']];
+
+		this.ck = CKEDITOR.replace(this.ui.$messageBody[0], ckconf);
+
+		//this.ui.$messageBody.on('keyup', this.onKeyPress)
 
 		// todo - мой кейлистенер - полное Г. Переделать.
 //		tinng.keyListener.register('ctrl+enter', this, this.submitNew);
@@ -68,14 +76,17 @@ tinng.protos.Editor.prototype = {
 			// ОТПРАВЛЯЕМ
 			t.connection.write(writeObject);
 
-            this.ui.$messageBody.html('').focus(); // todo - сделать затенение кнопки, если сообщение пустое
+			this.ck.setData('');
+			this.ck.focus();
+
+            //this.ui.$messageBody.html('').focus(); // todo - сделать затенение кнопки, если сообщение пустое
         }
     },
 
     checkMessage:function(){
 
         var blockThis = false;
-        var msg = this.ui.$messageBody.text();
+        var msg = this.ck.getData();
 
         if (msg.match(t.rex.empty)) blockThis = 'null length';
 
@@ -86,7 +97,7 @@ tinng.protos.Editor.prototype = {
 
     preparedMessage:function(){
 
-        var msg = this.ui.$messageBody.html()
+        var msg = this.ck.getData();
 
         return msg;
     },

@@ -195,7 +195,6 @@
 	<!-- Редактор -->
 	<div data-chunk-name="editor" class="editor">
 		<div class="editor-inner">
-			<input type="text" class="title"/>
 
 			<div class="textarea-wrapper">
 				<div contenteditable="true" class="textarea" data-cell="messageBody"></div>

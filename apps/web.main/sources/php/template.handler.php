@@ -46,11 +46,13 @@ function template_head() {
 		echo '<script type="text/javascript" language="JavaScript" src="' . $env['rootdir'] . 'libraries/modernizr.js"></script>';
 		echo '<script type="text/javascript" language="JavaScript" src="' . $env['rootdir'] . 'libraries/jquery-1.x.js"></script>';
 		echo '<script type="text/javascript" language="JavaScript" src="' . $env['rootdir'] . 'libraries/es5-shim.min.js"></script>';
-		echo '<script type="text/javascript" language="JavaScript" src="' . $env['rootdir'] . 'libraries/jquery-ui-1.10.4.custom.min.js"></script>';
 	} else {
 		echo '<script type="text/javascript" language="JavaScript" src="' . $env['rootdir'] . 'libraries/jquery-2.x.js"></script>';
-		echo '<script type="text/javascript" language="JavaScript" src="' . $env['rootdir'] . 'libraries/jquery-ui-1.10.4.custom.min.js"></script>';
 	}
+
+	echo '<script type="text/javascript" language="JavaScript" src="' . $env['appdir'] . 'lib/ckeditor/ckeditor.js"></script>';
+	//echo '<script type="text/javascript" language="JavaScript" src="' . $env['appdir'] . 'lib/ckeditor/adapters/jquery.js"></script>';
+	echo '<script type="text/javascript" language="JavaScript" src="' . $env['rootdir'] . 'libraries/jquery-ui-1.10.4.custom.min.js"></script>';
 
 	// импорт переменных из PHP
 	echo '
@@ -81,6 +83,7 @@ function template_head() {
 	// Загрузка скриптов (теперь зависимости прописываются в самих файлах!)
 	get_js(Array(
 
+		get_script($env['appdir'].'sources/js', 'jqextend.js', $debug),
 		get_script($env['appdir'].'sources/js', 'jqextend.js', $debug),
 		get_script($env['rootdir'], 'libraries/JsHttpRequest.js', $debug),
 		get_script($env['appdir'].'sources/js', 'tinng_init.js', $debug),
