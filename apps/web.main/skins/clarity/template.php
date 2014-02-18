@@ -186,7 +186,8 @@
 			</div>
 			<div data-cell="tags" class="tags"></div>
 			<div data-cell="tags_edit" class="tags tags-edit"></div>
-			<div data-cell="controls2" class="controls2 clearboth"></div>
+			<div data-cell="controls2" class="controls2"></div>
+			<div class="clearboth"></div>
 		</div>
 	</div>
 
