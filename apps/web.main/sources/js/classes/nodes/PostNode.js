@@ -58,6 +58,7 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 
 
 		// права (todo - сделать наоборот!)
+		if (!t.user.hasRight('writeToTopic', this.data.topic_id || this.data.id)) this.mainPanel.quote.$body.remove();
 		if (!t.user.hasRight('editMessage', this.data)) this.mainPanel.edit.$body.remove();
 		if (!t.user.hasRight('deleteMessage', this.data) || (data.head && data.dialogue > 0)) this.mainPanel['delete'].$body.remove();
 		if (!t.user.hasRight('admin', this)) this.mainPanel.unlock.$body.remove();
@@ -157,6 +158,7 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 			'<blockquote data-origin="'+ this.data.id +'">' +
 			'	<cite>'+ t.txt.quote_before +'<strong>'+ this.data.author +'</strong>'+ t.txt.quote_after +'</cite>' +
 			'	'+ this.data.message +
+			'	<footer>; '+ (t.user.data.display_name || t.user.data.login) + t.txt.user_answers +' </footer>' +
 			'</blockquote>' +
 			'<p></p>'
 

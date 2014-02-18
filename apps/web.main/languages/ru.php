@@ -22,6 +22,7 @@ $txt['mark_read'] = 'Пометить прочитанным';
 $txt['make_quote'] = 'Ответить с цитатой';
 $txt['quote_before'] = '';
 $txt['quote_after'] = ' пишет: ';
+$txt['user_answers'] = ' отвечает: ';
 
 $txt['explain_addbranch'] = 'Ответить на это сообщение';
 $txt['explain_plainanswer'] = 'Ответить на это сообщение';
