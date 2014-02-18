@@ -462,16 +462,26 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 
 		node.$button_cancel.click(this.cancelNewTopic);
 
+		var ckconf = {
+			enterMode: CKEDITOR.ENTER_BR
+		};
+
+		ckconf.toolbar = [['Bold', 'Italic', 'Strike', '-', 'RemoveFormat'],['Blockquote'],['Link', 'Unlink'],['Source']];
+
+		this.ck = CKEDITOR.replace(node.$input_body[0], ckconf);
+
 		node.$button_save.click(function(){
 
-			if (!node.$input_title.val().match(t.rex.empty) && !node.$input_body.val().match(t.rex.empty)) {
+			var body = that.ck.getData();
+
+			if (!node.$input_title.val().match(t.rex.empty) && !body.match(t.rex.empty)) {
 
 				that.exitNewTopicMode();
 
 				t.connection.write({
 					action:'add_topic',
 					title: node.$input_title.val(),
-					message: node.$input_body.val(),
+					message: body,
 					tags:that.newTags
 				})
 
@@ -484,6 +494,7 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 	},
 
 	exitNewTopicMode: function () {
+		this.ck.destroy();
 		this.ui.$content.children().remove();
 		t.units.topics.header.newTopic.unblock();
 	},
@@ -597,7 +608,7 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 				t.userWatcher.watch(this, postData.author_id);
 
 				// если сообщение создано недавно - значит автор сейчас онлайн
-				if (now.getTime() - t.funcs.phpts2date(postData.author_seen_online) < t.cfg.online_threshold * 1000) {
+				if (now.getTime() - t.funcs.phpts2date(postData.author_seen_online).getTime() < t.cfg.online_threshold * 1000) {
 					t.userWatcher.forceToOnline(postData.author_id)
 				}
 

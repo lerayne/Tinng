@@ -24,24 +24,14 @@ tinng.protos.Editor = function (element) {
         this.currentHeight = 0;
 
 		var ckconf = {
-			enterMode: CKEDITOR.ENTER_BR
+			enterMode: CKEDITOR.ENTER_BR,
+			toolbarLocation:'bottom',
+			extraAllowedContent: 'cite footer blockquote[data-origin]'
 		};
 
-		ckconf.toolbar = [['Bold', 'Italic', 'Strike'],['Blockquote'],['Source']];
-		ckconf.on = {
-			autogrow:function(e){ console.log('grow:', e)},
-			focus:function(e){console.log('focus:', e)}
-		}
+		ckconf.toolbar = [['Bold', 'Italic', 'Strike', '-', 'RemoveFormat'],['Blockquote'],['Link', 'Unlink'],['Source']];
 
 		this.ck = CKEDITOR.replace(this.ui.$messageBody[0], ckconf);
-
-		//this.ck.on('focus:', function(e){console.log('focus:', e)})
-
-
-
-		/*CKEDITOR.on('instanceReady', function(){
-			$(that.ck.container.$).on('keyup', that.onKeyPress);
-		})*/
 
 		this.ui.$wrapper.on('keyup', this.onKeyPress);
 
@@ -51,6 +41,7 @@ tinng.protos.Editor = function (element) {
 
     } else {
         this.$body = t.chunks.get('editor-disabled').$body;
+		element.append(this.$body);
     }
 }
 
@@ -60,7 +51,7 @@ tinng.protos.Editor.prototype = {
 		// todo - разобраться, почему не срабатывает alt+enter (подозение - раскладка бирмана)
 		//console.log('key:', e.keyCode,'; alt:', e.altKey, '; ctrl:', e.ctrlKey)
 
-		console.log('keyup', e)
+		//console.log('keyup', e)
 
 		if (e.keyCode == 10 || ( e.keyCode == 13 && (e.altKey || e.ctrlKey) )){
 			this.submitNew();

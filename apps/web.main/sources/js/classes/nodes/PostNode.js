@@ -18,7 +18,8 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 			'cancelEdit',
 			'forceUnread',
 			'select',
-			'kill'
+			'kill',
+			'quote'
 		])
 
 		t.protos
@@ -26,6 +27,7 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 			.construct.call(this, data, 'post');
 
 		this.$body.click(this.select);
+		this.$body.on('click', 'a', function(e){e.stopPropagation()});
 		//this.cells.$message.on('click', this.select);
 
 		/* Панель действий */
@@ -33,6 +35,7 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 		// todo - каждую кнопку формировать и навешивать на нее действие отдельно, в зависимости от прав
 
 		this.mainPanel = new t.protos.ui.Panel([
+			{type:'Button', label:'quote', icon:'quote_message.png', text:t.txt.make_quote},
 			{type:'Button', label:'edit', icon:'doc_edit.png', text:t.txt.edit},
 			{type:'Button', label:'delete', icon:'doc_delete.png', text:t.txt['delete']},
 			{type:'Button', label:'unlock', icon:'padlock_open.png', text:t.txt.unblock},
@@ -43,6 +46,7 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 
 		this.mainPanel.unlock.$body.hide();
 
+		this.mainPanel.quote.on('click', this.quote)
 		this.mainPanel.edit.on('click', this.edit);
 		this.mainPanel.edit.on('click', this.hideMenu);
 		//this.cells.$message.on('dblclick', this.edit);
@@ -148,6 +152,18 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 		delete(t.posts[this.id]);
 	},
 
+	quote:function(){
+		t.ui.editor.ck.insertHtml('' +
+			'<blockquote data-origin="'+ this.data.id +'">' +
+			'	<cite>'+ t.txt.quote_before +'<strong>'+ this.data.author +'</strong>'+ t.txt.quote_after +'</cite>' +
+			'	'+ this.data.message +
+			'</blockquote>' +
+			'<p></p>'
+
+			, 'unfiltered_html'
+		);
+	},
+
 	// прокручивает список до данного сообщения
 	show:function (start) {
 
@@ -220,8 +236,19 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 
 			this.editorPanel.$body.show();
 
-			this.cells.$message.attr('contenteditable', true);
-			this.cells.$message.focus();
+			var ckconf = {
+				enterMode: CKEDITOR.ENTER_BR,
+				toolbarLocation:'bottom',
+				extraAllowedContent: 'cite footer blockquote[data-origin]'
+			};
+
+			ckconf.toolbar = [['Bold', 'Italic', 'Strike', '-', 'RemoveFormat'],['Blockquote'],['Link', 'Unlink'],['Source']];
+
+			this.editor = CKEDITOR.replace(this.cells.$message[0], ckconf);
+			this.editor.focus();
+
+			//this.cells.$message.attr('contenteditable', true);
+			//this.cells.$message.focus();
 		}
 	},
 
@@ -244,7 +271,9 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 		this.cells.$tags_edit.hide().children().remove();
 		this.editorPanel.$body.hide();
 		//this.mainPanel.$body.show();
-		this.cells.$message.removeAttr('contenteditable');
+		//this.cells.$message.removeAttr('contenteditable');
+		this.cells.$message.html(this.editor.getData())
+		this.editor.destroy();
 	},
 
 	// срабатывает при нажатии кнопки "сохранить" в режиме редактирования
@@ -252,7 +281,8 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 
 		console.log('write tags:', this.data.newTags)
 
-		var newContent = this.cells.$message.html();
+//		var newContent = this.cells.$message.html();
+		var newContent = this.editor.getData();
 
 		if (!newContent.match(t.rex.empty)) {
 			t.connection.write({

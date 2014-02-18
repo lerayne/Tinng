@@ -19,7 +19,7 @@ register_shutdown_function("ex", $log);
 ////////////////////////////////
 
 // подготовка каждой строки
-function ready_row($row) {
+function ready_row($row, $strip) {
 
 	// убираем из сообщений об удаленных рядах всю лишнюю инфу
 	if ($row['deleted'] || $row['noaccess']) {
@@ -38,6 +38,11 @@ function ready_row($row) {
 		}
 
 		unset($row['author_email']); // не выводим мыло в аякс-переписке
+
+		if ($strip) {
+			if ($row['message']) $row['message'] = strip_tags($row['message']);
+			if ($row['lastpost']) $row['lastpost'] = strip_tags($row['lastpost']);
+		}
 	}
 
 	return $row;
@@ -46,9 +51,9 @@ function ready_row($row) {
 
 // создание дерева (внимание !! целесообразность ветвления - под вопросом)
 // сейчас используется для подготовки всех опций
-function make_tree($raw) {
+function make_tree($raw, $strip = false) {
 	foreach ($raw as $key => $val):
-		$raw[$key] = ready_row($val);
+		$raw[$key] = ready_row($val, $strip);
 		/*if ($val['parent'] == $val['topic_id']) { $result[$key] = $val; }
 		else {
 			$result[$val['parent']][$key] = $val;

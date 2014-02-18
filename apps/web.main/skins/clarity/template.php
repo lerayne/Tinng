@@ -200,8 +200,10 @@
 				<div contenteditable="true" class="textarea" data-cell="messageBody"></div>
 			</div>
 
-			<div data-cell="submit" class="submit button"><?= $txt['send'] ?></div>
-			<span class="subtext"><?= $txt['press_to_send_post'] ?></span>
+			<div class="submitWrap">
+				<span class="subtext"><?= $txt['press_to_send_post'] ?></span>
+				<div data-cell="submit" class="submit button"><?= $txt['send'] ?></div>
+			</div>
 		</div>
 	</div>
 

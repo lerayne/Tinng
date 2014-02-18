@@ -35,13 +35,14 @@ $cfg['instance_name'] = 'Tinng-нестабильный';
 $cfg['production'] = 0;
 
 // в течении какого времени с момента последней активности юзер считается онлайн (сек)
-$cfg['online_threshold'] = 15;
+$cfg['online_threshold'] = 200;
 
 // переменные массива $cfg напрямую транслируются в javascript и могут быть доступны для просмотра
 // пользователем, поэтому для более секретных переменных используется другой массив - $safecfg
 
 // адрес базы данных
-$safecfg['db'] = 'mysql://tinng_main:tinng_demo@localhost/tinng';
+//$safecfg['db'] = 'mysql://tinng_main:tinng_demo@localhost/tinng';
+$safecfg['db'] = 'mysql://lopar740_therron:maedanaena@localhost/lopar740_therron';
 
 // префикс базы даных
 $safecfg['db_prefix'] = 'tinng'; // знак "_" вставляется автоматически, указывать его здесь не нужно

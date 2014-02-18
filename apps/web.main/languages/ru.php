@@ -19,6 +19,9 @@ $txt['delete'] = 'Удалить';
 $txt['unblock'] = 'Разблокировать';
 $txt['mark_next_unread'] = 'Пометить непрочитанным';
 $txt['mark_read'] = 'Пометить прочитанным';
+$txt['make_quote'] = 'Ответить с цитатой';
+$txt['quote_before'] = '';
+$txt['quote_after'] = ' пишет: ';
 
 $txt['explain_addbranch'] = 'Ответить на это сообщение';
 $txt['explain_plainanswer'] = 'Ответить на это сообщение';
@@ -27,7 +30,7 @@ $txt['explain_deletemessage'] = 'Удалить сообщение';
 
 $txt['while_you_wrote'] = 'Пока вы набирали сообщение, содержание темы изменилось. Сообщение не было отправлено.';
 
-$txt['press_to_send_post'] = 'Или нажмите Ctrl+Enter';
+$txt['press_to_send_post'] = 'Нажмите Ctrl+Enter чтобы';
 
 $txt['not_authd_to_post'] = 'Войдите или зарегистрируйтесь, чтобы писать';
 

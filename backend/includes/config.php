@@ -8,7 +8,8 @@ $cfg['cut_length'] = 256;
 $cfg['posts_per_page'] = 20;
 
 // адрес базы данных
-$safecfg['db'] = 'mysql://tinng_main:tinng_demo@localhost/tinng';
+//$safecfg['db'] = 'mysql://tinng_main:tinng_demo@localhost/tinng';
+$safecfg['db'] = 'mysql://lopar740_therron:maedanaena@localhost/lopar740_therron';
 
 // в течении какого времени с момента последней активности юзер считается онлайн (сек)
 $cfg['online_threshold'] = 15;
