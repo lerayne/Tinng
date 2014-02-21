@@ -12,7 +12,7 @@ tinng.protos.Editor = function (element) {
 
 	if (tinng.user.hasRight('writeToTopic', tinng.sync.curTopic)){
 		var that = this;
-		t.funcs.bind(this, ['submitNew']);
+		t.funcs.bind(this, ['submitNew', 'onSourceBtn', 'textareaResize']);
 
 		this.ui = t.chunks.get('editor');
 		this.$body = this.ui.$body;
@@ -22,18 +22,37 @@ tinng.protos.Editor = function (element) {
         this.visible = true;
 
         this.currentHeight = 0;
+		this.resizeMode = 0;
+		this.lastHeight = 0;
 
 		var ckconf = {
 			enterMode: CKEDITOR.ENTER_BR,
+			forceEnterMode:CKEDITOR.ENTER_BR,
 			toolbarLocation:'bottom',
 			extraAllowedContent: 'cite footer blockquote[data-origin]'
 		};
 
-		ckconf.toolbar = [['Bold', 'Italic', 'Strike', '-', 'RemoveFormat'],['Blockquote'],['Link', 'Unlink'],['Source']];
+		ckconf.toolbar = [['Bold', 'Italic', 'Strike', '-', 'RemoveFormat', '-', 'Blockquote', '-','Link', 'Unlink', '-','Source']];
 
 		this.ck = CKEDITOR.replace(this.ui.$messageBody[0], ckconf);
 
-		this.ui.$wrapper.on('keyup', this.onKeyPress);
+		this.ck.on('autoGrow', function(){console.log('autogrow')});
+		this.ck.on('focus', function(){console.log('focus')});
+
+		this.ui.$wrapper.on('keyup click', this.onKeyPress);
+
+		// todo - переделать функцию ручного ресайза (после него сейчас перестает работать авторесайз)
+		this.ui.$resizeBar.on('mousedown', function(e){
+			that.resizeMode = e.clientY;
+			$('body').addClass('noselect');
+		});
+		$('body').on('mouseup', function(){
+			that.resizeMode = 0, that.lastHeight = 0;
+			$('body').removeClass('noselect');
+			that.resize()
+		});
+		$('body').on('mousemove', this.textareaResize);
+		//this.ui.$wrapper.on('click', '.cke_button__source', this.onSourceBtn);
 
 		// todo - мой кейлистенер - полное Г. Переделать.
 //		tinng.keyListener.register('ctrl+enter', this, this.submitNew);
@@ -61,6 +80,38 @@ tinng.protos.Editor.prototype = {
             this.currentHeight = this.$body.height();
             this.resize();
         }
+	},
+
+	/*onSourceBtn:function(e){
+		var btn = $(e.currentTarget);
+		var sourceMode = btn.hasClass('cke_button_on');
+
+		console.log('btn', btn[0].className);
+		console.log('sourceMode', sourceMode);
+
+		var container = sourceMode ? this.ui.$wrapper.find('.cke_source') : this.ui.$wrapper.find('.cke_wysiwyg_div');
+
+		//container.height(this.currentHeight);
+
+		console.log('height', container);
+	},*/
+
+	textareaResize:function(e){
+
+		if (this.resizeMode > 0){
+
+			var content = this.ui.$wrapper.find('.cke_contents');
+
+			if (this.lastHeight == 0) this.lastHeight = content.height();
+
+			var diff = this.resizeMode - e.clientY;
+
+			content.height(this.lastHeight+diff)
+
+			console.log(diff)
+			console.log('content', content)
+			console.log('contentH', this.lastHeight)
+		}
 	},
 
     submitNew:function () {

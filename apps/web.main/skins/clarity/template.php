@@ -197,10 +197,12 @@
 	<div data-chunk-name="editor" class="editor">
 		<div class="editor-inner">
 
+
+			<div class="handle" style="display:none" data-cell="resizeBar"></div>
+
 			<div class="textarea-wrapper" data-cell="wrapper">
 				<div contenteditable="true" class="textarea" data-cell="messageBody"></div>
 			</div>
-
 			<div class="submitWrap">
 				<span class="subtext"><?= $txt['press_to_send_post'] ?></span>
 				<div data-cell="submit" class="submit button"><?= $txt['send'] ?></div>
@@ -404,7 +406,7 @@
 			</label>
 		</div>
 		<div class="row">
-			<label>
+			<label style="margin:0">
 				<span><?= $txt['new_topic_body'] ?>:</span><br>
 				<textarea data-cell="input_body"></textarea>
 			</label>

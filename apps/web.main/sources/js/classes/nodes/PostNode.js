@@ -241,10 +241,11 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 			var ckconf = {
 				enterMode: CKEDITOR.ENTER_BR,
 				toolbarLocation:'bottom',
-				extraAllowedContent: 'cite footer blockquote[data-origin]'
+				extraAllowedContent: 'cite footer blockquote[data-origin]',
+				height:'auto'
 			};
 
-			ckconf.toolbar = [['Bold', 'Italic', 'Strike', '-', 'RemoveFormat'],['Blockquote'],['Link', 'Unlink'],['Source']];
+			ckconf.toolbar = [['Bold', 'Italic', 'Strike', '-', 'RemoveFormat', '-', 'Blockquote', '-','Link', 'Unlink', '-','Source']];
 
 			this.editor = CKEDITOR.replace(this.cells.$message[0], ckconf);
 			this.editor.focus();

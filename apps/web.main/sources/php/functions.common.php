@@ -102,10 +102,9 @@ function get_script ($source_path, $path, $debug = false) {
 			if (!$debug) $contents[] = $buffer;
 
 			// читаем конфиг до первой строки, состоящей целиком из пробельных символов
-			if (preg_match('/^\s*$/', $buffer)) {
-				if ($debug) break;
-				else $config_ended = true;
-			}
+			if (preg_match('/^\s*$/', $buffer)) $config_ended = true;
+
+			if ($debug && $config_ended) break;
 
 			if (!$config_ended && strpos($buffer, '@include')){
 				$chunks = explode('@include', $buffer);
@@ -156,12 +155,14 @@ function get_js($maps, $debug = false) {
 
 		if ($array['path'][strlen($array['path'])-1] != '*'){
 
+			// если такой путь уже есть - удаялем его в том месте где он был ...
 			if (in_array($array['path'], $script_paths)) {
 				$index = array_search($array['path'], $script_paths);
 				unset ($script_paths[$index]);
 				unset ($script_contents[$index]);
 			}
 
+			// и вставляем сейчас. Таким образом сохраняется порядок файлов
 			$script_paths[] = $array['path'];
 			$script_contents[] = $array['contents'];
 		}

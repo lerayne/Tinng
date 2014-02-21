@@ -463,10 +463,13 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 		node.$button_cancel.click(this.cancelNewTopic);
 
 		var ckconf = {
-			enterMode: CKEDITOR.ENTER_BR
+			enterMode: CKEDITOR.ENTER_BR,
+			forceEnterMode:CKEDITOR.ENTER_BR,
+			toolbarLocation:'bottom',
+			height:'auto'
 		};
 
-		ckconf.toolbar = [['Bold', 'Italic', 'Strike', '-', 'RemoveFormat'],['Blockquote'],['Link', 'Unlink'],['Source']];
+		ckconf.toolbar = [['Bold', 'Italic', 'Strike', '-', 'RemoveFormat', '-', 'Blockquote', '-','Link', 'Unlink', '-','Source']];
 
 		this.ck = CKEDITOR.replace(node.$input_body[0], ckconf);
 
