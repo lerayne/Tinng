@@ -9,7 +9,7 @@ CKEDITOR.editorConfig = function( config ) {
 	// http://docs.ckeditor.com/#!/api/CKEDITOR.config
 
 	// The toolbar groups arrangement, optimized for a single toolbar row.
-	config.toolbarGroups = [
+	/*config.toolbarGroups = [
 		{ name: 'document',	   groups: [ 'mode', 'document', 'doctools' ] },
 		{ name: 'clipboard',   groups: [ 'clipboard', 'undo' ] },
 		{ name: 'editing',     groups: [ 'find', 'selection', 'spellchecker' ] },
@@ -23,12 +23,14 @@ CKEDITOR.editorConfig = function( config ) {
 		{ name: 'tools' },
 		{ name: 'others' },
 		{ name: 'about' }
-	];
+	];*/
+
+	config.toolbar = [['Bold', 'Italic', 'Strike', '-'/*, 'Format'*/, 'RemoveFormat', '-', 'Blockquote', '-','Link', 'Unlink', '-', 'Image','-', 'Source']];
 
 	// The default plugins included in the basic setup define some buttons that
 	// we don't want too have in a basic editor. We remove them here.
 	//config.removeButtons = 'Cut,Copy,Paste,Undo,Redo,Anchor,Underline,Strike,Subscript,Superscript';
 
 	// Let's have it basic on dialogs as well.
-	config.removeDialogTabs = 'link:advanced';
+	config.removeDialogTabs = 'link:advanced;image:advanced';
 };

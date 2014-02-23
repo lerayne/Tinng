@@ -29,17 +29,15 @@ switch ($action):
 					$oldDate = new DateTime($exist['timestamp']);
 					$old_TS = $oldDate->format('U')+0;
 
-					// Если новая дата позднее предыдущей
-					//if ($new_TS > $old_TS):
-						$db->query(
-							'UPDATE ?_unread SET timestamp = ? WHERE user = ?d AND topic = ?d'
-							, $new_sqldate
-							, $user->id
-							, $topic_id
-						);
 
-						$result['read_topic'][$topic_id] = $new_sqldate;
-					//endif;
+					$db->query(
+						'UPDATE ?_unread SET timestamp = ? WHERE user = ?d AND topic = ?d'
+						, $new_sqldate
+						, $user->id
+						, $topic_id
+					);
+
+					$result['read_topic'][$topic_id] = $new_sqldate;
 
 				} else {
 

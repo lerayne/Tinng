@@ -37,6 +37,8 @@ tinng.protos.TopicNode = Class(tinng.protos.Node, {
 			.Node.prototype
 			.fill.apply(this, arguments);
 
+		//console.log('data', data);
+
 		this.cells.$postsquant.text(data.postsquant + t.txt.msgs);
 		this.cells.$topicname.html(data.topic_name);
 
@@ -51,6 +53,8 @@ tinng.protos.TopicNode = Class(tinng.protos.Node, {
 		if (this.data.unread == '1') {
 			this.markUnread();
 			this.mainPanel.mark_read.$body.removeClass('none');
+		} else {
+			this.markRead('noupd')
 		}
 
 		if (this.data.private == 1) {
@@ -62,13 +66,13 @@ tinng.protos.TopicNode = Class(tinng.protos.Node, {
 		this.updateMenu();
 	},
 
-	markRead:function(){
+	markRead:function(noupd){
 		t.protos.Node.prototype
 			.markRead.apply(this, arguments);
 
 		this.mainPanel.mark_read.$body.addClass('none');
 
-		this.updateMenu();
+		if (noupd != 'undefined') this.updateMenu();
 	},
 
 	// изменить положение в списке при обновлении

@@ -32,7 +32,7 @@ tinng.protos.Editor = function (element) {
 			extraAllowedContent: 'cite footer blockquote[data-origin]'
 		};
 
-		ckconf.toolbar = [['Bold', 'Italic', 'Strike', '-', 'RemoveFormat', '-', 'Blockquote', '-','Link', 'Unlink', '-','Source']];
+		//ckconf.toolbar = [['Bold', 'Italic', 'Strike', '-', 'RemoveFormat', '-', 'Blockquote', '-','Link', 'Unlink', '-', 'Image','-', 'Source']];
 
 		this.ck = CKEDITOR.replace(this.ui.$messageBody[0], ckconf);
 
@@ -133,6 +133,9 @@ tinng.protos.Editor.prototype = {
 
 			// ОТПРАВЛЯЕМ
 			t.connection.write(writeObject);
+
+			// отмечаем все прочитанными
+			for (var key in t.posts) t.posts[key].markRead();
 
 			this.ck.setData('');
 			this.ck.focus();

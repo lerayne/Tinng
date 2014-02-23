@@ -55,6 +55,7 @@ t.protos.StateService.prototype = {
 	parseResponse:function(result, errors) {
 		console.log(result);
 
+		// todo - теперь тема отмечается прочитанной в fill'е TopicNode. Убрать тут ненужное.
 		if (result.read_topic) {
 			for (var topic_id in result.read_topic) {
 				var readTime = t.funcs.sql2stamp(result.read_topic[topic_id]);

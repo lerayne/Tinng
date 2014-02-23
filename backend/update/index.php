@@ -62,6 +62,14 @@ function parse_request($request) {
 
 					$new_node_id = $db->query('INSERT INTO ?_messages (?#) VALUES (?a)', array_keys($new_row), array_values($new_row));
 
+					// отмечаем прочитанным
+					$db->query(
+						'UPDATE ?_unread SET timestamp = ? WHERE user = ?d AND topic = ?d'
+						, $now
+						, $user->id
+						, ($write['action'] == 'add_topic' ? $new_node_id : $write['topic'])
+					);
+
 				// добавляем новую тему (тут нет брейка, так и надо)
 				case 'add_topic':
 
@@ -80,7 +88,6 @@ function parse_request($request) {
 					add_tags($write['tags'], $new_node_id);
 
 					break;
-
 
 				// обновляет запись в ?_messages
 				case 'update_message':

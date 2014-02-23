@@ -279,7 +279,7 @@ tinng.protos.TopicsUnit = Class(tinng.protos.Unit, {
 					existingTopic.bump();
 				}
 
-				// если же в текущем массиве тем такой нет и пришедшая не удалена, создаем новую
+			// если же в текущем массиве тем такой нет и пришедшая не удалена, создаем новую
 			} else if (!topicData.deleted || topicData.deleted == 0) {
 
 				var topic = t.topics[topicData.id] = new t.protos.TopicNode(topicData);

@@ -245,7 +245,7 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 				height:'auto'
 			};
 
-			ckconf.toolbar = [['Bold', 'Italic', 'Strike', '-', 'RemoveFormat', '-', 'Blockquote', '-','Link', 'Unlink', '-','Source']];
+			//ckconf.toolbar = [['Bold', 'Italic', 'Strike', '-', 'RemoveFormat', '-', 'Blockquote', '-','Link', 'Unlink', '-','Source']];
 
 			this.editor = CKEDITOR.replace(this.cells.$message[0], ckconf);
 			this.editor.focus();
