@@ -190,7 +190,7 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 		if (t.user.id == 0) return false; // не пускаем анонима
 		if (this.state.allowedUsers[userId]) return false; // не добавляем, если такой уже есть
 		// если тема открытая - разрешаем добавлять людей только ее автору
-		if (t.funcs.isEmptyObject(this.state.allowedUsers) && t.user.id != this.state.topicData.author_id) return false;
+		if (this.isPublic() && t.user.id != this.state.topicData.author_id && t.user.id != 1) return false;
 
 		this.header.allowedUsersContainer.addClass('private');
 
@@ -215,6 +215,10 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 			},
 			true // no cache
 		);
+	},
+
+	isPublic:function(){
+		return t.funcs.isEmptyObject(this.state.allowedUsers);
 	},
 
 	// допустим $_ - приватный метод
