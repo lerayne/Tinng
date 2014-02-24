@@ -6,9 +6,10 @@
 //todo - не принимает мейл с нижним подчеркиванием и минусом
 $rex['email'] = '/^[\_]*([a-zA-Z0-9\_.-]+(\.|\_*)?)+@(([a-z][a-z0-9\-])|([a-z])+(\.|\-*\.))+[a-z]{1,6}$/';
 //$rex['email'] = '/^[-a-z0-9!#$%&*+/=?^_`{|}~]+(?:\.[-a-z0-9!#$%&*+/=?^_`{|}~]+)*@(?:[a-z0-9]([-a-z0-9]{0,61}[a-z0-9])?\.)*(?:aero|arpa|asia|biz|cat|com|coop|edu|gov|info|int|jobs|mil|mobi|museum|name|net|org|pro|tel|travel|[a-z][a-z])$/';
-$rex['login'] = "/^[a-zA-Z0-9._]{4,24}$/";
-$rex['pass'] = "/^[a-zA-Z0-9._]{6,32}$/";
-$rex['empty'] = "/^\s*$/";
+$rex['login'] = '/^[a-zA-Z0-9._]{4,24}$/';
+$rex['pass'] = '/^[a-zA-Z0-9._]{6,32}$/';
+$rex['empty'] = '/^\s*$/';
+$rex['imageURL'] = '/(\s|>|^|;)((ht|f)tp[s]{0,1}:\/\/[a-z0-9\._\-\/]{7,}?\.(jp[e]{0,1}g|png|gif))(\s|<|$|&)/gim';
 
 function safe_str($str) {
 	return strip_tags($str,

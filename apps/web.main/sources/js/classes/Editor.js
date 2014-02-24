@@ -80,6 +80,14 @@ tinng.protos.Editor.prototype = {
             this.currentHeight = this.$body.height();
             this.resize();
         }
+
+		//var content = this.ck.getData();
+
+		/*if (content.match(t.rex.imageURL)){
+			console.log('content', content);
+
+			this.ck.setData( this.ck.getData().replace(t.rex.imageURL, '$1<img src="$2">$5') );
+		}*/
 	},
 
 	/*onSourceBtn:function(e){
