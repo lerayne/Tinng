@@ -94,7 +94,6 @@ class Feed {
 				msg.id,
 				LEFT(msg.message, ?d) AS message,
 				msg.author_id,
-				msg.parent_id,
 				msg.topic_name,
 				msg.created,
 				msg.modified,
@@ -406,16 +405,22 @@ class Feed {
 		$new_updates_since = $db->selectCell('
 			SELECT GREATEST(MAX(msg.created), IFNULL(MAX(msg.modified), 0))
 			FROM ?_messages msg
-			WHERE IF(msg.topic_id = 0, msg.id, msg.topic_id) = ?d /* topic_id */
+			WHERE (IF(msg.topic_id = 0, msg.id, msg.topic_id) = ?d {OR (msg.topic_id != ?d }{AND msg.moved_from = ?d )} ) /* topic_id */
 				/*{AND msg.deleted IS NULL AND 1 = ?d}*/
 				{AND msg.created >= ?} /* $slice_start */
 				{AND IFNULL(msg.modified, msg.created) > ?} /* $meta["updates_since"] */
 			'
 			, $posts['topic']
+			, ($meta['updates_since'] ? $posts['topic'] : DBSIMPLE_SKIP)
+			, ($meta['updates_since'] ? $posts['topic'] : DBSIMPLE_SKIP)
 			//, (!$meta['updates_since'] ? 1 : DBSIMPLE_SKIP)
 			, ($slice_start ? $slice_start : DBSIMPLE_SKIP)
 			, ($meta['updates_since'] ? $meta['updates_since'] : DBSIMPLE_SKIP)
 		);
+		// todo - некритично, но при данной системе перемещения тем в тему, из которой когда-то что-то переместили приходят
+		// удаленными прежде перенесенные сообщения в двух случаях: 1) в этих сообщениях что-то изменили 2) в теме,
+		// откуда переносили со времени переноса не было ни одного изменения (тогда перенесенные приходят удаленными при первом
+		// апдейте после загрузки)
 
 
 		// если мы не в режиме догрузки и нет новых/обновленных - возвращаем пустой массив.
@@ -431,12 +436,11 @@ class Feed {
 				msg.id,
 				msg.message,
 				msg.author_id,
-				msg.parent_id,
 				msg.topic_id,
 				msg.topic_name,
 				msg.created,
 				msg.modified,
-				(msg.deleted IS NOT NULL) AS deleted,
+				(msg.deleted IS NOT NULL OR (msg.topic_id != ?d AND msg.moved_from = ?d)) AS deleted,
 				msg.modifier,
 				tpc.dialogue,
 				tpc.author_id AS topicstarter,
@@ -448,13 +452,13 @@ class Feed {
 				uset.param_value as author_avatar
 			FROM ?_messages msg
 
-			JOIN ?_messages tpc ON msg.topic_id = tpc.id OR msg.id = tpc.id
 			JOIN ?_users usr ON msg.author_id = usr.id
+			LEFT JOIN ?_messages tpc ON msg.topic_id = tpc.id OR msg.id = tpc.id
 			LEFT JOIN ?_unread unr ON unr.topic = IF(msg.topic_id = 0, msg.id, msg.topic_id) AND unr.user = ?d
 			LEFT JOIN ?_users moder ON msg.modifier = moder.id
 			LEFT JOIN ?_user_settings uset ON msg.author_id = uset.user_id AND uset.param_key = "avatar"
 			WHERE
-				tpc.id = ?d
+				( (msg.id = ?d OR msg.topic_id = ?d) {OR (msg.topic_id != ?d }{AND msg.moved_from = ?d)} )
 				{AND msg.deleted IS NULL AND 1 = ?d}
 		';
 
@@ -469,9 +473,14 @@ class Feed {
 			';
 
 			$output_posts = make_tree($db->select($query . $query_end
+				, $posts['topic']
+				, $posts['topic']
 				, $user->id
 				, $user->id
 				, $posts['topic']
+				, $posts['topic']
+				, ($meta['updates_since'] ? $posts['topic'] : DBSIMPLE_SKIP)
+				, ($meta['updates_since'] ? $posts['topic'] : DBSIMPLE_SKIP)
 				, (!$meta['updates_since'] ? 1 : DBSIMPLE_SKIP)
 
 				, $slice_start
@@ -487,9 +496,14 @@ class Feed {
 			';
 
 			$output_posts = make_tree($db->select($query . $query_end
+				, $posts['topic']
+				, $posts['topic']
 				, $user->id
 				, $user->id
 				, $posts['topic']
+				, $posts['topic']
+				, ($meta['updates_since'] ? $posts['topic'] : DBSIMPLE_SKIP)
+				, ($meta['updates_since'] ? $posts['topic'] : DBSIMPLE_SKIP)
 				, (!$meta['updates_since'] ? 1 : DBSIMPLE_SKIP)
 
 				, ($slice_start ? $slice_start : DBSIMPLE_SKIP)
@@ -625,7 +639,6 @@ class Feed {
 				msg.id,
 				msg.message,
 				msg.author_id,
-				msg.parent_id,
 				msg.topic_id,
 				msg.topic_name,
 				msg.created,

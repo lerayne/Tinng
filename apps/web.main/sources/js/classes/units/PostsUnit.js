@@ -111,6 +111,7 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 		this.header.topicRename.hide();
 
 		$('.topics .active').removeClass('active');
+		this.$body.removeClass('moderable');
 	},
 
 	unscribe:function(){
@@ -287,13 +288,24 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 
 		var posts = this.ui.$content.children();
 
-		// если id поста меньше, чем id одного из уже загруженных - вставляем раньше ...
-		if (posts.size()) for (var i = 0; i < posts.length; i++) {
-			var $post = $(posts[i]);
-			if (node.id < parseInt($post.attr('data-number'))) {
-				node.$body.insertBefore($post);
-				// .. и завершаем работу метода
+		if (posts.size()) {
+
+			// "голова" темы всегда должна быть сверху
+			/*if (node.data.head) {
+				node.$body.insertBefore(posts.eq(0))
 				return true;
+			}*/
+
+			// если created поста меньше, чем created одного из уже загруженных - вставляем раньше и завершаем работу метода
+			for (var i = 0; i < posts.length; i++) {
+
+				var postId = $(posts[i]).attr('data-id');
+				var post = t.posts[postId];
+
+				if (node.data.created < post.data.created) {
+					node.$body.insertBefore(post.$body);
+					return true;
+				}
 			}
 		}
 
@@ -582,6 +594,8 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 			var postData = postsList[i];
 			var existingPost = t.posts[postData.id];
 
+			//if (!firstLoad) console.log(postData)
+
 			// обрабатываем информацию о непрочитанности
 			var modifier = parseInt(postData.modifier_id, 10);
 			var author = parseInt(postData.author_id, 10);
@@ -682,6 +696,10 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 	parseTopicData: function (topicData) {
 
 		this.state.topicData = topicData;
+
+		if (topicData.author_id == t.user.id || t.user.id == 1) {
+			this.$body.addClass('moderable');
+		}
 
 		// выгружаем удаленную тему
 		if (topicData.deleted == 1) {

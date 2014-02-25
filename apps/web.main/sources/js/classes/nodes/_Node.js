@@ -34,7 +34,7 @@ tinng.protos.Node = Class({
 
 		// заполняем неизменные данные, присваеваемые единожды
 		this.$body.attr('id', chunkName + '_' + data.id);
-		this.$body.attr('data-number', data.id);
+		this.$body.attr('data-id', data.id);
 		this.cells.$message.addClass('message_' + data.id);
 		if (!t.cfg.production) this.cells.$id.text(data.id);
 	},

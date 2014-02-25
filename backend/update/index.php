@@ -55,7 +55,7 @@ function parse_request($request) {
 					if (!$write['topic']) $write['topic'] = 0;
 
 					$new_row['author_id'] = $user->id;
-					$new_row['parent_id'] = $write['parent'] ? $write['parent'] : $write['topic'];
+					//$new_row['parent_id'] = $write['parent'] ? $write['parent'] : $write['topic'];
 					$new_row['topic_id'] = $write['topic'];
 					$new_row['message'] = $write['message'];
 					$new_row['created'] = $now;

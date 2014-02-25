@@ -7,10 +7,13 @@
 tinng.protos.TopicNode = Class(tinng.protos.Node, {
 
 	construct:function (data) {
+		var that = this;
+
 		t.funcs.bind(this, [
 			'loadPosts',
 			'kill',
-			'forceRead'
+			'forceRead',
+			'moveToThisTopic'
 		])
 
 		t.protos
@@ -28,6 +31,21 @@ tinng.protos.TopicNode = Class(tinng.protos.Node, {
 		this.mainPanel.mark_read.on('click', this.forceRead);
 
 		this.cells.$controls.append(this.mainPanel.$body);
+
+		if (data.author_id == t.user.id || t.user.id == 1) {
+			this.$body.droppable({
+				accept:function(elem){
+					if (!elem.hasClass('post')) return false;
+					if (elem.attr('data-topic') == that.data.id) return false;
+					return true;
+				},
+				activeClass:'acceptable',
+				hoverClass:'ready',
+				tolerance:'pointer',
+
+				drop: this.moveToThisTopic
+			})
+		}
 	},
 
 	// заполнить данными
@@ -137,5 +155,32 @@ tinng.protos.TopicNode = Class(tinng.protos.Node, {
 		t.stateService.flushState();
 
 		this.markRead();
+	},
+
+	moveToThisTopic:function(e, ui){
+		var that = this;
+		var postId = ui.draggable.attr('data-id');
+		var timeFrom = t.posts[postId].data.created;
+		var topicFrom = ui.draggable.attr('data-topic');
+		var topicTo = this.data.id;
+
+		console.log('Moving posts from topic '+topicFrom+' to topic '+topicTo+' starting from '+ t.posts[postId].data.created)
+
+		JsHttpRequest.query('backend/service.php',
+			{
+				action: 'move_posts',
+				topic_from: topicFrom,
+				topic_to:topicTo,
+				time_from:timeFrom
+			},
+			function(data, error){
+
+				if (error) console.error(error);
+				else if (data == 'success') {
+					t.connection.refresh();
+				}
+			},
+			true // no cache
+		);
 	}
 });

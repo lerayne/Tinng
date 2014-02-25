@@ -70,9 +70,9 @@ switch ($action):
 		);
 
 		// проверка наличия непосредственных потомков
-		$result['children'] = $db->selectCell(
+		/*$result['children'] = $db->selectCell(
 			'SELECT COUNT( id ) FROM ?_messages WHERE parent_id = ?d', $id
-		);
+		);*/
 
 		// является ли сообщение стартовым в теме
 		$result['is_topic'] = $db->selectCell(
@@ -312,6 +312,53 @@ switch ($action):
 		);
 
 		$result = $user_id;
+
+		break;
+
+
+
+
+	case 'move_posts':
+
+		$topic_from = $_REQUEST['topic_from'];
+		$topic_to = $_REQUEST['topic_to'];
+		$time_from = $_REQUEST['time_from'];
+
+		//проверка прав
+		if ($user->id != 1) {
+
+			$author_from  = $db->selectCell('SELECT author_id FROM ?_messages WHERE id = ?d', $topic_from);
+			$author_to  = $db->selectCell('SELECT author_id FROM ?_messages WHERE id = ?d', $topic_to);
+
+			if ($author_from != $user->id || $author_to != $user->id) {
+				$result = 'you can only move posts from one YOUR topic to another';
+				break;
+			}
+		}
+
+		$now = now('sql');
+
+		$params = Array(
+			'moved_from' => $topic_from,
+			'topic_id' => $topic_to,
+			'modified' => $now,
+			'modifier' => $user->id
+		);
+
+		$target_created = $db->selectCell('SELECT UNIX_TIMESTAMP(created) FROM ?_messages WHERE id = ?d', $topic_to);
+
+//		$GLOBALS['debug']['$target_created'] = ts2sql($target_created);
+//		$GLOBALS['debug']['$time_from'] = $time_from;
+
+		$time_from_ts = date_format(DateTime::createFromFormat('Y-m-d H:i:s', $time_from), 'U');
+
+		if ($target_created >= $time_from_ts) {
+			$db->query('UPDATE ?_messages SET created = ? WHERE id = ?d', ts2sql($time_from_ts-1) ,$topic_to);
+		}
+
+		$result = $db->query('UPDATE ?_messages SET ?a WHERE topic_id = ?d AND created >= ?', $params, $topic_from, $time_from);
+
+		if ($result) $result = 'success';
 
 		break;
 

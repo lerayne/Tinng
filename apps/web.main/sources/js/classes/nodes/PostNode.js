@@ -26,6 +26,8 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 			.Node.prototype
 			.construct.call(this, data, 'post');
 
+		this.$body.attr('data-topic', data.topic_id);
+
 		this.$body.click(this.select);
 		this.$body.on('click', 'a', function(e){e.stopPropagation()});
 		//this.cells.$message.on('click', this.select);
@@ -88,12 +90,21 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 			clearTimeout(this.mousetimer);
 		});
 
-		/*this.$body.draggable({
-		 helper:'clone',
-		 handle:this.cells.$infobar,
-		 appendTo:'#tinng-main-content',
-		 scroll:false
-		 })*/
+		if (!data.head) {
+			this.$body.draggable({
+				helper:'clone',
+				handle:this.cells.$infobar,
+				appendTo:'#tinng-main-content',
+				distance:5,
+				scroll:false,
+
+				start:function(e, ui){
+					if (t.user.id != t.units.posts.state.topicData.author_id && t.user.id != 1) return false;
+
+					ui.helper.width(that.$body.width());
+				}
+			})
+		}
 	},
 
 	// заполнить сообщение данными

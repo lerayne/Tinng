@@ -476,6 +476,12 @@ body {
 	height:100%;
 	position: relative;
 
+	&.moderable {
+		.infobar {
+			cursor:move;
+		}
+	}
+
 	header {
 
 		.settingsBtn {
@@ -616,7 +622,7 @@ body {
 			.userItem {
 				float:left;
 				margin-right:1px;
-				cursor:pointer;
+				cursor:move;
 				padding:1px;
 
 				.avatar {
@@ -721,7 +727,7 @@ body {
 
 .userItem {
 	background-color: #fff;
-	cursor: pointer;
+	cursor: move;
 	padding: 1px 3px;
 
 	.name {
@@ -817,9 +823,13 @@ body {
 }
 
 /* topics & posts (global) */
-.content {
-	padding-top:3px;
-	background-color: #ddd;
+
+
+.node {
+	border:0px solid transparent;
+	margin-bottom:4px;
+	background-color: white;
+	position: relative;
 
 	.tags {
 		.tag {
@@ -827,38 +837,31 @@ body {
 		}
 	}
 
-	.node {
-		border:0px solid transparent;
-		margin-bottom:4px;
-		background-color: white;
-		position: relative;
+	img {
+		max-width:100%;
+		height:auto !important;
+	}
 
-		img {
-			max-width:100%;
-			height:auto !important;
+	.smart-search {
+
+		margin: 0;
+
+		input[type="text"] {
+			border: 1px solid #ccc;
+			width: 100px;
+			margin: 6px 0 0;
 		}
 
-		.smart-search {
-
-			margin: 0;
-
-			input[type="text"] {
-				border: 1px solid #ccc;
-				width: 100px;
-				margin: 6px 0 0;
+		.smart-area {
+			.tag {
+				margin: 7px 4px 0 0;
+				padding: 2px 4px;
 			}
+		}
 
-			.smart-area {
-				.tag {
-					margin: 7px 4px 0 0;
-					padding: 2px 4px;
-				}
-			}
-
-			.suggest-box {
-				.tag {
-					float:none;
-				}
+		.suggest-box {
+			.tag {
+				float:none;
 			}
 		}
 	}
@@ -892,9 +895,26 @@ body {
 		}
 	}
 
-	.topic {
+	&.topic {
 		cursor:pointer;
 		border-left-width:10px;
+
+		&.acceptable {
+
+			.data_cell {
+				border-color:#ffbc1c;
+				border-style:dashed;
+			}
+
+			.infobar, .topicname, .message, .lastmessage, .tags {
+				.opacity(0.5);
+			}
+		}
+
+		&.ready .data_cell {
+			border-style: solid;
+			background-color: #fff8e8;
+		}
 
 		&.active {
 			border-color:#9acd32;
@@ -904,7 +924,8 @@ body {
 		}
 
 		.data_cell {
-			padding-left:18px;
+			padding:8px 8px 8px 18px;
+			border:2px solid transparent;
 		}
 
 		.message {
@@ -942,59 +963,15 @@ body {
 		}
 	}
 
-	&.middle .topic {
-		.lastmessage {
-			display:none !important;
-		}
-
-		.data_cell {
-			padding: 5px 10px 9px 18px;
-		}
-
-		.topicname {
-			margin: 2px 0 4px;
-			font-size: 13px;
-			.private {font-size: 85%;}
-		}
-
-		.author, .postsquant {
-			font-size: 11px;
-		}
-
-		.tag {
-			margin: 4px 4px 0 0;
-			padding: 0 6px 2px 4px;
-		}
-
-		.message {
-			color:#888;
-			height: 1.3em;
-		}
-	}
-
-	&.short .topic {
-
-		&.active {background-position: -4px center;}
-
-		.created, .parent, .author, .msgid, .postsquant, .message, .lastmessage, .tags {display:none !important;}
-
-		.infobar {
-			position: absolute;
-			right:4px;
-			top:6px;
-		}
-
-		.topicname {
-			margin:0;
-			font-size: 12px;
-			.private {font-size: 85%;}
-		}
-
-		.data_cell {padding: 8px 22px 8px 12px;}
-	}
-
-	.post {
+	&.post {
 		border-right-width:10px;
+		min-width: 520px;
+		max-width: 750px;
+
+		&.ui-draggable-dragging {
+			border:1px solid #007bb7;
+			z-index: 100;
+		}
 
 		&.selected {
 			border-color:#9acd32;
@@ -1037,7 +1014,7 @@ body {
 		.message {
 			border:1px solid;
 			border-color:transparent;
-//			border-color:transparent transparent #eee transparent;
+			//			border-color:transparent transparent #eee transparent;
 			padding:3px;
 
 			&[contenteditable="true"] {
@@ -1050,6 +1027,62 @@ body {
 	.unread {
 		border-color: #ffbc1c;
 		background-color: #fff6df;
+	}
+}
+
+.content {
+	padding-top:3px;
+	background-color: #ddd;
+
+	&.middle .topic {
+		.lastmessage {
+			display:none !important;
+		}
+
+		.data_cell {
+			padding: 3px 8px 7px 18px;
+		}
+
+		.topicname {
+			margin: 2px 0 4px;
+			font-size: 13px;
+			.private {font-size: 85%;}
+		}
+
+		.author, .postsquant {
+			font-size: 11px;
+		}
+
+		.tag {
+			margin: 4px 4px 0 0;
+			padding: 0 6px 2px 4px;
+		}
+
+		.message {
+			color:#888;
+			height: 1.3em;
+		}
+	}
+
+	&.short .topic {
+
+		&.active {background-position: -4px center;}
+
+		.created, .parent, .author, .msgid, .postsquant, .message, .lastmessage, .tags {display:none !important;}
+
+		.infobar {
+			position: absolute;
+			right:4px;
+			top:6px;
+		}
+
+		.topicname {
+			margin:0;
+			font-size: 12px;
+			.private {font-size: 85%;}
+		}
+
+		.data_cell {padding: 8px 22px 8px 12px;}
 	}
 }
 
