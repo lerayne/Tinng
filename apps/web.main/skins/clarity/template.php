@@ -389,7 +389,10 @@
 
 
 	<div data-chunk-name="userListItem" class="userItem">
-		<img data-cell="avatar" class="avatar">
+		<div class="avatarWrap">
+			<img data-cell="avatar" class="avatar">
+			<div class="isOnline"></div>
+		</div>
 		<div data-cell="name" class="name"></div>
 		<div class="appends" data-cell="appends">
 			<div data-cell="unread" class="unreadLabel"></div>
