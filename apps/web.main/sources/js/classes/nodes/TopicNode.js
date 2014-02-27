@@ -159,28 +159,31 @@ tinng.protos.TopicNode = Class(tinng.protos.Node, {
 
 	moveToThisTopic:function(e, ui){
 		var that = this;
-		var postId = ui.draggable.attr('data-id');
-		var timeFrom = t.posts[postId].data.created;
-		var topicFrom = ui.draggable.attr('data-topic');
-		var topicTo = this.data.id;
 
-		console.log('Moving posts from topic '+topicFrom+' to topic '+topicTo+' starting from '+ t.posts[postId].data.created)
+		if (confirm(t.txt.warn_move_next)){
+			var postId = ui.draggable.attr('data-id');
+			var timeFrom = t.posts[postId].data.created;
+			var topicFrom = ui.draggable.attr('data-topic');
+			var topicTo = this.data.id;
 
-		JsHttpRequest.query('backend/service.php',
-			{
-				action: 'move_posts',
-				topic_from: topicFrom,
-				topic_to:topicTo,
-				time_from:timeFrom
-			},
-			function(data, error){
+			console.log('Moving posts from topic '+topicFrom+' to topic '+topicTo+' starting from '+ t.posts[postId].data.created)
 
-				if (error) console.error(error);
-				else if (data == 'success') {
-					t.connection.refresh();
-				}
-			},
-			true // no cache
-		);
+			JsHttpRequest.query('backend/service.php',
+				{
+					action: 'move_posts',
+					topic_from: topicFrom,
+					topic_to:topicTo,
+					time_from:timeFrom
+				},
+				function(data, error){
+
+					if (error) console.error(error);
+					else if (data == 'success') {
+						t.connection.refresh();
+					}
+				},
+				true // no cache
+			);
+		}
 	}
 });
