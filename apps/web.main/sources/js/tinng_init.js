@@ -44,6 +44,4 @@ tinng.sync = {
     params:{}
 }
 
-tinng.state.blurred = false; //TODO: отслеживать активность окна
-
 t = tinng;

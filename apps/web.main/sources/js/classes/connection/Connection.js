@@ -109,6 +109,10 @@ tinng.protos.Connection = function (config) {
 	this.resume = function(){
 		return wrapped.resume.apply(wrapped, arguments)
 	}
+
+	this.setMode = function() {
+		if (wrapped.setMode) wrapped.setMode.apply(wrapped, arguments);
+	}
 }
 
 tinng.protos.Connection.prototype = {

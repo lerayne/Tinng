@@ -126,8 +126,6 @@ tinng.protos.UsersUnit = Class(tinng.protos.Unit, {
 
 				var openDialogue = t.units.posts.state.topicData.dialogue;
 
-				console.log('window focused', document.hasFocus() )
-
 				// уведомление (не показываем, если это первая загрузка модуля)
 				if (this.contentLoaded && (message.sender != openDialogue || !document.hasFocus() )) {
 					t.notifier.send(message.display_name, message.message, message.avatar, message.sender, this.openParentWindow);
