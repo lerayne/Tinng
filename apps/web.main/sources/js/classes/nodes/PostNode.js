@@ -113,7 +113,7 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 			.Node.prototype
 			.fill.apply(this, arguments);
 
-		this.cells.$avatar.attr('src', data.author_avatar);
+		this.cells.$avatar.attr('src', data.avatar);
 		this.cells.$avatar_box.addClass('user-'+data.author_id);
 
 		// отмечаем сообщения непрочитанными
@@ -224,10 +224,13 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 		} else {
 
 			this.messageBackup = this.cells.$message.html();
+			var wasAtBottom = t.units.posts.atBottom;
+			console.log('wasAtBottom', wasAtBottom)
 
 			this.hideMenu();
 			this.cells.$menuBtn.hide();
 
+			// если это заглавное сообщение и не диалог - добавляем редактор тегов
 			if (this.data.head && this.data.dialogue == 0) {
 				this.cells.$tags.hide();
 
@@ -260,6 +263,10 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 
 			this.editor = CKEDITOR.replace(this.cells.$message[0], ckconf);
 			this.editor.focus();
+
+			this.editor.on('instanceReady', function(){
+				if (wasAtBottom && that.$body.is(':last-child')) t.units.posts.scrollToBottom();
+			})
 
 			//this.cells.$message.attr('contenteditable', true);
 			//this.cells.$message.focus();

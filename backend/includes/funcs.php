@@ -14,52 +14,68 @@ function ex ($log){
 register_shutdown_function("ex", $log);
 */
 
-////////////////////////////////
-// Функции для этой части движка
-////////////////////////////////
+function advanced_strip($str){
+	$str = str_replace('<br>', "\n", $str);
+	$str = str_replace('<br />', "\n", $str);
+	$str = str_replace('</p>', "\n", $str);
+	$str = strip_tags($str);
+	$str = html_entity_decode($str);
+	$str = trim($str);
 
-// подготовка каждой строки
-function ready_row($row, $strip) {
-
-	// убираем из сообщений об удаленных рядах всю лишнюю инфу
-	if ($row['deleted'] || $row['noaccess']) {
-
-		$cutrow['deleted'] = 1;
-		$cutrow['id'] = $row['id'];
-		$cutrow['author'] = $row['author'];
-		$cutrow['created'] = $row['created'];
-		unset($row);
-		$row = $cutrow;
-
-	} else { // Если работаем не с отчетом об удалении
-
-		if ($row['author_avatar'] == 'gravatar') {
-			$row['author_avatar'] = 'http://www.gravatar.com/avatar/' . md5(strtolower($row['author_email'])) . '?s=50';
-		}
-
-		unset($row['author_email']); // не выводим мыло в аякс-переписке
-
-		if ($strip) {
-			if ($row['message']) $row['message'] = strip_tags($row['message']);
-			if ($row['lastpost']) $row['lastpost'] = strip_tags($row['lastpost']);
-		}
-	}
-
-	return $row;
+	return $str;
 }
 
+// подготовка каждой строки
+function process_data($strip, $delete_email_after, $data) {
 
-// создание дерева (внимание !! целесообразность ветвления - под вопросом)
-// сейчас используется для подготовки всех опций
-function make_tree($raw, $strip = false) {
-	foreach ($raw as $key => $val):
-		$raw[$key] = ready_row($val, $strip);
-		/*if ($val['parent'] == $val['topic_id']) { $result[$key] = $val; }
-		else {
-			$result[$val['parent']][$key] = $val;
-		}*/
-	endforeach;
-	return $raw;
+	$to_process = is_assoc($data) ? array(0 => $data) : $data;
+
+	//$GLOBALS['debug']['$data'] = $data;
+//	$GLOBALS['debug']['is_assoc'] = is_assoc($data);
+//	$GLOBALS['debug']['$to_process'] = $to_process;
+
+	foreach ($to_process as $key => $val) {
+
+		//$GLOBALS['debug']['data'][] = $val;
+
+		if (is_array($val)) {
+
+			if ($val['deleted'] || $val['noaccess']) {
+
+				$GLOBALS['debug']['deleted'][] = ($val['deleted'] == true);
+
+				// убираем из сообщений об удаленных рядах всю лишнюю инфу
+				$processed[$key] = Array (
+					'deleted' => 1,
+					'id' => $val['id'],
+					'author' => $val['author'],
+					'created' => $val['created']
+				);
+
+				continue;
+			}
+
+			// Если работаем не с отчетом об удалении
+
+			if ($val['avatar'] == 'gravatar') {
+				$val['avatar'] = 'http://www.gravatar.com/avatar/' . md5(strtolower($val['email'])) . '?s=50';
+			}
+
+			if ($val['display_name'] == null && $val['login']) $val['display_name'] = $val['login'];
+
+			if ($delete_email_after) unset($val['email']);
+
+			if ($strip) {
+				if ($val['message']) $val['message'] = advanced_strip($val['message']);
+				if ($val['lastpost']) $val['lastpost'] = advanced_strip($val['lastpost']);
+			}
+
+		}
+
+		$processed[$key] = $val;
+	}
+
+	return is_assoc($data) ? $processed[0] : $processed;
 }
 
 // сортировка двумерного массива по указанному полю field. Работает даже с неуникальными ключами
@@ -159,26 +175,6 @@ function get_dialogue($dialogue) {
 	);
 
 	return $topic;
-}
-
-
-function ready_users($data, $delete_email_after = false) {
-
-	$to_process = is_assoc($data) ? array(0 => $data) : $data;
-
-	foreach ($to_process as $key => $val) {
-		if ($val['avatar'] == 'gravatar') {
-			$val['avatar'] = 'http://www.gravatar.com/avatar/' . md5(strtolower($val['email'])) . '?s=50';
-		}
-
-		if ($val['display_name'] == null) $val['display_name'] = $val['login'];
-
-		if (is_array($val) && $delete_email_after) unset($val['email']);
-
-		$processed[$key] = $val;
-	}
-
-	return is_assoc($data) ? $processed[0] : $processed;
 }
 
 

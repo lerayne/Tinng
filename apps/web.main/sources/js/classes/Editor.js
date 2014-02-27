@@ -147,6 +147,7 @@ tinng.protos.Editor.prototype = {
 
 			this.ck.setData('');
 			this.ck.focus();
+			this.resize();
 
             //this.ui.$messageBody.html('').focus(); // todo - сделать затенение кнопки, если сообщение пустое
         }

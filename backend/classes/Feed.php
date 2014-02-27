@@ -159,7 +159,7 @@ class Feed {
 
 		$if_updated = $meta['updates_since'] ? $meta['updates_since'] : DBSIMPLE_SKIP;
 
-		$output_topics = make_tree($db->select($query
+		$output_topics = process_data('strip_tags', 'delete_email', $db->select($query
 
 			, $cfg['cut_length'], $cfg['cut_length'] // ограничение выборки первого поста
 			, $user->id
@@ -171,7 +171,7 @@ class Feed {
 			, $if_updated // для всего остального
 			, $if_updated // для всего остального
 			, (!$update_mode ? 1 : DBSIMPLE_SKIP) // достаем удаленные только если мы в режиме обновления
-		), 'strip_tags');
+		));
 
 
 		// выборка тегов
@@ -444,19 +444,19 @@ class Feed {
 				msg.modifier,
 				tpc.dialogue,
 				tpc.author_id AS topicstarter,
-				usr.email AS author_email,
+				usr.email AS email,
 				UNIX_TIMESTAMP(usr.last_read) AS author_seen_online,
 				IFNULL(usr.display_name, usr.login) AS author,
 				IF(unr.timestamp < IFNULL(msg.modified, msg.created) && IFNULL(msg.modifier, msg.author_id) != ?d, 1, 0) AS unread,
 				moder.login AS modifier_name,
-				uset.param_value as author_avatar
+				avatar.param_value as avatar
 			FROM ?_messages msg
 
 			JOIN ?_users usr ON msg.author_id = usr.id
 			LEFT JOIN ?_messages tpc ON msg.topic_id = tpc.id OR msg.id = tpc.id
 			LEFT JOIN ?_unread unr ON unr.topic = IF(msg.topic_id = 0, msg.id, msg.topic_id) AND unr.user = ?d
 			LEFT JOIN ?_users moder ON msg.modifier = moder.id
-			LEFT JOIN ?_user_settings uset ON msg.author_id = uset.user_id AND uset.param_key = "avatar"
+			LEFT JOIN ?_user_settings avatar ON msg.author_id = avatar.user_id AND avatar.param_key = "avatar"
 			WHERE
 				( (msg.id = ?d OR msg.topic_id = ?d) {OR (msg.topic_id != ?d }{AND msg.moved_from = ?d)} )
 				{AND msg.deleted IS NULL AND 1 = ?d}
@@ -472,7 +472,7 @@ class Feed {
 				AND ((msg.created < ? AND msg.deleted IS NULL) OR IFNULL(msg.modified, msg.created) > ?)
 			';
 
-			$output_posts = make_tree($db->select($query . $query_end
+			$output_posts = process_data(0, 'delete_email', $db->select($query . $query_end
 				, $posts['topic']
 				, $posts['topic']
 				, $user->id
@@ -495,7 +495,7 @@ class Feed {
 				{AND IFNULL(msg.modified, msg.created) > ?} /* $meta["updates_since"] */
 			';
 
-			$output_posts = make_tree($db->select($query . $query_end
+			$output_posts = process_data(0, 'delete_email', $db->select($query . $query_end
 				, $posts['topic']
 				, $posts['topic']
 				, $user->id
@@ -590,7 +590,7 @@ class Feed {
 
 					if (!$dialogue_user) return array();
 
-					$dialogue_user = ready_users($dialogue_user, true);
+					$dialogue_user = process_data(0, 'delete_email', $dialogue_user);
 
 					$topic_props = array(
 						'dialogue' => 1,
@@ -692,7 +692,7 @@ class Feed {
 					, $topic['id']
 				);
 
-				$allowed_users = ready_users($allowed_users, true);
+				$allowed_users = process_data(0, 'delete_email', $allowed_users);
 
 				$topic_props['private'] = $allowed_users;
 			}
@@ -719,6 +719,8 @@ class Feed {
 
 	function get_users($users, &$meta = Array()) {
 		global $db, $cfg;
+
+		//$GLOBALS['debug']['params'] = $users;
 
 		$meta = load_defaults($meta, $meta_defaults = Array(
 			'latest_user' => '0' // работает как false, а в SQL-запросах по дате - как 0
@@ -817,7 +819,9 @@ class Feed {
 			, ($online_only ? $threshold_away : DBSIMPLE_SKIP)
 		);
 
-		$userlist = ready_users($userlist, $delete_email_after);
+		//$GLOBALS['debug']['$userlist'] = $userlist;
+
+		$userlist = process_data(0, $delete_email_after, $userlist);
 
 		// sorting
 		if (in_array('display_name', $users['fields'])) $userlist = sort_by_field($userlist, 'display_name');
@@ -948,7 +952,7 @@ class Feed {
 					, ($meta['read'] ? $meta['read'] : DBSIMPLE_SKIP)
 				);
 
-				$result = ready_users($result, true);
+				$result = process_data('strip_tags', 'delete_email', $result);
 
 				break;
 
