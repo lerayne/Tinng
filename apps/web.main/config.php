@@ -5,7 +5,7 @@ $cfg = $env;
 $cfg['appdir'] = $env['appdir'];
 
 // промежуток между запросами short-poll (в миллисекундах)
-$cfg['poll_timer'] = 5000;
+$cfg['poll_timer'] = 15000;
 
 // то же самое для неактивного окна
 $cfg['poll_timer_blurred'] = 60000;
