@@ -7,8 +7,8 @@ $cfg['appdir'] = $env['appdir'];
 // промежуток между запросами short-poll (в миллисекундах)
 $cfg['poll_timer'] = 5000;
 
-// то же самое для неактивного окна (в проекте)
-$cfg['poll_timer_blurred'] = 3*60000;
+// то же самое для неактивного окна
+$cfg['poll_timer_blurred'] = 60000;
 
 // таймаут xhr-подсказок
 $cfg['xhr_suggest'] = 400;

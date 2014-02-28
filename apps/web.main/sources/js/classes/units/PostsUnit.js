@@ -111,7 +111,7 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 		this.header.topicRename.hide();
 
 		$('.topics .active').removeClass('active');
-		this.$body.removeClass('moderable');
+		this.$body.removeClass('moderable dialogue');
 	},
 
 	unscribe:function(){
@@ -715,6 +715,8 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 
 				// хайд верхнего контейнера дает не только скрытие, но и отсутствие показа при такскании
 				this.header.allowedUsers.$body.hide();
+
+				this.$body.addClass('dialogue');
 
 				for (var i = 0; i < topicData.private.length; i++) {
 					var user = topicData.private[i];

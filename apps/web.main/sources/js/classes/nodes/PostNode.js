@@ -90,7 +90,7 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 			clearTimeout(this.mousetimer);
 		});
 
-		if (!data.head) {
+		if (!data.head && data.dialogue == 0) {
 			this.$body.draggable({
 				helper:'clone',
 				handle:this.cells.$infobar,

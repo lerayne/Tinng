@@ -12,6 +12,8 @@
 
 tinng.funcs.onWindowLoad = function(){
 
+	t.state.windowFocused = document.hasFocus();
+
 	t.user = new tinng.protos.User(importedUser);
 
 	// создание машин, использующих селекторы
@@ -89,6 +91,21 @@ tinng.funcs.onWindowLoad = function(){
 	}
 
 	t.connection.subscribe(initialSubscriptions);
+
+	$(window).on('blur', function(){
+
+		if (t.state.windowFocused) {
+			t.state.windowFocused = false;
+			t.connection.setMode('passive');
+		}
+	});
+	$(window).on('focus', function(){
+
+		if (!t.state.windowFocused) {
+			t.state.windowFocused = true;
+			t.connection.setMode('active');
+		}
+	});
 }
 
 $(window).on('load', tinng.funcs.onWindowLoad)

@@ -12,7 +12,9 @@ tinng.protos.strategic.XHRShortPoll = function(server, callback){
 	this.backendURL = server;
 	this.parseCallback = callback;
 
-	this.waitTime = t.state.blurred ? t.cfg['poll_timer_blurred'] : t.cfg['poll_timer'];
+	console.log('focus on startup:', t.state.windowFocused)
+
+	this.waitTime = t.state.windowFocused ? t.cfg['poll_timer'] : t.cfg['poll_timer_blurred'];
 	this.request = false; // запрос
 	this.timeout = false; // текущий таймаут
 	this.connectionLossTO = false; // таймаут обрыва связи
@@ -32,6 +34,22 @@ tinng.protos.strategic.XHRShortPoll.prototype = {
 
 	refresh:function(){
 		this.start();
+	},
+
+	setMode:function(mode){
+
+		switch (mode){
+			case 'active':
+				this.waitTime = t.cfg['poll_timer'];
+				this.refresh();
+
+				break;
+
+			case 'passive':
+				this.waitTime = t.cfg['poll_timer_blurred'];
+
+				break;
+		}
 	},
 
 	write:function(params){
@@ -121,6 +139,8 @@ tinng.protos.strategic.XHRShortPoll.prototype = {
 	// todo: этот враппер-таймаут нужен из-за несовершенства обертки XHR, баг вылазит во время создания новой темы -
 	// отправка запроса сразу после получения предыдущего происходит до закрытия соединения и новое соединение не проходит
 	wrappedStart:function(){
+
+//		t.notifier.send('connection start', this.waitTime);
 
 		//console.log('rotor start: ', action);
 
