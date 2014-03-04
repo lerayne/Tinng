@@ -24,6 +24,10 @@ tinng.funcs.onWindowLoad = function(){
 	t.address = new tinng.protos.Address(';', ':');
 	//t.keyListener = new tinng.protos.KeyListener();
 
+	if (t.cfg.maintenance) {
+		t.address.del(['topic', 'plimit'])
+	}
+
 	t.connection = new t.protos.Connection({
 		server:'backend/update/',
 		callback:t.funcs.parser2
