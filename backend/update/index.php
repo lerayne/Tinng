@@ -37,6 +37,7 @@ function parse_request($request) {
 	if ($request['write']) {
 
 		$writes = $request['write'];
+		$now = now('sql');
 
 		foreach ($writes as $write_index => $write) {
 			switch ($write['action']) {
@@ -50,7 +51,7 @@ function parse_request($request) {
 				// вставляем новое сообщение (адаптировать для старта темы!)
 				case 'add_post':
 
-					$now = now('sql');
+
 
 					if (!$write['topic']) $write['topic'] = 0;
 
@@ -59,6 +60,7 @@ function parse_request($request) {
 					$new_row['topic_id'] = $write['topic'];
 					$new_row['message'] = $write['message'];
 					$new_row['created'] = $now;
+					$new_row['updated'] = $now;
 
 					$new_node_id = $db->query('INSERT INTO ?_messages (?#) VALUES (?a)', array_keys($new_row), array_values($new_row));
 
@@ -88,6 +90,7 @@ function parse_request($request) {
 					add_tags($write['tags'], $new_node_id);
 
 					break;
+
 
 				// обновляет запись в ?_messages
 				case 'update_message':
@@ -127,7 +130,8 @@ function parse_request($request) {
 					$GLOBALS['debug']['$tags_to_add'] = $tags_to_add;
 					$GLOBALS['debug']['$tags_to_remove'] = array_keys($tags_to_remove);*/
 
-					$write['modified'] = now('sql'); // при любом обновлении пишем дату,
+					$write['modified'] = $now; // при любом обновлении пишем дату,
+					$write['updated'] = $now; // при любом обновлении пишем дату,
 					$write['modifier'] = $user->id; // пользователя, отредактировавшего сообщение
 					$write['locked'] = null; // и убираем блокировку
 
@@ -153,7 +157,8 @@ function parse_request($request) {
 						unset($write['id']);
 						$write['deleted'] = 1;
 						$write['modifier'] = $user->id;
-						$write['modified'] = now('sql');
+						$write['modified'] = $now;
+						$write['updated'] = $now;
 
 						$db->query('UPDATE ?_messages SET ?a WHERE id = ?d', $write, $upd_id);
 					}
@@ -163,7 +168,8 @@ function parse_request($request) {
 				// убираем тег с темы
 				case 'tag_remove':
 
-					$msgupd['modified'] = now('sql');
+					$msgupd['modified'] = $now;
+					$msgupd['updated'] = $now;
 					$msgupd['modifier'] = $user->id;
 
 					$db->query('UPDATE ?_messages SET ?a WHERE id = ?d', $msgupd, $write['msg']);

@@ -52,7 +52,7 @@
 
 				<form id="tinng-top-login" action="<?= $env['appdir'] . 'login.php' ?>" method="post">
 					<a class="button-link" id="loginBtn"><span><?= $txt['login_btn'] ?></span></a>
-					<a class="button-link" id="regBtn"><span><?= $txt['login_reg'] ?></span></a>
+					<? if ($cfg['registration_enabled'] == 1 && $cfg['maintenance'] == 0){ ?><a class="button-link" id="regBtn"><span><?= $txt['login_reg'] ?></span></a><? }; ?>
 				</form>
 
 				<? else: ?>

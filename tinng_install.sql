@@ -14,15 +14,18 @@ CREATE TABLE `tinng_messages` (
   `moved_from` bigint(20) unsigned NOT NULL DEFAULT '0',
   `topic_name` varchar(255) DEFAULT NULL,
   `message` text NOT NULL,
-  `created` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
+  `created` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
   `modified` timestamp NULL DEFAULT NULL,
+  `updated` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
   `modifier` int(10) unsigned DEFAULT NULL,
   `deleted` tinyint(1) unsigned DEFAULT NULL,
   `locked` tinyint(1) unsigned DEFAULT NULL,
   `dialogue` tinyint(1) NOT NULL DEFAULT '0' COMMENT 'Аналог ЛС',
   PRIMARY KEY (`id`),
   KEY `msg_author` (`author_id`),
-  KEY `msg_topic_id` (`topic_id`)
+  KEY `msg_topic_id` (`topic_id`),
+  KEY `msg_deleted` (`deleted`),
+  KEY `msg_dialogue` (`dialogue`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
 
 CREATE TABLE `tinng_private_topics` (
@@ -32,8 +35,10 @@ CREATE TABLE `tinng_private_topics` (
   `user` int(10) unsigned NOT NULL,
   `level` tinyint(1) DEFAULT NULL COMMENT 'здесь NULL критичен, ибо JOIN',
   PRIMARY KEY (`link_id`),
-  UNIQUE KEY `link_id` (`link_id`),
-  KEY `message` (`message`,`user`)
+  KEY `message_user` (`message`,`user`),
+  KEY `pvt_message` (`message`),
+  KEY `pvt_level` (`level`),
+  KEY `pvt_user` (`user`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
 
 CREATE TABLE `tinng_tagmap` (

@@ -8,12 +8,14 @@ $cfg = $env;
 $cfg['production'] = 0;
 
 // когда установлен - доступ есть только у админа
-$cfg['maintenance'] = 1;
+$cfg['maintenance'] = 0;
+
+$cfg['registration_enabled'] = 1;
 
 $cfg['appdir'] = $env['appdir'];
 
 // промежуток между запросами short-poll (в миллисекундах)
-$cfg['poll_timer'] = 5000;
+$cfg['poll_timer'] = 15000;
 
 // то же самое для неактивного окна
 $cfg['poll_timer_blurred'] = 60000;
@@ -40,7 +42,7 @@ $cfg['logging'] = 0;
 $cfg['instance_name'] = 'Tinng-нестабильный';
 
 // в течении какого времени с момента последней активности юзер считается онлайн (сек)
-$cfg['online_threshold'] = 240;
+$cfg['online_threshold'] = 360;
 
 // переменные массива $cfg напрямую транслируются в javascript и могут быть доступны для просмотра
 // пользователем, поэтому для более секретных переменных используется другой массив - $safecfg

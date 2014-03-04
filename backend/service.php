@@ -222,6 +222,7 @@ switch ($action):
 		// во всех случаях - помечаем тему обновленной!
 		$params = Array(
 			'modified' => $now_sql,
+			'updated' => $now_sql,
 			'modifier' => $user->id
 		);
 
@@ -304,6 +305,7 @@ switch ($action):
 		// во всех случаях - помечаем тему обновленной!
 		$params = Array(
 			'modified' => $now_sql,
+			'updated' => $now_sql,
 			'modifier' => $user->id
 		);
 
@@ -342,6 +344,7 @@ switch ($action):
 			'moved_from' => $topic_from,
 			'topic_id' => $topic_to,
 			'modified' => $now,
+			'updated' => $now,
 			'modifier' => $user->id
 		);
 
