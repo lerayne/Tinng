@@ -12,7 +12,7 @@ $cfg['posts_per_page'] = 20;
 $safecfg['db'] = 'mysql://lopar740_therron:maedanaena@localhost/lopar740_therron';
 
 // в течении какого времени с момента последней активности юзер считается онлайн (сек)
-$cfg['online_threshold'] = 15;
+$cfg['online_threshold'] = 240;
 
 // префикс базы даных
 $safecfg['db_prefix'] = 'tinng'; // знак "_" вставляется автоматически, указывать его здесь не нужно

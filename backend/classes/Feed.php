@@ -123,7 +123,7 @@ class Feed {
 				ON mlast.topic_id = msg.id
 				AND mlast.deleted <=> NULL
 				AND mlast.id =
-					(SELECT MAX(mmax.id) FROM ?_messages mmax WHERE mmax.topic_id = msg.id AND mmax.deleted <=> NULL)
+					(SELECT MAX(mmax2.id) FROM ?_messages mmax2 WHERE mmax2.topic_id = msg.id AND mmax2.deleted IS NOT NULL)
 			LEFT JOIN ?_users lma
 				ON lma.id = mlast.author_id
 			LEFT JOIN ?_unread unr

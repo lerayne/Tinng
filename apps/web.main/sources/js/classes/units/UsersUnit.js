@@ -31,7 +31,7 @@ tinng.protos.UsersUnit = Class(tinng.protos.Unit, {
 		this.header.title.$body.text(t.txt.title_all_users);
 		this.ui.$header.append(this.header.$body);
 
-		$(document).on('read_topic', this.markRead)
+		$(document).on('read_topic', this.markRead);
 	},
 
 	nullify:function(){
@@ -170,17 +170,17 @@ tinng.protos.UsersUnit = Class(tinng.protos.Unit, {
 	markRead:function(e){
 		var params = e.message;
 
-		if (params.author && params.dialogue != 0 && this.unread[params.author]) {
-			for (var msg_id in this.unread[params.author]){
-				if (this.unread[params.author][msg_id] <= params.time) {
-					delete this.unread[params.author][msg_id];
+		if (params.author_id && params.dialogue != 0 && this.unread[params.author_id]) {
+			for (var msg_id in this.unread[params.author_id]){
+				if (this.unread[params.author_id][msg_id] <= params.time) {
+					delete this.unread[params.author_id][msg_id];
 					this.unreadQuant--;
 				}
 			}
 
-			if (!t.funcs.objectSize(this.unread[params.author])) delete this.unread[params.author];
+			if (!t.funcs.objectSize(this.unread[params.author_id])) delete this.unread[params.author_id];
 
-			this.renderReadState(params.author);
+			this.renderReadState(params.author_id);
 			this.renderUnreadSum();
 		}
 

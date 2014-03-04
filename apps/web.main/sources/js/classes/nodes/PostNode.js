@@ -342,6 +342,22 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 		return false; // preventDefault + stopPropagation
 	},
 
+	markRead:function(){
+
+		if (this.data.unread != 0) {
+			console.log('trigger unread', this.data);
+
+			$.event.trigger({
+				type: 'read_topic',
+				message: this.data
+			})
+		}
+
+		t.protos
+			.Node.prototype
+			.markRead.apply(this, arguments);
+	},
+
 	markUnreadNext:function(){
 		for (var key in t.posts) {
 			if (key >= this.data.id && t.posts[key].data.author_id != t.user.id) {

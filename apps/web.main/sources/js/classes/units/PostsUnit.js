@@ -764,15 +764,16 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 		}
 
 		// хак прочитанности первого сообщения
-		var latestReadTS = t.funcs.sql2stamp(topicData.modified ? topicData.modified : topicData.created);
-
 		if (topicData.post_count == 1) {
+
+			var latestReadTS = t.funcs.sql2stamp(topicData.modified ? topicData.modified : topicData.created);
+
 			$.event.trigger({
 				type: 'read_topic',
 				message:{
 					id: topicData.id,
 					time: latestReadTS,
-					author: topicData.author_id,
+					author_id: topicData.author_id,
 					dialogue: topicData.dialogue
 				}
 			})
