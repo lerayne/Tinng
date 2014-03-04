@@ -59,7 +59,7 @@ tinng.protos.strategic.XHRShortPoll.prototype = {
 
 	},
 
-	_subscribe:function(subscriberId, feedName, feed, soft){
+	_subscribe:function(subscriberId, feedName, feed, reset){
 		var subscriberFeeds = this.subscriptions[subscriberId];
 
 		// если такой подписчик уже есть
@@ -72,7 +72,7 @@ tinng.protos.strategic.XHRShortPoll.prototype = {
 				}
 
 				// сбрасываем ее мету
-				if (!soft && this.meta[subscriberId]) {
+				if (reset && this.meta[subscriberId]) {
 					//console.log('META RESET on subscribe:', subscriberId, feedName)
 					this.meta[subscriberId][feedName] = {};
 				}
@@ -88,13 +88,13 @@ tinng.protos.strategic.XHRShortPoll.prototype = {
 
 	// подписывает, или изменяет параметры текущей подписки
 	subscribe:function(subscriberId, feedName, feed){
-		this._subscribe(subscriberId, feedName, feed, false)
+		this._subscribe(subscriberId, feedName, feed, true)
 	},
 
 	// "мягко" изменяет параметры подписки, не меняя ее метаданные
 	// пока-что нужно для динамической подгрузки "страниц"
 	rescribe:function(subscriberId, feedName, feed){
-		this._subscribe(subscriberId, feedName, feed, true)
+		this._subscribe(subscriberId, feedName, feed, false)
 	},
 
 	// отменяет подписку
@@ -131,7 +131,7 @@ tinng.protos.strategic.XHRShortPoll.prototype = {
 
 	// главная функция ротора
 	start:function () {
-		setTimeout(this.wrappedStart, 0);
+		if (t.cfg.maintenance == 0) setTimeout(this.wrappedStart, 0);
 
 		return true;
 	},

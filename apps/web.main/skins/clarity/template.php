@@ -372,10 +372,14 @@
 
 	<div data-chunk-name="posts-default" class="posts-default">
 		<?
-			echo $txtp['posts_default'];
 
-			if ($user->id != 0) {
-				echo $txtp['create_new_topic'];
+			if ($cfg['maintenance'] && $user->id != 1) {
+				echo $txtp['maintenance_message'];
+
+			} else {
+
+				echo $txtp['posts_default'];
+				if ($user->id != 0) echo $txtp['create_new_topic'];
 			}
 		?>
 	</div>

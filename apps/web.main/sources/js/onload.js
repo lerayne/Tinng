@@ -15,6 +15,7 @@ tinng.funcs.onWindowLoad = function(){
 	t.state.windowFocused = document.hasFocus();
 
 	t.user = new tinng.protos.User(importedUser);
+	if (t.user.id == 1) t.cfg.maintenance = 0;
 
 	// создание машин, использующих селекторы
 	t.chunks = new t.protos.ChunksEngine('tinng-chunks', 'data-chunk-name', 'data-cell');
@@ -90,8 +91,11 @@ tinng.funcs.onWindowLoad = function(){
 		});
 	}
 
+
 	t.connection.subscribe(initialSubscriptions);
 
+
+	// поведение при активации и деактивации окна
 	$(window).on('blur', function(){
 
 		if (t.state.windowFocused) {
@@ -107,7 +111,6 @@ tinng.funcs.onWindowLoad = function(){
 		}
 	});
 }
-
 $(window).on('load', tinng.funcs.onWindowLoad)
 
 /*window.onbeforeunload = function(){
