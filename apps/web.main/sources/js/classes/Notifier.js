@@ -6,7 +6,7 @@ tinng.protos.Notifier = function(){
 	t.funcs.bind(this, ['send']);
 	var that = this;
 
-	if (Notification && Notification.permission == 'default' && t.user.id > 0) {
+	if (typeof Notification == 'object' && Notification.permission == 'default' && t.user.id > 0) {
 		var activationLink = $('.notification_perm_request');
 		activationLink.css('display', 'block').click(function(){
 			that.send(t.txt.notification_perm_granted, '', '/apps/web.main/stock/images/icon.png');

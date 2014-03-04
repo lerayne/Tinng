@@ -117,16 +117,16 @@ tinng.funcs.onWindowLoad = function(){
 }
 $(window).on('load', tinng.funcs.onWindowLoad)
 
-/*window.onbeforeunload = function(){
- //alert('exiting program!');
+/*$(window).on('beforeunload', function(){
 
- // AJAX: // закрываем сессию на сервере
- JsHttpRequest.query( 'backend/service.php', {
+	if (t.user.id > 0) {
+		t.notifier.send('unloading');
 
- action: 'close_session'
+		// AJAX: // закрываем сессию на сервере
+		JsHttpRequest.query( 'backend/service.php', {
 
- }, function(){}, false );
+			action: 'close_session'
 
- rotor.stop();
-
- }*/
+		}, function(){}, false );
+	}
+})*/

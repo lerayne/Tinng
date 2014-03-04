@@ -103,8 +103,11 @@ switch ($action):
 	
 	// Пока не используется
 	case 'close_session':
+
+		//log(now(), ' - session closed by ', $user->id);
 	
-		//$db->query('UPDATE ?_messages SET msg_locked = NULL WHERE msg_locked = ?d', $user->id);
+		/*$db->query('UPDATE ?_messages SET msg_locked = NULL WHERE msg_locked = ?d', $user->id);
+		$db->query('UPDATE ?_users SET status = "offline" WHERE id = ?d', $user->id);*/
 		
 	break;
 

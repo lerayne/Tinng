@@ -68,6 +68,8 @@ t.protos.UserWatcher.prototype = {
 	parseFeed: function(users){
 		users = users.online_users;
 
+		console.log('online:', users)
+
 		//console.log('online users from server:', users);
 		//console.log('online users memorized:', this.localOnlineList);
 

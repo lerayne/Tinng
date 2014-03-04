@@ -4,6 +4,8 @@ $env = array();
 $env['appdir'] = '';
 $env['rootdir'] = '../../';
 
+error_reporting(E_ALL);
+
 require_once $env['appdir'].'config.php';
 require_once $env['appdir'].'sources/php/functions.common.php';
 require_once $env['appdir'].'languages/ru.php';
@@ -62,6 +64,12 @@ switch ($_REQUEST['action']):
 	break;
 
 	case 'logout':
+
+		$user_id = $_COOKIE['user'];
+
+		if ($user_id != 0) {
+			$db->query('UPDATE ?_users SET status = "offline" WHERE id = ?d', $user_id);
+		}
 
 		setcookie('pass', '', 0, '/');
 		setcookie('login', '', 0, '/');
