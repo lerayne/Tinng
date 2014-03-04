@@ -103,8 +103,11 @@ switch ($action):
 	
 	// Пока не используется
 	case 'close_session':
+
+		//log(now(), ' - session closed by ', $user->id);
 	
-		//$db->query('UPDATE ?_messages SET msg_locked = NULL WHERE msg_locked = ?d', $user->id);
+		/*$db->query('UPDATE ?_messages SET msg_locked = NULL WHERE msg_locked = ?d', $user->id);
+		$db->query('UPDATE ?_users SET status = "offline" WHERE id = ?d', $user->id);*/
 		
 	break;
 
@@ -222,6 +225,7 @@ switch ($action):
 		// во всех случаях - помечаем тему обновленной!
 		$params = Array(
 			'modified' => $now_sql,
+			'updated' => $now_sql,
 			'modifier' => $user->id
 		);
 
@@ -304,6 +308,7 @@ switch ($action):
 		// во всех случаях - помечаем тему обновленной!
 		$params = Array(
 			'modified' => $now_sql,
+			'updated' => $now_sql,
 			'modifier' => $user->id
 		);
 
@@ -342,6 +347,7 @@ switch ($action):
 			'moved_from' => $topic_from,
 			'topic_id' => $topic_to,
 			'modified' => $now,
+			'updated' => $now,
 			'modifier' => $user->id
 		);
 

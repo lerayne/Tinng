@@ -6,13 +6,18 @@
  * Time: 18:41
  */
 
-/* // Запись в лог
-$log = fopen('ajax_log.txt', 'w+');
+// Запись в лог
+/*$log = fopen('ajax_log.txt', 'w+');
 function ex ($log){
 	fwrite($log, 'process terminated '.connection_status()."\n");
 }
 register_shutdown_function("ex", $log);
-*/
+
+function log ($text){
+	global $log;
+	fwrite($log, $text);
+}*/
+
 
 function advanced_strip($str){
 	$str = str_replace('<br>', "\n", $str);

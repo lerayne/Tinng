@@ -166,6 +166,7 @@ $txtp['reg_email_expalin'] = 'email должен быть реальным. На
 	аватар к данному email-адресу. Другого способа залить аватар у нас пока нет, sorry :)';
 
 
+$txtp['maintenance_message'] = "Sorry, we're doing some works. Be back soon :) <br>(try F5 to know if we're done)<br><br>Извините, мы кое что подправляем. Не волнуйтесь, скоро все вернется :) <br>(можете обновить страницу, вдруг уже готово?)";
 $txtp['posts_default'] = 'Выберите тему в столбце слева';
 $txtp['create_new_topic'] = '<br><br>или<br><br><a href="#" onclick="t.units.posts.newTopic()">создайте новую</a>';
 

@@ -78,7 +78,7 @@ body {
 
 #tinng-main {
 	position:relative;
-	overflow: hidden;
+//	overflow: hidden;
 }
 
 #curtain {
@@ -215,12 +215,15 @@ body {
 
 #tinng-main-content {
 	position: relative;
+	overflow: hidden;
 }
+
+@sideBarWidth: 250px;
 
 .unit-panel {
 	position: absolute;
 	height: 100%;
-	width: 250px;
+	width: @sideBarWidth;
 	z-index: 100;
 	background-color: #ddd;
 

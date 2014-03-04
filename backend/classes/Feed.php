@@ -48,7 +48,7 @@ class Feed {
 		// проверяем простым запросом, есть ли что на вывод вообще, прежде чем отправлять следующего "монстра"))
 		// todo - удалось избавиться от подзапроса для вычисления даты последнего поста темы. Может удастся и в монстре?
 		$updates_since = $db->selectCell("
-			SELECT GREATEST(MAX(msg.created), IFNULL(MAX(msg.modified), 0), IFNULL(MAX(mupd.created), 0), IFNULL(MAX(mupd.modified), 0))
+			SELECT GREATEST(MAX(msg.updated), IFNULL(MAX(mupd.updated), 0))
 			FROM ?_messages msg
 			LEFT JOIN ?_messages mupd
 				ON mupd.topic_id = msg.id
@@ -67,7 +67,7 @@ class Feed {
 					OR (my_access.level IS NOT NULL) /* тема приватна, но у меня есть доступ */
 					{OR (my_access.level IS NULL AND elses_access.level IS NOT NULL AND (my_access.updated > ? }{ OR elses_access.updated > ?))}
 				)
-				{AND (IFNULL(msg.modified, msg.created) > ? }{ OR IFNULL(mupd.modified, mupd.created) > ?)}
+				{AND (msg.updated > ? }{ OR mupd.updated > ?)}
 				{AND msg.deleted IS NULL AND 1 = ?d}
 			"
 			, $user->id // мой доступ
@@ -96,20 +96,20 @@ class Feed {
 				msg.author_id,
 				msg.topic_name,
 				msg.created,
-				msg.modified,
+				msg.modified, /* todo - это уже не будет нужно, избавляемся, факт изменения отслеживаем по modifier */
+				msg.updated AS maxdate, /* todo - это уже не будет нужно, избавляемся, но тут уже есть поле updated, разобраться */
 				msg.modifier AS modifier_id,
-				IFNULL(msg.modified, msg.created) AS maxdate,
 				(msg.deleted IS NOT NULL OR (my_access.level IS NULL AND elses_access.level IS NOT NULL)) AS deleted,
 				usr.email AS author_email,
 				IFNULL(usr.display_name, usr.login) AS author,
 				mlast.id AS last_id,
 				LEFT(mlast.message, ?d) AS lastpost,
-				IFNULL(mlast.modified, mlast.created) AS lastdate,
-				GREATEST(IFNULL(msg.modified, msg.created), IFNULL(IFNULL(mlast.modified, mlast.created),0)) as updated,
+				mlast.updated AS lastdate,
+				GREATEST(msg.updated, IFNULL(mlast.updated, 0)) as updated,
 				IFNULL(lma.display_name, lma.login) AS lastauthor,
 				lma.id AS lastauthor_id,
 				(SELECT COUNT(mcount.id) FROM ?_messages mcount WHERE IF(mcount.topic_id = 0, mcount.id, mcount.topic_id) = msg.id AND mcount.deleted IS NULL) AS postsquant,
-				IF(unr.timestamp < GREATEST(IFNULL(msg.modified, msg.created), IFNULL(IFNULL(mlast.modified, mlast.created),0)), 1, 0) AS unread,
+				IF(unr.timestamp < GREATEST(msg.updated, IFNULL(mlast.updated,0)), 1, 0) AS unread,
 				(my_access.level IS NOT NULL OR elses_access.level IS NOT NULL) as private
 			FROM ?_messages msg
 
@@ -117,13 +117,12 @@ class Feed {
 				ON msg.author_id = usr.id
 			LEFT JOIN ?_messages mupd
 				ON mupd.topic_id = msg.id
-				AND IFNULL(mupd.modified, mupd.created) =
-					(SELECT GREATEST(MAX(mmax.created), MAX(IFNULL(mmax.modified, 0))) FROM ?_messages mmax WHERE mmax.topic_id = msg.id)
+				AND mupd.updated = (SELECT MAX(mmax.updated) FROM ?_messages mmax WHERE mmax.topic_id = msg.id)
 			LEFT JOIN ?_messages mlast
 				ON mlast.topic_id = msg.id
 				AND mlast.deleted <=> NULL
 				AND mlast.id =
-					(SELECT MAX(mmax2.id) FROM ?_messages mmax2 WHERE mmax2.topic_id = msg.id AND mmax2.deleted IS NOT NULL)
+					(SELECT MAX(mmax.created) FROM ?_messages mmax WHERE mmax.topic_id = msg.id AND mmax.deleted IS NULL)
 			LEFT JOIN ?_users lma
 				ON lma.id = mlast.author_id
 			LEFT JOIN ?_unread unr
@@ -151,7 +150,7 @@ class Feed {
 					OR (my_access.level IS NOT NULL) /* тема приватна, но у меня есть доступ */
 					{OR (my_access.level IS NULL AND elses_access.level IS NOT NULL AND (my_access.updated > ? }{ OR elses_access.updated > ?))}
 				)
-				{AND (IFNULL(msg.modified, msg.created) > ?}{ OR IFNULL(mupd.modified, mupd.created) > ?)}
+				{AND (msg.updated > ?}{ OR mupd.updated > ?)}
 				{AND msg.deleted IS NULL AND 1 = ?d}
 
 			GROUP BY msg.id
@@ -189,7 +188,7 @@ class Feed {
 				ON map2.message = msg.id
 				AND map2.tag IN (?a)}
 
-			WHERE ISNULL(msg.deleted) {AND IFNULL(msg.modified, msg.created) > ?}
+			WHERE ISNULL(msg.deleted) {AND msg.updated > ?}
 			GROUP BY map.link_id
 			ORDER BY tag.id
 		";
@@ -283,7 +282,7 @@ class Feed {
 			if (!$date_read) {
 
 				// пробуем сходу отмечать прочитанным только первое сообщение
-				$first_post_date = $db->selectCell('SELECT IFNULL(modified, created) AS updated FROM ?_messages WHERE id = ?d ', $posts['topic']);
+				$first_post_date = $db->selectCell('SELECT updated FROM ?_messages WHERE id = ?d ', $posts['topic']);
 
 				$values = Array('user' => $user->id, 'topic' => $posts['topic'], 'timestamp' => $first_post_date);
 				$db->query('INSERT INTO ?_unread (?#) VALUES (?a)', array_keys($values), array_values($values));
@@ -297,8 +296,8 @@ class Feed {
 				// определить первое непрочитанное сообщение (не учитывать мои и отредактированные мной)
 				$first_unread = $db->selectCell('
 					SELECT id FROM ?_messages
-					WHERE IFNULL(modified, created) > ? AND topic_id = ?d AND deleted IS NULL
-						AND IF(modified IS NULL, author_id, modifier) != ?d
+					WHERE updated > ? AND topic_id = ?d AND deleted IS NULL
+						AND IFNULL(modifier, author_id) != ?d
 					ORDER BY created ASC
 					LIMIT 1
 					'
@@ -403,12 +402,12 @@ class Feed {
 		// issue - если первая выборка даты не выдает удаленных, возможна ситуация когда последний удаленный пост приходит
 		// с ближайшим апдейтом. todo - проверить все ли ок.
 		$new_updates_since = $db->selectCell('
-			SELECT GREATEST(MAX(msg.created), IFNULL(MAX(msg.modified), 0))
+			SELECT MAX(msg.updated)
 			FROM ?_messages msg
 			WHERE (IF(msg.topic_id = 0, msg.id, msg.topic_id) = ?d {OR (msg.topic_id != ?d }{AND msg.moved_from = ?d )} ) /* topic_id */
 				/*{AND msg.deleted IS NULL AND 1 = ?d}*/
 				{AND msg.created >= ?} /* $slice_start */
-				{AND IFNULL(msg.modified, msg.created) > ?} /* $meta["updates_since"] */
+				{AND msg.updated > ?} /* $meta["updates_since"] */
 			'
 			, $posts['topic']
 			, ($meta['updates_since'] ? $posts['topic'] : DBSIMPLE_SKIP)
@@ -447,7 +446,7 @@ class Feed {
 				usr.email AS email,
 				UNIX_TIMESTAMP(usr.last_read) AS author_seen_online,
 				IFNULL(usr.display_name, usr.login) AS author,
-				IF(unr.timestamp < IFNULL(msg.modified, msg.created) && IFNULL(msg.modifier, msg.author_id) != ?d, 1, 0) AS unread,
+				IF(unr.timestamp < msg.updated && IFNULL(msg.modifier, msg.author_id) != ?d, 1, 0) AS unread,
 				moder.login AS modifier_name,
 				avatar.param_value as avatar
 			FROM ?_messages msg
@@ -469,7 +468,7 @@ class Feed {
 
 			$query .= '/*sql*/
 				AND msg.created >= ?
-				AND ((msg.created < ? AND msg.deleted IS NULL) OR IFNULL(msg.modified, msg.created) > ?)
+				AND ((msg.created < ? AND msg.deleted IS NULL) OR msg.updated > ?)
 			';
 
 			$output_posts = process_data(0, 'delete_email', $db->select($query . $query_end
@@ -492,7 +491,7 @@ class Feed {
 
 			$query .= '/*sql*/
 				{AND msg.created >= ?} /* $slice_start */
-				{AND IFNULL(msg.modified, msg.created) > ?} /* $meta["updates_since"] */
+				{AND msg.updated > ?} /* $meta["updates_since"] */
 			';
 
 			$output_posts = process_data(0, 'delete_email', $db->select($query . $query_end
@@ -623,10 +622,10 @@ class Feed {
 
 		// изменялась ли "голова" темы?
 		$new_updated_at = $db->selectCell('
-			SELECT IFNULL(msg.modified, msg.created) AS updated
+			SELECT msg.updated
 			FROM ?_messages msg
 			WHERE msg.id = ?d AND msg.topic_id = 0
-			{AND IFNULL(msg.modified, msg.created) > ?}
+			{AND msg.updated > ?}
 			'
 			, $topic['id']
 			, ($meta['updated_at'] ? $meta['updated_at'] : DBSIMPLE_SKIP)
