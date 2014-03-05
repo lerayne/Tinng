@@ -6,7 +6,7 @@
  * To change this template use File | Settings | File Templates.
  */
 
-tinng.protos.strategic.XHRShortPoll = function(server, callback){
+tinng.protos.strategic.XHRShortPoll = function(server, callback, autostart){
 	t.funcs.bind(this);
 
 	this.backendURL = server;
@@ -14,6 +14,7 @@ tinng.protos.strategic.XHRShortPoll = function(server, callback){
 
 	console.log('focus on startup:', t.state.windowFocused)
 
+	this.active = autostart;
 	this.waitTime = t.state.windowFocused ? t.cfg['poll_timer'] : t.cfg['poll_timer_blurred'];
 	this.request = false; // запрос
 	this.timeout = false; // текущий таймаут
@@ -31,9 +32,8 @@ tinng.protos.strategic.XHRShortPoll = function(server, callback){
 tinng.protos.strategic.XHRShortPoll.prototype = {
 
 	// интерфейсные методы
-
 	refresh:function(){
-		this.start();
+		return this.querySend();
 	},
 
 	setMode:function(mode){
@@ -129,28 +129,39 @@ tinng.protos.strategic.XHRShortPoll.prototype = {
 
 
 
-	// главная функция ротора
-	start:function () {
-		if (t.cfg.maintenance == 0) setTimeout(this.wrappedStart, 0);
+	start:function(){
+		if (!this.active) {
+			this.active = true;
+			this.querySend();
+		}
+	},
 
+	stop:function(){
+		if (this.active) {
+			this.active = false;
+			this.queryCancel();
+		}
+	},
+
+	// отправка запроса
+	querySend:function () {
+		if (this.active && t.cfg.maintenance == 0) setTimeout(this.wrappedQuerySend, 0);
 		return true;
 	},
 
 	// todo: этот враппер-таймаут нужен из-за несовершенства обертки XHR, баг вылазит во время создания новой темы -
 	// отправка запроса сразу после получения предыдущего происходит до закрытия соединения и новое соединение не проходит
-	wrappedStart:function(){
+	wrappedQuerySend:function(){
 
-//		t.notifier.send('connection start', this.waitTime);
-
-		//console.log('rotor start: ', action);
+		//t.notifier.send('connection start', this.waitTime);
 
 		// останавливаем предыдущий запрос/таймер если находим
-		if (this.request || this.timeout) this.stop();
+		if (this.request || this.timeout) this.queryCancel();
 
 		this.startIndication(); // показываем, что запрос начался
 
-//		console.log('this.subscriptions:', this.subscriptions);
-		var now = new Date();
+		//console.log('this.subscriptions:', this.subscriptions);
+		// var now = new Date();
 		//if (!t.funcs.objectSize(this.meta)) console.log(now.getTime()+' META EMPTY!');
 
 		try {
@@ -167,20 +178,21 @@ tinng.protos.strategic.XHRShortPoll.prototype = {
 			console.log('error:', e);
 		}
 
-		this.connectionLossTO = setTimeout(this.restart, 10000);
+		// если соединение длится 20 секунд - признаем его оборвавшимся
+		this.connectionLossTO = setTimeout(this.retry, 20000);
 
 		//t.funcs.log('Launching query with timeout ' + this.waitTime);
 	},
 
-	restart:function(){
+	retry:function(){
 		t.ui.showMessage(t.txt.connection_error);
 		console.warn('Registered connection loss. Trying to restart')
-		this.stop();
-		this.start();
+		this.queryCancel();
+		this.querySend();
 	},
 
 	// Останавливает ротор
-	stop:function () {
+	queryCancel:function () {
 
 		this.timeout = t.funcs.advClearTimeout(this.timeout);
 
@@ -196,10 +208,6 @@ tinng.protos.strategic.XHRShortPoll.prototype = {
 		}
 
 		return true;
-	},
-
-	resume:function(){
-		return this.start();
 	},
 
 	// Выполняется при удачном возвращении запроса
@@ -232,19 +240,15 @@ tinng.protos.strategic.XHRShortPoll.prototype = {
 
 			this.stopIndication(); // индикация ожидания откл
 			this.request = false;
-			this.timeout = setTimeout(this.start, this.waitTime);
+
+			// перезапускаем запрос
+			this.timeout = setTimeout(this.querySend, this.waitTime);
 		}
 	},
 
 	// Выполняется при принудительном сбросе запроса
 	onAbort:function () {
 		this.stopIndication();
-	},
-
-	// изменение времени ожидания
-	changeTimeout:function (msec) {
-		this.waitTime = msec;
-		this.start();
 	},
 
 	// как-то отмечаем в интерфейсе что запрос ушел

@@ -30,7 +30,8 @@ tinng.funcs.onWindowLoad = function(){
 
 	t.connection = new t.protos.Connection({
 		server:'backend/update/',
-		callback:t.funcs.parser2
+		callback:t.funcs.parser2,
+		autostart: false
 	});
 
     t.ui = new t.protos.UserInterface(window);
@@ -114,6 +115,8 @@ tinng.funcs.onWindowLoad = function(){
 			t.connection.setMode('active');
 		}
 	});
+
+	t.connection.start();
 }
 $(window).on('load', tinng.funcs.onWindowLoad)
 

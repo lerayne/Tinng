@@ -178,7 +178,7 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 	},
 
 	// прокручивает список до данного сообщения
-	show:function (start) {
+	show:function (begining) {
 
 		//console.log('post show:', this.data.id);
 
@@ -187,7 +187,7 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 
 		var thisLast = this.$body.next().size() == 0;
 
-		if (start == false) {
+		if (begining == false) {
 			var $postsU = t.units.posts;
 			if (!thisLast)
 				$postsU.ui.$scrollArea.scrollTop($postsU.ui.$scrollArea.scrollTop() + parseInt($postsU.ui.$contentWrap.css('padding-bottom')));

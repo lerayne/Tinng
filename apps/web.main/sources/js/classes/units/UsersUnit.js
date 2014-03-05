@@ -171,8 +171,9 @@ tinng.protos.UsersUnit = Class(tinng.protos.Unit, {
 		var params = e.message;
 
 		if (params.author_id && params.dialogue != 0 && this.unread[params.author_id]) {
-			for (var msg_id in this.unread[params.author_id]){
-				if (this.unread[params.author_id][msg_id] <= params.time) {
+
+			for (var msg_id in this.unread[params.author_id]) {
+				if (this.unread[params.author_id][msg_id] <= t.funcs.sql2stamp(params.created)) {
 					delete this.unread[params.author_id][msg_id];
 					this.unreadQuant--;
 				}
@@ -184,7 +185,7 @@ tinng.protos.UsersUnit = Class(tinng.protos.Unit, {
 			this.renderUnreadSum();
 		}
 
-		console.log('UsersUnit caught an event:', params);
+		//console.log('UsersUnit caught an event:', params);
 	},
 
 	createUserElement:function(data){

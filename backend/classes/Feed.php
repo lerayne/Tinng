@@ -121,7 +121,7 @@ class Feed {
 			LEFT JOIN ?_messages mlast
 				ON mlast.topic_id = msg.id
 				AND mlast.deleted <=> NULL
-				AND mlast.id =
+				AND mlast.created =
 					(SELECT MAX(mmax.created) FROM ?_messages mmax WHERE mmax.topic_id = msg.id AND mmax.deleted IS NULL)
 			LEFT JOIN ?_users lma
 				ON lma.id = mlast.author_id
@@ -133,9 +133,6 @@ class Feed {
 				ON my_access.message = msg.id AND my_access.user = ?d
 			LEFT JOIN ?_private_topics elses_access
 				ON elses_access.message = msg.id AND elses_access.user != ?d AND elses_access.level IS NOT NULL
-
-			LEFT JOIN ?_private_topics priv
-				ON priv.message = msg.id
 
 			{$tags_joins}
 

@@ -15,6 +15,7 @@ tinng.protos.Connection = function (config) {
 	// настройки по умолчанию и их перегрузка
 	this.conf = t.funcs.objectConfig(config, this.defaultConf = {
 		server:'',
+		autostart:true,
 		callback:function(){}
 	});
 
@@ -23,7 +24,7 @@ tinng.protos.Connection = function (config) {
 		this.wrappedClass = tinng.protos.strategic.XHRShortPoll;
 		this.wrappedClassName = 'tinng.protos.strategic.XHRShortPoll';
 	}
-	var wrapped = new this.wrappedClass(this.conf.server, this.conf.callback);
+	var wrapped = new this.wrappedClass(this.conf.server, this.conf.callback, this.conf.autostart);
 	//this.engine = wrapped;
 
 	// проверка встроенного класса на совместимость
@@ -34,7 +35,7 @@ tinng.protos.Connection = function (config) {
 		'rescribe',
 		'unscribe',
 		'stop',
-		'resume'
+		'start'
 	]
 
 	for (var j = 0; j < requiredMethods.length; j++) {
@@ -45,16 +46,9 @@ tinng.protos.Connection = function (config) {
 		}
 	}
 
-	// вызывается внутри некоторых активных методов. Не требует обязательной реализации во внутреннем классе
-	// например при шорт-поллинге этот метод сразу отправляет новый запрос после любого изменения
-	this.refresh = function(){
 
-		if (wrapped.refresh) {
-			return wrapped.refresh.apply(wrapped, arguments);
-		} else {
-			return false;
-		}
-	}
+
+
 
 	// осуществляет запись данных на сервер
 	this.write = function(){
@@ -93,7 +87,7 @@ tinng.protos.Connection = function (config) {
 	// ну и вообще подумать о назначении и правилах действия методов
 
 	// удаляет подписку
-	// может принимать объект с полями subscriber и feedName, аргументы в таком порядке, или массив таких объектов
+	// может принимать объект с полями subscriber и feedName,  массив таких объектов, или просто аргументы в таком порядке
 	this.unscribe = function() {
 		this.callScribe(wrapped, 'unscribe', arguments);
 
@@ -102,14 +96,24 @@ tinng.protos.Connection = function (config) {
 		//return this.refresh();
 	}
 
+
+
+
+	// вызывается внутри некоторых активных методов. Не требует обязательной реализации во внутреннем классе
+	// например при шорт-поллинге этот метод сразу отправляет новый запрос после любого изменения
+	this.refresh = function(){
+		if (wrapped.refresh) return wrapped.refresh.apply(wrapped, arguments);
+		else return false;
+	}
+
+	// начинает/возобновляет работу соединения
+	this.start = function(){
+		return wrapped.start.apply(wrapped, arguments)
+	}
+
 	// приостанавливает соединение
 	this.stop = function(){
 		return wrapped.stop.apply(wrapped, arguments)
-	}
-
-	// возобновляет работу соединения
-	this.resume = function(){
-		return wrapped.resume.apply(wrapped, arguments)
 	}
 
 	this.setMode = function() {

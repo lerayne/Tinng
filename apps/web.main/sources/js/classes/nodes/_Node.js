@@ -75,8 +75,8 @@ tinng.protos.Node = Class({
 		else this.cells.$menuBtn.show();
 	},
 
-	show:function (start) {
-		this.$body.scrollIntoView(start);
+	show:function (top) {
+		this.$body.scrollIntoView(top);
 	},
 
 	markRead:function(){
