@@ -26,10 +26,10 @@ CREATE TABLE `tinng_messages` (
   KEY `msg_topic_id` (`topic_id`),
   KEY `msg_deleted` (`deleted`),
   KEY `msg_dialogue` (`dialogue`),
-  KEY `msg_sel_topics` (`topic_id`,`dialogue`,`deleted`),
   KEY `msg_created` (`created`),
   KEY `msg_updated` (`updated`),
-  KEY `msg_moved_from` (`moved_from`)
+  KEY `msg_moved_from` (`moved_from`),
+  KEY `M_msg_sel_topics` (`topic_id`,`dialogue`,`deleted`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
 
 CREATE TABLE `tinng_private_topics` (
