@@ -57,7 +57,7 @@ tinng.protos.TopicNode = Class(tinng.protos.Node, {
 
 		//console.log('data', data);
 
-		this.cells.$postsquant.text(data.postsquant + t.txt.msgs);
+		//this.cells.$postsquant.text(data.postsquant + t.txt.msgs);
 		this.cells.$topicname.html(data.topic_name);
 
 		// последнее сообщение

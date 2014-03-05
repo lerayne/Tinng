@@ -25,20 +25,26 @@ CREATE TABLE `tinng_messages` (
   KEY `msg_author` (`author_id`),
   KEY `msg_topic_id` (`topic_id`),
   KEY `msg_deleted` (`deleted`),
-  KEY `msg_dialogue` (`dialogue`)
+  KEY `msg_dialogue` (`dialogue`),
+  KEY `msg_sel_topics` (`topic_id`,`dialogue`,`deleted`),
+  KEY `msg_created` (`created`),
+  KEY `msg_updated` (`updated`),
+  KEY `msg_moved_from` (`moved_from`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
 
 CREATE TABLE `tinng_private_topics` (
   `link_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `updated` datetime NOT NULL,
+  `updated` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
   `message` int(10) unsigned NOT NULL,
   `user` int(10) unsigned NOT NULL,
   `level` tinyint(1) DEFAULT NULL COMMENT 'здесь NULL критичен, ибо JOIN',
   PRIMARY KEY (`link_id`),
-  KEY `message_user` (`message`,`user`),
   KEY `pvt_message` (`message`),
   KEY `pvt_level` (`level`),
-  KEY `pvt_user` (`user`)
+  KEY `pvt_user` (`user`),
+  KEY `pvt_message_user` (`message`,`user`),
+  KEY `pvt_all` (`message`,`user`,`level`),
+  KEY `pvt_updated` (`updated`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
 
 CREATE TABLE `tinng_tagmap` (
@@ -46,7 +52,8 @@ CREATE TABLE `tinng_tagmap` (
   `message` bigint(20) unsigned NOT NULL,
   `tag` int(10) unsigned NOT NULL,
   PRIMARY KEY (`link_id`),
-  KEY `message` (`message`,`tag`)
+  KEY `tagmap_tag` (`tag`),
+  KEY `tagmap_message_tag` (`message`,`tag`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
 
 CREATE TABLE `tinng_tags` (
@@ -64,8 +71,10 @@ CREATE TABLE `tinng_unread` (
   `topic` bigint(20) unsigned NOT NULL,
   `timestamp` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
   PRIMARY KEY (`id`),
+  UNIQUE KEY `unr_topic_user` (`topic`,`user`),
   KEY `unr_topic` (`topic`),
-  KEY `unr_user` (`user`)
+  KEY `unr_user` (`user`),
+  KEY `unr_date` (`timestamp`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
 
 CREATE TABLE `tinng_users` (
@@ -81,17 +90,17 @@ CREATE TABLE `tinng_users` (
   `status` varchar(16) CHARACTER SET latin1 COLLATE latin1_general_ci NOT NULL DEFAULT 'offline',
   PRIMARY KEY (`id`),
   UNIQUE KEY `usr_email` (`email`),
-  UNIQUE KEY `id` (`id`),
-  KEY `login` (`login`),
-  KEY `login_2` (`login`),
-  KEY `login_3` (`login`)
+  KEY `usr_login` (`login`),
+  KEY `usr_approved` (`approved`),
+  KEY `usr_status` (`status`(10))
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
 
 CREATE TABLE `tinng_user_settings` (
   `user_id` int(10) unsigned NOT NULL,
   `param_key` varchar(16) CHARACTER SET latin1 COLLATE latin1_general_ci NOT NULL,
   `param_value` varchar(128) NOT NULL,
-  KEY `user_id` (`user_id`)
+  KEY `user_id` (`user_id`),
+  KEY `uset_key` (`param_key`(10))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

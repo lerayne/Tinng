@@ -52,9 +52,9 @@ class Feed {
 			FROM ?_messages msg
 			LEFT JOIN ?_messages mupd
 				ON mupd.topic_id = msg.id
-			LEFT JOIN ?_private_topics my_access
+			LEFT JOIN ?_private_topics my_access FORCE INDEX FOR JOIN (pvt_message_user)
 				ON my_access.message = msg.id AND my_access.user = ?d
-			LEFT JOIN ?_private_topics elses_access
+			LEFT JOIN ?_private_topics elses_access FORCE INDEX FOR JOIN (pvt_all)
 				ON elses_access.message = msg.id AND elses_access.user != ?d AND elses_access.level IS NOT NULL
 
 			{$tags_joins}
@@ -69,6 +69,8 @@ class Feed {
 				)
 				{AND (msg.updated > ? }{ OR mupd.updated > ?)}
 				{AND msg.deleted IS NULL AND 1 = ?d}
+
+				/* get_topics есть ли что-нибудь на вывод */
 			"
 			, $user->id // мой доступ
 			, $user->id // чужой доступ
@@ -108,7 +110,7 @@ class Feed {
 				GREATEST(msg.updated, IFNULL(mlast.updated, 0)) as updated,
 				IFNULL(lma.display_name, lma.login) AS lastauthor,
 				lma.id AS lastauthor_id,
-				(SELECT COUNT(mcount.id) FROM ?_messages mcount WHERE IF(mcount.topic_id = 0, mcount.id, mcount.topic_id) = msg.id AND mcount.deleted IS NULL) AS postsquant,
+				/*(SELECT COUNT(mcount.id) FROM ?_messages mcount WHERE IF(mcount.topic_id = 0, mcount.id, mcount.topic_id) = msg.id AND mcount.deleted IS NULL) AS postsquant,*/
 				IF(unr.timestamp < GREATEST(msg.updated, IFNULL(mlast.updated,0)), 1, 0) AS unread,
 				(my_access.level IS NOT NULL OR elses_access.level IS NOT NULL) as private
 			FROM ?_messages msg
@@ -129,9 +131,9 @@ class Feed {
 				ON unr.topic = msg.id
 				AND unr.user = ?d
 			/* доступ */
-			LEFT JOIN ?_private_topics my_access
+			LEFT JOIN ?_private_topics my_access FORCE INDEX FOR JOIN (pvt_message_user)
 				ON my_access.message = msg.id AND my_access.user = ?d
-			LEFT JOIN ?_private_topics elses_access
+			LEFT JOIN ?_private_topics elses_access FORCE INDEX FOR JOIN (pvt_all)
 				ON elses_access.message = msg.id AND elses_access.user != ?d AND elses_access.level IS NOT NULL
 
 			{$tags_joins}
@@ -151,6 +153,8 @@ class Feed {
 				{AND msg.deleted IS NULL AND 1 = ?d}
 
 			GROUP BY msg.id
+
+			/* get_topics сам вывод */
 		";
 
 		$if_updated = $meta['updates_since'] ? $meta['updates_since'] : DBSIMPLE_SKIP;
@@ -188,6 +192,8 @@ class Feed {
 			WHERE ISNULL(msg.deleted) {AND msg.updated > ?}
 			GROUP BY map.link_id
 			ORDER BY tag.id
+
+			/* get_topics выборка тегов */
 		";
 
 		$tags = $db->select($query
@@ -236,15 +242,15 @@ class Feed {
 			'slice_start' => '0' // работает как false, а в SQL-запросах по дате - как 0
 		));
 
+		// извлечение номера темы из диалога
 		if ($posts['dialogue']) {
 			$posts['topic'] = get_dialogue($posts['dialogue']);
 
-			if (!$posts['topic']) {
+			if (!$posts['topic']) return Array(); // сбрасываем, если нет такой темы
 
-				return Array();
-			}
 		}
 
+		// существует ли тема (в том числе не удалена ли и не закрыта ли от читателя)
 		$topic_exists = $db->selectCell('
 			SELECT msg.id
 			FROM ?_messages msg
@@ -255,13 +261,15 @@ class Feed {
 			WHERE id = ?d
 				AND msg.deleted IS NULL
 				AND ((my_access.level IS NULL AND elses_access.level IS NULL) OR my_access.level IS NOT NULL)
+
+				/* get_posts доступна ли тема */
 			'
 			, $user->id // джойн доступа
 			, $user->id // джойн доступа
 			, $posts['topic']
 		);
 
-		// если заглавного сообщения не существует, или оно было удалено
+		// если заглавного сообщения не существует, или оно было удалено, или нет доступа
 		if (!$topic_exists) return Array();
 
 
@@ -270,7 +278,7 @@ class Feed {
 
 			// проверяем, когда пользователь отмечал тему прочитанной
 			$date_read = $db->selectCell(
-				'SELECT timestamp FROM ?_unread WHERE user = ?d AND topic = ?d'
+				'SELECT timestamp FROM ?_unread WHERE user = ?d AND topic = ?d /* get_posts когда юзер читал тему? */'
 				, $user->id
 				, $posts['topic']
 			);
@@ -278,11 +286,13 @@ class Feed {
 			// ой, ни разу! Установить ее прочитанной в этот момент!
 			if (!$date_read) {
 
-				// пробуем сходу отмечать прочитанным только первое сообщение
-				$first_post_date = $db->selectCell('SELECT updated FROM ?_messages WHERE id = ?d ', $posts['topic']);
+				// при первом прочтении отмечать прочитанным только первое сообщение
+				// todo - попробовал заменить updated на created, иначе возможен случай, когда несколько сообщений отметятся
+				// прочитанными из-за того, что первое сообщение было отредактирован опозже
+				$first_post_date = $db->selectCell('SELECT created FROM ?_messages WHERE id = ?d /* get_posts достаем дату первого сообщения */', $posts['topic']);
 
 				$values = Array('user' => $user->id, 'topic' => $posts['topic'], 'timestamp' => $first_post_date);
-				$db->query('INSERT INTO ?_unread (?#) VALUES (?a)', array_keys($values), array_values($values));
+				$db->query('INSERT INTO ?_unread (?#) VALUES (?a) /* get_posts отмечаем первое сообщение прочитанным */', array_keys($values), array_values($values));
 
 				$posts['show_post'] = $posts['topic']; // установить указатель на первое сообщение
 				$posts['limit'] = 0; // загрузить все сообщения
@@ -293,10 +303,10 @@ class Feed {
 				// определить первое непрочитанное сообщение (не учитывать мои и отредактированные мной)
 				$first_unread = $db->selectCell('
 					SELECT id FROM ?_messages
-					WHERE updated > ? AND topic_id = ?d AND deleted IS NULL
-						AND IFNULL(modifier, author_id) != ?d
+					WHERE updated > ? AND topic_id = ?d AND deleted IS NULL AND IFNULL(modifier, author_id) != ?d
 					ORDER BY created ASC
 					LIMIT 1
+					/* get_posts определяем первое непрочитанное сообщение */
 					'
 					, $date_read
 					, $posts['topic']
@@ -330,9 +340,11 @@ class Feed {
 			$postcount = $db->selectCell('
 				SELECT COUNT(id)
 				FROM ?_messages
-				WHERE IF(topic_id = 0, id, topic_id) = ?d
+				WHERE (topic_id = ?d OR id = ?d)
 				AND deleted IS NULL
+				/* get_posts считаем кол-во сообщений в теме */
 				'
+				, $posts['topic']
 				, $posts['topic']
 			);
 
@@ -366,6 +378,7 @@ class Feed {
 				WHERE IF(topic_id=0, id, topic_id) = ?d AND deleted IS NULL
 				ORDER BY created DESC
 				LIMIT 1 OFFSET ?d
+				/* get_posts определяем начало слайса */
 				'
 				, $prev_sstart, $prev_sstart
 				, $posts['topic']
@@ -381,6 +394,7 @@ class Feed {
 					SELECT IF(created < ?, created, ?)
 					FROM ?_messages
 					WHERE id = ?d AND deleted IS NULL
+					/* get_posts не выходит ли переданный по сылке пост за пределы слайса */
 					'
 					, $slice_start, $slice_start
 					, $posts['show_post']
@@ -393,11 +407,11 @@ class Feed {
 			if ($meta['slice_start'] && $slice_start != $meta['slice_start']) $slice_end = $meta['slice_start'];
 		}
 
-		////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+		////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 		// смотрим, есть ли сообщение с датой позже чем $meta['updates_since'] и $slice_start
 		// issue - если первая выборка даты не выдает удаленных, возможна ситуация когда последний удаленный пост приходит
-		// с ближайшим апдейтом. todo - проверить все ли ок.
+		// с ближайшим апдейтом. с этой целью проверка на неудаленность была отключена. todo - проверить все ли ок.
 		$new_updates_since = $db->selectCell('
 			SELECT MAX(msg.updated)
 			FROM ?_messages msg
@@ -405,6 +419,8 @@ class Feed {
 				/*{AND msg.deleted IS NULL AND 1 = ?d}*/
 				{AND msg.created >= ?} /* $slice_start */
 				{AND msg.updated > ?} /* $meta["updates_since"] */
+
+				/* get_posts смотрим, есть ли что новое на выход */
 			'
 			, $posts['topic']
 			, ($meta['updates_since'] ? $posts['topic'] : DBSIMPLE_SKIP)
@@ -448,17 +464,23 @@ class Feed {
 				avatar.param_value as avatar
 			FROM ?_messages msg
 
-			JOIN ?_users usr ON msg.author_id = usr.id
-			LEFT JOIN ?_messages tpc ON msg.topic_id = tpc.id OR msg.id = tpc.id
-			LEFT JOIN ?_unread unr ON unr.topic = IF(msg.topic_id = 0, msg.id, msg.topic_id) AND unr.user = ?d
-			LEFT JOIN ?_users moder ON msg.modifier = moder.id
-			LEFT JOIN ?_user_settings avatar ON msg.author_id = avatar.user_id AND avatar.param_key = "avatar"
+			JOIN ?_users usr
+				ON msg.author_id = usr.id
+			LEFT JOIN ?_messages tpc
+				ON tpc.id = IF(msg.topic_id = 0, msg.id, msg.topic_id)
+			LEFT JOIN ?_unread unr
+				ON unr.topic = IF(msg.topic_id = 0, msg.id, msg.topic_id) AND unr.user = ?d
+			LEFT JOIN ?_users moder
+				ON msg.modifier = moder.id
+			LEFT JOIN ?_user_settings avatar
+				ON msg.author_id = avatar.user_id AND avatar.param_key = "avatar"
+
 			WHERE
 				( (msg.id = ?d OR msg.topic_id = ?d) {OR (msg.topic_id != ?d }{AND msg.moved_from = ?d)} )
 				{AND msg.deleted IS NULL AND 1 = ?d}
 		';
 
-		$query_end = '/*sql*/ GROUP BY msg.id ORDER BY msg.created ASC ';
+		$query_end = '/*sql*/ GROUP BY msg.id ORDER BY msg.created ASC /* get_posts загружаем посты */';
 
 		// если режим догрузки
 		if ($slice_end) {
@@ -530,6 +552,8 @@ class Feed {
 				FROM ?_tagmap map
 				LEFT JOIN ?_tags tag ON map.tag = tag.id
 				WHERE map.message = ?d
+
+				/* get_posts загружаем теги первого поста */
 				'
 					, $posts['topic']
 				);
