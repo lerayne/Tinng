@@ -4,7 +4,7 @@ $env = array();
 $env['appdir'] = '';
 $env['rootdir'] = '../../';
 
-error_reporting(E_ALL);
+//error_reporting(E_ALL);
 
 require_once $env['appdir'].'config.php';
 require_once $env['appdir'].'sources/php/functions.common.php';

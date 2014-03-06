@@ -53,7 +53,7 @@ $cfg['online_threshold'] = 300;
 
 // адрес базы данных
 //$safecfg['db'] = 'mysql://tinng_main:tinng_demo@localhost/tinng';
-$safecfg['db'] = 'mysql://lopar740_therron:maedanaena@localhost/lopar740_therron';
+$safecfg['db'] = 'mysql://roninpho_tinng:eTgwbRu8Tw2o@localhost/roninpho_tinng1';
 //$safecfg['db'] = 'mysql://root:toor@localhost/tinng_test';
 
 // префикс базы даных

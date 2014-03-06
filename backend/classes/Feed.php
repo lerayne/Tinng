@@ -877,10 +877,10 @@ class Feed {
 				tag.id,
 				tag.name,
 				tag.type,
-				IF(map.message IS NOT NULL AND msg.deleted IS NULL, true, false) AS used
+				IF(map.message IS NOT NULL, true, false) AS used
 			FROM ?_tags tag
 			LEFT JOIN ?_tagmap map ON map.tag = tag.id
-			LEFT JOIN ?_messages msg ON map.message = msg.id
+			LEFT JOIN ?_messages msg ON map.message = msg.id AND msg.deleted IS NULL
 			WHERE tag.updated > ?
 			GROUP BY tag.id
 			",$meta['updated']
