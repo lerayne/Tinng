@@ -83,7 +83,7 @@ switch ($suggest):
 
 		foreach ($subjects as $n => $tag){
 			$subjects[$n] = strtolower($tag);
-			$subjects[] = fix_wrong_case($tag);
+			//$subjects[] = fix_wrong_case($tag);
 		}
 
 		$result = $db->select(
