@@ -163,11 +163,6 @@ tinng.protos.ui.SearchBox.prototype = {
 		} else if (this.conf.tagsOnly) {
 
 			if (this.$input.val().length) this.tagManualInput(this.$input.val());
-
-			//this.addTagToSelection(this.$input.val())
-
-		} else {
-
 		}
 	},
 
@@ -182,6 +177,7 @@ tinng.protos.ui.SearchBox.prototype = {
 	suggest:function(){
 		var that = this;
 
+		this.timeout = false;
 		if (this.request) this.clear();
 
 		var query = this.$input.val();
@@ -240,7 +236,8 @@ tinng.protos.ui.SearchBox.prototype = {
 		if (data.length > 0) {
 
 			data.forEach(this.createSuggestedItem);
-			this.$suggestBox.show();
+
+			if (this.$suggestBox.children().size()) this.$suggestBox.show();
 
 			// иначе убираем бокс
 		} else {
@@ -264,7 +261,6 @@ tinng.protos.ui.SearchBox.prototype = {
 				}
 			});
 
-			suggestItem.append(tag.$body);
 			suggestItem.append(tag.$body);
 		}
 	},
@@ -300,13 +296,11 @@ tinng.protos.ui.SearchBox.prototype = {
 	addTagToSelection:function(tagName, uiOnly) {
 		var that = this;
 
-		if (this.tagSelection.indexOf(tagName) == -1) {
+		var prefix = this.prefix[this.conf.tagType];
 
-			var prefix = this.prefix[this.conf.tagType];
+		if (this.tagSelection.indexOf(tagName) == -1 && this.tagSelection.indexOf(prefix+tagName) == -1) {
 
 			if (tagName.charAt(0) != prefix) tagName = prefix + tagName;
-
-
 
 			this.tagSelection.push(tagName);
 
@@ -343,6 +337,8 @@ tinng.protos.ui.SearchBox.prototype = {
 
 			//передаем выбранные теги в коллбек
 			if (typeof uiOnly == 'undefined') this.conf.onConfirm(this.tagSelection)
+		} else {
+			alert(t.txt.error_tag_exists)
 		}
 	},
 
@@ -364,22 +360,25 @@ tinng.protos.ui.SearchBox.prototype = {
 
 	tagManualInput:function(tagName){
 
-		var passed = true;
+		var prefix = this.prefix[this.conf.tagType];
 
 		// пропускаем только теги длиннее 2 символов
-		if (tagName.replace(this.prefix[this.conf.tagType], '').length < 3) {
-			passed = false;
+		if (tagName.replace(prefix, '').length < 3) {
 			alert('tag too short!');
+			return false;
 		}
+
+		// ничего не делаем, если еще идет ожидание саджеста
+		if (this.timeout || this.request) return false;
 
 		// предлагаем юзеру не создавать похожих тегов
-		if (passed && this.$suggestBox.is(':visible')) {
-			if (!confirm(t.txt.new_tag_confirm)) passed = false;
+		if (this.$suggestBox.is(':visible')) {
+
+			var completeTagName = (tagName.charAt(0) == prefix) ? tagName : prefix+tagName;
+
+			if (!this.$suggestBox.find('[data-tag="'+ completeTagName +'"]').size() && !confirm(t.txt.new_tag_confirm)) return false;
 		}
 
-		if (passed) {
-			this.addTagToSelection( tagName );
-		}
-		//todo - здесь будут умные подсказки по созданию новых тегов
+		this.addTagToSelection( tagName );
 	}
 }
