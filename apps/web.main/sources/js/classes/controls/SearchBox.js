@@ -361,9 +361,10 @@ tinng.protos.ui.SearchBox.prototype = {
 	tagManualInput:function(tagName){
 
 		var prefix = this.prefix[this.conf.tagType];
+		var completeTagName = (tagName.charAt(0) == prefix) ? tagName : prefix+tagName;
 
 		// пропускаем только теги длиннее 2 символов
-		if (tagName.replace(prefix, '').length < 3) {
+		if (completeTagName.length < 4) {
 			alert('tag too short!');
 			return false;
 		}
@@ -374,9 +375,11 @@ tinng.protos.ui.SearchBox.prototype = {
 		// предлагаем юзеру не создавать похожих тегов
 		if (this.$suggestBox.is(':visible')) {
 
-			var completeTagName = (tagName.charAt(0) == prefix) ? tagName : prefix+tagName;
-
 			if (!this.$suggestBox.find('[data-tag="'+ completeTagName +'"]').size() && !confirm(t.txt.new_tag_confirm)) return false;
+		}
+
+		if (this.$smartArea.find('[data-tag*="'+ tagName +'"]').size() || this.$smartArea.find('[data-tag^="'+ completeTagName +'"]').size()) {
+			if (!confirm(t.txt.new_tag_confirm)) return false;
 		}
 
 		this.addTagToSelection( tagName );
