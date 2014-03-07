@@ -116,6 +116,8 @@ $txt['reg_reg'] = 'Зарегистрироваться';
 $txt['btn_newtopic'] = 'Новая тема';
 $txt['btn_markread'] = 'Отметить тему прочитанной';
 $txt['filter_by_tags'] = 'Искать по тегам';
+$txt['add_tag'] = 'Добавить';
+$txt['new_tag_confirm'] = 'Вы точно хтите создать новый тег, не смотря на наличие похожих?';
 
 $txt['show_more'] = 'Предыдущие '.$cfg['posts_per_page'];
 $txt['show_all'] = 'Показать все';

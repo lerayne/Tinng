@@ -30,5 +30,7 @@ switch ($suggest):
 
 endswitch;
 
+sleep(2);
+
 $GLOBALS['_RESULT'] = $result;
 ?>

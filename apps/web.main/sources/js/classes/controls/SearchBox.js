@@ -27,8 +27,6 @@ tinng.protos.ui.SearchBox = function(config){
 		onConfirm:function(){}
 	});
 
-	if (this.conf.tagsOnly) this.conf.searchMode = 'OR';
-
 	this.prefix = {
 		'user':'#',
 		'personal':'@',
@@ -42,7 +40,8 @@ tinng.protos.ui.SearchBox = function(config){
 		119,120,121,122,123,144,145];
 
 	// символы, которые не могут быть частью тега в режиме ввода только тегов
-	this.nonTagSymbols = [',', ';', ' ', '?', '=', '+', '"', "'"];
+	//this.nonTagSymbols = [',', ';', ' ', '?', '=', '+', '"', "'"];
+	this.nonTagSymbols =   [44,  59,  32,  63,  61,  43,  34,  39];
 
 	this.tagSelection = [];
 	this.tagList = {};
@@ -52,15 +51,30 @@ tinng.protos.ui.SearchBox = function(config){
 	if (this.conf.cssClass) this.$body.addClass(this.conf.cssClass);
 	if (this.conf.css) this.$body.css(this.conf.css);
 
+	this.addBtn = new t.protos.ui.Button({
+		text:t.txt.add_tag,
+		cssClass:'add submit'
+	});
+	this.addBtn.$body.css('display', 'none');
+
 	this.$smartArea = $('<div class="smart-area" />').appendTo(this.$body);
 	this.$input = $('<input type="text" placeholder="'+ this.conf.placeholder +'">').appendTo(this.$body);
+	this.addBtn.$body.appendTo(this.$body);
 	this.$throbber = $('<div class="throbber updating" />').appendTo(this.$body);
 	this.$suggestBox = $('<div class="suggest-box" />').appendTo(this.$body);
+
+	// если это форма редактирования тегов - добавляем по правилу "ИЛИ"
+	if (this.conf.tagsOnly) {
+		this.conf.searchMode = 'OR';
+		this.addBtn.on('click', this.onEnter);
+		this.addBtn.$body.css('display', 'inline-block');
+	}
 
 
 	/* привязка событий *//////////////////
 	this.$input.on('keyup', this.onType);
-	this.$input.on('blur', this.onEnter)
+	this.$input.on('keypress', this.onChar);
+	//this.$input.on('blur', this.onEnter)
 
 	// по этому событию по факту отправляется предыдущее значение, благодаря чему тег не удаляется с удалением последней буквы
 	this.$input.on('keydown', this.tryBS);
@@ -87,14 +101,7 @@ tinng.protos.ui.SearchBox = function(config){
 tinng.protos.ui.SearchBox.prototype = {
 	onType:function(e){
 
-		var curVal = this.$input.val();
-		var lastChar = curVal ? curVal[curVal.length-1] : null;
-
-		if (this.conf.tagsOnly) {
-			if (this.nonTagSymbols.indexOf(lastChar) != -1) {
-				this.$input.val(curVal.slice(0, curVal.length-1))
-			}
-		}
+		//console.log(e.originalEvent.keyIdentifier, e.keyCode, e.charCode, e)
 
 		// если нажата кнопка, вводящая что-либо, а не управляющая (допускаются также backspace и delete) -
 		if (this.nonTextButtons.indexOf(e.keyCode) == -1) {
@@ -113,7 +120,7 @@ tinng.protos.ui.SearchBox.prototype = {
 			this.timeout = setTimeout(this.suggest, t.cfg.xhr_suggest);
 		}
 
-		// если нажата одна из вертикальных стрелок, или enter
+		// если нажата одна из вертикальных стрелок
 		if ([38,40].indexOf(e.keyCode) != -1) {
 
 			//Если виден результат саджеста
@@ -140,6 +147,10 @@ tinng.protos.ui.SearchBox.prototype = {
 
 		// что делаем по enter-у
 		if (e.keyCode == 13) this.onEnter();
+	},
+
+	onChar:function(e){
+		if (this.nonTagSymbols.indexOf(e.charCode) != -1) return false;
 	},
 
 	onEnter:function(){
@@ -171,10 +182,13 @@ tinng.protos.ui.SearchBox.prototype = {
 	suggest:function(){
 		var that = this;
 
+		if (this.request) this.clear();
+
 		var query = this.$input.val();
 
 		if (query.length > 1) {
-//			console.log('here goes the query: ', query);
+
+			this.addBtn.block();
 
 			// todo - возможно, создать обертку вокруг реквеста, которая будет управлять отображением троббера и лагом сама
 			// если запрос не возвращается дольше заданного времени (xhr_lag) - показываем троббер
@@ -190,6 +204,8 @@ tinng.protos.ui.SearchBox.prototype = {
 				subject: query
 			});
 		} else {
+			this.clear();
+			this.$suggestBox.children().remove();
 			this.hideSuggested();
 		}
 	},
@@ -200,12 +216,11 @@ tinng.protos.ui.SearchBox.prototype = {
 
 			// success
 			case 4:
-//				console.log('query returned:', this.request.responseJS);
 				this.parseSuggested(this.request.responseJS)
+				this.clear();
+
 				break;
 		}
-
-		this.clearLag();
 	},
 
 	parseSuggested:function(data){
@@ -255,11 +270,25 @@ tinng.protos.ui.SearchBox.prototype = {
 	},
 
 	onAbort:function(){
-		this.clearLag();
+		this.clear();
 	},
 
-	clearLag:function(){
+	clear:function(){
+
+		if (this.request && this.request.status != 200) {
+			this.request.onreadystatechange = false;
+			this.request.abort();
+		}
+
+		this.request = false;
+
 		if (this.XHRLag) clearTimeout(this.XHRLag);
+		this.XHRLag = false;
+
+		if (this.timeout) clearTimeout(this.timeout);
+		this.timeout = false;
+
+		this.addBtn.unblock();
 		this.$throbber.css({visibility:'hidden'});
 	},
 
@@ -335,10 +364,21 @@ tinng.protos.ui.SearchBox.prototype = {
 
 	tagManualInput:function(tagName){
 
-		if (tagName.replace(this.prefix[this.conf.tagType], '').length >= 3) {
-			this.addTagToSelection( tagName );
-		} else {
+		var passed = true;
+
+		// пропускаем только теги длиннее 2 символов
+		if (tagName.replace(this.prefix[this.conf.tagType], '').length < 3) {
+			passed = false;
 			alert('tag too short!');
+		}
+
+		// предлагаем юзеру не создавать похожих тегов
+		if (passed && this.$suggestBox.is(':visible')) {
+			if (!confirm(t.txt.new_tag_confirm)) passed = false;
+		}
+
+		if (passed) {
+			this.addTagToSelection( tagName );
 		}
 		//todo - здесь будут умные подсказки по созданию новых тегов
 	}

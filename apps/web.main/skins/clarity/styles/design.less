@@ -78,7 +78,7 @@ body {
 
 #tinng-main {
 	position:relative;
-//	overflow: hidden;
+	overflow: hidden;
 }
 
 #curtain {
@@ -215,7 +215,6 @@ body {
 
 #tinng-main-content {
 	position: relative;
-	overflow: hidden;
 }
 
 @sideBarWidth: 250px;
@@ -890,6 +889,15 @@ body {
 				float:none;
 			}
 		}
+
+		.button.add {
+			padding: 3px 6px;
+			margin: 6px 0 0 3px;
+		}
+
+		.throbber {
+			margin-top:6px;
+		}
 	}
 
 	.data_cell {
@@ -907,6 +915,7 @@ body {
 
 	.tags-edit {
 		display: none;
+		width: 65%;
 	}
 
 	.menuBtn {
@@ -1230,6 +1239,10 @@ body {
 		.smart-area .tag {
 			margin-right: 7px;
 			padding: 4px 7px;
+		}
+
+		.button.add {
+			padding: 6px;
 		}
 	}
 }
@@ -1616,6 +1629,10 @@ input[type="button"] {
 			margin:0 0 0 2px;
 			padding: 1px 3px;
 		}
+	}
+
+	.button.add {
+		vertical-align: middle;
 	}
 
 	.suggest-box {
