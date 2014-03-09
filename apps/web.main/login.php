@@ -177,7 +177,7 @@ switch ($_REQUEST['action']):
 
 		endif;
 
-		echo $message;
+		//echo $message;
 
 		setcookie('message', $message, 0, '/');
 

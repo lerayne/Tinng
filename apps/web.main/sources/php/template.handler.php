@@ -3,7 +3,8 @@
 $message = $_COOKIE['message'];
 
 function template_title() {
-	echo 'Tinng alpha';
+	global $cfg;
+	echo $cfg['instance_name'];
 }
 
 function path($file) {
