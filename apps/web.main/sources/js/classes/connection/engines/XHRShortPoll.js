@@ -164,7 +164,7 @@ tinng.protos.strategic.XHRShortPoll.prototype = {
 		// var now = new Date();
 		//if (!t.funcs.objectSize(this.meta)) console.log(now.getTime()+' META EMPTY!');
 
-		try {
+		/*try {
 			// Отправляем запрос
 			this.request = new JsHttpRequest();
 			this.request.onreadystatechange = this.onResponse;
@@ -176,7 +176,27 @@ tinng.protos.strategic.XHRShortPoll.prototype = {
 			});
 		} catch (e) {
 			console.log('error:', e);
-		}
+		}*/
+
+		this.request = $.ajax({
+			type:'post',
+			url: this.backendURL,
+			cache: false,
+			crossDomain: true,
+			success: this.onResponse,
+			dataType:'json',
+			data:{
+				user: {
+					login: t.funcs.getCookie('login'),
+					pass: t.funcs.getCookie('pass')
+				},
+				subscribe: this.subscriptions,
+				write: this.actions,
+				meta:  this.meta
+			}
+		});
+
+
 
 		// если соединение длится 20 секунд - признаем его оборвавшимся
 		this.connectionLossTO = setTimeout(this.retry, 20000);
@@ -200,7 +220,7 @@ tinng.protos.strategic.XHRShortPoll.prototype = {
 
 		if (this.request) {
 			// переопределяем, иначе rotor воспринимает экстренную остановку как полноценное завершение запроса
-			this.request.onreadystatechange = this.onAbort;
+			this.request.done(this.onAbort);
 			this.request.abort();
 			this.request = false;
 
@@ -211,39 +231,36 @@ tinng.protos.strategic.XHRShortPoll.prototype = {
 	},
 
 	// Выполняется при удачном возвращении запроса
-	onResponse:function () {
+	onResponse:function (response) {
 
-		if (this.request.readyState == 4) {
+		clearTimeout(this.connectionLossTO);
 
-			clearTimeout(this.connectionLossTO);
-
-			if (this.request.responseText) {
-				console.info('PHP backtrace:\n==============\n' + this.request.responseText)
-			}
-
-			// todo - иногда от сервера приходит meta в виде массива, а иногда - в виде объекта. разобраться
-			if (this.request.responseJS.meta instanceof Array) {
-
-				this.meta = {};
-				for (var i = 0; i < this.request.responseJS.meta.length; i++) {
-					var metaItem = this.request.responseJS.meta[i];
-					this.meta[i] = metaItem;
-				}
-			} else {
-				this.meta = this.request.responseJS.meta;
-			}
-
-			// разбираем пришедший пакет и выполняем обновления
-			this.parseCallback(this.request.responseJS, this.actions);
-
-			this.actions = {};
-
-			this.stopIndication(); // индикация ожидания откл
-			this.request = false;
-
-			// перезапускаем запрос
-			this.timeout = setTimeout(this.querySend, this.waitTime);
+		if (response.debug) {
+			console.info('PHP backtrace:\n==============\n', response.debug)
 		}
+
+		// todo - иногда от сервера приходит meta в виде массива, а иногда - в виде объекта. разобраться
+		if (response.data.meta instanceof Array) {
+
+			this.meta = {};
+			for (var i = 0; i < response.data.meta.length; i++) {
+				var metaItem = response.data.meta[i];
+				this.meta[i] = metaItem;
+			}
+		} else {
+			this.meta = response.data.meta;
+		}
+
+		// разбираем пришедший пакет и выполняем обновления
+		this.parseCallback(response.data, this.actions);
+
+		this.actions = {};
+
+		this.stopIndication(); // индикация ожидания откл
+		this.request = false;
+
+		// перезапускаем запрос
+		this.timeout = setTimeout(this.querySend, this.waitTime);
 	},
 
 	// Выполняется при принудительном сбросе запроса

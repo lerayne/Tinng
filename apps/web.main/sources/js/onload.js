@@ -29,7 +29,7 @@ tinng.funcs.onWindowLoad = function(){
 	}
 
 	t.connection = new t.protos.Connection({
-		server:'backend/update/',
+		server: t.cfg.server_url+'/update/',
 		callback:t.funcs.parser2,
 		autostart: false
 	});
