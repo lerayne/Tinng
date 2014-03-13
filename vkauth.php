@@ -9,7 +9,7 @@
 
 $env = array();
 $env['appdir'] = '';
-$env['rootdir'] = '../../';
+$env['rootdir'] = './';
 
 require_once $env['appdir'].'config.php';
 require_once $env['appdir'].'sources/php/functions.common.php';

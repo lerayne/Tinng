@@ -2,7 +2,7 @@
 
 $env = array();
 $env['appdir'] = '';
-$env['rootdir'] = '../../';
+$env['rootdir'] = './';
 
 //error_reporting(E_ALL);
 
