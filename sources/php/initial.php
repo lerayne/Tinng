@@ -8,8 +8,8 @@ require_once $env['appdir'].'sources/php/classes/Environment.php';
 require_once $env['appdir'].'sources/php/classes/User.php';
 
 require_once $env['appdir'].'sources/php/functions.common.php'; // типа фреймворк)
-require_once $env['rootdir'].'libraries/DbSimple/Generic.php'; // либа для работы с базой
-require_once $env['rootdir'].'libraries/lessc.inc.php'; // либа для CSS
+require_once $env['rootdir'].'lib/DbSimple/Generic.php'; // либа для работы с базой
+require_once $env['rootdir'].'lib/lessc.inc.php'; // либа для CSS
 
 
 $e = new Environment();

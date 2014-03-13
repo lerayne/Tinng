@@ -199,7 +199,7 @@ tinng.protos.strategic.XHRShortPoll.prototype = {
 
 		return $.ajax({
 			type:'post',
-			url: this.serverURL+'/'+channel+'/',
+			url: this.serverURL+'/_'+channel+'/',
 			cache: false,
 			crossDomain: true,
 			success: function(response){

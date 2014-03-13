@@ -138,8 +138,8 @@ $debug = false;
 $maps = Array();
 
 $maps[] = get_script('./web.main/sources/js', 'jqextend.js', $debug);
-$maps[] = get_script('..', 'libraries/JsHttpRequest.js', $debug);
-$maps[] = get_script('..', 'libraries/jquery-ui-1.10.4.custom.min.js', $debug);
+//$maps[] = get_script('..', 'lib/JsHttpRequest.js', $debug);
+$maps[] = get_script('..', 'lib/jquery-ui-1.10.4.custom.min.js', $debug);
 $maps[] = get_script('./web.main/sources/js', 'tinng_init.js', $debug);
 $maps[] = get_script('./web.main/sources/js', 'classes/Funcs.js', $debug);
 

@@ -14,7 +14,7 @@ $env['rootdir'] = '../../';
 require_once $env['appdir'].'config.php';
 require_once $env['appdir'].'sources/php/functions.common.php';
 require_once $env['appdir'].'languages/ru.php';
-require_once $env['rootdir'].'libraries/DbSimple/Generic.php';
+require_once $env['rootdir'].'lib/DbSimple/Generic.php';
 
 $db = DbSimple_Generic::connect($safecfg['db']);
 $db->query('SET NAMES "utf8"');
