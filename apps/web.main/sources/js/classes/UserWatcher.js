@@ -52,7 +52,7 @@ t.protos.UserWatcher.prototype = {
 		t.connection.softRescribe(this, 'online_users', {
 			feed:'users',
 			fielter:'online',
-			fields:['id'],
+			fields:'id',
 			ids:this.watchesUnique.join(',')
 		})
 	},

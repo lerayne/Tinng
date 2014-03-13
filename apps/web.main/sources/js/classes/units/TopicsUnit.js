@@ -170,19 +170,17 @@ tinng.protos.TopicsUnit = Class(tinng.protos.Unit, {
 
 		if (t.address.get('search')) {
 
-			JsHttpRequest.query(
-				'./backend/service.php',
-				{
-					action:'get_tags',
-					tags:t.address.get('search')
-				}, function(result, errors){
+			t.connection.query('service', function(result){
 
-					searchBoxParams.tags = result.map(function(val){return val.name});
+				searchBoxParams.tags = result.map(function(val){return val.name});
 
-					that.searchBox = new t.protos.ui.SearchBox(searchBoxParams);
-					that.header.$body.prepend(that.searchBox.$body);
-				}
-			);
+				that.searchBox = new t.protos.ui.SearchBox(searchBoxParams);
+				that.header.$body.prepend(that.searchBox.$body);
+
+			}, {
+				action:'get_tags',
+				tags:t.address.get('search')
+			});
 
 		} else {
 			this.searchBox = new t.protos.ui.SearchBox(searchBoxParams);

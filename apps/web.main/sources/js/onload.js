@@ -29,7 +29,7 @@ tinng.funcs.onWindowLoad = function(){
 	}
 
 	t.connection = new t.protos.Connection({
-		server: t.cfg.server_url+'/update/',
+		server: t.cfg.server_url,
 		callback:t.funcs.parser2,
 		autostart: false
 	});
@@ -126,10 +126,9 @@ $(window).on('load', tinng.funcs.onWindowLoad)
 		t.notifier.send('unloading');
 
 		// AJAX: // закрываем сессию на сервере
-		JsHttpRequest.query( 'backend/service.php', {
 
-			action: 'close_session'
-
-		}, function(){}, false );
+		t.connection.query('service', null, {
+ 			action: 'close_session'
+ 		})
 	}
 })*/

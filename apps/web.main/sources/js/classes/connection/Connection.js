@@ -57,6 +57,11 @@ tinng.protos.Connection = function (config) {
 		return this.refresh();
 	}
 
+	// делает простой запрос на сервер
+	this.query = function(){
+		return wrapped.query.apply(wrapped, arguments);
+	}
+
 	// подписывает объект на новый фид, или редактирует значение существующего, сбрасывая внутренее состояние подписки (meta)
 	// может принимать объект с полями subscriber, feedName и  feed, массив таких объектов, или просто аргументы в таком порядке
 	this.subscribe = function(){

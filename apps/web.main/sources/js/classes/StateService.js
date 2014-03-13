@@ -40,7 +40,7 @@ t.protos.StateService.prototype = {
 
 		this.stateData.action = 'batch';
 
-		JsHttpRequest.query('backend/service.php', this.stateData, this.parseResponse)
+		t.connection.query('service', this.parseResponse, this.stateData)
 
 		clearTimeout(this.timer);
 		this.stateData = {};

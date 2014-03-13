@@ -61,14 +61,7 @@ tinng.protos.UsersUnit = Class(tinng.protos.Unit, {
 			feedName:'userlist',
 			feed: {
 				feed:'users',
-				fields:[
-					'id',
-					'login',
-					'display_name',
-					'last_read',
-					'last_read_ts',
-					'avatar'
-				]
+				fields:'id, login, display_name, last_read, last_read_ts, avatar'
 			}
 		});
 

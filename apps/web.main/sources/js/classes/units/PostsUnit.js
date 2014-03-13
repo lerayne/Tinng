@@ -195,26 +195,19 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 
 		this.header.allowedUsersContainer.addClass('private');
 
-		JsHttpRequest.query('backend/service.php',
-			{
+		t.connection.query('service',
+			function(userData){
+				that.renderPrivateUser(userData);
+
+				// если меня еще нет
+				if (!that.state.allowedUsers[t.user.id]){
+					that.renderPrivateUser(t.user.data)
+				}
+			},{
 				action: 'add_to_private',
 				user_id: userId,
 				topic_id: this.subscriptions.topic_data.id
-			},
-			function(userData, error){
-
-				if (error) console.error(error)
-				if (userData) {
-
-					that.renderPrivateUser(userData);
-
-					// если меня еще нет
-					if (!that.state.allowedUsers[t.user.id]){
-						that.renderPrivateUser(t.user.data)
-					}
-				}
-			},
-			true // no cache
+			}
 		);
 	},
 
@@ -226,24 +219,19 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 	$_removeUserFromPrivate:function(userId){
 		var that = this;
 
-		JsHttpRequest.query('backend/service.php',
-			{
+		t.connection.query('service',
+			function(userId) {
+				that.unrenderPrivateUser(userId);
+
+				// если ты удалил себя а в теме еще кто-то есть - закрыть у себя тему
+				if (userId == t.user.id && t.funcs.objectSize(that.state.allowedUsers) > 0) {
+					this.unscribe();
+				}
+			}, {
 				action: 'remove_from_private',
 				user_id: userId,
 				topic_id: this.subscriptions.topic_data.id
-			},
-			function(userId, error){
-				if (error) console.error(error)
-				if (userId) {
-					that.unrenderPrivateUser(userId);
-
-					// если ты удалил себя а в теме еще кто-то есть - закрыть у себя тему
-					if (userId == t.user.id && t.funcs.objectSize(that.state.allowedUsers) > 0) {
-						this.unscribe();
-					}
-				}
-			},
-			true // no cache
+			}
 		);
 	},
 
@@ -355,15 +343,15 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 	},
 
 	topicRename: function () {
-		JsHttpRequest.query('backend/service.php', { // аргументы:
+		t.connection.query('service', this.enterRenameMode, {
 			action: 'check_n_lock',
 			id: t.sync.curTopic
-		}, this.enterRenameMode, true);
+		});
 
 		return false;
 	},
 
-	enterRenameMode: function (result, errors) {
+	enterRenameMode: function (result) {
 
 		if (result.locked !== null) {
 
@@ -431,7 +419,7 @@ tinng.protos.PostsUnit = Class(tinng.protos.Unit, {
 	},
 
 	unlock: function () {
-		JsHttpRequest.query('backend/service.php', { // аргументы:
+		t.connection.query('service', { // аргументы:
 			action: 'unlock_message',
 			id: t.sync.curTopic
 		}, function () {

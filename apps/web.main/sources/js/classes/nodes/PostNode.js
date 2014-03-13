@@ -199,16 +199,16 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 	// начинает редактирование с проверки блокировки
 	edit:function () {
 
-		JsHttpRequest.query('backend/service.php', { // аргументы:
+		t.connection.query('service', this.enterEditMode, {
 			action:'check_n_lock',
 			id:this.id
-		}, this.enterEditMode, true);
+		});
 
 		return false; // preventDefault + stopPropagation
 	},
 
 	// демонстрирует блокировку, или входит в режим редактирования
-	enterEditMode:function (result, errors) {
+	enterEditMode:function (result) {
 		var that = this;
 
 		if (result.locked !== null) {
@@ -331,11 +331,10 @@ tinng.protos.PostNode = Class(tinng.protos.Node, {
 
 	// принудительная запрос разблокировки. Без подтверждения
 	unlock:function () {
-		JsHttpRequest.query('backend/service.php', { // аргументы:
+		t.connection.query('service', null, { // аргументы:
 			action:'unlock_message',
 			id:this.id
-		}, function () {
-		}, true);
+		});
 
 		this.mainPanel.unlock.$body.hide();
 

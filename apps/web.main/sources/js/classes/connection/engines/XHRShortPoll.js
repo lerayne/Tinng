@@ -9,7 +9,7 @@
 tinng.protos.strategic.XHRShortPoll = function(server, callback, autostart){
 	t.funcs.bind(this);
 
-	this.backendURL = server;
+	this.serverURL = server;
 	this.parseCallback = callback;
 
 	console.log('focus on startup:', t.state.windowFocused)
@@ -33,7 +33,7 @@ tinng.protos.strategic.XHRShortPoll.prototype = {
 
 	// интерфейсные методы
 	refresh:function(){
-		return this.querySend();
+		return this.subscriptionSend();
 	},
 
 	setMode:function(mode){
@@ -132,31 +132,31 @@ tinng.protos.strategic.XHRShortPoll.prototype = {
 	start:function(){
 		if (!this.active) {
 			this.active = true;
-			this.querySend();
+			this.subscriptionSend();
 		}
 	},
 
 	stop:function(){
 		if (this.active) {
 			this.active = false;
-			this.queryCancel();
+			this.subscriptionCancel();
 		}
 	},
 
 	// отправка запроса
-	querySend:function () {
-		if (this.active && t.cfg.maintenance == 0) setTimeout(this.wrappedQuerySend, 0);
+	subscriptionSend:function () {
+		if (this.active && t.cfg.maintenance == 0) setTimeout(this.$_subscriptionSend, 0);
 		return true;
 	},
 
 	// todo: этот враппер-таймаут нужен из-за несовершенства обертки XHR, баг вылазит во время создания новой темы -
 	// отправка запроса сразу после получения предыдущего происходит до закрытия соединения и новое соединение не проходит
-	wrappedQuerySend:function(){
+	$_subscriptionSend:function(){
 
 		//t.notifier.send('connection start', this.waitTime);
 
 		// останавливаем предыдущий запрос/таймер если находим
-		if (this.request || this.timeout) this.queryCancel();
+		if (this.request || this.timeout) this.subscriptionCancel();
 
 		this.startIndication(); // показываем, что запрос начался
 
@@ -168,7 +168,7 @@ tinng.protos.strategic.XHRShortPoll.prototype = {
 			// Отправляем запрос
 			this.request = new JsHttpRequest();
 			this.request.onreadystatechange = this.onResponse;
-			this.request.open(null, this.backendURL, true);
+			this.request.open(null, this.serverURL, true);
 			this.request.send({
 				subscribe: this.subscriptions,
 				write: this.actions,
@@ -178,25 +178,11 @@ tinng.protos.strategic.XHRShortPoll.prototype = {
 			console.log('error:', e);
 		}*/
 
-		this.request = $.ajax({
-			type:'post',
-			url: this.backendURL,
-			cache: false,
-			crossDomain: true,
-			success: this.onResponse,
-			dataType:'json',
-			data:{
-				user: {
-					login: t.funcs.getCookie('login'),
-					pass: t.funcs.getCookie('pass')
-				},
-				subscribe: this.subscriptions,
-				write: this.actions,
-				meta:  this.meta
-			}
+		this.request = this.query('update', this.onResponse, {
+			subscribe: this.subscriptions,
+			write: this.actions,
+			meta:  this.meta
 		});
-
-
 
 		// если соединение длится 20 секунд - признаем его оборвавшимся
 		this.connectionLossTO = setTimeout(this.retry, 20000);
@@ -204,15 +190,43 @@ tinng.protos.strategic.XHRShortPoll.prototype = {
 		//t.funcs.log('Launching query with timeout ' + this.waitTime);
 	},
 
+	query:function(channel, callback, data){
+
+		data.user = {
+			login: t.funcs.getCookie('login'),
+			pass: t.funcs.getCookie('pass')
+		}
+
+		return $.ajax({
+			type:'post',
+			url: this.serverURL+'/'+channel+'/',
+			cache: false,
+			crossDomain: true,
+			success: function(response){
+
+				if (response.debug) {
+					console.info('PHP backtrace:\n==============\n', response.debug)
+				}
+
+				callback(response.data);
+			},
+			error: function(a, b, c){
+				console.warn('XHR error:', a, b, c);
+			},
+			dataType:'json',
+			data:data
+		});
+	},
+
 	retry:function(){
 		t.ui.showMessage(t.txt.connection_error);
 		console.warn('Registered connection loss. Trying to restart')
-		this.queryCancel();
-		this.querySend();
+		this.subscriptionCancel();
+		this.subscriptionSend();
 	},
 
 	// Останавливает ротор
-	queryCancel:function () {
+	subscriptionCancel:function () {
 
 		this.timeout = t.funcs.advClearTimeout(this.timeout);
 
@@ -231,28 +245,24 @@ tinng.protos.strategic.XHRShortPoll.prototype = {
 	},
 
 	// Выполняется при удачном возвращении запроса
-	onResponse:function (response) {
+	onResponse:function (data) {
 
 		clearTimeout(this.connectionLossTO);
 
-		if (response.debug) {
-			console.info('PHP backtrace:\n==============\n', response.debug)
-		}
-
 		// todo - иногда от сервера приходит meta в виде массива, а иногда - в виде объекта. разобраться
-		if (response.data.meta instanceof Array) {
+		if (data.meta instanceof Array) {
 
 			this.meta = {};
-			for (var i = 0; i < response.data.meta.length; i++) {
-				var metaItem = response.data.meta[i];
+			for (var i = 0; i < data.meta.length; i++) {
+				var metaItem = data.meta[i];
 				this.meta[i] = metaItem;
 			}
 		} else {
-			this.meta = response.data.meta;
+			this.meta = data.meta;
 		}
 
 		// разбираем пришедший пакет и выполняем обновления
-		this.parseCallback(response.data, this.actions);
+		this.parseCallback(data, this.actions);
 
 		this.actions = {};
 
@@ -260,7 +270,7 @@ tinng.protos.strategic.XHRShortPoll.prototype = {
 		this.request = false;
 
 		// перезапускаем запрос
-		this.timeout = setTimeout(this.querySend, this.waitTime);
+		this.timeout = setTimeout(this.subscriptionSend, this.waitTime);
 	},
 
 	// Выполняется при принудительном сбросе запроса

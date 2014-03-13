@@ -86,7 +86,7 @@ function template_head() {
 
 		get_script($env['appdir'].'sources/js', 'jqextend.js', $debug),
 		get_script($env['appdir'].'sources/js', 'jqextend.js', $debug),
-		get_script($env['rootdir'], 'libraries/JsHttpRequest.js', $debug),
+		//get_script($env['rootdir'], 'libraries/JsHttpRequest.js', $debug),
 		get_script($env['appdir'].'sources/js', 'tinng_init.js', $debug),
 		get_script($env['appdir'].'sources/js', 'classes/Funcs.js', $debug), // todo - возможно стоит вынести в отдельный объект, чтобы не путать иерархию
 

@@ -168,22 +168,12 @@ tinng.protos.TopicNode = Class(tinng.protos.Node, {
 
 			console.log('Moving posts from topic '+topicFrom+' to topic '+topicTo+' starting from '+ t.posts[postId].data.created)
 
-			JsHttpRequest.query('backend/service.php',
-				{
-					action: 'move_posts',
-					topic_from: topicFrom,
-					topic_to:topicTo,
-					time_from:timeFrom
-				},
-				function(data, error){
-
-					if (error) console.error(error);
-					else if (data == 'success') {
-						t.connection.refresh();
-					}
-				},
-				true // no cache
-			);
+			t.connection.query('service', t.connection.refresh, {
+				action: 'move_posts',
+				topic_from: topicFrom,
+				topic_to:topicTo,
+				time_from:timeFrom
+			});
 		}
 	}
 });

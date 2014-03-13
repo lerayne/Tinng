@@ -101,20 +101,11 @@ tinng.protos.ui.SearchBox = function(config){
 tinng.protos.ui.SearchBox.prototype = {
 	onType:function(e){
 
-		//console.log(e.originalEvent.keyIdentifier, e.keyCode, e.charCode, e)
-
 		// если нажата кнопка, вводящая что-либо, а не управляющая (допускаются также backspace и delete) -
 		if (this.nonTextButtons.indexOf(e.keyCode) == -1) {
 
 			// сбросить текущий таймер
 			if (this.timeout) clearTimeout(this.timeout);
-
-			// если запрос уже ушел, но еще не вернулся - абортнуть его
-			// todo - тут не совсем понятно, точно ли нужен status, потому что у только что отправленного запроса статус - null
-			if (this.request && this.request.status) {
-				this.request.onreadystatechange = this.onAbort;
-				this.request.abort();
-			}
 
 			// (ре)стартуем таймер
 			this.timeout = setTimeout(this.suggest, t.cfg.xhr_suggest);
@@ -192,13 +183,19 @@ tinng.protos.ui.SearchBox.prototype = {
 				that.$throbber.css({visibility:'visible'})
 			}, t.cfg.xhr_lag);
 
-			this.request = new JsHttpRequest();
+			this.request = t.connection.query('suggest', this.onResponse, {
+				suggest: this.conf.suggest,
+				subject: query
+			})
+
+			/*this.request = new JsHttpRequest();
 			this.request.onreadystatechange = this.onResponse;
 			this.request.open(null, './backend/suggest.php', true);
 			this.request.send({
 				suggest: this.conf.suggest,
 				subject: query
-			});
+			});*/
+
 		} else {
 			this.clear();
 			this.$suggestBox.children().remove();
@@ -206,17 +203,9 @@ tinng.protos.ui.SearchBox.prototype = {
 		}
 	},
 
-	onResponse:function(){
-
-		switch (this.request.readyState){
-
-			// success
-			case 4:
-				this.parseSuggested(this.request.responseJS)
-				this.clear();
-
-				break;
-		}
+	onResponse:function(data){
+		this.parseSuggested(data)
+		this.clear();
 	},
 
 	parseSuggested:function(data){
@@ -265,14 +254,12 @@ tinng.protos.ui.SearchBox.prototype = {
 		}
 	},
 
-	onAbort:function(){
-		this.clear();
-	},
-
 	clear:function(){
 
+		console.log('request:', this.request);
+
 		if (this.request && this.request.status != 200) {
-			this.request.onreadystatechange = false;
+			this.request.done(function(){});
 			this.request.abort();
 		}
 
