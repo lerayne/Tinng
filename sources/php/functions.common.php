@@ -159,8 +159,10 @@ function get_js($maps, $debug = false) {
 			// если такой путь уже есть - удаялем его в том месте где он был ...
 			if (in_array($array['path'], $script_paths)) {
 				$index = array_search($array['path'], $script_paths);
-				unset ($script_paths[$index]);
-				unset ($script_contents[$index]);
+//				unset ($script_paths[$index]);
+//				array_splice($script_paths, $index, 1);
+//				unset ($script_contents[$index]);
+//				array_splice($script_contents, $index, 1);
 			}
 
 			// и вставляем сейчас. Таким образом сохраняется порядок файлов
@@ -171,14 +173,18 @@ function get_js($maps, $debug = false) {
 		if (count($array['children'])) foreach($array['children'] as $child) parse_map($child, $script_paths, $script_contents);
 	}
 
-	// массивы будем передавать по ссыке
+	// массивы будем передавать по ссылке
 	$script_paths = Array();
 	$script_contents = Array();
+
+	//$GLOBALS['debug']['$map3'] = $maps[3];
 
 	//обслуживаем меппинги скриптов начиная с конца
 	for ($i = count($maps)-1; $i >= 0; $i--) {
 		parse_map($maps[$i], $script_paths, $script_contents);
 	}
+
+	$GLOBALS['debug']['$script_paths'] = $script_paths;
 
 	// переворачиваем всё
 	$script_paths = array_reverse($script_paths);

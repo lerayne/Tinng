@@ -85,7 +85,6 @@ function template_head() {
 	get_js(Array(
 
 		get_script($env['appdir'].'sources/js', 'jqextend.js', $debug),
-		get_script($env['appdir'].'sources/js', 'jqextend.js', $debug),
 		//get_script($env['rootdir'], 'libraries/JsHttpRequest.js', $debug),
 		get_script($env['appdir'].'sources/js', 'tinng_init.js', $debug),
 		get_script($env['appdir'].'sources/js', 'classes/Funcs.js', $debug), // todo - возможно стоит вынести в отдельный объект, чтобы не путать иерархию
@@ -98,3 +97,7 @@ function template_head() {
 }
 
 require_once $env['appdir'] . 'skins/' . $cfg['skin'] . '/template.php';
+
+echo '<pre>';
+var_dump($GLOBALS['debug']);
+echo '</pre>';

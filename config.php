@@ -16,7 +16,8 @@ $cfg['registration_enabled'] = 1;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-$cfg['server_url'] = 'http://dev.srv.tinng.net';
+//$cfg['server_url'] = 'http://dev.srv.tinng.net';
+$cfg['server_url'] = 'http://localhost/tinng-serv-php';
 
 $cfg['appdir'] = $env['appdir'];
 
@@ -55,8 +56,8 @@ $cfg['online_threshold'] = 300;
 
 // адрес базы данных
 //$safecfg['db'] = 'mysql://tinng_main:tinng_demo@localhost/tinng';
-$safecfg['db'] = 'mysql://roninpho_tinng:eTgwbRu8Tw2o@localhost/roninpho_tinng2';
-//$safecfg['db'] = 'mysql://root:toor@localhost/tinng_test';
+//$safecfg['db'] = 'mysql://roninpho_tinng:eTgwbRu8Tw2o@localhost/roninpho_tinng2';
+$safecfg['db'] = 'mysql://root:toor@localhost/tinng_test';
 
 // префикс базы даных
 $safecfg['db_prefix'] = 'tinng'; // знак "_" вставляется автоматически, указывать его здесь не нужно
