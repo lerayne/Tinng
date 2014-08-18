@@ -98,6 +98,6 @@ function template_head() {
 
 require_once $env['appdir'] . 'skins/' . $cfg['skin'] . '/template.php';
 
-echo '<pre>';
+/*echo '<pre>';
 var_dump($GLOBALS['debug']);
-echo '</pre>';
+echo '</pre>';*/
