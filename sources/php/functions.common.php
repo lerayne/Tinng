@@ -159,9 +159,9 @@ function get_js($maps, $debug = false) {
 			// если такой путь уже есть - удаялем его в том месте где он был ...
 			if (in_array($array['path'], $script_paths)) {
 				$index = array_search($array['path'], $script_paths);
-//				unset ($script_paths[$index]);
+				unset ($script_paths[$index]);
 //				array_splice($script_paths, $index, 1);
-//				unset ($script_contents[$index]);
+				unset ($script_contents[$index]);
 //				array_splice($script_contents, $index, 1);
 			}
 

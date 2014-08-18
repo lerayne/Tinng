@@ -59,6 +59,7 @@ tinng.protos.strategic.XHRShortPoll.prototype = {
 
 	},
 
+	// внутренний класс подписки, которым пользуются внешние классы (пере)подписки и ее изменения
 	_subscribe:function(subscriberId, feedName, feed, reset){
 		var subscriberFeeds = this.subscriptions[subscriberId];
 
@@ -163,20 +164,6 @@ tinng.protos.strategic.XHRShortPoll.prototype = {
 		//console.log('this.subscriptions:', this.subscriptions);
 		// var now = new Date();
 		//if (!t.funcs.objectSize(this.meta)) console.log(now.getTime()+' META EMPTY!');
-
-		/*try {
-			// Отправляем запрос
-			this.request = new JsHttpRequest();
-			this.request.onreadystatechange = this.onResponse;
-			this.request.open(null, this.serverURL, true);
-			this.request.send({
-				subscribe: this.subscriptions,
-				write: this.actions,
-				meta:  this.meta
-			});
-		} catch (e) {
-			console.log('error:', e);
-		}*/
 
 		this.request = this.query('update', this.onResponse, {
 			subscribe: this.subscriptions,

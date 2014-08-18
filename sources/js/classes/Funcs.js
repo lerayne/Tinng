@@ -152,7 +152,10 @@ Funcs.prototype = {
 
 	objectConfig:function(argSettings, defaultSettings) {
 		var settings = {};
-		for (var key in defaultSettings) settings[key] = (typeof argSettings[key] != 'undefined') ? argSettings[key] : defaultSettings[key];
+		for (var key in defaultSettings) {
+			//if (typeof debug_1 != 'undefined')  console.log(key, argSettings[key], defaultSettings[key])
+			settings[key] = (typeof argSettings[key] != 'undefined') ? argSettings[key] : defaultSettings[key];
+		}
 
 		return settings;
 	},
