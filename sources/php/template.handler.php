@@ -2,6 +2,8 @@
 
 $message = $_COOKIE['message'];
 
+$env['platform'] = 'desktop';
+
 function template_title() {
 	global $cfg;
 	echo $cfg['instance_name'];
@@ -87,16 +89,16 @@ function template_head() {
 		get_script($env['appdir'].'sources/js', 'jqextend.js', $debug),
 		//get_script($env['rootdir'], 'libraries/JsHttpRequest.js', $debug),
 		get_script($env['appdir'].'sources/js', 'tinng_init.js', $debug),
-		get_script($env['appdir'].'sources/js', 'classes/Funcs.js', $debug), // todo - возможно стоит вынести в отдельный объект, чтобы не путать иерархию
+		get_script($env['appdir'].'sources/js', 'classes/common/Funcs.js', $debug), // todo - возможно стоит вынести в отдельный объект, чтобы не путать иерархию
 
-		get_script($env['appdir'].'sources/js', 'onload.js', $debug),
+		get_script($env['appdir'].'sources/js', 'start.'.$env['platform'].'.js', $debug),
 
 	), $debug);
 
 	echo '<meta property="og:image" content="'. $e->full_app_path .'stock/images/social_big.png">';
 }
 
-require_once $env['appdir'] . 'skins/' . $cfg['skin'] . '/template.php';
+require_once $env['appdir'] . 'skins/' . $cfg['skin'] . '/template.'. $env['platform'] .'.php';
 
 /*echo '<pre>';
 var_dump($GLOBALS['debug']);

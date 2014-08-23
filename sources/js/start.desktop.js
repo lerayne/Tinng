@@ -1,7 +1,7 @@
 /**
-* @include classes/*
+* @include classes/common/*
+* @include classes/desktop/*
 * @include parser.js
-*
 * */
 
  // TODO - здесь хранятся глобальные todo

@@ -131,6 +131,8 @@ function get_script ($source_path, $path, $debug = false) {
 	// если есть какие-то зависимости - рекурсивно вызываем все указанные
 	if (count($includes)){
 
+		$includes = array_reverse($includes);
+
 		$children = Array();
 
 		foreach ($includes as $child_path) {
