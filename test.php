@@ -1,0 +1,1 @@
+<? echo md5('globus84') ?>
