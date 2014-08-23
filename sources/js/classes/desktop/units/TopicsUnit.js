@@ -4,14 +4,14 @@
  * @include _Unit.js
  */
 
-tinng.protos.TopicsUnit = Class(tinng.protos.Unit, {
+tinng.protos.TopicsUnit = Class(tinng.protos.DesktopUnit, {
 
 	construct: function () {
 		var that = this;
 		t.funcs.bind(this, ['newTopic', 'setTopicsStyle', 'setTopicsSort']);
 
 		t.protos
-			.Unit.prototype
+			.DesktopUnit.prototype
 			.construct.apply(this, arguments);
 
 		this.header = new t.protos.ui.Panel([
@@ -89,7 +89,7 @@ tinng.protos.TopicsUnit = Class(tinng.protos.Unit, {
 	},
 
 	nullify:function(){
-		t.protos.Unit.prototype
+		t.protos.DesktopUnit.prototype
 			.nullify.apply(this, arguments);
 
 		if (!t.funcs.getCookie('topics_sort_dir')) {
@@ -115,7 +115,7 @@ tinng.protos.TopicsUnit = Class(tinng.protos.Unit, {
 	},
 
 	activate:function(){
-		t.protos.Unit.prototype
+		t.protos.DesktopUnit.prototype
 			.activate.apply(this, arguments);
 
 		this.subscribe();

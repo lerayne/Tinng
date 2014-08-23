@@ -1,1 +1,3 @@
-<? echo md5('globus84') ?>
+<pre>
+<? echo var_dump($_SERVER['HTTP_USER_AGENT']) ?>
+	</pre>

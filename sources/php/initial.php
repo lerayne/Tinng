@@ -1,6 +1,9 @@
 <?php
 /* Подключаемый файл, который входит как в бекенд для XHR, так и в осовной php-скрипт */
 
+$env['platform'] = 'desktop';
+if (strpos(strtolower($_SERVER['HTTP_USER_AGENT']), 'mobile')) $env['platform'] = 'mobile';
+
 require_once $env['appdir'].'config.php';
 require_once $env['appdir'].'languages/ru.php';
 

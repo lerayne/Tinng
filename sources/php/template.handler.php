@@ -2,8 +2,6 @@
 
 $message = $_COOKIE['message'];
 
-$env['platform'] = 'desktop';
-
 function template_title() {
 	global $cfg;
 	echo $cfg['instance_name'];
@@ -38,7 +36,8 @@ function template_head() {
 	// Импорт стилей через функцию
 	incl_css(
 		path('styles/main.css'),
-		path('styles/design.less')
+		path('styles/design.common.less'),
+		path('styles/design.'.$env['platform'].'.less')
 	);
 
 	echo '<link rel="stylesheet" id="lowres_css" type="text/css" href="">';

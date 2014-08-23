@@ -1,10 +1,13 @@
 /**
- * Created by M. Yegorov on 1/27/14.
- *
+ * Created by Michael on 23.08.14.
  * @include _Unit.js
  */
 
-tinng.protos.PostsUnit = Class(tinng.protos.DesktopUnit, {
+tinng.protos.PostsUnit = Class(tinng.protos.MobileUnit, {
+
+	inherit:function(funcName, args){
+		t.protos.MobileUnit.prototype[funcName].apply(this, args);
+	},
 
 	construct: function () {
 		var that = this;
@@ -21,8 +24,7 @@ tinng.protos.PostsUnit = Class(tinng.protos.DesktopUnit, {
 			'removeUserFromPrivate'
 		]);
 
-		t.protos.DesktopUnit.prototype
-			.construct.apply(this, arguments);
+		this.inherit('construct', arguments)
 
 		this.header = new t.protos.ui.Panel([
 			{type:'Button', label:'topicRename', cssClass:'right reveal3', icon:'pencil_w.png', tip:tinng.txt.rename_topic},
@@ -92,8 +94,7 @@ tinng.protos.PostsUnit = Class(tinng.protos.DesktopUnit, {
 
 	// todo - тоже не идеально, но более-менее. Возможно потом доделать
 	nullify:function(){
-		t.protos.DesktopUnit.prototype
-			.nullify.apply(this, arguments);
+		this.inherit('nullify', arguments);
 
 		t.posts = {};
 
@@ -280,9 +281,9 @@ tinng.protos.PostsUnit = Class(tinng.protos.DesktopUnit, {
 
 			// "голова" темы всегда должна быть сверху
 			/*if (node.data.head) {
-				node.$body.insertBefore(posts.eq(0))
-				return true;
-			}*/
+			 node.$body.insertBefore(posts.eq(0))
+			 return true;
+			 }*/
 
 			// если created поста меньше, чем created одного из уже загруженных - вставляем раньше и завершаем работу метода
 			for (var i = 0; i < posts.length; i++) {
@@ -298,7 +299,7 @@ tinng.protos.PostsUnit = Class(tinng.protos.DesktopUnit, {
 		}
 
 		// если не завеошили выше - пользуемся дефолтом из класса-предка
-		t.protos.DesktopUnit.prototype['addNode'].call(this, node);
+		this.inherit('addNode', arguments)
 	},
 
 	setInvitation: function () {
@@ -311,9 +312,7 @@ tinng.protos.PostsUnit = Class(tinng.protos.DesktopUnit, {
 
 	onScroll: function () {
 
-		t.protos
-			.DesktopUnit.prototype
-			.onScroll.apply(this, arguments);
+		this.inherit('onScroll', arguments)
 
 		if (this.contentLoaded) {
 			if (this.atTop) {
@@ -694,11 +693,11 @@ tinng.protos.PostsUnit = Class(tinng.protos.DesktopUnit, {
 
 			//console.log('TOPIC DELETED')
 			this.unscribe();
-		
+
 		} else {
 
 			t.ui.editor.show();
-			
+
 			if (topicData.dialogue > 0) { // если мы имеем дело с потоком ЛС
 
 				// хайд верхнего контейнера дает не только скрытие, но и отсутствие показа при такскании
@@ -720,11 +719,11 @@ tinng.protos.PostsUnit = Class(tinng.protos.DesktopUnit, {
 
 				if (topicData.new_dialogue) this.newDialogueMode = 1;
 				else this.newDialogueMode = 0;
-				
+
 			} else { // иначе - обычная тема
 
 				if (t.user.hasRight('editMessage', topicData)) t.units.posts.header.topicRename.show();
-				
+
 				this.displayTopicName(topicData.topic_name); //вывод названия темы
 
 				if (typeof topicData.private == 'object' && topicData.private.length) {

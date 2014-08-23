@@ -43,7 +43,7 @@ function incl_css() {
 	endforeach;
 
 	// Объявляем имя файла
-	$filename = $env['appdir'] . 'data/compiled/css_' . md5($script) . '.css';
+	$filename = $env['appdir'] . 'data/compiled/css_'. $env['platform'] .'_' . md5($script) . '.css';
 
 	// Если такого файла нет - создаем
 	if (!file_exists($filename)) {
@@ -56,7 +56,7 @@ function incl_css() {
 			$dir = opendir($env['appdir'] . 'data/compiled/');
 			while (($file = readdir($dir)) !== false) {
 				// Только нужно проверить, что мы удаляем только ненужный файл (по префиксу)
-				if (!(strpos($file, 'css_') === false)) unlink($env['appdir'] . 'data/compiled/' . $file);
+				if (!(strpos($file, 'css_'.$env['platform']) === false)) unlink($env['appdir'] . 'data/compiled/' . $file);
 			}
 		}
 

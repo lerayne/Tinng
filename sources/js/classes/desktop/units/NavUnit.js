@@ -4,10 +4,10 @@
  * @include _Unit.js
  */
 
-tinng.protos.NavUnit = Class(tinng.protos.Unit, {
+tinng.protos.NavUnit = Class(tinng.protos.DesktopUnit, {
 
 	construct: function () {
-		t.protos.Unit.prototype
+		t.protos.DesktopUnit.prototype
 			.construct.apply(this, arguments);
 
 		this.header = new t.protos.ui.Panel([
@@ -19,7 +19,7 @@ tinng.protos.NavUnit = Class(tinng.protos.Unit, {
 	},
 
 	nullify:function(){
-		t.protos.Unit.prototype
+		t.protos.DesktopUnit.prototype
 			.nullify.apply(this, arguments);
 
 		this.objectList = {};
@@ -29,7 +29,7 @@ tinng.protos.NavUnit = Class(tinng.protos.Unit, {
 	},
 
 	activate:function(){
-		t.protos.Unit.prototype
+		t.protos.DesktopUnit.prototype
 			.activate.apply(this, arguments);
 
 		t.connection.subscribe(this, 'tags', {

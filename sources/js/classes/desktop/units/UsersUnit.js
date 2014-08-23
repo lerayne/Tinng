@@ -5,12 +5,12 @@
  */
 
 //todo - класс и особоенно парсинг сделан на скорую руку - переделать! Как минимум не учитывается сортировка при обновлении
-tinng.protos.UsersUnit = Class(tinng.protos.Unit, {
+tinng.protos.UsersUnit = Class(tinng.protos.DesktopUnit, {
 
 	construct: function () {
 		t.funcs.bind(this, ['markRead', 'openParentWindow']);
 
-		t.protos.Unit.prototype
+		t.protos.DesktopUnit.prototype
 			.construct.apply(this, arguments);
 
 		this.header = new t.protos.ui.Panel([
@@ -35,7 +35,7 @@ tinng.protos.UsersUnit = Class(tinng.protos.Unit, {
 	},
 
 	nullify:function(){
-		t.protos.Unit.prototype
+		t.protos.DesktopUnit.prototype
 			.nullify.apply(this, arguments);
 
 		this.unread = {};
@@ -51,7 +51,7 @@ tinng.protos.UsersUnit = Class(tinng.protos.Unit, {
 	},
 
 	activate:function(){
-		t.protos.Unit.prototype
+		t.protos.DesktopUnit.prototype
 			.activate.apply(this, arguments);
 
 		var subscriptions = [];

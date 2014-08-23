@@ -114,6 +114,9 @@ tinng.protos.TopicNode = Class(tinng.protos.Node, {
 		t.units.posts.subscribe(this.id, t.cfg.posts_per_page);
 		this.select(); // делаем тему в столбце тем активной
 
+		//todo - это хак для мобильной версии. В будущем нужно сделать для каждой своё, или реализовать данную функцию полноценно
+		if (t.ui.activateUnit) t.ui.activateUnit('posts')
+
 		t.units.posts.startWaitIndication();
 	},
 
