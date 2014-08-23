@@ -21,20 +21,23 @@ tinng.protos.PostsUnit = Class(tinng.protos.MobileUnit, {
 			'showNext',
 			'showAll',
 			'addUserToPrivate',
-			'removeUserFromPrivate'
+			'removeUserFromPrivate',
+			'goBack'
 		]);
 
 		this.inherit('construct', arguments)
 
 		this.header = new t.protos.ui.Panel([
-			{type:'Button', label:'topicRename', cssClass:'right reveal3', icon:'pencil_w.png', tip:tinng.txt.rename_topic},
-			{type:'Button', label:'cancel', cssClass:'right', icon:'cancel_w.png', tip:tinng.txt.cancel},
-			{type:'Button', label:'save', cssClass:'right', icon:'round_checkmark_w.png', tip:tinng.txt.save},
-			//{type:'Button', label:'cancelNewTopic', cssClass:'right', icon:'cancel_w.png', tip:tinng.txt.cancel_new_topic},
+			//{type:'Button', label:'topicRename', cssClass:'right reveal3', icon:'pencil_w.png', tip:tinng.txt.rename_topic},
+			//{type:'Button', label:'cancel', cssClass:'right', icon:'cancel_w.png', tip:tinng.txt.cancel},
+			//{type:'Button', label:'save', cssClass:'right', icon:'round_checkmark_w.png', tip:tinng.txt.save},
+			{type:'Button', label:'backBtn', cssClass:'left', text:'Back'},
 			{type:'Field', label:'topicName', cssClass:'topicname'},
 			{type:'Field', label:'allowedUsers', cssClass:'allowedUsers'}
 		]);
 		this.ui.$header.append(this.header.$body);
+
+		this.header.backBtn.on('click', this.goBack)
 
 		this.header.allowedUsersContainer = $('<div class="allowedUsersContainer"></div>').appendTo(this.header.allowedUsers.$body);
 
@@ -67,18 +70,16 @@ tinng.protos.PostsUnit = Class(tinng.protos.MobileUnit, {
 		})
 
 		// прячем ненужные пока контролы
-		this.header.save.hide();
-		this.header.cancel.hide();
-		//this.header.cancelNewTopic.hide();
+		//this.header.save.hide();
+		//this.header.cancel.hide();
 
 		// расстановка событий
-		this.header.topicRename.on('click', this.topicRename);
-		this.header.cancel.on('click', this.cancelRename);
-		this.header.save.on('click', this.saveName);
-		//this.header.cancelNewTopic.on('click', this.cancelNewTopic);
+		//this.header.topicRename.on('click', this.topicRename);
+		//this.header.cancel.on('click', this.cancelRename);
+		//this.header.save.on('click', this.saveName);
 
 		// проверка прав
-		this.header.topicRename.hide();
+		//this.header.topicRename.hide();
 
 		this.$showMore = $('<div class="showmore"/>');
 		this.ui.$contentWrap.prepend(this.$showMore);
@@ -109,10 +110,14 @@ tinng.protos.PostsUnit = Class(tinng.protos.MobileUnit, {
 		if (t.user.id > 0) t.units.topics.header.newTopic.unblock();
 
 		this.$showMore.hide();
-		this.header.topicRename.hide();
+		//this.header.topicRename.hide();
 
 		$('.topics .active').removeClass('active');
 		this.$body.removeClass('moderable dialogue');
+	},
+
+	goBack:function(){
+		t.ui.activateUnit('topics')
 	},
 
 	unscribe:function(){
@@ -125,7 +130,7 @@ tinng.protos.PostsUnit = Class(tinng.protos.MobileUnit, {
 			t.connection.unscribe(this, 'topic_data');
 
 			if (t.state.selectedPost) t.state.selectedPost.deselect('full');
-			t.ui.editor.hide();
+			//t.ui.editor.hide();
 			t.userWatcher.unwatch(this);
 
 			t.address.del(['topic', 'dialogue', 'plimit', 'post']);
@@ -696,7 +701,7 @@ tinng.protos.PostsUnit = Class(tinng.protos.MobileUnit, {
 
 		} else {
 
-			t.ui.editor.show();
+			//t.ui.editor.show();
 
 			if (topicData.dialogue > 0) { // если мы имеем дело с потоком ЛС
 
@@ -722,7 +727,7 @@ tinng.protos.PostsUnit = Class(tinng.protos.MobileUnit, {
 
 			} else { // иначе - обычная тема
 
-				if (t.user.hasRight('editMessage', topicData)) t.units.posts.header.topicRename.show();
+				//if (t.user.hasRight('editMessage', topicData)) this.header.topicRename.show();
 
 				this.displayTopicName(topicData.topic_name); //вывод названия темы
 

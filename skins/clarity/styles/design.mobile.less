@@ -3,6 +3,7 @@
 
 body {
 	background-color: #eee;
+	overflow-x: hidden;
 }
 
 .reveal, .reveal2, .reveal3 { visibility: visible; }
@@ -16,6 +17,7 @@ body {
 
 	.scroll-area {
 		overflow-y: auto;
+		overflow-x: hidden;
 	}
 
 	header {
@@ -27,16 +29,28 @@ body {
 		.button {
 			height:40px;
 
+			span {
+				line-height:38px;
+			}
+
 			&.with-icon {
 				padding-left:42px;
 				background-position-y: center;
 				background-position-x: 16px;
 			}
 		}
+
+		.topicname {
+			display: inline-block;
+			display: table-cell;
+			height: 44px;
+			vertical-align: middle;
+		}
 	}
 
 	.content-wrap {
 		padding-top:@headerH;
+		overflow-x: hidden;
 	}
 
 	&.posts {
@@ -77,6 +91,10 @@ body {
 
 	&.post {
 		min-width: 0;
+	}
+
+	.menuBtn {
+		display: none;
 	}
 }
 

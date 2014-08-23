@@ -42,5 +42,9 @@ tinng.protos.UserInterface.prototype = {
 		return {
 			deactivate:function(){}
 		}
+	},
+
+	winResize:function(){
+
 	}
 }
