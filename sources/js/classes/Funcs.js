@@ -115,7 +115,11 @@ Funcs.prototype = {
 		var str = config.name + '=' + encodeURIComponent(config.value);
 
 		if (config.expires) str += '; expires=' + config.expires.toGMTString();
-		if (config.path)	str += '; path=' + config.path;
+
+		//if (config.path)	str += '; path=' + config.path;
+		// Всегда устанавливать куки в корень домена
+		str += '; path=/';
+
 		if (config.domain)  str += '; domain=' + config.domain;
 		if (config.secure)  str += '; secure';
 

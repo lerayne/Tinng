@@ -48,6 +48,8 @@ switch ($_REQUEST['action']):
 			, $_POST['login']
 		);
 
+		//echo var_dump($raw);
+
 		if ($raw != false) {
 
 			$time = ($_POST['memorize']) ? time()+(365*24*60*60) : false; // запоминаем на год
