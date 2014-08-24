@@ -12,6 +12,7 @@ tinng.protos.TopicsUnit = Class(tinng.protos.MobileUnit, {
 		this.inherit('construct', arguments);
 
 		this.header = new t.protos.ui.Panel([
+			{type:'LoginControl', label:'login', cssClass:'right'},
 			{type:'Button', label:'newTopic', cssClass:'right', icon:'doc_plus_w.png'}
 		]);
 		this.ui.$header.append(this.header.$body);

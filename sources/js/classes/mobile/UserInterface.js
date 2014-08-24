@@ -19,8 +19,13 @@ tinng.protos.UserInterface = function (targetWindow) {
 		name:'posts'
 	});
 
+	t.units.user = new t.protos.UserUnit({
+		name:'user'
+	})
+
 	t.units.topics.placeTo(this.$unitsArea);
 	t.units.posts.placeTo(this.$unitsArea);
+	t.units.user.placeTo(this.$unitsArea);
 }
 
 tinng.protos.UserInterface.prototype = {

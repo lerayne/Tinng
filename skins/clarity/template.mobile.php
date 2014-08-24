@@ -101,6 +101,54 @@
 		<span data-cell="close" style="display:none" class="close">&times;</span>
 	</div>
 
+	<!-- Страничка юзера -->
+	<div data-chunk-name="user-info" class="unit-page">
+		<div class="section">
+			<form action="login.php">
+				<input type="hidden" name="action" value="logout">
+				<input data-cell="logoutBtn" type="submit" value="<?= $txt['login_logout'] ?>">
+			</form>
+		</div>
+	</div>
+
+	<!-- Страничка логина -->
+	<div data-chunk-name="login-page" class="unit-page">
+		<div class="section">
+			<form action="login.php">
+				<input type="hidden" name="action" value="login">
+
+				<label>
+					<?= $txt['login_name'] ?><br>
+					<input type="text" name="login">
+				</label>
+
+				<label>
+					<?= $txt['login_pass'] ?><br>
+					<input type="password" name="pass"><br>
+					<span class="dimmed" data-cell="forgetLink" id="passForget">(<?= $txt['login_forget'] ?>)</span>
+				</label>
+
+				<label>
+					<input type="checkbox" name="memorize"><?= $txt['login_memorize'] ?>
+				</label>
+
+				<input type="submit" value="<?= $txt['login_btn'] ?>">
+			</form>
+
+			<input type="button" value="<?= $txt['login_reg'] ?>" data-cell="">
+		</div>
+	</div>
+
+	<!-- Страничка регистрации -->
+	<div data-chunk-name="registration-page" class="unit-page">
+		Sorry, registration through mobile mode is not ready yet
+	</div>
+
+	<!-- Страничка юзера -->
+	<div data-chunk-name="password-page" class="unit-page">
+		Sorry, password restore through mobile mode is not ready yet
+	</div>
+
 </div>
 
 </body>
