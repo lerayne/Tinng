@@ -106,7 +106,7 @@
 		<div class="section">
 			<form action="login.php">
 				<input type="hidden" name="action" value="logout">
-				<input data-cell="logoutBtn" type="submit" value="<?= $txt['login_logout'] ?>">
+				<input data-cell="logoutBtn" type="submit" class="button submit" value="<?= $txt['login_logout'] ?>">
 			</form>
 		</div>
 	</div>
@@ -114,7 +114,7 @@
 	<!-- Страничка логина -->
 	<div data-chunk-name="login-page" class="unit-page">
 		<div class="section">
-			<form action="login.php">
+			<form action="login.php" method="post">
 				<input type="hidden" name="action" value="login">
 
 				<label>
@@ -132,10 +132,10 @@
 					<input type="checkbox" name="memorize"><?= $txt['login_memorize'] ?>
 				</label>
 
-				<input type="submit" value="<?= $txt['login_btn'] ?>">
+				<input class="button submit" type="submit" value="<?= $txt['login_btn'] ?>">
 			</form>
 
-			<input type="button" value="<?= $txt['login_reg'] ?>" data-cell="">
+			<input class="button submit" type="button" value="<?= $txt['login_reg'] ?>" data-cell="">
 		</div>
 	</div>
 

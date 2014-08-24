@@ -5,9 +5,4 @@
 
 tinng.protos.MobileUnit = Class(tinng.protos.Unit, {
 
-	construct:function(){
-		t.protos.Unit.prototype.construct.apply(this, arguments);
-
-
-	}
 })

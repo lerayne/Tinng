@@ -1,8 +1,10 @@
 /**
  * Created by Michael on 24.08.14.
+ * @include _Unit.js
  */
 
 tinng.protos.UserUnit = Class(tinng.protos.MobileUnit, {
+
 	inherit:function(funcName, args){
 		t.protos.MobileUnit.prototype[funcName].apply(this, args);
 	},

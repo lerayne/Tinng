@@ -48,7 +48,7 @@ switch ($_REQUEST['action']):
 			, $_POST['login']
 		);
 
-		//echo var_dump($raw);
+		//echo var_dump($raw, md5($_POST['pass']));
 
 		if ($raw != false) {
 
