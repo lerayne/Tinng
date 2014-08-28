@@ -17,7 +17,7 @@ $cfg['registration_enabled'] = 1;
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 //$cfg['server_url'] = 'http://dev.srv.tinng.net';
-$cfg['server_url'] = 'http://localhost/tinng-serv-php';
+$cfg['server_url'] = 'http://localhost/tinngserv-php';
 
 $cfg['appdir'] = $env['appdir'];
 
