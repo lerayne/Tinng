@@ -1,0 +1,12 @@
+<link rel="import" href="../node-base/node-base.html">
+
+<polymer-element name="node-topic" extends="node-base">
+	<template>
+		<div class="author">[[data.author]]</div>
+		<div class="topic">{{data.topic_name}}</div>
+		<div class="message">{{data.message}}</div>
+	</template>
+	<script>
+		Polymer()
+	</script>
+</polymer-element>

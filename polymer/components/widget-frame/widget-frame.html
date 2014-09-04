@@ -1,0 +1,31 @@
+<polymer-element name="widget-frame" vertical layout flex noscript>
+
+	<template>
+
+		<style>
+			header {
+				min-height:50px;
+				background-color: navy;
+			}
+
+			.logo {
+				height:30px;
+				margin:10px 20px;
+			}
+		</style>
+
+		<header>
+			<img class="logo" src="../../../stock/images/tinng_logo_light.png">
+			<content select="control-panel"></content>
+		</header>
+
+		<section layout horizontal center-justified flex>
+			<content></content>
+		</section>
+
+		<footer>
+
+		</footer>
+	</template>
+
+</polymer-element>

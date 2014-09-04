@@ -17,6 +17,14 @@ function safe_str($str) {
 	);
 }
 
+function import_php_str($str) {
+
+	$str = str_replace("\r", '', $str);
+	$str = str_replace("\n", ' ', $str);
+
+	return $str;
+}
+
 function jsts2phpts($str) {
 	return substr($str, 0, strlen($str) - 3);
 }

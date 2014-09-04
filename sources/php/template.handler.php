@@ -16,14 +16,6 @@ function path($file) {
 	return (file_exists($skinned_path)) ? $skinned_path : $stock_path;
 }
 
-function import_php_str($str) {
-
-	$str = str_replace("\r", '', $str);
-	$str = str_replace("\n", ' ', $str);
-
-	return $str;
-}
-
 function template_head() {
 
 	global $env, $cfg, $user, $txt, $rex, $e;

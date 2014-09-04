@@ -1,0 +1,40 @@
+<link rel="import" href="../nodelist-base/nodelist-base.html">
+<link rel="import" href="../node-topic/node-topic.html">
+
+<polymer-element name="nodelist-topics" extends="nodelist-base">
+
+	<template>
+
+		<template repeat="{{node in nodes}}">
+			<node-topic data="{{node}}"></node-topic>
+		</template>
+
+	</template>
+
+	<script>
+		Polymer({
+
+			created:function(){
+
+				console.log('t.connection',t.connection)
+
+				t.connection.subscribe({
+					subscriber:this,
+					feedName:'topics-main',
+					feed:{
+						feed:'topics'
+					}
+				});
+
+				this.nodes = [
+					{message:'test message 1', author:'lerayne', topic_name:'test topic 1'},
+					{message:'test message 2', author:'lerayne', topic_name:'test topic 2'},
+					{message:'test message 3', author:'lerayne', topic_name:'test topic 3'},
+					{message:'test message 4', author:'lerayne', topic_name:'test topic 4'},
+					{message:'test message 5', author:'lerayne', topic_name:'test topic 5'}
+				]
+			}
+		})
+	</script>
+
+</polymer-element>

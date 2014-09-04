@@ -1,0 +1,23 @@
+<polymer-element name="nodelist-base" attributes="nodes">
+	<template>
+
+		<style>
+			:host {
+				background-color: #ccc;
+				width: 50%;
+				padding: 15px;
+				overflow-y: scroll;
+			}
+		</style>
+
+	</template>
+
+	<script>
+		Polymer({
+
+			created:function(){
+				this.nodes=[];
+			}
+		})
+	</script>
+</polymer-element>

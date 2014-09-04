@@ -1,0 +1,11 @@
+body, html {
+	background-color: #eee;
+	margin: 0;
+	padding: 0;
+	height:100%;
+
+}
+
+html /deep/ body {
+	font-family: sans-serif;
+}
