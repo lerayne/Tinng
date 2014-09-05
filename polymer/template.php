@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html>
 <head>
+	<!-- global style -->
+	<link rel="stylesheet" href="./style/global.css" shim-shadowdom>
+
 	<!-- libraries -->
 	<script src = "../lib/jquery-2.x.js"></script>
 	<script src = "../../sandbox/bower_components/lodash/dist/lodash.min.js"></script>
@@ -39,14 +42,13 @@
 	<link rel="import" href="./components/widget-frame/widget-frame.html">
 	<link rel="import" href="components/nodelist-topics/nodelist-topics.html">
 
-	<!-- global style -->
-	<link rel="stylesheet" href="./style/global.css" shim-shadowdom>
+
 </head>
 
 <body fullbleed vertical layout unresolved>
 
 <widget-frame>
-	<control-panel>111</control-panel>
+	<control-panel></control-panel>
 	<nodelist-topics></nodelist-topics>
 </widget-frame>
 

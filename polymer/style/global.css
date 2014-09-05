@@ -7,5 +7,6 @@ body, html {
 }
 
 html /deep/ body {
-	font-family: sans-serif;
+	font-family: Tahoma, Arial, sans-serif;
+	font-size: 13px;
 }

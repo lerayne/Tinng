@@ -5,7 +5,7 @@
 
 	<template>
 
-		<template repeat="{{node in nodes}}">
+		<template repeat="{{ node in nodes }}">
 			<node-topic data="{{node}}"></node-topic>
 		</template>
 
@@ -14,9 +14,22 @@
 	<script>
 		Polymer({
 
+			sortField:'modified',
+
+
 			created:function(){
 
-				console.log('t.connection',t.connection)
+				this.nodes = [];
+
+				this.subscribe();
+
+				this.addEventListener('topics-main', this.parseTopics);
+
+				$(window).on('topics-main-update', this.parseTopics.bind(this))
+			},
+
+
+			subscribe:function() {
 
 				t.connection.subscribe({
 					subscriber:this,
@@ -25,14 +38,31 @@
 						feed:'topics'
 					}
 				});
+			},
 
-				this.nodes = [
-					{message:'test message 1', author:'lerayne', topic_name:'test topic 1'},
-					{message:'test message 2', author:'lerayne', topic_name:'test topic 2'},
-					{message:'test message 3', author:'lerayne', topic_name:'test topic 3'},
-					{message:'test message 4', author:'lerayne', topic_name:'test topic 4'},
-					{message:'test message 5', author:'lerayne', topic_name:'test topic 5'}
-				]
+			processItem:function(data){
+
+				this.super(arguments);
+
+			},
+
+
+			parseTopics:function(event, topics){
+
+				if (!this.nodes.length){
+					// если это первичная загрузка
+
+					// если мы заполняем массив первый раз - нужно его отсортировать
+					this.nodes = this.sort(topics, this.sortField, this.sortOrder);
+
+				} else {
+					// если в массиве уже есть ноды
+
+					for (var i = 0; i < topics.length; i++) {
+						//processItem соблюдает сортировку самостоятельно
+						this.processItem(topics[i])
+					}
+				}
 			}
 		})
 	</script>

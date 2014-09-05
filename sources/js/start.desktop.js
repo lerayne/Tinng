@@ -34,6 +34,8 @@ tinng.funcs.onWindowLoad = function(){
 		autostart: false
 	});
 
+	t.connection.setMode(t.state.windowFocused ? 'active' : 'passive');
+
     t.ui = new t.protos.UserInterface(window);
 	t.userWatcher = new t.protos.UserWatcher();
 	t.stateService = new t.protos.StateService();

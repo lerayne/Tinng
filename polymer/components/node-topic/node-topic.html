@@ -1,11 +1,34 @@
 <link rel="import" href="../node-base/node-base.html">
+<link rel="import" href="../block-author/block-author.html">
 
 <polymer-element name="node-topic" extends="node-base">
+
 	<template>
-		<div class="author">[[data.author]]</div>
+		<style>
+			.topic {
+				color:#007bb7;
+				font-weight: bold;
+				font-size: 110%;
+				padding:8px 0;
+			}
+
+			.datetime {
+				color:#ccc;
+				float:right;
+			}
+		</style>
+
+		<div>
+			<block-author data="{{ {name:data.author, id:data.author_id, email:author_email} }}"></block-author>
+			<span class="datetime" >
+				<span hidden?={{!!data.modified}}>{{data.created}}</span>
+				<span hidden?={{!data.modified}}>changed {{data.modified}}</span>
+			</span>
+		</div>
 		<div class="topic">{{data.topic_name}}</div>
 		<div class="message">{{data.message}}</div>
 	</template>
+
 	<script>
 		Polymer()
 	</script>

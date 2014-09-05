@@ -12,10 +12,8 @@ tinng.protos.strategic.XHRShortPoll = function(server, callback, autostart){
 	this.serverURL = server;
 	this.parseCallback = callback;
 
-	console.log('focus on startup:', t.state.windowFocused);
-
 	this.active = autostart;
-	this.waitTime = t.state.windowFocused ? t.cfg['poll_timer'] : t.cfg['poll_timer_blurred'];
+	this.setMode('passive');
 	this.request = false; // запрос
 	this.timeout = false; // текущий таймаут
 	this.connectionLossTO = false; // таймаут обрыва связи

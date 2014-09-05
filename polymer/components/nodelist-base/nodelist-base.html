@@ -3,8 +3,7 @@
 
 		<style>
 			:host {
-				background-color: #ccc;
-				width: 50%;
+				max-width: 600px;
 				padding: 15px;
 				overflow-y: scroll;
 			}
@@ -15,8 +14,71 @@
 	<script>
 		Polymer({
 
+			clientId:0,
+
+			sortField:'created',
+			sortOrder:'desc',
+
+
+			observe:{
+				sortField:'sortSelf',
+				sortOrder:'sortSelf'
+			},
+
+
 			created:function(){
-				this.nodes=[];
+				this.nodes = [];
+			},
+
+
+			// сортировка по поданным параметрам (удобна для декларативного фильтра, который пока не работает)
+			sort:function(input, sortField, sortOrder){
+
+				var array = _.sortBy(input, sortField)
+				if (sortOrder == 'desc') array.reverse();
+
+				return array;
+			},
+
+
+			sortSelf:function(){
+
+				this.nodes = this.sort(this.nodes, this.sortField, this.sortOrder)
+			},
+
+			// добавляет, обновляет, или удаляет ноду
+			processItem:function(data){
+
+				// если у объекта нет id - присваеваем ему локальный клиентский id
+				if (!data.id) data.id = 'c'+(this.clientId++);
+
+				// находим индекс нужного элемента по id
+				var existingItemIndex = _(this.nodes).findIndex({id: data.id});
+
+
+				if (existingItemIndex == -1) {
+					// если такого элемента нет - добавляем новый элемент в коллекцию
+
+					// установка this.sortOrder в последний параметр актуальна только для сортировки по времени
+					var sortIndex = t.funcs.getSortIndex(this.nodes, data, this.sortField, this.sortOrder, this.sortOrder)
+
+					// вставляем новый элемент в нужное место
+					if (sortIndex == this.nodes.length) {
+						this.nodes.push(data)
+					} else {
+						this.nodes.splice(sortIndex, 0, data);
+					}
+
+				} else {
+					if (+data.deleted) {
+						// если есть и удален - удаляем из коллекции
+						this.nodes.splice(existingItemIndex, 1)
+					} else {
+						// иначе - обновляем существующий элемент
+						// todo - возможно нужно обновлять мягко, с проверками на идентичность
+						this.nodes[existingItemIndex] = data;
+					}
+				}
 			}
 		})
 	</script>

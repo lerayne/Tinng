@@ -3,10 +3,15 @@
  */
 
 var connectionCallback = function(result, actions){
-	console.log('result', result)
 
-	if (!!result.feed){
+	if (!!result.feeds){
+		for (var i = 0; i < result.feeds.length; i++) {
+			var subscriber = result.feeds[i];
 
+			for (var key in subscriber) {
+				$(window).trigger(key+'-update', [subscriber[key]])
+			}
+		}
 	}
 }
 

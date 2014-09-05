@@ -185,6 +185,35 @@ Funcs.prototype = {
 
 	txt:function(key){
 		return t.txt[key] ? t.txt[key] : key
+	},
+
+	getSortIndex:function(array, newValue, sortField, sortOrder, watchDirection){
+		if (typeof sortOrder == 'undefined') sortOrder = 'asc';
+		if (typeof watchDirection == 'undefined') watchDirection = 'asc';
+
+		if (watchDirection == 'asc') {
+
+			for (var i = 0; i < array.length; i++) {
+				var item = array[i];
+
+				if (sortOrder == 'asc' && newValue[sortField] < item[sortField]) break;
+				if (sortOrder == 'desc' && newValue[sortField] >= item[sortField]) break;
+			}
+
+		} else {
+
+			var i = array.length;
+			while(i--){
+				var item = array[i];
+
+				if (sortOrder == 'asc' && newValue[sortField] >= item[sortField]) break;
+				if (sortOrder == 'desc' && newValue[sortField] < item[sortField]) break;
+			}
+
+			i++;
+		}
+
+		return i;
 	}
 }
 
