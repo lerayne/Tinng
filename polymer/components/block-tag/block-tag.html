@@ -1,0 +1,33 @@
+<polymer-element name="block-tag" attributes="data">
+	<template>
+		<style>
+			:host {
+				display:inline-block;
+			}
+
+			.tag {
+				margin: 1px 4px 1px 0;
+				padding: 2px 4px;
+				display: inline-block;
+				position: relative;
+				background-color: #bbb;
+				color: #fff;
+			}
+
+			.tag.user {
+				background-color: #d0e7ff;
+				color: #3f6c9a;
+			}
+
+
+		</style>
+
+		<div class="tag {{data.type}}">
+			<span>{{data.name}}</span>
+		</div>
+	</template>
+
+	<script>
+		Polymer()
+	</script>
+</polymer-element>

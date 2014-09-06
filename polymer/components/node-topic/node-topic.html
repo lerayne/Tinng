@@ -1,32 +1,75 @@
 <link rel="import" href="../node-base/node-base.html">
 <link rel="import" href="../block-author/block-author.html">
+<link rel="import" href="../block-tag/block-tag.html">
 
 <polymer-element name="node-topic" extends="node-base">
 
 	<template>
 		<style>
+			.node {
+				background-color: #fff;
+				padding: 15px;
+				margin-bottom:15px;
+				display: block;
+				border-radius: 3px;
+				box-shadow: 0 3px 0 #ddd;
+			}
+
 			.topic {
 				color:#007bb7;
 				font-weight: bold;
 				font-size: 110%;
+			}
+
+			.topic-row {
 				padding:8px 0;
+			}
+
+			.private {
+				font-size: 90%;
+				color:#fff;
+				padding:1px 5px 2px;
+				background-color: #ccc;
+				margin-left:10px;
 			}
 
 			.datetime {
 				color:#ccc;
 				float:right;
 			}
+
+			.tags {
+				margin-top:10px;
+			}
+
+			.tags /deep/ .tag {
+				cursor:pointer;
+			}
 		</style>
 
-		<div>
-			<block-author data="{{ {name:data.author, id:data.author_id, email:author_email} }}"></block-author>
-			<span class="datetime" >
-				<span hidden?={{!!data.modified}}>{{data.created}}</span>
-				<span hidden?={{!data.modified}}>changed {{data.modified}}</span>
-			</span>
+		<div class="node" unread?={{!!+data.unread}} private?={{!!+data.private}}>
+			<div>
+				<block-author data="{{ {name:data.author, id:data.author_id, email:author_email} }}"></block-author>
+				<span class="datetime" >
+					<span hidden?={{!!data.modified}}>{{data.created}}</span>
+					<span hidden?={{!data.modified}}>changed {{data.modified}}</span>
+				</span>
+			</div>
+
+			<div class="topic-row">
+				<span class="topic">{{data.topic_name}}</span>
+				<span class="private" hidden?={{!+data.private}}>private</span>
+			</div>
+
+			<div class="message">{{data.message}}</div>
+
+			<div class="tags" hidden?={{!data.tags}}>
+				<template repeat="{{tag in data.tags}}">
+					<block-tag data="{{tag}}"></block-tag>
+				</template>
+			</div>
+
 		</div>
-		<div class="topic">{{data.topic_name}}</div>
-		<div class="message">{{data.message}}</div>
 	</template>
 
 	<script>
