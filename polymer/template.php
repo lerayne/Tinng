@@ -7,6 +7,8 @@
 	<!-- libraries -->
 	<script src = "../lib/jquery-2.x.js"></script>
 	<script src = "../../sandbox/bower_components/lodash/dist/lodash.min.js"></script>
+
+	<!-- todo - platform is not needed in chrome 36+ -->
 	<script src="../../sandbox/bower_components/platform/platform.js"></script>
 
 	<title>TINNG Polymer Test</title>
@@ -38,18 +40,28 @@
 	<!-- polymer itself -->
 	<link rel="import" href="../../sandbox/bower_components/polymer/polymer.html">
 
-	<!-- polymer components -->
+	<!-- stock polymer components -->
+	<link rel="import" href="../../sandbox/bower_components/core-signals/core-signals.html">
+
+	<!-- custom polymer components -->
+	<link rel="import" href="./components/service-forwarder/service-forwarder.html">
 	<link rel="import" href="./components/widget-frame/widget-frame.html">
 	<link rel="import" href="components/nodelist-topics/nodelist-topics.html">
+	<link rel="import" href="components/nodelist-posts/nodelist-posts.html">
 
 
 </head>
 
-<body fullbleed vertical layout unresolved>
+<body fullbleed horizontal layout unresolved>
 
 <widget-frame>
 	<control-panel></control-panel>
 	<nodelist-topics></nodelist-topics>
+</widget-frame>
+
+<widget-frame>
+	<control-panel></control-panel>
+	<nodelist-posts></nodelist-posts>
 </widget-frame>
 
 </body>

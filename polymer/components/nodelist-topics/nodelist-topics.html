@@ -1,12 +1,38 @@
 <link rel="import" href="../nodelist-base/nodelist-base.html">
 <link rel="import" href="../node-topic/node-topic.html">
 
-<polymer-element name="nodelist-topics" extends="nodelist-base">
+<polymer-element name="nodelist-topics" extends="nodelist-base" on-topic-select="{{topicSelect}}" on-tag-select="{{tagSelect}}">
 
 	<template>
 
+		<style>
+			.tags {
+				margin-top:15px;
+			}
+		</style>
+
 		<template repeat="{{ node in nodes }}">
-			<node-topic data="{{node}}"></node-topic>
+
+			<node-topic data="{{node}}" private?="{{!!+node.private}}" unread?={{!!+node.unread}}>
+			<template bind="{{node}}">
+				<block-author data="{{ {name: author, id: author_id, email: author_email} }}"></block-author>
+
+				<span class="created">{{created}}</span>
+				<span class="modified">{{modified}}</span>
+
+				<span class="topic">{{topic_name}}</span>
+
+				<div class="message">{{message}}</div>
+
+				<div class="tags" hidden?={{!tags}}>
+					<template repeat="{{tag in tags}}">
+						<block-tag data="{{tag}}">{{tag.name}}</block-tag>
+					</template>
+				</div>
+
+			</template>
+			</node-topic>
+
 		</template>
 
 	</template>
@@ -14,42 +40,48 @@
 	<script>
 		Polymer({
 
-			sortField:'modified',
+			sortField: 'modified',
 
 
-			created:function(){
+			created: function () {
 
-				this.nodes = [];
+				this.super();
 
 				this.subscribe();
-
-				this.addEventListener('topics-main', this.parseTopics);
 
 				$(window).on('topics-main-update', this.parseTopics.bind(this))
 			},
 
+			topicSelect:function(event, topicData){
+				console.log('topic selected:',topicData.id)
+			},
 
-			subscribe:function() {
+			tagSelect:function(event, topicData){
+				console.log('tag selected:',topicData.id)
+			},
+
+
+			subscribe: function () {
 
 				t.connection.subscribe({
-					subscriber:this,
-					feedName:'topics-main',
-					feed:{
-						feed:'topics'
+					subscriber: this,
+					feedName: 'topics-main',
+					feed: {
+						feed: 'topics'
 					}
 				});
 			},
 
-			processItem:function(data){
+			/*processItem: function (data) {
 
 				this.super(arguments);
 
-			},
+			},*/
 
 
-			parseTopics:function(event, topics){
+			parseTopics: function (event, topics) {
 
-				if (!this.nodes.length){
+				if (!this.nodes.length) {
 					// если это первичная загрузка
 
 					// если мы заполняем массив первый раз - нужно его отсортировать

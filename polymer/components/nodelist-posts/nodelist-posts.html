@@ -1,0 +1,92 @@
+<link rel="import" href="../nodelist-base/nodelist-base.html">
+<link rel="import" href="../node-post/node-post.html">
+
+
+<polymer-element name="nodelist-posts" extends="nodelist-base">
+	<template>
+
+		<core-signals on-core-signal-topic-select="{{topicSelect}}"></core-signals>
+
+		<template repeat="{{ node in nodes }}">
+
+			<node-post data="{{node}}" unread?={{!!+node.unread}}>
+
+				<block-author data="{{ {name: node.author, id: node.author_id, email: node.author_email} }}"></block-author>
+
+				<span class="created">{{node.created}}</span>
+				<span class="modified">{{node.modified}}</span>
+
+				<div class="message">{{node.message | unescape}}</div>
+
+				<!--<div class="tags" hidden?={{!tags}}>
+				<template repeat="{{tag in tags}}">
+					<block-tag data="{{tag}}">{{tag.name}}</block-tag>
+				</template>
+				</div>-->
+
+			</node-post>
+
+		</template>
+
+	</template>
+
+	<script>
+		Polymer({
+			selectedTopic:0,
+			sortOrder:'asc',
+
+			observe:{
+				'selectedTopic':'subscribe'
+			},
+
+			created:function(){
+				this.super();
+
+				$(window).on('posts-main-update', this.parsePosts.bind(this))
+			},
+
+			subscribe:function(){
+				this.nodes = [];
+
+				t.connection.subscribe({
+					subscriber: this,
+					feedName: 'posts-main',
+					feed:{
+						feed:'posts',
+						limit:50,
+						topic: this.selectedTopic
+					}
+				})
+			},
+
+			topicSelect:function(event, details){
+
+				this.selectedTopic = details.id;
+			},
+
+			parsePosts:function(event, posts){
+				console.log(posts)
+				if (!this.nodes.length) {
+					// если это первичная загрузка
+
+					// если мы заполняем массив первый раз - нужно его отсортировать
+					this.nodes = this.sort(posts, this.sortField, this.sortOrder);
+
+				} else {
+					// если в массиве уже есть ноды
+
+					for (var i = 0; i < posts.length; i++) {
+						//processItem соблюдает сортировку самостоятельно
+						this.processItem(posts[i])
+					}
+				}
+			},
+
+			unescape:function(input){
+				var e = document.createElement('div');
+				e.innerHTML = input;
+				return e.childNodes.length === 0 ? "" : e.childNodes[0].nodeValue;
+			}
+		})
+	</script>
+</polymer-element>

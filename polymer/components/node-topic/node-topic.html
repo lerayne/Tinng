@@ -1,28 +1,22 @@
-<link rel="import" href="../node-base/node-base.html">
-<link rel="import" href="../block-author/block-author.html">
-<link rel="import" href="../block-tag/block-tag.html">
+<link rel="import" href="../node-message/node-message.html">
 
-<polymer-element name="node-topic" extends="node-base">
+<polymer-element name="node-topic" extends="node-message" on-tap="{{onTap}}">
 
 	<template>
 		<style>
-			.node {
-				background-color: #fff;
-				padding: 15px;
-				margin-bottom:15px;
-				display: block;
-				border-radius: 3px;
-				box-shadow: 0 3px 0 #ddd;
+			:host([private]) .private {
+				display: inline-block;
 			}
 
-			.topic {
+			polyfill-next-selector {content:'.topic'}
+			::content .topic {
 				color:#007bb7;
 				font-weight: bold;
 				font-size: 110%;
 			}
 
 			.topic-row {
-				padding:8px 0;
+				margin-bottom:10px;
 			}
 
 			.private {
@@ -31,6 +25,12 @@
 				padding:1px 5px 2px;
 				background-color: #ccc;
 				margin-left:10px;
+				display:none;
+			}
+
+			polyfill-next-selector {content:'block-tag'}
+			::content block-tag {
+				cursor:pointer;
 			}
 
 			.datetime {
@@ -38,41 +38,44 @@
 				float:right;
 			}
 
-			.tags {
-				margin-top:10px;
+			.info {
+				margin-bottom:10px;
 			}
 
-			.tags /deep/ .tag {
-				cursor:pointer;
-			}
 		</style>
 
-		<div class="node" unread?={{!!+data.unread}} private?={{!!+data.private}}>
-			<div>
-				<block-author data="{{ {name:data.author, id:data.author_id, email:author_email} }}"></block-author>
-				<span class="datetime" >
-					<span hidden?={{!!data.modified}}>{{data.created}}</span>
-					<span hidden?={{!data.modified}}>changed {{data.modified}}</span>
+		<div class="info">
+			<content select="block-author"></content>
+
+			<span class="datetime" >
+				<span hidden?={{!!data.modified}}>
+					<content select=".created"></content>
 				</span>
-			</div>
 
-			<div class="topic-row">
-				<span class="topic">{{data.topic_name}}</span>
-				<span class="private" hidden?={{!+data.private}}>private</span>
-			</div>
-
-			<div class="message">{{data.message}}</div>
-
-			<div class="tags" hidden?={{!data.tags}}>
-				<template repeat="{{tag in data.tags}}">
-					<block-tag data="{{tag}}"></block-tag>
-				</template>
-			</div>
-
+				<span hidden?={{!data.modified}}>
+					[[txt.modified]] <content select=".modified"></content>
+				</span>
+			</span>
 		</div>
+
+		<div class="topic-row">
+			<content select="span.topic"></content>
+			<span class="private">[[txt.topic_private]]</span>
+		</div>
+
+		<content select="div.message"></content>
+
+		<content select=".tags"></content>
+
 	</template>
 
 	<script>
-		Polymer()
+		Polymer({
+
+			onTap:function(){
+				this.fire('topic-select', this.data);
+				this.fire('core-signal', {name:'topic-select', data: this.data});
+			}
+		})
 	</script>
 </polymer-element>

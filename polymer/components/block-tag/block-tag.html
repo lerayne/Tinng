@@ -1,11 +1,9 @@
-<polymer-element name="block-tag" attributes="data">
+<polymer-element name="block-tag" on-tap="{{onTap}}">
 	<template>
 		<style>
+
 			:host {
 				display:inline-block;
-			}
-
-			.tag {
 				margin: 1px 4px 1px 0;
 				padding: 2px 4px;
 				display: inline-block;
@@ -14,20 +12,40 @@
 				color: #fff;
 			}
 
-			.tag.user {
+			:host([tagType="user"]) {
 				background-color: #d0e7ff;
 				color: #3f6c9a;
 			}
 
-
 		</style>
 
-		<div class="tag {{data.type}}">
-			<span>{{data.name}}</span>
-		</div>
+		<content></content>
+
 	</template>
 
 	<script>
-		Polymer()
+		Polymer({
+
+			publish:{
+				data:{},
+				tagType:{ value:'', reflect:true},
+				tagID:{ value:-1, reflect:true}
+			},
+
+			computed:{
+				tagType:'data.type',
+				tagID:'data.id'
+			},
+
+			created:function(){
+				this.data = {};
+			},
+
+			onTap:function(e){
+				this.fire('tag-select', this.data);
+
+				e.stopPropagation();
+			}
+		})
 	</script>
 </polymer-element>

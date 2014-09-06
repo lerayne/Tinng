@@ -1,0 +1,27 @@
+<polymer-element name="service-forwarder">
+	<template>
+
+		<core-signals on-core-signal-topic="{{topicSelect}}"></core-signals>
+
+	</template>
+
+	<script>
+		Polymer({
+			/*created:function(){
+
+				this.addEventListener('topic-select', this.forward)
+
+			},*/
+
+			topicSelect:function(){
+				console.log('2nd widget!')
+			}
+
+			/*forward:function(event, b, c){
+
+
+				this.fire('core-signal', {name: event.type, })
+			}*/
+		})
+	</script>
+</polymer-element>

@@ -5,13 +5,26 @@
 var connectionCallback = function(result, actions){
 
 	if (!!result.feeds){
-		for (var i = 0; i < result.feeds.length; i++) {
-			var subscriber = result.feeds[i];
 
-			for (var key in subscriber) {
-				$(window).trigger(key+'-update', [subscriber[key]])
+		if (result.feeds instanceof Array) {
+			$(result.feeds).each(function(i, subscriber){
+				console.log(i, subscriber)
+
+				for (var key in subscriber) {
+					$(window).trigger(key+'-update', [subscriber[key]])
+				}
+			})
+		} else {
+			for (var i in result.feeds) {
+				var subscriber = result.feeds[i];
+
+				for (var key in subscriber) {
+					$(window).trigger(key+'-update', [subscriber[key]])
+				}
 			}
 		}
+
+
 	}
 }
 
@@ -49,6 +62,19 @@ $(window).on('polymer-ready', function(){
 	console.log('Polymer is ready')
 
 	t.connection.start();
+
+	/*var fw = $('service-forwarder')[0];
+
+	var topicSelectListeners = $('[on-topic-select]');
+
+	window.addEventListener('topic-select', function(event){
+		console.log('window catched topic:', event)
+
+		topicSelectListeners.each(function(i,el){
+
+			el.fire('topic-select', event.details)
+		})
+	})*/
 })
 
 

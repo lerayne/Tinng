@@ -1,0 +1,44 @@
+<link rel="import" href="../node-message/node-message.html">
+
+<polymer-element name="node-post" extends="node-message">
+	<template>
+		<style>
+
+			polyfill-next-selector {content:'block-tag'}
+			::content block-tag {
+				cursor:pointer;
+			}
+
+			.datetime {
+				color:#ccc;
+				float:right;
+			}
+
+			.info {
+				margin-bottom:10px;
+			}
+
+		</style>
+
+		<div class="info">
+			<content select="block-author"></content>
+
+			<span class="datetime" >
+				<span hidden?={{!!data.modified}}>
+					<content select=".created"></content>
+				</span>
+
+				<span hidden?={{!data.modified}}>
+				[[txt.modified]] <content select=".modified"></content>
+				</span>
+			</span>
+		</div>
+
+		<content select=".message"></content>
+
+	</template>
+
+	<script>
+		Polymer()
+	</script>
+</polymer-element>
