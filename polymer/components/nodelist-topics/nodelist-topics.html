@@ -4,43 +4,26 @@
 <polymer-element name="nodelist-topics" extends="nodelist-base" on-topic-select="{{topicSelect}}" on-tag-select="{{tagSelect}}">
 
 	<template>
-
 		<style>
-			.tags {
-				margin-top:15px;
+			#scroll {
+				padding: 15px 15px 1px 15px;
 			}
 		</style>
 
-		<template repeat="{{ node in nodes }}">
+		<div id="scroll">
+			<template repeat="{{ node in nodes }}">
 
-			<node-topic data="{{node}}" private?="{{!!+node.private}}" unread?={{!!+node.unread}}>
-			<template bind="{{node}}">
-				<block-author data="{{ {name: author, id: author_id, email: author_email} }}"></block-author>
-
-				<span class="created">{{created}}</span>
-				<span class="modified">{{modified}}</span>
-
-				<span class="topic">{{topic_name}}</span>
-
-				<div class="message">{{message}}</div>
-
-				<div class="tags" hidden?={{!tags}}>
-					<template repeat="{{tag in tags}}">
-						<block-tag data="{{tag}}">{{tag.name}}</block-tag>
-					</template>
-				</div>
+				<node-topic data="{{node}}"></node-topic>
 
 			</template>
-			</node-topic>
-
-		</template>
+		</div>
 
 	</template>
 
 	<script>
 		Polymer({
 
-			sortField: 'modified',
+			sortField: 'updated',
 
 
 			created: function () {
@@ -52,9 +35,11 @@
 				$(window).on('topics-main-update', this.parseTopics.bind(this))
 			},
 
+
 			topicSelect:function(event, topicData){
 				console.log('topic selected:',topicData.id)
 			},
+
 
 			tagSelect:function(event, topicData){
 				console.log('tag selected:',topicData.id)

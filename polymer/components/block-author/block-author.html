@@ -8,16 +8,22 @@
 			.name {
 				font-weight: bold;
 			}
+
+			img {
+				border-radius: 100%;
+				vertical-align: top;
+				margin-right: 5px;
+			}
 		</style>
+
+		<template if="{{!!data.avatar}}">
+			<img _src="{{data.avatar}}">
+		</template>
 
 		<span class="name">{{data.name}}</span>
 	</template>
 
 	<script>
-		Polymer({
-			created:function(){
-				this.data = {}
-			}
-		})
+		Polymer()
 	</script>
 </polymer-element>

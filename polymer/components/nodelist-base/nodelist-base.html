@@ -3,9 +3,12 @@
 
 		<style>
 			:host {
-				max-width: 600px;
-				padding: 15px;
+				max-width: 700px;
 				overflow-y: scroll;
+			}
+
+			:host([loading]) {
+				background: url(../../../stock/images/throbber_big.gif) no-repeat center center;
 			}
 		</style>
 
@@ -19,6 +22,10 @@
 			sortField:'created',
 			sortOrder:'desc',
 
+			publish:{
+				loading: {value: false, reflect: true},
+				loaded: {value: false, reflect: true}
+			},
 
 			observe:{
 				sortField:'sortSelf',
@@ -79,6 +86,22 @@
 						this.nodes[existingItemIndex] = data;
 					}
 				}
+			},
+
+			isAtBottom:function(){
+				return this.scrollHeight - (this.scrollTop + this.offsetHeight) == 0;
+			},
+
+			isAtTop:function(){
+				return this.scrollTop == 0;
+			},
+
+			toBottom: function(){
+				this.$.scroll.scrollIntoView(false)
+			},
+
+			toTop: function(){
+				this.$.scroll.scrollIntoView(true)
 			}
 		})
 	</script>

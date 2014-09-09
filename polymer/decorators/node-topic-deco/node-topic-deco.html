@@ -1,0 +1,77 @@
+<link rel="import" href="../node-deco/node-deco.html">
+
+<polymer-element name="node-topic-deco" extends="node-deco" noscript>
+	<template>
+		<style>
+			polyfill-next-selector {content:'[private] :host .private'}
+			:host-context([private]) .private {
+				display: inline-block;
+			}
+
+			polyfill-next-selector {content:'.topic'}
+			::content .topic {
+				color:#007bb7;
+				font-weight: bold;
+				font-size: 110%;
+			}
+
+			.topic-row {
+				margin-bottom:10px;
+			}
+
+			.private {
+				font-size: 90%;
+				color:#fff;
+				padding:1px 5px 2px;
+				background-color: #ccc;
+				margin-left:10px;
+				display:none;
+			}
+
+			polyfill-next-selector {content:'block-tag'}
+			::content block-tag {
+				cursor:pointer;
+			}
+
+			.datetime {
+				color:#ccc;
+				float:right;
+			}
+
+			.info {
+				margin-bottom:10px;
+			}
+
+			.tags {
+				margin-top:15px;
+			}
+		</style>
+
+		<div class="info">
+			<content select="block-author"></content>
+
+			<span class="datetime" >
+				<span hidden?={{!!data.modified}}>
+					<content select=".created"></content>
+				</span>
+
+				<span hidden?={{!data.modified}}>
+					[[txt.modified]] <content select=".modified"></content>
+				</span>
+			</span>
+		</div>
+
+		<div class="topic-row">
+			<content select="span.topic"></content>
+			<span class="private">[[txt.topic_private]]</span>
+		</div>
+
+		<content select="#message"></content>
+
+		<div class="tags" hidden?={{!data.tags}}>
+			<content select="block-tag"></content>
+		</div>
+
+
+	</template>
+</polymer-element>

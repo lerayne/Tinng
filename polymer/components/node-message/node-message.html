@@ -1,26 +1,28 @@
-<link rel="import" href="../node-base/node-base.html">
 <link rel="import" href="../block-author/block-author.html">
 <link rel="import" href="../block-tag/block-tag.html">
 
-<polymer-element name="node-message" extends="node-base" touch-action="pan-y">
+<polymer-element name="node-message" extends="node-base" attributes="data" touch-action="pan-y">
 	<template>
 
 		<style>
 			:host {
-				background-color: #fff;
-				padding: 15px;
-				margin-bottom:15px;
-				border-radius: 3px;
-				box-shadow: 0 3px 0 #ddd;
+				display: block;
 			}
-
 		</style>
 
 	</template>
 
 	<script>
 		Polymer({
-			txt: t.txt
+			txt: t.txt,
+
+			publish:{
+				unread:{value:false, reflect:true}
+			},
+
+			computed:{
+				'unread':'!!+data.unread'
+			}
 		})
 	</script>
 </polymer-element>

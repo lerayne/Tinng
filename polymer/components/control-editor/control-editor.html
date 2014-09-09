@@ -1,0 +1,44 @@
+<polymer-element name="control-editor" layout horizontal>
+	<template>
+
+		<style>
+			:host {
+				display:block;
+				padding: 10px;
+			}
+		</style>
+
+		<textarea flex id="message" on-keyup="{{messageUpdate}}">{{message}}</textarea>
+
+		<button disabled?={{empty(message)}} on-tap="{{send}}">[[txt.send]]</button>
+
+	</template>
+
+	<script>
+		Polymer({
+			txt: t.txt,
+
+			message:'',
+
+			messageChanged:function(old, value){
+				$(this.$.message).val(value)
+			},
+
+			send: function(){
+
+
+				this.fire('core-signal', {name:'add-message', data:this.message})
+
+				this.message = '';
+			},
+
+			empty:function(str){
+				return str.match(/^\s*$/)
+			},
+
+			messageUpdate: function(){
+				this.message = $(this.$.message).val()
+			}
+		})
+	</script>
+</polymer-element>

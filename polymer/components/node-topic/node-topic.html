@@ -1,76 +1,41 @@
 <link rel="import" href="../node-message/node-message.html">
+<link rel="import" href="../../decorators/node-topic-deco/node-topic-deco.html">
 
 <polymer-element name="node-topic" extends="node-message" on-tap="{{onTap}}">
 
 	<template>
 		<style>
-			:host([private]) .private {
-				display: inline-block;
-			}
-
-			polyfill-next-selector {content:'.topic'}
-			::content .topic {
-				color:#007bb7;
-				font-weight: bold;
-				font-size: 110%;
-			}
-
-			.topic-row {
-				margin-bottom:10px;
-			}
-
-			.private {
-				font-size: 90%;
-				color:#fff;
-				padding:1px 5px 2px;
-				background-color: #ccc;
-				margin-left:10px;
-				display:none;
-			}
-
-			polyfill-next-selector {content:'block-tag'}
-			::content block-tag {
-				cursor:pointer;
-			}
-
-			.datetime {
-				color:#ccc;
-				float:right;
-			}
-
-			.info {
-				margin-bottom:10px;
-			}
 
 		</style>
 
-		<div class="info">
-			<content select="block-author"></content>
+		<node-topic-deco data="{{data}}" txt="{{txt}}">
 
-			<span class="datetime" >
-				<span hidden?={{!!data.modified}}>
-					<content select=".created"></content>
-				</span>
+			<block-author data="{{ {name: data.author, id: data.author_id, email: data.author_email} }}"></block-author>
 
-				<span hidden?={{!data.modified}}>
-					[[txt.modified]] <content select=".modified"></content>
-				</span>
-			</span>
-		</div>
+			<span class="created">{{data.created}}</span>
+			<span class="modified">{{data.modified}}</span>
 
-		<div class="topic-row">
-			<content select="span.topic"></content>
-			<span class="private">[[txt.topic_private]]</span>
-		</div>
+			<span class="topic">{{data.topic_name}}</span>
 
-		<content select="div.message"></content>
+			<div id="message">{{data.message}}</div>
 
-		<content select=".tags"></content>
+			<template repeat="{{tag in data.tags}}">
+				<block-tag data="{{tag}}">{{tag.name}}</block-tag>
+			</template>
 
+		</node-topic-deco>
 	</template>
 
 	<script>
 		Polymer({
+
+			publish:{
+				private:{value:false, reflect:true}
+			},
+
+			computed:{
+				'private':'!!+data.private'
+			},
 
 			onTap:function(){
 				this.fire('topic-select', this.data);

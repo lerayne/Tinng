@@ -1,44 +1,36 @@
 <link rel="import" href="../node-message/node-message.html">
+<link rel="import" href="../../decorators/node-post-deco/node-post-deco.html">
 
 <polymer-element name="node-post" extends="node-message">
 	<template>
-		<style>
 
-			polyfill-next-selector {content:'block-tag'}
-			::content block-tag {
-				cursor:pointer;
-			}
+		<node-post-deco data="{{data}}" txt="{{txt}}">
 
-			.datetime {
-				color:#ccc;
-				float:right;
-			}
+			<block-author data="{{ {name: data.author, id: data.author_id, email: data.author_email, avatar: data.avatar} }}"></block-author>
 
-			.info {
-				margin-bottom:10px;
-			}
+			<span class="created">{{data.created}}</span>
+			<span class="modified">{{data.modified}}</span>
 
-		</style>
+			<div id="message"></div>
 
-		<div class="info">
-			<content select="block-author"></content>
+			<template if="{{!+data.topic_id}}" repeat="{{tag in data.tags}}">
+				<block-tag data="{{tag}}">{{tag.name}}</block-tag>
+			</template>
 
-			<span class="datetime" >
-				<span hidden?={{!!data.modified}}>
-					<content select=".created"></content>
-				</span>
-
-				<span hidden?={{!data.modified}}>
-				[[txt.modified]] <content select=".modified"></content>
-				</span>
-			</span>
-		</div>
-
-		<content select=".message"></content>
+		</node-post-deco>
 
 	</template>
 
 	<script>
-		Polymer()
+		Polymer({
+
+			observe:{
+				'data.message':'setMessage'
+			},
+
+			setMessage:function(old, value){
+				this.$.message.innerHTML = value;
+			}
+		})
 	</script>
 </polymer-element>

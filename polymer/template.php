@@ -44,10 +44,10 @@
 	<link rel="import" href="../../sandbox/bower_components/core-signals/core-signals.html">
 
 	<!-- custom polymer components -->
-	<link rel="import" href="./components/service-forwarder/service-forwarder.html">
 	<link rel="import" href="./components/widget-frame/widget-frame.html">
 	<link rel="import" href="components/nodelist-topics/nodelist-topics.html">
 	<link rel="import" href="components/nodelist-posts/nodelist-posts.html">
+	<link rel="import" href="components/control-editor/control-editor.html">
 
 
 </head>
@@ -56,12 +56,13 @@
 
 <widget-frame>
 	<control-panel></control-panel>
-	<nodelist-topics></nodelist-topics>
+	<nodelist-topics class="content"></nodelist-topics>
 </widget-frame>
 
 <widget-frame>
 	<control-panel></control-panel>
-	<nodelist-posts></nodelist-posts>
+	<nodelist-posts class="content"></nodelist-posts>
+	<control-editor class="footer"></control-editor>
 </widget-frame>
 
 </body>

@@ -4,29 +4,24 @@
 
 <polymer-element name="nodelist-posts" extends="nodelist-base">
 	<template>
+		<style>
+			#scroll {
+				padding: 15px 15px 1px 15px;
+			}
+		</style>
 
-		<core-signals on-core-signal-topic-select="{{topicSelect}}"></core-signals>
+		<core-signals
+			on-core-signal-topic-select="{{topicSelect}}"
+			on-core-signal-add-message="{{addMessage}}"
+		></core-signals>
 
-		<template repeat="{{ node in nodes }}">
+		<div id="scroll">
+			<template repeat="{{ node in nodes }}">
 
-			<node-post data="{{node}}" unread?={{!!+node.unread}}>
+				<node-post data="{{node}}"></node-post>
 
-				<block-author data="{{ {name: node.author, id: node.author_id, email: node.author_email} }}"></block-author>
-
-				<span class="created">{{node.created}}</span>
-				<span class="modified">{{node.modified}}</span>
-
-				<div class="message">{{node.message | unescape}}</div>
-
-				<!--<div class="tags" hidden?={{!tags}}>
-				<template repeat="{{tag in tags}}">
-					<block-tag data="{{tag}}">{{tag.name}}</block-tag>
-				</template>
-				</div>-->
-
-			</node-post>
-
-		</template>
+			</template>
+		</div>
 
 	</template>
 
@@ -48,6 +43,8 @@
 			subscribe:function(){
 				this.nodes = [];
 
+				t.connection.unscribe(this, 'posts-main');
+
 				t.connection.subscribe({
 					subscriber: this,
 					feedName: 'posts-main',
@@ -61,11 +58,20 @@
 
 			topicSelect:function(event, details){
 
+				this.loading = true;
+
 				this.selectedTopic = details.id;
 			},
 
+			addMessage: function(event, detail){
+				if (!!this.selectedTopic) alert(detail)
+			},
+
 			parsePosts:function(event, posts){
-				console.log(posts)
+
+				this.loaded = true;
+				this.loading = false;
+
 				if (!this.nodes.length) {
 					// если это первичная загрузка
 
@@ -80,12 +86,8 @@
 						this.processItem(posts[i])
 					}
 				}
-			},
 
-			unescape:function(input){
-				var e = document.createElement('div');
-				e.innerHTML = input;
-				return e.childNodes.length === 0 ? "" : e.childNodes[0].nodeValue;
+				this.async(this.toBottom)
 			}
 		})
 	</script>
