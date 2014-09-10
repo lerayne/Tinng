@@ -63,8 +63,14 @@
 				this.selectedTopic = details.id;
 			},
 
-			addMessage: function(event, detail){
-				if (!!this.selectedTopic) alert(detail)
+			addMessage: function(event, message){
+				if (!!this.selectedTopic) {
+					t.connection.write({
+						action:'add_post',
+						topic: this.selectedTopic,
+						message: message
+					})
+				}
 			},
 
 			parsePosts:function(event, posts){
@@ -72,7 +78,9 @@
 				this.loaded = true;
 				this.loading = false;
 
-				if (!this.nodes.length) {
+				var firstLoad = !this.nodes.length;
+
+				if (firstLoad) {
 					// если это первичная загрузка
 
 					// если мы заполняем массив первый раз - нужно его отсортировать
@@ -80,14 +88,25 @@
 
 				} else {
 					// если в массиве уже есть ноды
+					console.log('processing new post', posts)
 
-					for (var i = 0; i < posts.length; i++) {
-						//processItem соблюдает сортировку самостоятельно
-						this.processItem(posts[i])
+					if (posts instanceof Array){
+						for (var i = 0; i < posts.length; i++) {
+							//processItem соблюдает сортировку самостоятельно
+							this.processItem(posts[i])
+						}
+					} else {
+						for (var i in posts) {
+							this.processItem(posts[i])
+						}
 					}
+
+
 				}
 
-				this.async(this.toBottom)
+				if (firstLoad || this.isAtBottom()) {
+					this.async(this.toBottom)
+				}
 			}
 		})
 	</script>
