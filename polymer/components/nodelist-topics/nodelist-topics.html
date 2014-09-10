@@ -1,7 +1,7 @@
 <link rel="import" href="../nodelist-base/nodelist-base.html">
 <link rel="import" href="../node-topic/node-topic.html">
 
-<polymer-element name="nodelist-topics" extends="nodelist-base" on-topic-select="{{topicSelect}}" on-tag-select="{{tagSelect}}">
+<polymer-element name="nodelist-topics" extends="nodelist-base" on-tag-select="{{tagSelect}}">
 
 	<template>
 		<style>
@@ -9,6 +9,10 @@
 				padding: 15px 15px 1px 15px;
 			}
 		</style>
+
+		<core-signals
+			on-core-signal-topic-select="{{topicSelect}}"
+		></core-signals>
 
 		<div id="scroll">
 			<template repeat="{{ node in nodes }}">
@@ -36,15 +40,37 @@
 			},
 
 
-			topicSelect:function(event, topicData){
-				console.log('topic selected:',topicData.id)
+			topicSelect:function(event, detail){
+				var topicData = detail.topic;
+				var initiator = detail.sender;
+
+				_(this.$.scroll.children).each(function(node){
+					node.selected = false;
+				})
+
+				var node = this.findNode(topicData.id);
+
+				if (typeof node != 'undefined') {
+					this.findNode(topicData.id).selected = true;
+
+					// todo - проверить!
+					if (initiator.nodeName.toLowerCase() != 'node-topic') {
+						node.scrollIntoView()
+					}
+				}
 			},
 
+			findNode:function(id){
+				return  _(this.$.scroll.children).find({ID: +id})
 
-			tagSelect:function(event, topicData){
-				console.log('tag selected:',topicData.id)
+
+
+				//if (typeof selectedNode != 'undefined') selectedNode.scrollIntoView();
 			},
 
+			tagSelect:function(event, detail, sender){
+				console.log('tagSelect\n', event, '\n', detail, '\n', sender)
+			},
 
 			subscribe: function () {
 
@@ -79,6 +105,11 @@
 						//processItem соблюдает сортировку самостоятельно
 						this.processItem(topics[i])
 					}
+
+					// todo - нужно либо отключить соблюдение сортировки в processItem, либо сделать условие на выполнение sortSelf
+					// (было обновление) иначе - двойная работа. А еще лучше - сначала, если есть обновления, А ТАКЖЕ если от
+					// обновлений может зависеть порядок - обновить и отсортировать, а затем добавить/удалить с само-сортировкой
+					this.sortSelf();
 				}
 			}
 		})

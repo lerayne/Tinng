@@ -8,6 +8,11 @@
 				display: inline-block;
 			}
 
+			polyfill-next-selector {content:'[selected] :host'}
+			:host-context([selected]) {
+				box-shadow: 0 3px 0 #9acd32;
+			}
+
 			polyfill-next-selector {content:'.topic'}
 			::content .topic {
 				color:#007bb7;

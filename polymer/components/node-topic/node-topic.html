@@ -4,9 +4,6 @@
 <polymer-element name="node-topic" extends="node-message" on-tap="{{onTap}}">
 
 	<template>
-		<style>
-
-		</style>
 
 		<node-topic-deco data="{{data}}" txt="{{txt}}">
 
@@ -34,13 +31,23 @@
 			},
 
 			computed:{
+				'ID':'+data.id',
+				'unread':'!!+data.unread',
+
 				'private':'!!+data.private'
 			},
 
 			onTap:function(){
-				this.fire('topic-select', this.data);
-				this.fire('core-signal', {name:'topic-select', data: this.data});
+				this.fire('core-signal', {name:'topic-select', data: {topic:this.data, sender:this}});
 			}
+
+			/*, attached:function(){
+				console.log('attached', this.ID)
+			}
+
+			, detached:function(){
+				console.log('detached', this.ID)
+			}*/
 		})
 	</script>
 </polymer-element>

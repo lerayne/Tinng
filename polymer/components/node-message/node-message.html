@@ -16,12 +16,15 @@
 		Polymer({
 			txt: t.txt,
 
+			ID:0,
+
 			publish:{
-				unread:{value:false, reflect:true}
+				unread:{value:false, reflect:true},
+				selected:{value:false, reflect:true}
 			},
 
-			computed:{
-				'unread':'!!+data.unread'
+			created:function(){
+				this.data = {};
 			}
 		})
 	</script>
