@@ -14,5 +14,6 @@ require_once $env['appdir'].'sources/php/initial.php';
 // ПОДКЛЮЧЕНИЕ ШАБЛОНА
 //////////////////////
 
-require_once $env['appdir'].'sources/php/template.handler.php';
+//require_once $env['appdir'].'sources/php/template.handler.php';
+require_once './polymer/template-ext.php';
 ?>

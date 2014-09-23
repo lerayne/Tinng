@@ -2,19 +2,19 @@
 <html>
 <head>
 	<!-- global style -->
-	<link rel="stylesheet" href="./style/global.css" shim-shadowdom>
+	<link rel="stylesheet" href="./polymer/style/global.css" shim-shadowdom>
 
 	<!-- libraries -->
-	<script src = "../bower_components/jquery/dist/jquery.min.js"></script>
-	<script src = "../bower_components/lodash/dist/lodash.min.js"></script>
+	<script src = "./bower_components/jquery/dist/jquery.min.js"></script>
+	<script src = "./bower_components/lodash/dist/lodash.min.js"></script>
 
 	<!-- todo - platform is not needed in chrome 36+ -->
-	<script src="../bower_components/platform/platform.js"></script>
+	<script src="./bower_components/platform/platform.js"></script>
 
 	<title>TINNG Polymer Test</title>
 
 	<!-- tinng universal modules -->
-	<script src="./js/namespace.js"></script>
+	<script src="./polymer/js/namespace.js"></script>
 
 	<script>
 		tinng.txt = {};
@@ -32,22 +32,22 @@
 		?>
 	</script>
 
-	<script src="../sources/js/classes/common/Funcs.js"></script>
-	<script src="../sources/js/classes/common/connection/Connection.js"></script>
-	<script src="../sources/js/classes/common/connection/engines/XHRShortPoll.js"></script>
-	<script src="./js/init.js"></script>
+	<script src="./sources/js/classes/common/Funcs.js"></script>
+	<script src="./sources/js/classes/common/connection/Connection.js"></script>
+	<script src="./sources/js/classes/common/connection/engines/XHRShortPoll.js"></script>
+	<script src="./polymer/js/init.js"></script>
 
 	<!-- polymer itself -->
-	<link rel="import" href="../bower_components/polymer/polymer.html">
+	<link rel="import" href="./bower_components/polymer/polymer.html">
 
 	<!-- stock polymer components -->
-	<link rel="import" href="../bower_components/core-signals/core-signals.html">
+	<link rel="import" href="./bower_components/core-signals/core-signals.html">
 
 	<!-- custom polymer components -->
-	<link rel="import" href="./components/widget-frame/widget-frame.html">
-	<link rel="import" href="components/nodelist-topics/nodelist-topics.html">
-	<link rel="import" href="components/nodelist-posts/nodelist-posts.html">
-	<link rel="import" href="components/control-editor/control-editor.html">
+	<link rel="import" href="./polymer/components/widget-frame/widget-frame.html">
+	<link rel="import" href="./polymer/components/nodelist-topics/nodelist-topics.html">
+	<link rel="import" href="./polymer/components/nodelist-posts/nodelist-posts.html">
+	<link rel="import" href="./polymer/components/control-editor/control-editor.html">
 
 
 </head>
