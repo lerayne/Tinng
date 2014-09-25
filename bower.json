@@ -20,9 +20,9 @@
     "jquery_old": "jquery#1.11.1",
     "lodash": "~2.4.1",
     "polymer": "Polymer/polymer#~0.4.1",
-    "es5-shim": "~4.0.3",
     "modernizr": "~2.8.3",
     "jquery-ui": "~1.11.1",
-    "core-signals": "Polymer/core-signals#~0.4.1"
+    "core-signals": "Polymer/core-signals#~0.4.1",
+    "es6-promise-polyfill": "~1.0.0"
   }
 }

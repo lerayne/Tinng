@@ -7,6 +7,7 @@
 	<!-- libraries -->
 	<script src = "../bower_components/jquery/dist/jquery.min.js"></script>
 	<script src = "../bower_components/lodash/dist/lodash.min.js"></script>
+	<script src = "../bower_components/es6-promise/promise.min.js"></script>
 
 	<!-- todo - platform is not needed in chrome 36+ -->
 	<script src="../bower_components/platform/platform.js"></script>
