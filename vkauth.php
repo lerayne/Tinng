@@ -37,10 +37,12 @@ header ("Content-type:text/html;charset=utf-8;");
 
 function redirect_back(){
 	global $location;
+
 	header ("location: ". ($_SERVER["HTTP_REFERER"] ? $_SERVER["HTTP_REFERER"] : 'http://'.$_SERVER["HTTP_HOST"]).$_POST['lochash']);
 }
 
 echo '<pre>';
+var_dump($_SERVER["HTTP_REFERER"]);
 
 // Получение token
 $param[] = 'client_id='.$safecfg['vk_app_id'];

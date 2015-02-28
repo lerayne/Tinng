@@ -258,7 +258,7 @@
 
 			<h4><?= str('login_social') ?></h4>
 
-			<a href="https://oauth.vk.com/authorize?client_id=<?= $safecfg['vk_app_id'] ?>&scope=&response_type=code&redirect_uri=<?= $e->full_app_path ?>vkauth.php">
+			<a href="https://oauth.vk.com/authorize?client_id=<?= $safecfg['vk_app_id'] ?>&scope=&response_type=code&v=5.28&session_state=<?= now() ?>&redirect_uri=<?= $e->full_app_path ?>vkauth.php">
 				<img src="<?= path('images/vk.png')?>">
 			</a>
 
@@ -360,7 +360,7 @@
 			<div>
 				<h4><?= str('login_social') ?></h4>
 
-				<a href="https://oauth.vk.com/authorize?client_id=<?= $safecfg['vk_app_id'] ?>&scope=&response_type=code&redirect_uri=<?= $e->full_app_path; ?>vkauth.php">
+				<a href="https://oauth.vk.com/authorize?client_id=<?= $safecfg['vk_app_id'] ?>&scope=&v=5.28&session_state=<?= now() ?>&response_type=code&redirect_uri=<?= $e->full_app_path; ?>vkauth.php">
 					<img src="<?= path('images/vk.png')?>">
 				</a>
 
