@@ -38,22 +38,24 @@ switch ($_REQUEST['action']):
 
 	case 'login':
 
+		echo '<pre>';
+
+
+
 		$raw = $db->selectRow(
 			'SELECT
 				id, login, email
 			FROM ?_users
 			WHERE hash = ? AND approved = 1 AND (login = ? OR email = ?)'
-			, md5($_POST['pass'])
+			, md5($_POST['password'])
 			, $_POST['login']
 			, $_POST['login']
 		);
 
-		//echo var_dump($raw, md5($_POST['pass']));
-
 		if ($raw != false) {
 
 			$time = ($_POST['memorize']) ? time()+(365*24*60*60) : false; // запоминаем на год
-			setcookie('pass', md5($_POST['pass']), $time, '/');
+			setcookie('password', $_POST['password'], $time, '/');
 			setcookie('login', $raw['login'], $time, '/');
 			setcookie('user', $raw['id'], $time, '/');
 
@@ -73,7 +75,7 @@ switch ($_REQUEST['action']):
 			$db->query('UPDATE ?_users SET status = "offline" WHERE id = ?d', $user_id);
 		}
 
-		setcookie('pass', '', 0, '/');
+		setcookie('password', '', 0, '/');
 		setcookie('login', '', 0, '/');
 		setcookie('user', '', 0, '/');
 

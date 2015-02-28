@@ -107,7 +107,7 @@
 
 	
 	<!-- масштабируемый бекграунд -->
-	<img id="scaled-bg" src="<?= path('images/bg4.jpg') ?>">
+	<img id="scaled-bg" src="<?= path('images/bg_cyberpunk1.jpg') ?>">
 
 </div>
 
@@ -238,7 +238,7 @@
 					<tr>
 						<td><?= $txt['login_pass'] ?></td>
 						<td>
-							<input class="text" type="password" name="pass">
+							<input class="text" type="password" name="password">
 							<span class="dimmed" data-cell="forgetLink" id="passForget">(<?= $txt['login_forget'] ?>)</span>
 						</td>
 					</tr>

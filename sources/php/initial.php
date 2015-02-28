@@ -44,10 +44,17 @@ $raw_user = $db->selectRow('
 
 	WHERE usr.hash = ? AND (usr.login = ? OR usr.email = ?) AND usr.approved = 1
 	'
-    , $_COOKIE['pass']
+    , md5($_COOKIE['password'])
     , $_COOKIE['login']
 	, $_COOKIE['login']
 );
+
+/*echo "<pre>";
+var_dump($raw_user);
+echo 'pass:';
+var_dump($_COOKIE['password']);
+var_dump(md5($_COOKIE['password']));
+echo "</pre>";*/
 
 // todo заглушка аутентификации
 if (!$raw_user){

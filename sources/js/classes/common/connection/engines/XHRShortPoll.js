@@ -181,7 +181,7 @@ tinng.protos.strategic.XHRShortPoll.prototype = {
 
 		data.user = {
 			login: t.funcs.getCookie('login'),
-			pass: t.funcs.getCookie('pass')
+			password: t.funcs.getCookie('password')
 		}
 
 		return $.ajax({
@@ -195,7 +195,7 @@ tinng.protos.strategic.XHRShortPoll.prototype = {
 					console.info('PHP backtrace:\n==============\n', response.debug)
 				}
 
-				callback(response.data);
+				callback(response);
 			},
 			error: function(a, b, c){
 				console.warn('XHR error:', a, b, c);
@@ -232,7 +232,9 @@ tinng.protos.strategic.XHRShortPoll.prototype = {
 	},
 
 	// Выполняется при удачном возвращении запроса
-	onResponse:function (data) {
+	onResponse:function (response) {
+		var data = response.data;
+
 
 		clearTimeout(this.connectionLossTO);
 
