@@ -40,11 +40,13 @@ function redirect_back(){
 	header ("location: ". ($_SERVER["HTTP_REFERER"] ? $_SERVER["HTTP_REFERER"] : 'http://'.$_SERVER["HTTP_HOST"]).$_POST['lochash']);
 }
 
+echo '<pre>';
 
 // Получение token
 $param[] = 'client_id='.$safecfg['vk_app_id'];
 $param[] = 'client_secret='.$safecfg['vk_secret_key'];
 $param[] = 'code='.$_REQUEST['code'];
+$param[] = 'v=5.28';
 $param[] = 'redirect_uri=' . $script_addr;
 
 $response = curl("https://oauth.vk.com/access_token", $param, 'json');
@@ -57,13 +59,20 @@ if ($response['error']) {
 
 } elseif ($response['access_token']) {
 
+	//var_dump($response);
+	//var_dump($param);
+
 	$param = array();
 	$param[] = 'uid='.$response['user_id'];
 	$param[] = 'access_token='.$response['access_token'];
 	$param[] = 'fields=screen_name,nickname,bdate,timezone,photo,photo_medium,';
+	//var_dump($param);
 
 	$user_data = curl("https://api.vk.com/method/users.get", $param, 'json');
+
 	$user_data = $user_data['response'][0];
+
+	//var_dump($user_data);
 
 	// формируем новые данные
 	$new_user['login'] = 'vk' . $user_data['uid'];
@@ -124,7 +133,7 @@ if ($response['error']) {
 
 	// логиним юзера
 	$time = time()+($response['expires_in']*1); // запоминаем на время актуальности токена
-	setcookie('pass', $new_user['hash'], $time, '/');
+	setcookie('hash', $new_user['hash'], $time, '/');
 	setcookie('login', $new_user['login'], $time, '/');
 	setcookie('user', $new_user['id'], $time, '/');
 

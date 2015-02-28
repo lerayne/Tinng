@@ -46,8 +46,9 @@ switch ($_REQUEST['action']):
 			'SELECT
 				id, login, email
 			FROM ?_users
-			WHERE hash = ? AND approved = 1 AND (login = ? OR email = ?)'
+			WHERE (hash = ? OR hash = ?) AND approved = 1 AND (login = ? OR email = ?)'
 			, md5($_POST['password'])
+			, $_POST['hash']
 			, $_POST['login']
 			, $_POST['login']
 		);
@@ -78,6 +79,7 @@ switch ($_REQUEST['action']):
 		setcookie('password', '', 0, '/');
 		setcookie('login', '', 0, '/');
 		setcookie('user', '', 0, '/');
+		setcookie('hash', '', 0, '/');
 
 		redirect_back();
 

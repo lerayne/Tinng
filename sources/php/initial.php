@@ -42,9 +42,10 @@ $raw_user = $db->selectRow('
 
 	LEFT JOIN ?_user_settings avatar ON usr.id = avatar.user_id AND avatar.param_key = "avatar"
 
-	WHERE usr.hash = ? AND (usr.login = ? OR usr.email = ?) AND usr.approved = 1
+	WHERE (usr.hash = ? OR usr.hash = ?) AND (usr.login = ? OR usr.email = ?) AND usr.approved = 1
 	'
     , md5($_COOKIE['password'])
+    , $_COOKIE['hash']
     , $_COOKIE['login']
 	, $_COOKIE['login']
 );

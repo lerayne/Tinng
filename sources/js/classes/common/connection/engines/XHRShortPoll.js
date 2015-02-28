@@ -181,7 +181,8 @@ tinng.protos.strategic.XHRShortPoll.prototype = {
 
 		data.user = {
 			login: t.funcs.getCookie('login'),
-			password: t.funcs.getCookie('password')
+			password: t.funcs.getCookie('password'),
+			hash: t.funcs.getCookie('hash')
 		}
 
 		return $.ajax({
